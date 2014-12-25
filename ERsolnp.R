@@ -18,9 +18,9 @@
 #    LB       The lower bound on the parameters.
 #    UB       The upper bound on the parameters.
 #
-#   *eqfun‚ÆeqB‚ÍƒZƒbƒg‚Åg‚¤B“™†§–ñğŒiOptionalj
-#   *ineqfun‚ÆineqLB‚ÆineqUB‚ÍƒZƒbƒg‚Åg‚¤B•s“™†§–ñğŒiOptionalj
-#   *LB‚ÆUB‚ÍƒZƒbƒg‚Åg‚¤B•Ï”‚Ì‰ºŒÀ‚ÆãŒÀ(Optional)
+#   *eqfunã¨eqBã¯ã‚»ãƒƒãƒˆã§ä½¿ã†ã€‚ç­‰å·åˆ¶ç´„æ¡ä»¶ï¼ˆOptionalï¼‰
+#   *ineqfunã¨ineqLBã¨ineqUBã¯ã‚»ãƒƒãƒˆã§ä½¿ã†ã€‚ä¸ç­‰å·åˆ¶ç´„æ¡ä»¶ï¼ˆOptionalï¼‰
+#   *LBã¨UBã¯ã‚»ãƒƒãƒˆã§ä½¿ã†ã€‚å¤‰æ•°ã®ä¸‹é™ã¨ä¸Šé™(Optional)
 # Value
 #   A list containing the following values:
 #     pars        Optimal Parameters.
@@ -49,12 +49,12 @@ eqn1=function(x){
 #Starting parameter vector
 x0 = c(-2, 2, 2, -1, -1)
 
-# §–ñğŒ
+# åˆ¶ç´„æ¡ä»¶
 #   x1^2+x2^2+x3^2+x4^2+x5^2 = 10
 #   x2*x3-5*x4*x5 = 0
 #   x1^3+x2^3 = -1
 (powell=solnp(x0, fun = fn1, eqfun = eqn1, eqB = c(10, 0, -1)))
-#Œ‹‰Ê‚ÍŠî–{“I‚ÉLocal MinimumB•¡G‚È–â‘è‚Ìê‡‚Í‰Šú’l‚ğFX•Ï‚¦‚Ä‚·B
+#çµæœã¯åŸºæœ¬çš„ã«Local Minimumã€‚è¤‡é›‘ãªå•é¡Œã®å ´åˆã¯åˆæœŸå€¤ã‚’è‰²ã€…å¤‰ãˆã¦è©¦ã™
 
 ###EOF POWELL Problem
 
@@ -88,14 +88,14 @@ goeqfn = function(dat, n)
 }
 
 n_cl=20
-#The lower bound on the parameters.‚±‚±‚Å‚Í‚·‚×‚Ä‚Ì•Ï”‚ª-1
+#The lower bound on the parameters.ã“ã“ã§ã¯ã™ã¹ã¦ã®å¤‰æ•°ãŒ-1
 LB=rep(-1,3*n_cl)
-#The upper bound on the parameters.‚±‚±‚Å‚Í‚·‚×‚Ä‚Ì•Ï”‚ª1
+#The upper bound on the parameters.ã“ã“ã§ã¯ã™ã¹ã¦ã®å¤‰æ•°ãŒ1
 UB=rep(1,3*n_cl)
-#“™†§–ñğŒ‚Ì‚·‚×‚Ä‚Ì“™†’l‚ª1
+#ç­‰å·åˆ¶ç´„æ¡ä»¶ã®ã™ã¹ã¦ã®ç­‰å·å€¤ãŒ1
 eqB=rep(1, n_cl)
 
-#Starting Paramter‚ÌƒTƒ“ƒvƒ‹ŒQ‚ğì‚éŠÖ”
+#Starting Paramter?ÌƒT???v???Q???????Ö?
 # startpars(pars = NULL, fixed = NULL, fun, eqfun = NULL, eqB = NULL,
 #          ineqfun = NULL, ineqLB = NULL, ineqUB = NULL, LB = NULL, UB = NULL,
 #          distr = rep(1, length(LB)), distr.opt = list(), n.sim = 20000, cluster = NULL,
@@ -134,9 +134,9 @@ eqB=rep(1, n_cl)
 # Value
 #   A matrix of dimension bestN x (no.parameters + 1). The last column is the evaluated function value.
 
-# ‚±‚±‚Å‚Íã‹L‚Ì...‚Ìˆø”‚Æ‚µ‚Än=n_cl(25)‚ª“n‚³‚ê‚Ä‚¢‚é–‚É’ˆÓ
-# n=c_cl(25)‚ÍparsˆÈŠO‚Ìˆø”‚Æ‚µ‚ÄAÅ“K‰»ŠÖ”(gofn)‚Æ“™†§–ñğŒŠÖ”(goeqfn)
-# ‚Éˆø”‚Æ‚µ‚Ä’Ç‰Á‚Å“n‚³‚ê‚éB
+# ã“ã“ã§ã¯ä¸Šè¨˜ã®...ã®å¼•æ•°ã¨ã—ã¦n=n_cl(25)ãŒæ¸¡ã•ã‚Œã¦ã„ã‚‹äº‹ã«æ³¨æ„
+# n=c_cl(25)ã¯parsä»¥å¤–ã®å¼•æ•°ã¨ã—ã¦ã€æœ€é©åŒ–é–¢æ•°(gofn)ã¨ç­‰å·åˆ¶ç´„æ¡ä»¶é–¢æ•°(goeqfn)
+# ã«å¼•æ•°ã¨ã—ã¦è¿½åŠ ã§æ¸¡ã•ã‚Œã‚‹ã€‚
 best_n_cl<-15
 sp = startpars(pars = NULL, fixed = NULL, fun = gofn , eqfun = goeqfn,
                eqB = eqB, ineqfun = NULL, ineqLB = NULL, ineqUB = NULL, LB = LB, UB = UB,
@@ -149,9 +149,9 @@ sp = startpars(pars = NULL, fixed = NULL, fun = gofn , eqfun = goeqfn,
 # print(round(apply(sp, 2, "mean"), 3))
 
 # remember to remove the last column
-# sp[1,-76:-76]‚Ímatrix sp‚Ì76—ñ‚ğœ‹‚µ‚½‚à‚ÌBã‚ÌÅŒã‚Ì—ñ‚ğremove‚¹‚æ‚Æ‚Ìw¦‚Æ‡‚Á‚Ä‚¢‚é
-# —á‚¦‚ÎAsp[1,-73]‚Ímatrix sp‚Ì73—ñ‚ğœ‹‚µ‚½‚à‚Ì
-#         sp[1,-72:-76]‚Ímatrix sp‚Ì72‚©‚ç76—ñ‚ğœ‹‚µ‚½‚à‚Ì
+# sp[1,-76:-76]ã¯matrix spã®76åˆ—ã‚’é™¤å»ã—ãŸã‚‚ã®ã€‚ä¸Šã®æœ€å¾Œã®åˆ—ã‚’removeã›ã‚ˆã¨ã®æŒ‡ç¤ºã¨åˆã£ã¦ã„ã‚‹
+# ä¾‹ãˆã°ã€sp[1,-73]ã¯matrix spã®73åˆ—ã‚’é™¤å»ã—ãŸã‚‚ã®
+#         sp[1,-72:-76]ã¯matrix spã®72ã‹ã‚‰76åˆ—ã‚’é™¤å»ã—ãŸã‚‚ã®
 for(i in 1:best_n_cl){
   eq2 = solnp(pars=sp[1,-n_cl:-n_cl],fun = gofn , eqfun = goeqfn , eqB = eqB, ineqfun = NULL,
               ineqLB = NULL, ineqUB = NULL, LB = LB, UB = UB, n = n_cl)
