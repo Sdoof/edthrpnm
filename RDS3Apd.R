@@ -14,11 +14,11 @@ log10(10)
 log(10)
 log(exp(1))
 
-## ˆê—l•ª•z‚Ì—á
+## ä¸€æ§˜åˆ†å¸ƒã®ä¾‹
 runif(5,min=-1,max=1)
 runif(10)
 
-## ³‹K•ª•z‚Ì—á
+## æ­£è¦åˆ†å¸ƒã®ä¾‹
 rnorm(5,mean=3,sd=2)
 rnorm(15,mean=3,sd=2)
 rnorm(15)
@@ -28,130 +28,125 @@ sample(1:10,5)
 sample(1:10,5,replace=TRUE)
 sample(1:10,10)
 
-## •Ï”‚Ö‚Ì‘ã“üBƒRƒ“ƒ\[ƒ‹‚Ö‚Ì•\¦
+## å¤‰æ•°ã¸ã®ä»£å…¥ã€‚ã‚³ãƒ³ã‚½ãƒ¼ãƒ«ã¸ã®è¡¨ç¤º
 x<-4
 x
 print(x)
 (y<--3.5)
 x+y
 
-## character •¶š—ñ‚ÌŠÈ’P‚È‰‰Z
-
+## character æ–‡å­—åˆ—ã®ç°¡å˜ãªæ¼”ç®—
 (y<-"foo")
 z<-"bar"
 paste(y,z)
 paste(y,z,sep="")
 y+z
 
-## ˜_—‰‰Zq AND & OR | NOT !
+## è«–ç†æ¼”ç®—å­ AND & OR | NOT !
 !(T & F) | F
 
-## ‹­§“I‚É”’l‚Æ‚µ‚Äˆµ‚¤Bƒ^ƒCƒv‚Ì•ÏŠ·
-as.number(T)
-as.numberic(T)
+## å¼·åˆ¶çš„ã«æ•°å€¤ã¨ã—ã¦æ‰±ã†ã€‚ã‚¿ã‚¤ãƒ—ã®å¤‰æ›
 as.numeric(T)
 as.numeric(F)
 
-## Vector ƒxƒNƒgƒ‹
+## Vector
 (x<-c(0,1,2,3,4))
 (y<-c("foo","bar"))
 (z<-c("foo",1))
 x[2]
-(x[c(1,3,5)]) #x‚Ì—v‘f”Ô†‚ğƒxƒNƒgƒ‹‚Åw’èB‡‚ÉƒAƒNƒZƒX‚·‚é
-# seq() 0‚©‚ç3‚Ü‚Å0.5‚İBVector‚Ìì¬
+(x[c(1,3,5)]) # xã®è¦ç´ ç•ªå·ã‚’Vectorã§æŒ‡å®šã€‚é †ã«ã‚¢ã‚¯ã‚»ã‚¹ã™ã‚‹
+#seq() 0ã‹ã‚‰3ã¾ã§0.5åˆ»ã¿ã€‚Vector
 seq(0,3,by=0.5)
 seq(0,3,length=10)
 (x<-seq(0,2,by=0.3))
-length(x) #Vector‚Ì’·‚³i—v‘f”j
+length(x) #length of Vector
 
-# ®”‚ÌVector‚ğŠÈ’P‚Éì¬
-1:10
-(x<10:1) #10:1‚Ìvector‚»‚ê‚¼‚ê‚Ì—v‘f‚Æx‚ğ”äŠr‚µA‚»‚Ì˜_—‰‰ZŒ‹‰Ê‚ğ•Ô‚·
-(x<-10:1) #˜A‘±®”‚ğVector x‚É‘ã“ü
-x[3:8] #Vector x‚Ì—v‘f”Ô†‚ğƒxƒNƒgƒ‹‚Åw’èB‚»‚Ì—v‘f‚ğ‡‚ÉƒAƒNƒZƒX‚µ‚ÄA‚»‚ÌVector‚ğ•Ô‚·
-rep(1,7) #“¯‚¶”(1)‚ğ‰ñ”(7)ŒJ‚è•Ô‚µ‚½’l‚ÌVector‚ğ•Ô‚·
-rep(c("a","b","c"),3) #c()‚Åw’è‚µ‚½Vector‚ÌŒJ‚è•Ô‚µ‚Åo—ˆ‚½Vector
-rep(c(1,2,3),each=3) #c()‚Åw’è‚³‚ê‚½—v‘f‚»‚ê‚¼‚ê‚ğŒJ‚è•Ô‚µ‚Åo—ˆ‚½Vector
+#æ•´æ•°ã®Vectorã‚’ç°¡å˜ã«ä½œæˆ
+(x<-1:10)
+(x<10:1) #10:1ã®vectorãã‚Œãã‚Œã®è¦ç´ ã¨xã‚’æ¯”è¼ƒã—ã€ãã®è«–ç†æ¼”ç®—çµæœã‚’è¿”ã™
+(x<-10:1) #é€£ç¶šæ•´æ•°ã‚’Vector xã«ä»£å…¥
+x[3:8] #Vector xã®è¦ç´ ç•ªå·ã‚’ãƒ™ã‚¯ãƒˆãƒ«ã§æŒ‡å®šã€‚ãã®è¦ç´ ã‚’é †ã«ã‚¢ã‚¯ã‚»ã‚¹ã—ã¦ã€ãã®Vectorã‚’è¿”ã™
+rep(1,7) #åŒã˜æ•°(1)ã‚’å›æ•°(7)ç¹°ã‚Šè¿”ã—ãŸå€¤ã®Vectorã‚’è¿”ã™
+rep(c("a","b","c"),3) #c()ã§æŒ‡å®šã—ãŸVectorã®ç¹°ã‚Šè¿”ã—ã§å‡ºæ¥ãŸVector
+rep(c(1,2,3),each=3) #c()ã§æŒ‡å®šã•ã‚ŒãŸè¦ç´ ãã‚Œãã‚Œã‚’ç¹°ã‚Šè¿”ã—ã§å‡ºæ¥ãŸVector
 (y<-2:5)
-(z<-c(x,y)) #c()‚É‚æ‚èVector‚ÆVector‚ğŒ‹‡‚µ‚½Vector
-rev(z) #Vector‚Ì”½“]
+(z<-c(x,y)) #c()ã«ã‚ˆã‚ŠVectorã¨Vectorã‚’çµåˆã—ãŸVector
+rev(z) #Vectorã®åè»¢
 
-## Matrix s—ñ
+## Matrix
 (x<-1:8)
-(A<-matrix(x,2,4)) #Vector x‚ğ2x4(row 2 x col 4)‚ÌMatrix‚Æ‚µ‚Äˆµ‚¤B««‚ÆŠ„‚èU‚é
-(B<-matrix(x,2,4,byrow=TRUE)) #Vector x‚ğ2x4(row 2 x col 4)‚ÌMatrix‚Æ‚µ‚Äˆµ‚¤‚ª¨¨‚ÆŠ„‚èU‚é
-A+B #Matrix ‚Ì‰ÁZ
-A %*% t(B)@# Matrix‚ÌÏ
+(A<-matrix(x,2,4)) ##Vector xã‚’2x4(row 2 x col 4)ã®Matrixã¨ã—ã¦æ‰±ã†ã€‚â†“â†“ã¨å‰²ã‚ŠæŒ¯ã‚‹
+(B<-matrix(x,2,4,byrow=TRUE)) #Vector xã‚’2x4(row 2 x col 4)ã®Matrixã¨ã—ã¦æ‰±ã†ãŒâ†’â†’ã¨å‰²ã‚ŠæŒ¯ã‚‹
+A+B #Matrix ã®åŠ ç®—
+A %*% t(B) #Matrixã®ç©ã€‚t()ã¯è»¢ç½®è¡Œåˆ—?
 
-x<-1:4@#“¯‚¶’·‚³‚ÌVector
-y<-5:8@#“¯‚¶’·‚³‚ÌVector
-# —ñƒxƒNƒgƒ‹‚Æ‚µ‚ÄŒ‹‡‚µ‚ÄMatrixì¬
+x<-1:4 #Vector of same length
+y<-5:8 #Vector of same length
+
+#åˆ—ãƒ™ã‚¯ãƒˆãƒ«ã¨ã—ã¦çµåˆã—ã¦Matrixä½œæˆ
 cbind(x,y)
-# sƒxƒNƒgƒ‹‚Æ‚µ‚ÄŒ‹‡‚µ‚ÄMatrixì¬
+#è¡Œãƒ™ã‚¯ãƒˆãƒ«ã¨ã—ã¦çµåˆã—ã¦Matrixä½œæˆ
 rbind(x,y)
-# Matrix s—ñ“¯m‚ğŒ‹‡‚·‚é
+#Matrix è¡Œåˆ—åŒå£«ã‚’çµåˆã™ã‚‹
 (x<-1:6)
 (y<-1:-4)
 cbind(matrix(x,2,3),matrix(y,2,3))
-#‘ÎŠps—ñ‚ğ¶¬
+#å¯¾è§’è¡Œåˆ—ã‚’ç”Ÿæˆ
 diag(c(1,2,3))
 diag(3)
-#seq()‚ğ—p‚¢‚½Matrixì¬
+#seq()ã‚’ç”¨ã„ãŸMatrixã‚’ä½œæˆ
 (x<-matrix(seq(1,15,by=2),2,4))
-dim(x) # s—ñ‚ÌŸŒ³‚ğ’²‚×‚é
-nrow(x) #s”‚ğ’²‚×‚é
-ncol(x) #—ñ”‚ğ’²‚×‚é
-x[2,3] # 2s3—ñ—v‘f
-x[2,] # 2s–Ú
-x[,3] # 3—ñ–Ú
+dim(x);nrow(x);ncol(x)
+x[2,3]
+x[2,] #2è¡Œç›®
+x[,3] #3åˆ—ç›®
 
 ## List
 (stock<-list(month=c(1,2,3),price=c(900,1000,1200),brand="AB"))
-stock$month #list‚Ì—v‘f‚ğ$‚ÅƒAƒNƒZƒX
-stock$price[2] #list‚ÌVector—v‘f‚Ì“à—e‚ğ‚³‚ç‚É[]‚ÅƒAƒNƒZƒX
-stock[3];stock[[3]] #list‚Ì—v‘fA—v‘f‚Ì’†g‚ğƒAƒNƒZƒX
-# List‚ğŒ‹‡BNest\‘¢‚É‚È‚Á‚Ä‚¢‚é‚æ‚¤B
+stock$month #Listã®è¦ç´ ã‚’$ã§access
+stock$price[2] #Listã®Vectorè¦ç´ ã®å†…å®¹ã‚’ã•ã‚‰ã«[]ã§ã‚¢ã‚¯ã‚»ã‚¹
+stock[3];stock[[3]] #Listã®è¦ç´ ã€è¦ç´ ã®ä¸­èº«ã‚’ã‚¢ã‚¯ã‚»ã‚¹
+#Listã‚’çµåˆã€‚Nestæ§‹é€ ã«ãªã£ã¦ã„ã‚‹ã‚ˆã†ã€‚
 (x<-list(month=c(1,2,3),price=c(500,400,300),brand="A"))
 (y<-list(month=c(1,2,3,4,5),price=c(600,700,750,700,300),brand="B"))
-(z<-list(x,y)) #ƒŠƒXƒg‚ÌƒŠƒXƒg‚ğì‚é
-# List‚ğƒoƒ‰ƒoƒ‰‚É‚µ‚ÄŒ‹‡
-(w<-c(x,y)) #List‚Ì“à—e‚ğVector‚Æ‚µ‚ÄANest‚È‚µ‚ÉŒ‹‡
-(w$brand) #æ“ª‚Ì—v‘f‚Éƒ}ƒbƒ`
+(z<-list(x,y)) #List of List
+# Listã‚’ãƒãƒ©ãƒãƒ©ã«ã—ã¦çµåˆ
+(w<-c(x,y)) #Listã®å†…å®¹ã‚’Vectorã¨ã—ã¦Nestãªã—ã«çµåˆ
+(w$brand) #å…ˆé ­ã®è¦ç´ ã«ãƒãƒƒãƒ
 w[[3]]
-w[[6]] #“Yš‚Å‚ÍŒã•û‚Ì’l‚É‚àƒAƒNƒZƒX‚Å‚«‚éB
+w[[6]] #æ·»å­—ã§ã¯å¾Œæ–¹ã®å€¤ã«ã‚‚ã‚¢ã‚¯ã‚»ã‚¹ã§ãã‚‹
 #names()
 (stock<-list(month=c(1,2,3),price=c(900,1000,1200),brand="AB"))
-names(stock) #$something ‚ğVector‚Æ‚µ‚Äæ“¾
-names(stock)[3] #3”Ô–Ú‚Ì—v‘f’lB‚±‚±‚Å‚Í$brand‚Ì’lB
-names(stock)[3];names(stock)<-"Company"@#3”Ô–Ú‚Ì—v‘f’lA‚±‚±‚Å‚Í$brand‚Ì’l‚ğ•ÏX
-#List‚Ì—v‘f‚ğæ‚èœ‚­
+names(stock) #$something ã‚’Vectorã¨ã—ã¦å–å¾—
+names(stock)[3] #3ç•ªç›®ã®è¦ç´ å€¤ã€‚ã“ã“ã§ã¯$brandã®å€¤
+names(stock)[3];names(stock)<-"Company" #3ç•ªç›®ã®è¦ç´ å€¤ã€ã“ã“ã§ã¯$brandã®å€¤ã‚’å¤‰æ›´
+#Listã®è¦ç´ ã‚’å–ã‚Šé™¤ã
 stock$price <- NULL;stock
 
 ## Data Frame
-#ì¬
 (x<-data.frame(month=c(1,2,3),price=c(9,10,12),deal=c(10,8,5)))
 
-#ƒAƒNƒZƒX
-x$price #$something ‚Å‚ÌƒAƒNƒZƒXBreturn Vector
-x[[2]] #2—ñ–ÚB‚±‚±‚Å‚Í$priceBVector‚Æ‚µ‚Äreturn?
-x[2] #2—ñ–ÚB‚±‚±‚Å‚Í$priceBMatrix‚Æ‚µ‚Äreturn?
-x[2,] #2s–ÚBMatrix‚Æ‚µ‚Äreturn?
+# access
+x$price #$something ã§ã®ã‚¢ã‚¯ã‚»ã‚¹ã€‚here return Vector
+x[[2]] #2åˆ—ç›® ã“ã“ã§ã¯$priceã€‚Vectorã¨ã—ã¦return
+x[2] ##2åˆ—ç›® ã“ã“ã§ã¯$priceã€‚here return Matrix?
+x[2,] #2è¡Œç›® here return Matrix?
 
-#•ÏŠ·
+# transform
 (stock<-list(month=c(1,2,3),price=c(9,10,12),deal=c(10,8,5)))
-(y<-data.frame(stock)) #List‚Ìdata.frame‚Ö‚Ì•ÏŠ·B
+(y<-data.frame(stock)) #Listã®data.frameã¸ã®å¤‰æ›
 (market<-matrix(c(1,2,3,90,100,120,100,80,50),3,3))
-(z<-data.frame(market)) #matrix‚Ìdata.frame‚Ö‚Ì•ÏŠ·B
+(z<-data.frame(market)) #Matrixã®data.frameã¸ã®å¤‰æ›
 
-#‘®«‚Ìæ“¾B•ÏX
+#å±æ€§ã®å–å¾—å¤‰æ›´
 (x<-data.frame(month=c(1,2,3),price=c(90,100,120),deal=c(100,80,50)))
-rownames(x) # s‚Ì–¼‘O‚ğŠm”F
+rownames(x)
 rownames(x)<-c("Jan","Feb","Mar")
-colnames(x) #—ñ‚Ì–¼‘O‚ğŠm”F
+colnames(x)
 colnames(x)<-c("tsuki","kakaku","torihiki")
 x
 
-### ƒIƒuƒWƒFƒNƒg‚ÌŒ^‚ğ’²‚×‚éB•ÏŠ·B
+### Object's Type and transform
 x<-1
 mode(x)
 is.numeric(x)
@@ -163,7 +158,7 @@ mode(x)
 x<-c(T,F)
 mode(x)
 x
-#ƒIƒuƒWƒFƒNƒg‚ÌŒ^‚ğ‹¸³•ÏŠ·
+# Force transform of object type
 x<-5;mode(x)
 (y<-as.character(x))
 mode(y)
@@ -171,7 +166,7 @@ mode(y)
 (y<-as.logical(x))
 (x<- c(T,F))
 (y<-as.numeric(x))
-# Vector‚ÆMatrix
+# Vector and Matrix
 x<-c(1,2,3,4)
 is.vector(x)
 is.matrix(x)
@@ -181,32 +176,33 @@ is.matrix(x)
 # List
 (x<-list(c(1,2,3),c("foo","bar")))
 is.list(x)
-is.vector(x) #List also  Vector
+is.vector(x) #List is also Vector
 is.data.frame(x)
 (x<-data.frame(c(1,2,3),c(10,8,6)))
 is.data.frame(x)
 is.vector(x)
-is.list(x) #data.frame also Vector
+is.list(x) #data.frame is also Vector
 is.matrix(x)
 
-# vector ‚©‚ç list,matrix,data.frame
+# From Vector To List,Matrix,Data.frame
 (x<-c(1,2,3,4)) #Vector
-as.list(x) #Vector‚ğList‚É•ÏŠ·
-as.list(x)[[2]];as.list(x)[2] #’†g‚Æ—v‘f–¼B—v‘f–¼‚Í‚±‚Ìê‡$‚Å‚È‚¢B
+as.list(x)
+#ä¸­èº«ã¨è¦ç´ åã€‚è¦ç´ åã¯ã“ã“ã§ã¯$ã§ãªã„
+as.list(x)[[2]];as.list(x)[2]
 (x<-matrix(x,2,2))
-as.vector(x) #matrix‚ğvector‚Æ‚µ‚ÄB
-as.list(x)@#matrix‚ğlist‚Æ‚µ‚ÄB
-as.data.frame(x) #matrix‚ğdata.frame‚Æ‚µ‚Ä
+as.vector(x) #Matrix to Vector
+as.list(x) #Matrix to List
+as.data.frame(x) #Matrix to Data.frame
 
-#list ‚©‚ç vector
+#From List to Vector
 (x<-list(c(1,2,3),c("foo","bar")))
 (as.vector(x))
 x[1]
-#data.frame ‚©‚çmatrix
+#From Data.frame to Matrix
 (x<-data.frame(A=c(1,2,3),B=c(10,8,6)))
 as.matrix(x)
 
-##§Œä\‘¢
+##Control Structure
 is.odd <- function(n){
   if(n%%2==1){
     return(TRUE)
@@ -234,7 +230,7 @@ fact2<-function(n){
   return(tmp)
 }
 fact2(4)
-#repeat•¶BÈ—ª
+#repeat skipped
 
 ##Drawing Graphs
 (x<-rnorm(10));(y<-rnorm(10));plot(x,y)
@@ -336,7 +332,7 @@ arc(1,pi/4)
 arc(c(1,2,3),c(pi/4,pi/8,pi/3))
 
 #Input a file as a program
-#source("program.r",echo=TRUE) #Program‚Ì’†‚ğ•\¦‚µ‚È‚ª‚ç
+#source("program.r",echo=TRUE) #echoing program.r's content
 
 #Output a file of data
 market<-data.frame(tsuki=c("Jan","Feb","Mar"),kakaku=c(9,10,12),torihiki=c(12,8,5))
