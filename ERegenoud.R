@@ -50,3 +50,12 @@ bb <- genoud(aa, default.domains=20, data.type.int=TRUE,nvars=100,pop.size=5000,
 ## End(Not run)
 # For more examples see: http://sekhon.berkeley.edu/rgenoud/R
 
+##実際のアプリケーションでは、gnoudのdata.type.intにまかさずに、
+##目的関数内で整数制約を用いた場合の方がうまくいくかもしれない。
+##ある程度は滑らかな空間だろうから。実際Delat,Gamma,Theta,Vega等の値
+##は線形結合で表せるし、目的関数の値が余程の境界でない限り沈み込む
+##ことはないだろう。
+##少なくとも、それで微分的な手法が使えるのでLocal Minimumへの収束は
+##急速に速くなるだろう。後は、多くの初期値で沢山実験するしかない。
+
+
