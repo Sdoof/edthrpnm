@@ -153,7 +153,7 @@ sp = startpars(pars = NULL, fixed = NULL, fun = gofn , eqfun = goeqfn,
 # 例えば、sp[1,-73]はmatrix spの73列を除去したもの
 #         sp[1,-72:-76]はmatrix spの72から76列を除去したもの
 for(i in 1:best_n_cl){
-  eq2 = solnp(pars=sp[1,-n_cl:-n_cl],fun = gofn , eqfun = goeqfn , eqB = eqB, ineqfun = NULL,
+  eq2 = solnp(pars=sp[i,-3*n_cl-1],fun = gofn , eqfun = goeqfn , eqB = eqB, ineqfun = NULL,
               ineqLB = NULL, ineqUB = NULL, LB = LB, UB = UB, n = n_cl)
   if(i==1){
     eq_v <- c(eq2)
@@ -169,3 +169,58 @@ for(i in 1:best_n_cl){
 #               ineqLB = NULL, ineqUB = NULL, LB = LB, UB = UB, n = n_cl)
 # should get a value of around 243.8162 for the case of n==25
 ## End(Not run)
+
+##############
+##  startpars Example as Integer Problem
+##############
+
+#Funtion to be MINIMIZED
+gofn2= function(dat, n)
+{
+  # 整数制約
+  x = floor(dat[1:n])
+  y = floor(dat[(n+1):(2*n)])
+  z = floor(dat[(2*n+1):(3*n)])
+  ii = matrix(1:n, ncol = n, nrow = n, byrow = TRUE)
+  jj = matrix(1:n, ncol = n, nrow = n)
+  ij = which(ii<jj, arr.ind = TRUE)
+  i = ij[,1]
+  j = ij[,2]
+  # Coulomb potential
+  potential = sum(1.0/sqrt((x[i]-x[j])^2 + (y[i]-y[j])^2 + (z[i]-z[j])^2))
+  potential
+}
+
+n_cl=20
+#The lower bound on the parameters.ここではすべての変数が-1
+LB=rep(-1.5,3*n_cl) #floor()使うと解は-2が下限
+#The upper bound on the parameters.ここではすべての変数が1
+UB=rep(1.5,3*n_cl) #floor()使うと解は1が上限
+#等号制約条件のすべての等号値が1
+eqB=rep(1, n_cl)
+#Startup Paramters
+best_n_cl<-2
+sp = startpars(pars = NULL, fixed = NULL, fun = gofn2 , eqfun = NULL,
+               eqB = NULL, ineqfun = NULL, ineqLB = NULL, ineqUB = NULL, LB = LB, UB = UB,
+               distr = rep(1, length(LB)), distr.opt = list(), n.sim = 2000,
+               bestN = best_n_cl, eval.type = 2, n = n_cl)
+
+
+# remember to remove the last column
+for(i in 1:best_n_cl){
+  eq2 = solnp(pars=sp[i,-3*n_cl-1],fun = gofn2 , eqfun = NULL , eqB = NULL, ineqfun = NULL,
+              ineqLB = NULL, ineqUB = NULL, LB = LB, UB = UB, n = n_cl)
+  if(i==1){
+    eq_v <- c(eq2)
+  }
+  else {
+    eq_v <- append(eq_v,eq2)
+  }
+}
+##Result を floor()する
+#vector
+# x,y,zすべて整数制約
+#c(floor(eq2$par))
+# xのみ整数制約
+#c(floor(eq2$par[1:n_cl]),eq2$par[(n_cl+1):(3*n_cl)])
+#eq2$values
