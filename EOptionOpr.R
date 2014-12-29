@@ -262,82 +262,163 @@ xT0$Gamma<-deltagamma_tmp[length(xT0$Delta)+1:length(xT0$Gamma)]
 
 #2.Vega
 
-for(i in 1:length(xT0$TYPE)){
+set.Vega <- function(xT){
   h <- 10^(-2)
-  ##  Business days
-  busdays_betwn<-businessDaysBetween("UnitedStates/NYSE",
-                                     as.Date(xT0$Date[i],format="%Y/%m/%d"),
-                                     as.Date(xT0$ExpDate[i],format="%Y/%m/%d"))
-  if(xT0$TYPE[i] == 1){
-    Cplus <- (AmericanOption(type="put", underlying=xT0$UDLY[i], strike=xT0$Strike[i],
+  for(i in 1:length(xT$TYPE)){
+    ##  Business days
+    busdays_betwn<-businessDaysBetween("UnitedStates/NYSE",
+                                       as.Date(xT$Date[i],format="%Y/%m/%d"),
+                                       as.Date(xT$ExpDate[i],format="%Y/%m/%d"))
+    if(xT$TYPE[i] == 1){
+      Cplus <- (AmericanOption(type="put", underlying=xT$UDLY[i], strike=xT$Strike[i],
+                               dividendYield=divYld_G, riskFreeRate=riskFreeRate_G, maturity=busdays_betwn/365,
+                               volatility=xT$OrigIV[i]+h,
+                               timeSteps=150, gridPoints=149, engine="CrankNicolson"))$value
+      Cminus <- (AmericanOption(type="put", underlying=xT$UDLY[i], strike=xT$Strike[i],
                                 dividendYield=divYld_G, riskFreeRate=riskFreeRate_G, maturity=busdays_betwn/365,
-                                volatility=xT0$OrigIV[i]+h,
+                                volatility=xT$OrigIV[i]-h,
                                 timeSteps=150, gridPoints=149, engine="CrankNicolson"))$value
-    Cminus <- (AmericanOption(type="put", underlying=xT0$UDLY[i], strike=xT0$Strike[i],
+    } else if(xT$TYPE[i] == -1){
+        Cplus <- (AmericanOption(type="call", underlying=xT$UDLY[i], strike=xT$Strike[i],
                                  dividendYield=divYld_G, riskFreeRate=riskFreeRate_G, maturity=busdays_betwn/365,
-                                 volatility=xT0$OrigIV[i]-h,
+                                 volatility=xT$OrigIV[i]+h,
                                  timeSteps=150, gridPoints=149, engine="CrankNicolson"))$value
- 
-  }else if(xT0$TYPE[i] == -1){
-    Cplus <- (AmericanOption(type="call", underlying=xT0$UDLY[i], strike=xT0$Strike[i],
-                                dividendYield=divYld_G, riskFreeRate=riskFreeRate_G, maturity=busdays_betwn/365,
-                                volatility=xT0$OrigIV[i]+h,
-                                timeSteps=150, gridPoints=149, engine="CrankNicolson"))$value
-    Cminus <- (AmericanOption(type="call", underlying=xT0$UDLY[i], strike=xT0$Strike[i],
-                                 dividendYield=divYld_G, riskFreeRate=riskFreeRate_G, maturity=busdays_betwn/365,
-                                 volatility=xT0$OrigIV[i]-h,
-                                 timeSteps=150, gridPoints=149, engine="CrankNicolson"))$value
+        Cminus <- (AmericanOption(type="call", underlying=xT$UDLY[i], strike=xT$Strike[i],
+                                  dividendYield=divYld_G, riskFreeRate=riskFreeRate_G, maturity=busdays_betwn/365,
+                                  volatility=xT$OrigIV[i]-h,
+                                  timeSteps=150, gridPoints=149, engine="CrankNicolson"))$value
+    }
+    # a central difference
+    xT$Vega[i] <- (Cplus - Cminus)/2
   }
-  # a central difference
-  vega_tmp <- (Cplus - Cminus)/2
-  xT0$Vega[i]<-vega_tmp
+  xT$Vega
 }
+
+xT0$Vega<-set.Vega(xT=xT0)
+
+#for(i in 1:length(xT0$TYPE)){
+#  h <- 10^(-2)
+#  ##  Business days
+#  busdays_betwn<-businessDaysBetween("UnitedStates/NYSE",
+#                                     as.Date(xT0$Date[i],format="%Y/%m/%d"),
+#                                     as.Date(xT0$ExpDate[i],format="%Y/%m/%d"))
+#  if(xT0$TYPE[i] == 1){
+#    Cplus <- (AmericanOption(type="put", underlying=xT0$UDLY[i], strike=xT0$Strike[i],
+#                                dividendYield=divYld_G, riskFreeRate=riskFreeRate_G, maturity=busdays_betwn/365,
+#                                volatility=xT0$OrigIV[i]+h,
+#                                timeSteps=150, gridPoints=149, engine="CrankNicolson"))$value
+#    Cminus <- (AmericanOption(type="put", underlying=xT0$UDLY[i], strike=xT0$Strike[i],
+#                                 dividendYield=divYld_G, riskFreeRate=riskFreeRate_G, maturity=busdays_betwn/365,
+#                                 volatility=xT0$OrigIV[i]-h,
+#                                 timeSteps=150, gridPoints=149, engine="CrankNicolson"))$value
+# 
+#  }else if(xT0$TYPE[i] == -1){
+#    Cplus <- (AmericanOption(type="call", underlying=xT0$UDLY[i], strike=xT0$Strike[i],
+#                                dividendYield=divYld_G, riskFreeRate=riskFreeRate_G, maturity=busdays_betwn/365,
+#                                volatility=xT0$OrigIV[i]+h,
+#                                timeSteps=150, gridPoints=149, engine="CrankNicolson"))$value
+#    Cminus <- (AmericanOption(type="call", underlying=xT0$UDLY[i], strike=xT0$Strike[i],
+#                                 dividendYield=divYld_G, riskFreeRate=riskFreeRate_G, maturity=busdays_betwn/365,
+#                                 volatility=xT0$OrigIV[i]-h,
+#                                 timeSteps=150, gridPoints=149, engine="CrankNicolson"))$value
+#  }
+#  # a central difference
+#  vega_tmp <- (Cplus - Cminus)/2
+#  xT0$Vega[i]<-vega_tmp
+#}
 
 #3. Theta
-for(i in 1:length(xT0$TYPE)){
+
+set.Theta <- function(xT){
   h <- 1
-  Cminus<-0
-  ##  Business days
-  busdays_betwn<-businessDaysBetween("UnitedStates/NYSE",
-                                     as.Date(xT0$Date[i],format="%Y/%m/%d"),
-                                     as.Date(xT0$ExpDate[i],format="%Y/%m/%d"))
-  if(xT0$TYPE[i] == 1){
-    Cminus<- (AmericanOption(type="put", underlying=xT0$UDLY[i], strike=xT0$Strike[i],
-                                dividendYield=divYld_G, riskFreeRate=riskFreeRate_G, maturity=(busdays_betwn-h)/365,
-                                volatility=xT0$OrigIV[i],
-                                timeSteps=150, gridPoints=149, engine="CrankNicolson"))$value
-    
-  }else if(xT0$TYPE[i] == -1){
-    Cminus<- (AmericanOption(type="call", underlying=xT0$UDLY[i], strike=xT0$Strike[i],
-                             dividendYield=divYld_G, riskFreeRate=riskFreeRate_G, maturity=(busdays_betwn-h)/365,
-                             volatility=xT0$OrigIV[i],
-                             timeSteps=150, gridPoints=149, engine="CrankNicolson"))$value
+  for(i in 1:length(xT$TYPE)){
+    ##  Business days
+    busdays_betwn<-businessDaysBetween("UnitedStates/NYSE",
+                                       as.Date(xT$Date[i],format="%Y/%m/%d"),
+                                       as.Date(xT$ExpDate[i],format="%Y/%m/%d"))
+    if(xT$TYPE[i] == 1){
+      Cminus<- (AmericanOption(type="put", underlying=xT$UDLY[i], strike=xT$Strike[i],
+                               dividendYield=divYld_G, riskFreeRate=riskFreeRate_G, maturity=(busdays_betwn-h)/365,
+                               volatility=xT$OrigIV[i],
+                               timeSteps=150, gridPoints=149, engine="CrankNicolson"))$value
+    } else if(xT$TYPE[i] == -1){
+      Cminus<- (AmericanOption(type="call", underlying=xT$UDLY[i], strike=xT$Strike[i],
+                               dividendYield=divYld_G, riskFreeRate=riskFreeRate_G, maturity=(busdays_betwn-h)/365,
+                               volatility=xT$OrigIV[i],
+                               timeSteps=150, gridPoints=149, engine="CrankNicolson"))$value
+    }
+    # a central difference
+    xT$Theta[i] <- (Cminus-xT$Price[i])
   }
-  # a central difference
-  xT0$Theta[i] <- (Cminus-xT0$Price[i])
+  xT$Theta
 }
+
+xT0$Theta<-set.Theta(xT=xT0)
+
+#for(i in 1:length(xT0$TYPE)){
+#  h <- 1
+#  Cminus<-0
+#  ##  Business days
+#  busdays_betwn<-businessDaysBetween("UnitedStates/NYSE",
+#                                     as.Date(xT0$Date[i],format="%Y/%m/%d"),
+#                                     as.Date(xT0$ExpDate[i],format="%Y/%m/%d"))
+#  if(xT0$TYPE[i] == 1){
+#    Cminus<- (AmericanOption(type="put", underlying=xT0$UDLY[i], strike=xT0$Strike[i],
+#                                dividendYield=divYld_G, riskFreeRate=riskFreeRate_G, maturity=(busdays_betwn-h)/365,
+#                                volatility=xT0$OrigIV[i],
+#                                timeSteps=150, gridPoints=149, engine="CrankNicolson"))$value
+#    
+#  }else if(xT0$TYPE[i] == -1){
+#    Cminus<- (AmericanOption(type="call", underlying=xT0$UDLY[i], strike=xT0$Strike[i],
+#                             dividendYield=divYld_G, riskFreeRate=riskFreeRate_G, maturity=(busdays_betwn-h)/365,
+#                             volatility=xT0$OrigIV[i],
+#                             timeSteps=150, gridPoints=149, engine="CrankNicolson"))$value
+#  }
+  # a central difference
+#  xT0$Theta[i] <- (Cminus-xT0$Price[i])
+#}
 
 #4. Rho
-for(i in 1:length(xT0$TYPE)){
-  ##  Business days
-  busdays_betwn<-businessDaysBetween("UnitedStates/NYSE",
-                                     as.Date(xT0$Date[i],format="%Y/%m/%d"),
-                                     as.Date(xT0$ExpDate[i],format="%Y/%m/%d"))
-  if(xT0$TYPE[i] == 1){
-    xT0$Rho[i]<-(EuropeanOption(type="put", underlying=xT0$UDLY[i], strike=xT0$Strike[i],
-                                   dividendYield=divYld_G, riskFreeRate=riskFreeRate_G, maturity=busdays_betwn/365,
-                                    volatility=xT0$OrigIV[i]))$rho/100
-  }else if(xT0$TYPE[i] == -1){
-    xT0$Rho[i]<-(EuropeanOption(type="call", underlying=xT0$UDLY[i], strike=xT0$Strike[i],
-                    dividendYield=divYld_G, riskFreeRate=riskFreeRate_G, maturity=busdays_betwn/365,
-                    volatility=xT0$OrigIV[i]))$rho/100
+
+set.Rho <- function(xT){
+  for(i in 1:length(xT$TYPE)){
+    ##  Business days
+    busdays_betwn<-businessDaysBetween("UnitedStates/NYSE",
+                                       as.Date(xT$Date[i],format="%Y/%m/%d"),
+                                       as.Date(xT$ExpDate[i],format="%Y/%m/%d"))
+    if(xT$TYPE[i] == 1){
+      xT$Rho[i]<-(EuropeanOption(type="put", underlying=xT$UDLY[i], strike=xT$Strike[i],
+                                  dividendYield=divYld_G, riskFreeRate=riskFreeRate_G, maturity=busdays_betwn/365,
+                                  volatility=xT$OrigIV[i]))$rho/100
+    } else if(xT$TYPE[i] == -1){
+      xT$Rho[i]<-(EuropeanOption(type="call", underlying=xT$UDLY[i], strike=xT$Strike[i],
+                                  dividendYield=divYld_G, riskFreeRate=riskFreeRate_G, maturity=busdays_betwn/365,
+                                  volatility=xT$OrigIV[i]))$rho/100
+    }
   }
+  xT$Rho
 }
 
-#もとの値に置き換える
-#xT0[1:length(cur_pos),1]<-cur_pos
-# あるいは
-# xT0$Position<-cur_pos
+xT0$Rho<-set.Rho(xT=xT0)
+
+#for(i in 1:length(xT0$TYPE)){
+#  ##  Business days
+#  busdays_betwn<-businessDaysBetween("UnitedStates/NYSE",
+#                                     as.Date(xT0$Date[i],format="%Y/%m/%d"),
+#                                     as.Date(xT0$ExpDate[i],format="%Y/%m/%d"))
+#  if(xT0$TYPE[i] == 1){
+#    xT0$Rho[i]<-(EuropeanOption(type="put", underlying=xT0$UDLY[i], strike=xT0$Strike[i],
+#                                   dividendYield=divYld_G, riskFreeRate=riskFreeRate_G, maturity=busdays_betwn/365,
+#                                    volatility=xT0$OrigIV[i]))$rho/100
+#  }else if(xT0$TYPE[i] == -1){
+#    xT0$Rho[i]<-(EuropeanOption(type="call", underlying=xT0$UDLY[i], strike=xT0$Strike[i],
+#                    dividendYield=divYld_G, riskFreeRate=riskFreeRate_G, maturity=busdays_betwn/365,
+#                    volatility=xT0$OrigIV[i]))$rho/100
+#  }
+#}
+
+## xT0StrMns[],xT0StrPlus[]
+## Further xT7,xT14,xT21,xT28,xT35
 
 ##File への出力
 write.table(xT0,"OptionVariablesT0.csv",col.names=T,sep=",",append=F)
