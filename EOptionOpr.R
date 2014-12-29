@@ -47,10 +47,9 @@ divYld_G=0.0
 #      xT0$Price-intr_t
 
 #  Greekの計算と設定
-#
-#
-# まずはOriginal IVの設定
-#
+
+#0. IV (Original IV)
+
 ##検算用
 #(xT0$Price[1])
 #(xT0$UDLY[1])
@@ -67,23 +66,45 @@ divYld_G=0.0
 #                                            strike=xT0$Strike[1],dividendYield=divYld_G,riskFreeRate=riskFreeRate_G,
 #                                           maturity=days_diff_week/365,volatility=0.2)
 ##EOF 検算
+#
 
-#実際にそれぞれの要素の値を設定
-for(i in 1:length(xT0$TYPE)){
-  ##  Business days
-  busdays_betwn<-businessDaysBetween("UnitedStates/NYSE",
-                                      as.Date(xT0$Date[i],format="%Y/%m/%d"),
-                                      as.Date(xT0$ExpDate[i],format="%Y/%m/%d"))
-  if(xT0$TYPE[i] == 1){
-    xT0$OrigIV[i]=AmericanOptionImpliedVolatility(type="put", value=xT0$Price[i],underlying=xT0$UDLY[i],
-                                     strike=xT0$Strike[i],dividendYield=divYld_G,riskFreeRate=riskFreeRate_G,
-                                     maturity=busdays_betwn/365,volatility=0.2)
-  }else if(xT0$TYPE[i] == -1){
-    xT0$OrigIV[i]=AmericanOptionImpliedVolatility(type="call", value=xT0$Price[i],underlying=xT0$UDLY[i],
-                                                strike=xT0$Strike[i],dividendYield=divYld_G,riskFreeRate=riskFreeRate_G,
-                                                maturity=busdays_betwn/365,volatility=0.2)
+set.IVOrig <- function(xT){
+  for(i in 1:length(xT$TYPE)){
+    ##  Business days
+    busdays_betwn<-businessDaysBetween("UnitedStates/NYSE",
+                                       as.Date(xT$Date[i],format="%Y/%m/%d"),
+                                       as.Date(xT$ExpDate[i],format="%Y/%m/%d"))
+    if(xT$TYPE[i] == 1){
+      xT$OrigIV[i]=AmericanOptionImpliedVolatility(type="put", value=xT$Price[i],underlying=xT$UDLY[i],
+                                                    strike=xT$Strike[i],dividendYield=divYld_G,riskFreeRate=riskFreeRate_G,
+                                                    maturity=busdays_betwn/365,volatility=0.2)
+    }else if(xT$TYPE[i] == -1){
+      xT$OrigIV[i]=AmericanOptionImpliedVolatility(type="call", value=xT$Price[i],underlying=xT$UDLY[i],
+                                                    strike=xT$Strike[i],dividendYield=divYld_G,riskFreeRate=riskFreeRate_G,
+                                                    maturity=busdays_betwn/365,volatility=0.2)
+    }
   }
+  xT$OrigIV
 }
+
+xT0$OrigIV<-set.IVOrig(xT=xT0)
+
+#for(i in 1:length(xT0$TYPE)){
+  ##  Business days
+#  busdays_betwn<-businessDaysBetween("UnitedStates/NYSE",
+#                                      as.Date(xT0$Date[i],format="%Y/%m/%d"),
+#                                      as.Date(xT0$ExpDate[i],format="%Y/%m/%d"))
+#  if(xT0$TYPE[i] == 1){
+#    xT0$OrigIV[i]=AmericanOptionImpliedVolatility(type="put", value=xT0$Price[i],underlying=xT0$UDLY[i],
+#                                     strike=xT0$Strike[i],dividendYield=divYld_G,riskFreeRate=riskFreeRate_G,
+#                                     maturity=busdays_betwn/365,volatility=0.2)
+#  }else if(xT0$TYPE[i] == -1){
+#    xT0$OrigIV[i]=AmericanOptionImpliedVolatility(type="call", value=xT0$Price[i],underlying=xT0$UDLY[i],
+#                                                strike=xT0$Strike[i],dividendYield=divYld_G,riskFreeRate=riskFreeRate_G,
+#                                                maturity=busdays_betwn/365,volatility=0.2)
+#  }
+#}
+
 # Greeks
 #RQualntLab
 #  AmericanOption(type, underlying, strike,
@@ -116,7 +137,7 @@ for(i in 1:length(xT0$TYPE)){
 
 ##Start of 検算用。Later We apply for loop
 
-#Deltaとgammaに関しては値にC0に入っている
+#Delta,gamma
 #時間差
 #(busdays_betwn<-businessDaysBetween("UnitedStates/NYSE",
 #                                   as.Date(xT0$Date[1],format="%Y/%m/%d"),
@@ -193,23 +214,51 @@ for(i in 1:length(xT0$TYPE)){
 ##EOF 検算用
 
 #1. Delta, Gamma
-for(i in 1:length(xT0$TYPE)){
-  ##  Business days
-  busdays_betwn<-businessDaysBetween("UnitedStates/NYSE",
-                                     as.Date(xT0$Date[i],format="%Y/%m/%d"),
-                                     as.Date(xT0$ExpDate[i],format="%Y/%m/%d"))
-  if(xT0$TYPE[i] == 1){
-    C0_tmp<-AmericanOption(type="put", underlying=xT0$UDLY[i], strike=xT0$Strike[i],
-                   dividendYield=divYld_G, riskFreeRate=riskFreeRate_G, maturity=busdays_betwn/365, volatility=xT0$OrigIV[i],
-                   timeSteps=150, gridPoints=149, engine="CrankNicolson")
-  }else if(xT0$TYPE[i] == -1){
-    C0_tmp<-AmericanOption(type="call", underlying=xT0$UDLY[i], strike=xT0$Strike[i],
-                           dividendYield=divYld_G, riskFreeRate=riskFreeRate_G, maturity=busdays_betwn/365, volatility=xT0$OrigIV[i],
-                           timeSteps=150, gridPoints=149, engine="CrankNicolson")
+
+set.DeltaGamma <- function(xT){
+  delta<-rep(0,length(xT$TYPE))
+  gamma<-rep(0,length(xT$TYPE))
+  for(i in 1:length(xT$TYPE)){
+    ##  Business days
+    busdays_betwn<-businessDaysBetween("UnitedStates/NYSE",
+                                       as.Date(xT$Date[i],format="%Y/%m/%d"),
+                                       as.Date(xT$ExpDate[i],format="%Y/%m/%d"))
+    if(xT$TYPE[i] == 1){
+      C0_tmp<-AmericanOption(type="put", underlying=xT$UDLY[i], strike=xT$Strike[i],
+                             dividendYield=divYld_G, riskFreeRate=riskFreeRate_G, maturity=busdays_betwn/365, volatility=xT$OrigIV[i],
+                             timeSteps=150, gridPoints=149, engine="CrankNicolson")
+    }else if(xT$TYPE[i] == -1){
+      C0_tmp<-AmericanOption(type="call", underlying=xT$UDLY[i], strike=xT$Strike[i],
+                             dividendYield=divYld_G, riskFreeRate=riskFreeRate_G, maturity=busdays_betwn/365, volatility=xT$OrigIV[i],
+                             timeSteps=150, gridPoints=149, engine="CrankNicolson")
+    }
+     delta[i]<- C0_tmp$delta
+     gamma[i]<- C0_tmp$gamma
   }
-  xT0$Delta[i] <- C0_tmp$delta
-  xT0$Gamma[i] <- C0_tmp$gamma
+  append(delta,gamma)
 }
+
+(deltagamma_tmp<-set.DeltaGamma(xT0))
+xT0$Delta<-deltagamma_tmp[1:length(xT0$Delta)]
+xT0$Gamma<-deltagamma_tmp[length(xT0$Delta)+1:length(xT0$Gamma)]
+
+#for(i in 1:length(xT0$TYPE)){
+  ##  Business days
+#  busdays_betwn<-businessDaysBetween("UnitedStates/NYSE",
+#                                     as.Date(xT0$Date[i],format="%Y/%m/%d"),
+#                                    as.Date(xT0$ExpDate[i],format="%Y/%m/%d"))
+#  if(xT0$TYPE[i] == 1){
+#   C0_tmp<-AmericanOption(type="put", underlying=xT0$UDLY[i], strike=xT0$Strike[i],
+#                   dividendYield=divYld_G, riskFreeRate=riskFreeRate_G, maturity=busdays_betwn/365, volatility=xT0$OrigIV[i],
+#                   timeSteps=150, gridPoints=149, engine="CrankNicolson")
+#  }else if(xT0$TYPE[i] == -1){
+#    C0_tmp<-AmericanOption(type="call", underlying=xT0$UDLY[i], strike=xT0$Strike[i],
+#                           dividendYield=divYld_G, riskFreeRate=riskFreeRate_G, maturity=busdays_betwn/365, volatility=xT0$OrigIV[i],
+#                           timeSteps=150, gridPoints=149, engine="CrankNicolson")
+#  }
+#  xT0$Delta[i] <- C0_tmp$delta
+#  xT0$Gamma[i] <- C0_tmp$gamma
+#}
 
 #2.Vega
 
