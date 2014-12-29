@@ -285,10 +285,10 @@ for(i in 1:length(xT0$TYPE)){
   }
 }
 
-
-###最後に
 #もとの値に置き換える
 #xT0[1:length(cur_pos),1]<-cur_pos
 # あるいは
 # xT0$Position<-cur_pos
 
+##File への出力
+write.table(xT0,"OptionVariablesT0.csv",col.names=T,sep=",",append=F)
