@@ -207,8 +207,8 @@ for(i in 1:length(xT0$TYPE)){
                            dividendYield=divYld_G, riskFreeRate=riskFreeRate_G, maturity=busdays_betwn/365, volatility=xT0$OrigIV[i],
                            timeSteps=150, gridPoints=149, engine="CrankNicolson")
   }
-  xT0$Delta[i]<-C0_tmp$Delta
-  xT0$Gamma[i]<-C0_tmp$Gamma
+  xT0$Delta[i] <- C0_tmp$delta
+  xT0$Gamma[i] <- C0_tmp$gamma
 }
 
 #2.Vega
@@ -275,13 +275,13 @@ for(i in 1:length(xT0$TYPE)){
                                      as.Date(xT0$Date[i],format="%Y/%m/%d"),
                                      as.Date(xT0$ExpDate[i],format="%Y/%m/%d"))
   if(xT0$TYPE[i] == 1){
-    xT0$Rho[i]<-(EuropeanOption(type="put", underlying=xT0$UDLY[i], strike=xT0$Strike[1],
+    xT0$Rho[i]<-(EuropeanOption(type="put", underlying=xT0$UDLY[i], strike=xT0$Strike[i],
                                    dividendYield=divYld_G, riskFreeRate=riskFreeRate_G, maturity=busdays_betwn/365,
-                                    volatility=xT0$OrigIV[i]))$rho
+                                    volatility=xT0$OrigIV[i]))$rho/100
   }else if(xT0$TYPE[i] == -1){
-    xT0$Rho[i]<-(EuropeanOption(type="call", underlying=xT0$UDLY[i], strike=xT0$Strike[1],
+    xT0$Rho[i]<-(EuropeanOption(type="call", underlying=xT0$UDLY[i], strike=xT0$Strike[i],
                     dividendYield=divYld_G, riskFreeRate=riskFreeRate_G, maturity=busdays_betwn/365,
-                    volatility=xT0$OrigIV[i]))$rho
+                    volatility=xT0$OrigIV[i]))$rho/100
   }
 }
 
