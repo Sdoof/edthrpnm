@@ -607,8 +607,18 @@ for(i in 2:NumOfOnesideStrkPrice_G){
   #Listに追加
   xT0StrPlus<-c(xT0StrPlus,list(xT0_a))
 }
+##EOF xT0
 
+##
 ## xT7,xT14,xT21,xT28,xT35
+##
 
 ##File への出力
-write.table(xT0,"OptionVariablesT0.csv",col.names=T,sep=",",append=F)
+write.table(xT0,"OptionVariablesT0.csv",row.names = FALSE,col.names=T,sep=",",append=F)
+for(i in 1:NumOfOnesideStrkPrice_G){
+  wfilename_<-paste("OptionVariablesT0StrMns",as.character(i),".csv",sep="")
+  write.table(xT0StrMns[[i]],wfilename_,row.names = FALSE,col.names=T,sep=",",append=F)
+  wfilename_<-paste("OptionVariablesT0StrPlus",as.character(i),".csv",sep="")
+  write.table(xT0StrPlus[[i]],wfilename_,row.names = FALSE,col.names=T,sep=",",append=F)
+}
+
