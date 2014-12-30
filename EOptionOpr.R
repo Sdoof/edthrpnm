@@ -5,10 +5,11 @@ library(RQuantLib)
 (xT0<-read.table("OptionVariables.csv",header=T,sep=","))
 
 ## Tx later data stored.
-#ここでは単純な時間経過後の値のみ調べる
-#DATEを変化させ、IV(Volatility)は一定だと仮定した状況で
-#のPriceの変化を示す。
-#より込み入ったシナリオでのStimulationは別ファイルで
+#Here Simple stimulation
+#Only taking Horizental Volatility Skew into accounted.
+#No taking into account of GENERAL Volatility TREND.
+#Change x$Date and recalucate related values.
+#More elabolated stimulation should be done somewhere.
 #xT7
 #xT14
 #xT21
@@ -219,6 +220,32 @@ xT0$OrigIV<-set.IVOrig(xT=xT0)
 #(EuropeanOption(type="put", underlying=xT0$UDLY[1], strike=xT0$Strike[1],
 #              dividendYield=divYld_G, riskFreeRate=riskFreeRate_G, maturity=busdays_betwn/365, volatility=xT0$OrigIV[1]))
 ##EOF 検算用
+
+#0. Set Value Delta Gamma
+set.ValueDeltaGamma <- function(xT){
+  value<-rep(0,length(xT$TYPE))
+  delta<-rep(0,length(xT$TYPE))
+  gamma<-rep(0,length(xT$TYPE))
+  for(i in 1:length(xT$TYPE)){
+    ##  Business days
+    busdays_betwn<-businessDaysBetween("UnitedStates/NYSE",
+                                       as.Date(xT$Date[i],format="%Y/%m/%d"),
+                                       as.Date(xT$ExpDate[i],format="%Y/%m/%d"))
+    if(xT$TYPE[i] == 1){
+      C0_tmp<-AmericanOption(type="put", underlying=xT$UDLY[i], strike=xT$Strike[i],
+                             dividendYield=divYld_G, riskFreeRate=riskFreeRate_G, maturity=busdays_betwn/365, volatility=xT$OrigIV[i],
+                             timeSteps=150, gridPoints=149, engine="CrankNicolson")
+    }else if(xT$TYPE[i] == -1){
+      C0_tmp<-AmericanOption(type="call", underlying=xT$UDLY[i], strike=xT$Strike[i],
+                             dividendYield=divYld_G, riskFreeRate=riskFreeRate_G, maturity=busdays_betwn/365, volatility=xT$OrigIV[i],
+                             timeSteps=150, gridPoints=149, engine="CrankNicolson")
+    }
+    value[i]<-C0_tmp$value
+    delta[i]<- C0_tmp$delta
+    gamma[i]<- C0_tmp$gamma
+  }
+  append(append(value,delta),gamma)
+}
 
 #1. Delta, Gamma
 
@@ -499,9 +526,20 @@ Underlying.PriceChange.volatility.skew <- function(xTb,xTa){
 xT0_a<-xT0
 #1. Underlying Price Change
 xT0_a$UDLY<-(xT0$UDLY-1*ChangStrkPrUnit_G)
-#2. Volatility Change
-xT0_a$OrigIV <- xT0$OrigIV+vertical.volatility.skew(xT0,xT0_a)
-xT0_a$OrigIV <- xT0_a$OrigIV+xT0$OrigIV+Underlying.PriceChange.volatility.skew(xT0,xT0_a)
+#2. Volatility Skew Change
+xT0_a$OrigIV <- xT0$OrigIV+Underlying.PriceChange.volatility.skew(xT0,xT0_a)
+xT0_a$OrigIV <- xT0_a$OrigIV+vertical.volatility.skew(xT0,xT0_a)
+#3.Price Delta Gamma
+valdeltagamma_tmp<-set.ValueDeltaGamma(xT0_a)
+xT0_a$Price<-valdeltagamma_tmp[1:length(xT0_a$Price)]
+xT0_a$Delta<-valdeltagamma_tmp[length(xT0_a$Price)+1:length(xT0_a$Delta)]
+xT0_a$Gamma<-valdeltagamma_tmp[length(xT0_a$Price)+length(xT0$Delta)+1:length(xT0_a$Gamma)]
+#4. Vega
+xT0_a$Vega<-set.Vega(xT=xT0_a)
+#5. Theta
+xT0_a$Theta<-set.Theta(xT=xT0_a)
+#6. Rho
+xT0_a$Rho<-set.Rho(xT=xT0_a)
 
 #Listに追加
 xT0StrMns<-list(xT0_a)
@@ -510,20 +548,42 @@ for(i in 2:NumOfOnesideStrkPrice_G){
   #1. Underlying Price Change
   xT0_a$UDLY<-(xT0$UDLY-i*ChangStrkPrUnit_G)
   #2. Volatility Change
-  xT0_a$OrigIV <- xT0$OrigIV+vertical.volatility.skew(xT0,xT0_a)
-  xT0_a$OrigIV <- xT0_a$OrigIV+xT0$OrigIV+Underlying.PriceChange.volatility.skew(xT0,xT0_a)
+  xT0_a$OrigIV <- xT0$OrigIV+Underlying.PriceChange.volatility.skew(xT0,xT0_a)
+  xT0_a$OrigIV <- xT0_a$OrigIV+vertical.volatility.skew(xT0,xT0_a)
+  #3.Price Delta Gamma
+  valdeltagamma_tmp<-set.ValueDeltaGamma(xT0_a)
+  xT0_a$Price<-valdeltagamma_tmp[1:length(xT0_a$Price)]
+  xT0_a$Delta<-valdeltagamma_tmp[length(xT0_a$Price)+1:length(xT0_a$Delta)]
+  xT0_a$Gamma<-valdeltagamma_tmp[length(xT0_a$Price)+length(xT0$Delta)+1:length(xT0_a$Gamma)]
+  #4. Vega
+  xT0_a$Vega<-set.Vega(xT=xT0_a)
+  #5. Theta
+  xT0_a$Theta<-set.Theta(xT=xT0_a)
+  #6. Rho
+  xT0_a$Rho<-set.Rho(xT=xT0_a)
   #Listに追加
   xT0StrMns<-c(xT0StrMns,list(xT0_a))
 }
 
-##ListとしてxT0StrMns/Plusを管理
+##ListとしてxT0StrPlusを管理
 #1つ目.Listとし宣言。
 xT0_a<-xT0
 #1. Underlying Price Change
 xT0_a$UDLY<-(xT0$UDLY+1*ChangStrkPrUnit_G)
 #2. Volatility Change
-xT0_a$OrigIV <- xT0$OrigIV+vertical.volatility.skew(xT0,xT0_a)
-xT0_a$OrigIV <- xT0_a$OrigIV+xT0$OrigIV+Underlying.PriceChange.volatility.skew(xT0,xT0_a)
+xT0_a$OrigIV <- xT0$OrigIV+Underlying.PriceChange.volatility.skew(xT0,xT0_a)
+xT0_a$OrigIV <- xT0_a$OrigIV+vertical.volatility.skew(xT0,xT0_a)
+#3.Price Delta Gamma
+valdeltagamma_tmp<-set.ValueDeltaGamma(xT0_a)
+xT0_a$Price<-valdeltagamma_tmp[1:length(xT0_a$Price)]
+xT0_a$Delta<-valdeltagamma_tmp[length(xT0_a$Price)+1:length(xT0_a$Delta)]
+xT0_a$Gamma<-valdeltagamma_tmp[length(xT0_a$Price)+length(xT0$Delta)+1:length(xT0_a$Gamma)]
+#4. Vega
+xT0_a$Vega<-set.Vega(xT=xT0_a)
+#5. Theta
+xT0_a$Theta<-set.Theta(xT=xT0_a)
+#6. Rho
+xT0_a$Rho<-set.Rho(xT=xT0_a)
 #Listに追加
 xT0StrPlus<-list(xT0_a)
 for(i in 2:NumOfOnesideStrkPrice_G){
@@ -531,8 +591,19 @@ for(i in 2:NumOfOnesideStrkPrice_G){
   #1. Underlying Price Change
   xT0_a$UDLY<-(xT0$UDLY+i*ChangStrkPrUnit_G)
   #2. Volatility Change
-  xT0_a$OrigIV <- xT0$OrigIV+vertical.volatility.skew(xT0,xT0_a)
-  xT0_a$OrigIV <- xT0_a$OrigIV+xT0$OrigIV+Underlying.PriceChange.volatility.skew(xT0,xT0_a)
+  xT0_a$OrigIV <- xT0$OrigIV+Underlying.PriceChange.volatility.skew(xT0,xT0_a)
+  xT0_a$OrigIV <- xT0_a$OrigIV+vertical.volatility.skew(xT0,xT0_a)
+  #3.Price Delta Gamma
+  valdeltagamma_tmp<-set.ValueDeltaGamma(xT0_a)
+  xT0_a$Price<-valdeltagamma_tmp[1:length(xT0_a$Price)]
+  xT0_a$Delta<-valdeltagamma_tmp[length(xT0_a$Price)+1:length(xT0_a$Delta)]
+  xT0_a$Gamma<-valdeltagamma_tmp[length(xT0_a$Price)+length(xT0$Delta)+1:length(xT0_a$Gamma)]
+  #4. Vega
+  xT0_a$Vega<-set.Vega(xT=xT0_a)
+  #5. Theta
+  xT0_a$Theta<-set.Theta(xT=xT0_a)
+  #6. Rho
+  xT0_a$Rho<-set.Rho(xT=xT0_a)
   #Listに追加
   xT0StrPlus<-c(xT0StrPlus,list(xT0_a))
 }
