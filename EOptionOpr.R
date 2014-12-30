@@ -3,7 +3,12 @@ library(RQuantLib)
 
 ## Read a txt file(csv file)
 (xT0<-read.table("OptionVariables.csv",header=T,sep=","))
+
 ## Tx later data stored.
+#ここでは単純な時間経過後の値のみ調べる
+#DATEを変化させ、IV(Volatility)は一定だと仮定した状況で
+#のPriceの変化を示す。
+#より込み入ったシナリオでのStimulationは別ファイルで
 #xT7
 #xT14
 #xT21
@@ -14,8 +19,10 @@ library(RQuantLib)
 # Possibly read from File
 riskFreeRate_G=0.01
 divYld_G=0.0
+NumOfOnesideStrkPrice_G=4
+ChangStrkPrUnit_G=10
 
-##xT0の列のアクセス
+#xT0の列のアクセス
 #xT0$ContactName
 #xT0[[2]]
 #str_v<-xT0$Strike
@@ -417,8 +424,120 @@ xT0$Rho<-set.Rho(xT=xT0)
 #  }
 #}
 
-## xT0StrMns[],xT0StrPlus[]
-## Further xT7,xT14,xT21,xT28,xT35
+## xT0StrMns[[]],xT0StrPlus[[]] as list
+
+##Test 検算用
+xT0_t<-xT0
+##1. Underlying Price Change
+xT0_t$UDLY<-(xT0$UDLY-30)
+
+oom_mgn_before <- xT0$TYPE*(xT0$UDLY-xT0$Strike)
+oom_mgn_after <- xT0_t$TYPE*(xT0_t$UDLY-xT0_t$Strike)
+
+#(vol_dif_rate <- rep(0,length(xT0$TYPE)))
+#K1<-0.9
+#K2<-0.9
+
+(vol_dif_rate<-rep(0,length(xT0$TYPE)))
+
+##OOM to OOM
+#(vol_dif_rate <-vol_dif_rate+((abs(oom_mgn_after)/xT0_t$UDLY)*K1-(abs(oom_mgn_before)/xT0$UDLY)*K1)*as.numeric(oom_mgn_before>=0)*as.numeric(oom_mgn_after>=0))
+
+##OOM to ITM
+#vol_dif_rate <- vol_dif_rate+((abs(oom_mgn_after)/xT0_t$UDLY)*K2-(abs(oom_mgn_before)/xT0$UDLY)*K1)*as.numeric(oom_mgn_after<0)
+
+##ITM to OTM
+#vol_dif_rate <-vol_dif_rate+((abs(oom_mgn_after)/xT0_t$UDLY)*K1-(abs(oom_mgn_before)/xT0$UDLY)*K2)*as.numeric(oom_mgn_before<0)*as.numeric(oom_mgn_after>=0)
+
+##ITM ot ITM
+#(vol_dif_rate <-vol_dif_rate+((abs(oom_mgn_after)/xT0_t$UDLY)*K2-(abs(oom_mgn_before)/xT0$UDLY)*K2)*as.numeric(oom_mgn_before<0)*as.numeric(oom_mgn_after<0))
+
+##Volatility Modelingに関しては後できちんとする。
+##ここでは簡易版
+#Underlyingの価格の変化によるVolatilityの変化
+vertical.volatility.skew <- function(xTb,xTa){
+  ## OOMにどれだけ離れているか。UDLYとの比率。正の数はOOM。負の数はITM
+  oom_mgn_before <- xTb$TYPE*(xTb$UDLY-xTb$Strike)
+  oom_mgn_after <- xTa$TYPE*(xTa$UDLY-xTa$Strike)
+  
+  #ここでは、UDLY値との比に比例して簡単な直線(linier)で
+  #VOlatilityの変化率が決定するとする。
+  #K1 OOMの係数。K2 ITMの係数
+  K1<-0.9
+  K2<-0.9
+  
+  (vol_dif_rate<-rep(0,length(xTb$TYPE)))
+  
+  ##OOM to OOM
+  (vol_dif_rate <-vol_dif_rate+((abs(oom_mgn_after)/xTa$UDLY)*K1-(abs(oom_mgn_before)/xTb$UDLY)*K1)*as.numeric(oom_mgn_before>=0)*as.numeric(oom_mgn_after>=0))
+  
+  ##OOM to ITM
+  vol_dif_rate <- vol_dif_rate+((abs(oom_mgn_after)/xTa$UDLY)*K2-(abs(oom_mgn_before)/xTb$UDLY)*K1)*as.numeric(oom_mgn_after<0)
+  
+  ##ITM to OTM
+  vol_dif_rate <-vol_dif_rate+((abs(oom_mgn_after)/xTa$UDLY)*K1-(abs(oom_mgn_before)/xTb$UDLY)*K2)*as.numeric(oom_mgn_before<0)*as.numeric(oom_mgn_after>=0)
+  
+  ##ITM ot ITM
+  (vol_dif_rate <-vol_dif_rate+((abs(oom_mgn_after)/xTa$UDLY)*K2-(abs(oom_mgn_before)/xTb$UDLY)*K2)*as.numeric(oom_mgn_before<0)*as.numeric(oom_mgn_after<0))
+  
+  vol_dif_rate
+}
+
+#価格変化による全体的なvolatilityの変化
+#To be defined
+Underlying.PriceChange.volatility.skew <- function(xTb,xTa){
+  vol_dif_rate<-rep(0,length(xTb$TYPE))
+  vol_dif_rate
+}
+
+#NumOfOnesideStrkPrice_G_TMP=4
+#ChangStrkPrUnit_G_TMP=10
+
+
+##ListとしてxT0StrMnsを管理
+#1つ目.Listとし宣言。
+xT0_a<-xT0
+#1. Underlying Price Change
+xT0_a$UDLY<-(xT0$UDLY-1*ChangStrkPrUnit_G)
+#2. Volatility Change
+xT0_a$OrigIV <- xT0$OrigIV+vertical.volatility.skew(xT0,xT0_a)
+xT0_a$OrigIV <- xT0_a$OrigIV+xT0$OrigIV+Underlying.PriceChange.volatility.skew(xT0,xT0_a)
+
+#Listに追加
+xT0StrMns<-list(xT0_a)
+for(i in 2:NumOfOnesideStrkPrice_G){
+  xT0_a<-xT0
+  #1. Underlying Price Change
+  xT0_a$UDLY<-(xT0$UDLY-i*ChangStrkPrUnit_G)
+  #2. Volatility Change
+  xT0_a$OrigIV <- xT0$OrigIV+vertical.volatility.skew(xT0,xT0_a)
+  xT0_a$OrigIV <- xT0_a$OrigIV+xT0$OrigIV+Underlying.PriceChange.volatility.skew(xT0,xT0_a)
+  #Listに追加
+  xT0StrMns<-c(xT0StrMns,list(xT0_a))
+}
+
+##ListとしてxT0StrMns/Plusを管理
+#1つ目.Listとし宣言。
+xT0_a<-xT0
+#1. Underlying Price Change
+xT0_a$UDLY<-(xT0$UDLY+1*ChangStrkPrUnit_G)
+#2. Volatility Change
+xT0_a$OrigIV <- xT0$OrigIV+vertical.volatility.skew(xT0,xT0_a)
+xT0_a$OrigIV <- xT0_a$OrigIV+xT0$OrigIV+Underlying.PriceChange.volatility.skew(xT0,xT0_a)
+#Listに追加
+xT0StrPlus<-list(xT0_a)
+for(i in 2:NumOfOnesideStrkPrice_G){
+  xT0_a<-xT0
+  #1. Underlying Price Change
+  xT0_a$UDLY<-(xT0$UDLY+i*ChangStrkPrUnit_G)
+  #2. Volatility Change
+  xT0_a$OrigIV <- xT0$OrigIV+vertical.volatility.skew(xT0,xT0_a)
+  xT0_a$OrigIV <- xT0_a$OrigIV+xT0$OrigIV+Underlying.PriceChange.volatility.skew(xT0,xT0_a)
+  #Listに追加
+  xT0StrPlus<-c(xT0StrPlus,list(xT0_a))
+}
+
+## xT7,xT14,xT21,xT28,xT35
 
 ##File への出力
 write.table(xT0,"OptionVariablesT0.csv",col.names=T,sep=",",append=F)
