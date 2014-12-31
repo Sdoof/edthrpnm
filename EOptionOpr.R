@@ -454,12 +454,12 @@ xT0$Rho<-set.Rho(xT=xT0)
 ## xT0StrMns[[]],xT0StrPlus[[]] as list
 
 ##Test 検算用
-xT0_t<-xT0
+#xT0_t<-xT0
 ##1. Underlying Price Change
-xT0_t$UDLY<-(xT0$UDLY-30)
+#xT0_t$UDLY<-(xT0$UDLY-30)
 
-oom_mgn_before <- xT0$TYPE*(xT0$UDLY-xT0$Strike)
-oom_mgn_after <- xT0_t$TYPE*(xT0_t$UDLY-xT0_t$Strike)
+#oom_mgn_before <- xT0$TYPE*(xT0$UDLY-xT0$Strike)
+#oom_mgn_after <- xT0_t$TYPE*(xT0_t$UDLY-xT0_t$Strike)
 
 #(vol_dif_rate <- rep(0,length(xT0$TYPE)))
 #K1<-0.9
@@ -517,11 +517,9 @@ Underlying.PriceChange.volatility.skew <- function(xTb,xTa){
   vol_dif_rate
 }
 
-#NumOfOnesideStrkPrice_G_TMP=4
-#ChangStrkPrUnit_G_TMP=10
-
-
+##
 ##ListとしてxT0StrMnsを管理
+##
 #1つ目.Listとし宣言。
 xT0_a<-xT0
 #1. Underlying Price Change
@@ -613,6 +611,411 @@ for(i in 2:NumOfOnesideStrkPrice_G){
 ## xT7,xT14,xT21,xT28,xT35
 ##
 
+## xT7
+xT7<-xT0
+#1. Advence date (business day) 
+# 時間を進めた結果、ExpDateを超えたrowが存在する場合
+tmp_<-advance("UnitedStates/NYSE",dates=as.Date(xT0$Date,format="%Y/%m/%d"),7,0) > as.Date(xT0$ExpDate,format="%Y/%m/%d")
+if (sum(as.numeric(tmp_))>0){
+  #break;
+}
+xT7$Date<-format(advance("UnitedStates/NYSE",dates=as.Date(xT0$Date,format="%Y/%m/%d"),7,0),"%Y/%m/%d")
+
+#2. Volatility Horizental Skew adjustment
+maturity_b<-businessDaysBetween("UnitedStates/NYSE",
+                                as.Date(xT0$Date,format="%Y/%m/%d"),
+                                as.Date(xT0$ExpDate,format="%Y/%m/%d"))
+maturity_a<-businessDaysBetween("UnitedStates/NYSE",
+                                as.Date(xT7$Date,format="%Y/%m/%d"),
+                                as.Date(xT7$ExpDate,format="%Y/%m/%d"))
+#orizental.volatility.skew defined on EOptionOprEurop
+#xT7$OrigIV <- xT7$OrigIV+horizental.volatility.skew(vol_b=xT7$OrigIV,maturity_b=maturity_b,maturity_a=maturity_a)
+
+#3.Price Grek
+valdeltagamma_tmp<-set.ValueDeltaGamma(xT7)
+xT7$Price<-valdeltagamma_tmp[1:length(xT7_a$Price)]
+xT7$Delta<-valdeltagamma_tmp[length(xT7_a$Price)+1:length(xT7_a$Delta)]
+xT7$Gamma<-valdeltagamma_tmp[length(xT7_a$Price)+length(xT7$Delta)+1:length(xT7_a$Gamma)]
+xT7$Theta<-set.Theta(xT7)
+xT7$Rho<-set.Rho(xT7)
+
+##xT7StrMns
+for(i in 1:NumOfOnesideStrkPrice_G){
+  xT7_a<-xT7
+  #1. Underlying Price Change
+  xT7_a$UDLY<-(xT7$UDLY-i*ChangStrkPrUnit_G)
+  #2. Volatility Change
+  xT7_a$OrigIV <- xT7$OrigIV+Underlying.PriceChange.volatility.skew(xT7,xT7_a)
+  xT7_a$OrigIV <- xT7_a$OrigIV+vertical.volatility.skew(xT7,xT7_a)
+  #3.Price Delta Gamma
+  valdeltagamma_tmp<-set.ValueDeltaGamma(xT7_a)
+  xT7_a$Price<-valdeltagamma_tmp[1:length(xT7_a$Price)]
+  xT7_a$Delta<-valdeltagamma_tmp[length(xT7_a$Price)+1:length(xT7_a$Delta)]
+  xT7_a$Gamma<-valdeltagamma_tmp[length(xT7_a$Price)+length(xT7$Delta)+1:length(xT7_a$Gamma)]
+  #4. Vega
+  xT7_a$Vega<-set.Vega(xT=xT7_a)
+  #5. Theta
+  xT7_a$Theta<-set.Theta(xT=xT7_a)
+  #6. Rho
+  xT7_a$Rho<-set.Rho(xT=xT7_a)
+  #Listに追加
+  if(i==1){
+    xT7StrMns<-list(xT7_a)
+  } else {
+    xT7StrMns<-c(xT7StrMns,list(xT7_a))
+  }
+}
+##xT7StrPlus
+for(i in 1:NumOfOnesideStrkPrice_G){
+  xT7_a<-xT7
+  #1. Underlying Price Change
+  xT7_a$UDLY<-(xT7$UDLY+i*ChangStrkPrUnit_G)
+  #2. Volatility Change
+  xT7_a$OrigIV <- xT7$OrigIV+Underlying.PriceChange.volatility.skew(xT7,xT7_a)
+  xT7_a$OrigIV <- xT7_a$OrigIV+vertical.volatility.skew(xT7,xT7_a)
+  #3.Price Delta Gamma
+  valdeltagamma_tmp<-set.ValueDeltaGamma(xT7_a)
+  xT7_a$Price<-valdeltagamma_tmp[1:length(xT7_a$Price)]
+  xT7_a$Delta<-valdeltagamma_tmp[length(xT7_a$Price)+1:length(xT7_a$Delta)]
+  xT7_a$Gamma<-valdeltagamma_tmp[length(xT7_a$Price)+length(xT7$Delta)+1:length(xT7_a$Gamma)]
+  #4. Vega
+  xT7_a$Vega<-set.Vega(xT=xT7_a)
+  #5. Theta
+  xT7_a$Theta<-set.Theta(xT=xT7_a)
+  #6. Rho
+  xT7_a$Rho<-set.Rho(xT=xT7_a)
+  #Listに追加
+  if(i==1){
+    xT7StrPlus<-list(xT7_a)
+  } else {
+    xT7StrPlus<-c(xT7StrPlus,list(xT7_a))
+  }
+}
+
+## xT14
+xT14<-xT0
+#1. Advence date (business day) 
+# 時間を進めた結果、ExpDateを超えたrowが存在する場合
+tmp_<-advance("UnitedStates/NYSE",dates=as.Date(xT0$Date,format="%Y/%m/%d"),14,0) > as.Date(xT0$ExpDate,format="%Y/%m/%d")
+if (sum(as.numeric(tmp_))>0){
+  #break;
+}
+xT14$Date<-format(advance("UnitedStates/NYSE",dates=as.Date(xT0$Date,format="%Y/%m/%d"),14,0),"%Y/%m/%d")
+
+#2. Volatility Horizental Skew adjustment
+maturity_b<-businessDaysBetween("UnitedStates/NYSE",
+                                as.Date(xT0$Date,format="%Y/%m/%d"),
+                                as.Date(xT0$ExpDate,format="%Y/%m/%d"))
+maturity_a<-businessDaysBetween("UnitedStates/NYSE",
+                                as.Date(xT14$Date,format="%Y/%m/%d"),
+                                as.Date(xT14$ExpDate,format="%Y/%m/%d"))
+#orizental.volatility.skew defined on EOptionOprEurop
+#xT14$OrigIV <- xT14$OrigIV+horizental.volatility.skew(vol_b=xT14$OrigIV,maturity_b=maturity_b,maturity_a=maturity_a)
+
+#3.Price Grek
+valdeltagamma_tmp<-set.ValueDeltaGamma(xT14)
+xT14$Price<-valdeltagamma_tmp[1:length(xT14_a$Price)]
+xT14$Delta<-valdeltagamma_tmp[length(xT14$Price)+1:length(xT14$Delta)]
+xT14$Gamma<-valdeltagamma_tmp[length(xT14$Price)+length(xT14$Delta)+1:length(xT14$Gamma)]
+xT14$Theta<-set.Theta(xT14)
+xT14$Rho<-set.Rho(xT14)
+
+##xT14StrMns
+for(i in 1:NumOfOnesideStrkPrice_G){
+  xT14_a<-xT14
+  #1. Underlying Price Change
+  xT14_a$UDLY<-(xT14$UDLY-i*ChangStrkPrUnit_G)
+  #2. Volatility Change
+  xT14_a$OrigIV <- xT14$OrigIV+Underlying.PriceChange.volatility.skew(xT14,xT14_a)
+  xT14_a$OrigIV <- xT14_a$OrigIV+vertical.volatility.skew(xT14,xT14_a)
+  #3.Price Delta Gamma
+  valdeltagamma_tmp<-set.ValueDeltaGamma(xT14_a)
+  xT14_a$Price<-valdeltagamma_tmp[1:length(xT14_a$Price)]
+  xT14_a$Delta<-valdeltagamma_tmp[length(xT14_a$Price)+1:length(xT14_a$Delta)]
+  xT14_a$Gamma<-valdeltagamma_tmp[length(xT14_a$Price)+length(xT14$Delta)+1:length(xT14_a$Gamma)]
+  #4. Vega
+  xT14_a$Vega<-set.Vega(xT=xT14_a)
+  #5. Theta
+  xT14_a$Theta<-set.Theta(xT=xT14_a)
+  #6. Rho
+  xT14_a$Rho<-set.Rho(xT=xT14_a)
+  #Listに追加
+  if(i==1){
+    xT14StrMns<-list(xT14_a)
+  } else {
+    xT14StrMns<-c(xT14StrMns,list(xT14_a))
+  }
+}
+##xT14StrPlus
+for(i in 1:NumOfOnesideStrkPrice_G){
+  xT14_a<-xT14
+  #1. Underlying Price Change
+  xT14_a$UDLY<-(xT14$UDLY+i*ChangStrkPrUnit_G)
+  #2. Volatility Change
+  xT14_a$OrigIV <- xT14$OrigIV+Underlying.PriceChange.volatility.skew(xT14,xT14_a)
+  xT14_a$OrigIV <- xT14_a$OrigIV+vertical.volatility.skew(xT14,xT14_a)
+  #3.Price Delta Gamma
+  valdeltagamma_tmp<-set.ValueDeltaGamma(xT14_a)
+  xT14_a$Price<-valdeltagamma_tmp[1:length(xT14_a$Price)]
+  xT14_a$Delta<-valdeltagamma_tmp[length(xT14_a$Price)+1:length(xT14_a$Delta)]
+  xT14_a$Gamma<-valdeltagamma_tmp[length(xT14_a$Price)+length(xT14$Delta)+1:length(xT14_a$Gamma)]
+  #4. Vega
+  xT14_a$Vega<-set.Vega(xT=xT14_a)
+  #5. Theta
+  xT14_a$Theta<-set.Theta(xT=xT14_a)
+  #6. Rho
+  xT14_a$Rho<-set.Rho(xT=xT14_a)
+  #Listに追加
+  if(i==1){
+    xT14StrPlus<-list(xT14_a)
+  } else {
+    xT14StrPlus<-c(xT14StrPlus,list(xT14_a))
+  }
+}
+
+## xT21
+xT21<-xT0
+#1. Advence date (business day) 
+# 時間を進めた結果、ExpDateを超えたrowが存在する場合
+tmp_<-advance("UnitedStates/NYSE",dates=as.Date(xT0$Date,format="%Y/%m/%d"),21,0) > as.Date(xT0$ExpDate,format="%Y/%m/%d")
+if (sum(as.numeric(tmp_))>0){
+  #break;
+}
+xT21$Date<-format(advance("UnitedStates/NYSE",dates=as.Date(xT0$Date,format="%Y/%m/%d"),21,0),"%Y/%m/%d")
+
+#2. Volatility Horizental Skew adjustment
+maturity_b<-businessDaysBetween("UnitedStates/NYSE",
+                                as.Date(xT0$Date,format="%Y/%m/%d"),
+                                as.Date(xT0$ExpDate,format="%Y/%m/%d"))
+maturity_a<-businessDaysBetween("UnitedStates/NYSE",
+                                as.Date(xT21$Date,format="%Y/%m/%d"),
+                                as.Date(xT21$ExpDate,format="%Y/%m/%d"))
+#orizental.volatility.skew defined on EOptionOprEurop
+#xT21$OrigIV <- xT21$OrigIV+horizental.volatility.skew(vol_b=xT21$OrigIV,maturity_b=maturity_b,maturity_a=maturity_a)
+
+#3.Price Grek
+valdeltagamma_tmp<-set.ValueDeltaGamma(xT21)
+xT21$Price<-valdeltagamma_tmp[1:length(xT21$Price)]
+xT21$Delta<-valdeltagamma_tmp[length(xT21$Price)+1:length(xT21$Delta)]
+xT21$Gamma<-valdeltagamma_tmp[length(xT21$Price)+length(xT21$Delta)+1:length(xT21_a$Gamma)]
+xT21$Theta<-set.Theta(xT21)
+xT21$Rho<-set.Rho(xT21)
+
+##xT21StrMns
+for(i in 1:NumOfOnesideStrkPrice_G){
+  xT21_a<-xT21
+  #1. Underlying Price Change
+  xT21_a$UDLY<-(xT21$UDLY-i*ChangStrkPrUnit_G)
+  #2. Volatility Change
+  xT21_a$OrigIV <- xT21$OrigIV+Underlying.PriceChange.volatility.skew(xT21,xT21_a)
+  xT21_a$OrigIV <- xT21_a$OrigIV+vertical.volatility.skew(xT21,xT21_a)
+  #3.Price Delta Gamma
+  valdeltagamma_tmp<-set.ValueDeltaGamma(xT21_a)
+  xT21_a$Price<-valdeltagamma_tmp[1:length(xT21_a$Price)]
+  xT21_a$Delta<-valdeltagamma_tmp[length(xT21_a$Price)+1:length(xT21_a$Delta)]
+  xT21_a$Gamma<-valdeltagamma_tmp[length(xT21_a$Price)+length(xT21$Delta)+1:length(xT21_a$Gamma)]
+  #4. Vega
+  xT21_a$Vega<-set.Vega(xT=xT21_a)
+  #5. Theta
+  xT21_a$Theta<-set.Theta(xT=xT21_a)
+  #6. Rho
+  xT21_a$Rho<-set.Rho(xT=xT21_a)
+  #Listに追加
+  if(i==1){
+    xT21StrMns<-list(xT21_a)
+  } else {
+    xT21StrMns<-c(xT21StrMns,list(xT21_a))
+  }
+}
+##xT21StrPlus
+for(i in 1:NumOfOnesideStrkPrice_G){
+  xT21_a<-xT21
+  #1. Underlying Price Change
+  xT21_a$UDLY<-(xT21$UDLY+i*ChangStrkPrUnit_G)
+  #2. Volatility Change
+  xT21_a$OrigIV <- xT21$OrigIV+Underlying.PriceChange.volatility.skew(xT21,xT21_a)
+  xT21_a$OrigIV <- xT21_a$OrigIV+vertical.volatility.skew(xT21,xT21_a)
+  #3.Price Delta Gamma
+  valdeltagamma_tmp<-set.ValueDeltaGamma(xT21_a)
+  xT21_a$Price<-valdeltagamma_tmp[1:length(xT21_a$Price)]
+  xT21_a$Delta<-valdeltagamma_tmp[length(xT21_a$Price)+1:length(xT21_a$Delta)]
+  xT21_a$Gamma<-valdeltagamma_tmp[length(xT21_a$Price)+length(xT21$Delta)+1:length(xT21_a$Gamma)]
+  #4. Vega
+  xT21_a$Vega<-set.Vega(xT=xT21_a)
+  #5. Theta
+  xT21_a$Theta<-set.Theta(xT=xT21_a)
+  #6. Rho
+  xT21_a$Rho<-set.Rho(xT=xT21_a)
+  #Listに追加
+  if(i==1){
+    xT21StrPlus<-list(xT21_a)
+  } else {
+    xT21StrPlus<-c(xT21StrPlus,list(xT21_a))
+  }
+}
+
+## xT28
+xT28<-xT0
+#1. Advence date (business day) 
+# 時間を進めた結果、ExpDateを超えたrowが存在する場合
+tmp_<-advance("UnitedStates/NYSE",dates=as.Date(xT0$Date,format="%Y/%m/%d"),28,0) > as.Date(xT0$ExpDate,format="%Y/%m/%d")
+if (sum(as.numeric(tmp_))>0){
+  #break;
+}
+xT28$Date<-format(advance("UnitedStates/NYSE",dates=as.Date(xT0$Date,format="%Y/%m/%d"),28,0),"%Y/%m/%d")
+
+#2. Volatility Horizental Skew adjustment
+maturity_b<-businessDaysBetween("UnitedStates/NYSE",
+                                as.Date(xT0$Date,format="%Y/%m/%d"),
+                                as.Date(xT0$ExpDate,format="%Y/%m/%d"))
+maturity_a<-businessDaysBetween("UnitedStates/NYSE",
+                                as.Date(xT28$Date,format="%Y/%m/%d"),
+                                as.Date(xT28$ExpDate,format="%Y/%m/%d"))
+#orizental.volatility.skew defined on EOptionOprEurop
+#xT28$OrigIV <- xT28$OrigIV+horizental.volatility.skew(vol_b=xT28$OrigIV,maturity_b=maturity_b,maturity_a=maturity_a)
+
+#3.Price Grek
+valdeltagamma_tmp<-set.ValueDeltaGamma(xT28)
+xT28$Price<-valdeltagamma_tmp[1:length(xT28_a$Price)]
+xT28$Delta<-valdeltagamma_tmp[length(xT28_a$Price)+1:length(xT28_a$Delta)]
+xT28$Gamma<-valdeltagamma_tmp[length(xT28_a$Price)+length(xT28$Delta)+1:length(xT28_a$Gamma)]
+xT28$Theta<-set.Theta(xT28)
+xT28$Rho<-set.Rho(xT28)
+
+##xT28StrMns
+for(i in 1:NumOfOnesideStrkPrice_G){
+  xT28_a<-xT28
+  #1. Underlying Price Change
+  xT28_a$UDLY<-(xT28$UDLY-i*ChangStrkPrUnit_G)
+  #2. Volatility Change
+  xT28_a$OrigIV <- xT28$OrigIV+Underlying.PriceChange.volatility.skew(xT28,xT28_a)
+  xT28_a$OrigIV <- xT28_a$OrigIV+vertical.volatility.skew(xT28,xT28_a)
+  #3.Price Delta Gamma
+  valdeltagamma_tmp<-set.ValueDeltaGamma(xT28_a)
+  xT28_a$Price<-valdeltagamma_tmp[1:length(xT28_a$Price)]
+  xT28_a$Delta<-valdeltagamma_tmp[length(xT28_a$Price)+1:length(xT28_a$Delta)]
+  xT28_a$Gamma<-valdeltagamma_tmp[length(xT28_a$Price)+length(xT28$Delta)+1:length(xT28_a$Gamma)]
+  #4. Vega
+  xT28_a$Vega<-set.Vega(xT=xT28_a)
+  #5. Theta
+  xT28_a$Theta<-set.Theta(xT=xT28_a)
+  #6. Rho
+  xT28_a$Rho<-set.Rho(xT=xT28_a)
+  #Listに追加
+  if(i==1){
+    xT28StrMns<-list(xT28_a)
+  } else {
+    xT28StrMns<-c(xT28StrMns,list(xT28_a))
+  }
+}
+##xT28StrPlus
+for(i in 1:NumOfOnesideStrkPrice_G){
+  xT28_a<-xT28
+  #1. Underlying Price Change
+  xT28_a$UDLY<-(xT28$UDLY+i*ChangStrkPrUnit_G)
+  #2. Volatility Change
+  xT28_a$OrigIV <- xT28$OrigIV+Underlying.PriceChange.volatility.skew(xT28,xT28_a)
+  xT28_a$OrigIV <- xT28_a$OrigIV+vertical.volatility.skew(xT28,xT28_a)
+  #3.Price Delta Gamma
+  valdeltagamma_tmp<-set.ValueDeltaGamma(xT28_a)
+  xT28_a$Price<-valdeltagamma_tmp[1:length(xT28_a$Price)]
+  xT28_a$Delta<-valdeltagamma_tmp[length(xT28_a$Price)+1:length(xT28_a$Delta)]
+  xT28_a$Gamma<-valdeltagamma_tmp[length(xT28_a$Price)+length(xT28$Delta)+1:length(xT28_a$Gamma)]
+  #4. Vega
+  xT28_a$Vega<-set.Vega(xT=xT28_a)
+  #5. Theta
+  xT28_a$Theta<-set.Theta(xT=xT28_a)
+  #6. Rho
+  xT28_a$Rho<-set.Rho(xT=xT28_a)
+  #Listに追加
+  if(i==1){
+    xT28StrPlus<-list(xT28_a)
+  } else {
+    xT28StrPlus<-c(xT28StrPlus,list(xT28_a))
+  }
+}
+
+## xT35
+xT35<-xT0
+#1. Advence date (business day) 
+# 時間を進めた結果、ExpDateを超えたrowが存在する場合
+tmp_<-advance("UnitedStates/NYSE",dates=as.Date(xT0$Date,format="%Y/%m/%d"),35,0) > as.Date(xT0$ExpDate,format="%Y/%m/%d")
+if (sum(as.numeric(tmp_))>0){
+  #break;
+}
+xT35$Date<-format(advance("UnitedStates/NYSE",dates=as.Date(xT0$Date,format="%Y/%m/%d"),35,0),"%Y/%m/%d")
+
+#2. Volatility Horizental Skew adjustment
+maturity_b<-businessDaysBetween("UnitedStates/NYSE",
+                                as.Date(xT0$Date,format="%Y/%m/%d"),
+                                as.Date(xT0$ExpDate,format="%Y/%m/%d"))
+maturity_a<-businessDaysBetween("UnitedStates/NYSE",
+                                as.Date(xT35$Date,format="%Y/%m/%d"),
+                                as.Date(xT35$ExpDate,format="%Y/%m/%d"))
+#orizental.volatility.skew defined on EOptionOprEurop
+#xT35$OrigIV <- xT35$OrigIV+horizental.volatility.skew(vol_b=xT35$OrigIV,maturity_b=maturity_b,maturity_a=maturity_a)
+
+#3.Price Grek
+valdeltagamma_tmp<-set.ValueDeltaGamma(xT35)
+xT35$Price<-valdeltagamma_tmp[1:length(xT35_a$Price)]
+xT35$Delta<-valdeltagamma_tmp[length(xT35_a$Price)+1:length(xT35_a$Delta)]
+xT35$Gamma<-valdeltagamma_tmp[length(xT35_a$Price)+length(xT35$Delta)+1:length(xT35_a$Gamma)]
+xT35$Theta<-set.Theta(xT35)
+xT35$Rho<-set.Rho(xT35)
+
+##xT35StrMns
+for(i in 1:NumOfOnesideStrkPrice_G){
+  xT35_a<-xT35
+  #1. Underlying Price Change
+  xT35_a$UDLY<-(xT35$UDLY-i*ChangStrkPrUnit_G)
+  #2. Volatility Change
+  xT35_a$OrigIV <- xT35$OrigIV+Underlying.PriceChange.volatility.skew(xT35,xT35_a)
+  xT35_a$OrigIV <- xT35_a$OrigIV+vertical.volatility.skew(xT35,xT35_a)
+  #3.Price Delta Gamma
+  valdeltagamma_tmp<-set.ValueDeltaGamma(xT35_a)
+  xT35_a$Price<-valdeltagamma_tmp[1:length(xT35_a$Price)]
+  xT35_a$Delta<-valdeltagamma_tmp[length(xT35_a$Price)+1:length(xT35_a$Delta)]
+  xT35_a$Gamma<-valdeltagamma_tmp[length(xT35_a$Price)+length(xT35$Delta)+1:length(xT35_a$Gamma)]
+  #4. Vega
+  xT35_a$Vega<-set.Vega(xT=xT35_a)
+  #5. Theta
+  xT35_a$Theta<-set.Theta(xT=xT35_a)
+  #6. Rho
+  xT35_a$Rho<-set.Rho(xT=xT35_a)
+  #Listに追加
+  if(i==1){
+    xT35StrMns<-list(xT35_a)
+  } else {
+    xT35StrMns<-c(xT35StrMns,list(xT35_a))
+  }
+}
+##xT35StrPlus
+for(i in 1:NumOfOnesideStrkPrice_G){
+  xT35_a<-xT35
+  #1. Underlying Price Change
+  xT35_a$UDLY<-(xT35$UDLY+i*ChangStrkPrUnit_G)
+  #2. Volatility Change
+  xT35_a$OrigIV <- xT35$OrigIV+Underlying.PriceChange.volatility.skew(xT35,xT35_a)
+  xT35_a$OrigIV <- xT35_a$OrigIV+vertical.volatility.skew(xT35,xT35_a)
+  #3.Price Delta Gamma
+  valdeltagamma_tmp<-set.ValueDeltaGamma(xT35_a)
+  xT35_a$Price<-valdeltagamma_tmp[1:length(xT35_a$Price)]
+  xT35_a$Delta<-valdeltagamma_tmp[length(xT35_a$Price)+1:length(xT35_a$Delta)]
+  xT35_a$Gamma<-valdeltagamma_tmp[length(xT35_a$Price)+length(xT35$Delta)+1:length(xT35_a$Gamma)]
+  #4. Vega
+  xT35_a$Vega<-set.Vega(xT=xT35_a)
+  #5. Theta
+  xT35_a$Theta<-set.Theta(xT=xT35_a)
+  #6. Rho
+  xT35_a$Rho<-set.Rho(xT=xT35_a)
+  #Listに追加
+  if(i==1){
+    xT35StrPlus<-list(xT35_a)
+  } else {
+    xT35StrPlus<-c(xT35StrPlus,list(xT35_a))
+  }
+}
+
 ##File への出力
 write.table(xT0,"OptionVariablesT0.csv",row.names = FALSE,col.names=T,sep=",",append=F)
 for(i in 1:NumOfOnesideStrkPrice_G){
@@ -621,4 +1024,38 @@ for(i in 1:NumOfOnesideStrkPrice_G){
   wfilename_<-paste("OptionVariablesT0StrPlus",as.character(i),".csv",sep="")
   write.table(xT0StrPlus[[i]],wfilename_,row.names = FALSE,col.names=T,sep=",",append=F)
 }
-
+write.table(xT7,"OptionVariablesT7.csv",row.names = FALSE,col.names=T,sep=",",append=F)
+for(i in 1:NumOfOnesideStrkPrice_G){
+  wfilename_<-paste("OptionVariablesT7StrMns",as.character(i),".csv",sep="")
+  write.table(xT7StrMns[[i]],wfilename_,row.names = FALSE,col.names=T,sep=",",append=F)
+  wfilename_<-paste("OptionVariablesT7StrPlus",as.character(i),".csv",sep="")
+  write.table(xT7StrPlus[[i]],wfilename_,row.names = FALSE,col.names=T,sep=",",append=F)
+}
+write.table(xT14,"OptionVariablesT14.csv",row.names = FALSE,col.names=T,sep=",",append=F)
+for(i in 1:NumOfOnesideStrkPrice_G){
+  wfilename_<-paste("OptionVariablesT14StrMns",as.character(i),".csv",sep="")
+  write.table(xT14StrMns[[i]],wfilename_,row.names = FALSE,col.names=T,sep=",",append=F)
+  wfilename_<-paste("OptionVariablesT14StrPlus",as.character(i),".csv",sep="")
+  write.table(xT14StrPlus[[i]],wfilename_,row.names = FALSE,col.names=T,sep=",",append=F)
+}
+write.table(xT21,"OptionVariablesT21.csv",row.names = FALSE,col.names=T,sep=",",append=F)
+for(i in 1:NumOfOnesideStrkPrice_G){
+  wfilename_<-paste("OptionVariablesT21StrMns",as.character(i),".csv",sep="")
+  write.table(xT21StrMns[[i]],wfilename_,row.names = FALSE,col.names=T,sep=",",append=F)
+  wfilename_<-paste("OptionVariablesT21StrPlus",as.character(i),".csv",sep="")
+  write.table(xT21StrPlus[[i]],wfilename_,row.names = FALSE,col.names=T,sep=",",append=F)
+}
+write.table(xT28,"OptionVariablesT28.csv",row.names = FALSE,col.names=T,sep=",",append=F)
+for(i in 1:NumOfOnesideStrkPrice_G){
+  wfilename_<-paste("OptionVariablesT28StrMns",as.character(i),".csv",sep="")
+  write.table(xT28StrMns[[i]],wfilename_,row.names = FALSE,col.names=T,sep=",",append=F)
+  wfilename_<-paste("OptionVariablesT28StrPlus",as.character(i),".csv",sep="")
+  write.table(xT28StrPlus[[i]],wfilename_,row.names = FALSE,col.names=T,sep=",",append=F)
+}
+write.table(xT35,"OptionVariablesT35.csv",row.names = FALSE,col.names=T,sep=",",append=F)
+for(i in 1:NumOfOnesideStrkPrice_G){
+  wfilename_<-paste("OptionVariablesT35StrMns",as.character(i),".csv",sep="")
+  write.table(xT35StrMns[[i]],wfilename_,row.names = FALSE,col.names=T,sep=",",append=F)
+  wfilename_<-paste("OptionVariablesT35StrPlus",as.character(i),".csv",sep="")
+  write.table(xT35StrPlus[[i]],wfilename_,row.names = FALSE,col.names=T,sep=",",append=F)
+}
