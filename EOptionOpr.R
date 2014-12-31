@@ -633,9 +633,9 @@ maturity_a<-businessDaysBetween("UnitedStates/NYSE",
 
 #3.Price Grek
 valdeltagamma_tmp<-set.ValueDeltaGamma(xT7)
-xT7$Price<-valdeltagamma_tmp[1:length(xT7_a$Price)]
-xT7$Delta<-valdeltagamma_tmp[length(xT7_a$Price)+1:length(xT7_a$Delta)]
-xT7$Gamma<-valdeltagamma_tmp[length(xT7_a$Price)+length(xT7$Delta)+1:length(xT7_a$Gamma)]
+xT7$Price<-valdeltagamma_tmp[1:length(xT7$Price)]
+xT7$Delta<-valdeltagamma_tmp[length(xT7$Price)+1:length(xT7$Delta)]
+xT7$Gamma<-valdeltagamma_tmp[length(xT7$Price)+length(xT7$Delta)+1:length(xT7$Gamma)]
 xT7$Theta<-set.Theta(xT7)
 xT7$Rho<-set.Rho(xT7)
 
@@ -651,7 +651,7 @@ for(i in 1:NumOfOnesideStrkPrice_G){
   valdeltagamma_tmp<-set.ValueDeltaGamma(xT7_a)
   xT7_a$Price<-valdeltagamma_tmp[1:length(xT7_a$Price)]
   xT7_a$Delta<-valdeltagamma_tmp[length(xT7_a$Price)+1:length(xT7_a$Delta)]
-  xT7_a$Gamma<-valdeltagamma_tmp[length(xT7_a$Price)+length(xT7$Delta)+1:length(xT7_a$Gamma)]
+  xT7_a$Gamma<-valdeltagamma_tmp[length(xT7_a$Price)+length(xT7_a$Delta)+1:length(xT7_a$Gamma)]
   #4. Vega
   xT7_a$Vega<-set.Vega(xT=xT7_a)
   #5. Theta
@@ -677,7 +677,7 @@ for(i in 1:NumOfOnesideStrkPrice_G){
   valdeltagamma_tmp<-set.ValueDeltaGamma(xT7_a)
   xT7_a$Price<-valdeltagamma_tmp[1:length(xT7_a$Price)]
   xT7_a$Delta<-valdeltagamma_tmp[length(xT7_a$Price)+1:length(xT7_a$Delta)]
-  xT7_a$Gamma<-valdeltagamma_tmp[length(xT7_a$Price)+length(xT7$Delta)+1:length(xT7_a$Gamma)]
+  xT7_a$Gamma<-valdeltagamma_tmp[length(xT7_a$Price)+length(xT7_a$Delta)+1:length(xT7_a$Gamma)]
   #4. Vega
   xT7_a$Vega<-set.Vega(xT=xT7_a)
   #5. Theta
@@ -714,7 +714,7 @@ maturity_a<-businessDaysBetween("UnitedStates/NYSE",
 
 #3.Price Grek
 valdeltagamma_tmp<-set.ValueDeltaGamma(xT14)
-xT14$Price<-valdeltagamma_tmp[1:length(xT14_a$Price)]
+xT14$Price<-valdeltagamma_tmp[1:length(xT14$Price)]
 xT14$Delta<-valdeltagamma_tmp[length(xT14$Price)+1:length(xT14$Delta)]
 xT14$Gamma<-valdeltagamma_tmp[length(xT14$Price)+length(xT14$Delta)+1:length(xT14$Gamma)]
 xT14$Theta<-set.Theta(xT14)
@@ -732,7 +732,7 @@ for(i in 1:NumOfOnesideStrkPrice_G){
   valdeltagamma_tmp<-set.ValueDeltaGamma(xT14_a)
   xT14_a$Price<-valdeltagamma_tmp[1:length(xT14_a$Price)]
   xT14_a$Delta<-valdeltagamma_tmp[length(xT14_a$Price)+1:length(xT14_a$Delta)]
-  xT14_a$Gamma<-valdeltagamma_tmp[length(xT14_a$Price)+length(xT14$Delta)+1:length(xT14_a$Gamma)]
+  xT14_a$Gamma<-valdeltagamma_tmp[length(xT14_a$Price)+length(xT14_a$Delta)+1:length(xT14_a$Gamma)]
   #4. Vega
   xT14_a$Vega<-set.Vega(xT=xT14_a)
   #5. Theta
@@ -758,7 +758,7 @@ for(i in 1:NumOfOnesideStrkPrice_G){
   valdeltagamma_tmp<-set.ValueDeltaGamma(xT14_a)
   xT14_a$Price<-valdeltagamma_tmp[1:length(xT14_a$Price)]
   xT14_a$Delta<-valdeltagamma_tmp[length(xT14_a$Price)+1:length(xT14_a$Delta)]
-  xT14_a$Gamma<-valdeltagamma_tmp[length(xT14_a$Price)+length(xT14$Delta)+1:length(xT14_a$Gamma)]
+  xT14_a$Gamma<-valdeltagamma_tmp[length(xT14_a$Price)+length(xT14_a$Delta)+1:length(xT14_a$Gamma)]
   #4. Vega
   xT14_a$Vega<-set.Vega(xT=xT14_a)
   #5. Theta
@@ -797,7 +797,7 @@ maturity_a<-businessDaysBetween("UnitedStates/NYSE",
 valdeltagamma_tmp<-set.ValueDeltaGamma(xT21)
 xT21$Price<-valdeltagamma_tmp[1:length(xT21$Price)]
 xT21$Delta<-valdeltagamma_tmp[length(xT21$Price)+1:length(xT21$Delta)]
-xT21$Gamma<-valdeltagamma_tmp[length(xT21$Price)+length(xT21$Delta)+1:length(xT21_a$Gamma)]
+xT21$Gamma<-valdeltagamma_tmp[length(xT21$Price)+length(xT21$Delta)+1:length(xT21$Gamma)]
 xT21$Theta<-set.Theta(xT21)
 xT21$Rho<-set.Rho(xT21)
 
@@ -813,7 +813,7 @@ for(i in 1:NumOfOnesideStrkPrice_G){
   valdeltagamma_tmp<-set.ValueDeltaGamma(xT21_a)
   xT21_a$Price<-valdeltagamma_tmp[1:length(xT21_a$Price)]
   xT21_a$Delta<-valdeltagamma_tmp[length(xT21_a$Price)+1:length(xT21_a$Delta)]
-  xT21_a$Gamma<-valdeltagamma_tmp[length(xT21_a$Price)+length(xT21$Delta)+1:length(xT21_a$Gamma)]
+  xT21_a$Gamma<-valdeltagamma_tmp[length(xT21_a$Price)+length(xT21_a$Delta)+1:length(xT21_a$Gamma)]
   #4. Vega
   xT21_a$Vega<-set.Vega(xT=xT21_a)
   #5. Theta
@@ -839,7 +839,7 @@ for(i in 1:NumOfOnesideStrkPrice_G){
   valdeltagamma_tmp<-set.ValueDeltaGamma(xT21_a)
   xT21_a$Price<-valdeltagamma_tmp[1:length(xT21_a$Price)]
   xT21_a$Delta<-valdeltagamma_tmp[length(xT21_a$Price)+1:length(xT21_a$Delta)]
-  xT21_a$Gamma<-valdeltagamma_tmp[length(xT21_a$Price)+length(xT21$Delta)+1:length(xT21_a$Gamma)]
+  xT21_a$Gamma<-valdeltagamma_tmp[length(xT21_a$Price)+length(xT21_a$Delta)+1:length(xT21_a$Gamma)]
   #4. Vega
   xT21_a$Vega<-set.Vega(xT=xT21_a)
   #5. Theta
@@ -876,9 +876,9 @@ maturity_a<-businessDaysBetween("UnitedStates/NYSE",
 
 #3.Price Grek
 valdeltagamma_tmp<-set.ValueDeltaGamma(xT28)
-xT28$Price<-valdeltagamma_tmp[1:length(xT28_a$Price)]
-xT28$Delta<-valdeltagamma_tmp[length(xT28_a$Price)+1:length(xT28_a$Delta)]
-xT28$Gamma<-valdeltagamma_tmp[length(xT28_a$Price)+length(xT28$Delta)+1:length(xT28_a$Gamma)]
+xT28$Price<-valdeltagamma_tmp[1:length(xT28$Price)]
+xT28$Delta<-valdeltagamma_tmp[length(xT28$Price)+1:length(xT28$Delta)]
+xT28$Gamma<-valdeltagamma_tmp[length(xT28$Price)+length(xT28$Delta)+1:length(xT28$Gamma)]
 xT28$Theta<-set.Theta(xT28)
 xT28$Rho<-set.Rho(xT28)
 
@@ -894,7 +894,7 @@ for(i in 1:NumOfOnesideStrkPrice_G){
   valdeltagamma_tmp<-set.ValueDeltaGamma(xT28_a)
   xT28_a$Price<-valdeltagamma_tmp[1:length(xT28_a$Price)]
   xT28_a$Delta<-valdeltagamma_tmp[length(xT28_a$Price)+1:length(xT28_a$Delta)]
-  xT28_a$Gamma<-valdeltagamma_tmp[length(xT28_a$Price)+length(xT28$Delta)+1:length(xT28_a$Gamma)]
+  xT28_a$Gamma<-valdeltagamma_tmp[length(xT28_a$Price)+length(xT28_a$Delta)+1:length(xT28_a$Gamma)]
   #4. Vega
   xT28_a$Vega<-set.Vega(xT=xT28_a)
   #5. Theta
@@ -920,7 +920,7 @@ for(i in 1:NumOfOnesideStrkPrice_G){
   valdeltagamma_tmp<-set.ValueDeltaGamma(xT28_a)
   xT28_a$Price<-valdeltagamma_tmp[1:length(xT28_a$Price)]
   xT28_a$Delta<-valdeltagamma_tmp[length(xT28_a$Price)+1:length(xT28_a$Delta)]
-  xT28_a$Gamma<-valdeltagamma_tmp[length(xT28_a$Price)+length(xT28$Delta)+1:length(xT28_a$Gamma)]
+  xT28_a$Gamma<-valdeltagamma_tmp[length(xT28_a$Price)+length(xT28_a$Delta)+1:length(xT28_a$Gamma)]
   #4. Vega
   xT28_a$Vega<-set.Vega(xT=xT28_a)
   #5. Theta
@@ -957,9 +957,9 @@ maturity_a<-businessDaysBetween("UnitedStates/NYSE",
 
 #3.Price Grek
 valdeltagamma_tmp<-set.ValueDeltaGamma(xT35)
-xT35$Price<-valdeltagamma_tmp[1:length(xT35_a$Price)]
-xT35$Delta<-valdeltagamma_tmp[length(xT35_a$Price)+1:length(xT35_a$Delta)]
-xT35$Gamma<-valdeltagamma_tmp[length(xT35_a$Price)+length(xT35$Delta)+1:length(xT35_a$Gamma)]
+xT35$Price<-valdeltagamma_tmp[1:length(xT35$Price)]
+xT35$Delta<-valdeltagamma_tmp[length(xT35$Price)+1:length(xT35$Delta)]
+xT35$Gamma<-valdeltagamma_tmp[length(xT35$Price)+length(xT35$Delta)+1:length(xT35$Gamma)]
 xT35$Theta<-set.Theta(xT35)
 xT35$Rho<-set.Rho(xT35)
 
@@ -975,7 +975,7 @@ for(i in 1:NumOfOnesideStrkPrice_G){
   valdeltagamma_tmp<-set.ValueDeltaGamma(xT35_a)
   xT35_a$Price<-valdeltagamma_tmp[1:length(xT35_a$Price)]
   xT35_a$Delta<-valdeltagamma_tmp[length(xT35_a$Price)+1:length(xT35_a$Delta)]
-  xT35_a$Gamma<-valdeltagamma_tmp[length(xT35_a$Price)+length(xT35$Delta)+1:length(xT35_a$Gamma)]
+  xT35_a$Gamma<-valdeltagamma_tmp[length(xT35_a$Price)+length(xT35_a$Delta)+1:length(xT35_a$Gamma)]
   #4. Vega
   xT35_a$Vega<-set.Vega(xT=xT35_a)
   #5. Theta
@@ -1001,7 +1001,7 @@ for(i in 1:NumOfOnesideStrkPrice_G){
   valdeltagamma_tmp<-set.ValueDeltaGamma(xT35_a)
   xT35_a$Price<-valdeltagamma_tmp[1:length(xT35_a$Price)]
   xT35_a$Delta<-valdeltagamma_tmp[length(xT35_a$Price)+1:length(xT35_a$Delta)]
-  xT35_a$Gamma<-valdeltagamma_tmp[length(xT35_a$Price)+length(xT35$Delta)+1:length(xT35_a$Gamma)]
+  xT35_a$Gamma<-valdeltagamma_tmp[length(xT35_a$Price)+length(xT35_a$Delta)+1:length(xT35_a$Gamma)]
   #4. Vega
   xT35_a$Vega<-set.Vega(xT=xT35_a)
   #5. Theta
