@@ -20,8 +20,13 @@ library(RQuantLib)
 # Possibly read from File
 riskFreeRate_G=0.01
 divYld_G=0.0
+#UDLY price range
 NumOfOnesideStrkPrice_G=4
 ChangStrkPrUnit_G=10
+#Time range
+NumOfTimeChange_G=5
+ChangTimeUnit_G=7
+#FilePathofData_G=".\\"
 
 #xT0の列のアクセス
 #xT0$ContactName

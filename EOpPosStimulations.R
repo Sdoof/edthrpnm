@@ -11,7 +11,63 @@ library(RQuantLib)
 # sum(T7Mns[[i]]$Position*T7Mns[[i]]$Price) at lower than original price.
 # sum(T7Pls[[i]]$Position*T7Pls[[i]]$Price) at higher than original price.
 
+#Set Global Variable set in another file.
 
+#XT read
+#XT[[1:TimechgNum]]
+# XT[[1]],XT[[2]]...
+for(i in 1:(NumOfTimeChange_G+1)){
+ f_name=paste("OptionVariablesT",as.character((i-1)*ChangTimeUnit_G),".csv",sep="")
+ (xt_tmp<-read.table(f_name,header=T,sep=","))
+ # Date>ExpDate となっている要素は削除する
+ xt_tmp<-subset(xt_tmp,as.Date(Date,format="%Y/%m/%d")<=as.Date(ExpDate,format="%Y/%m/%d"))
+  if(i==1){
+    XT<-list(xt_tmp)
+  } else {
+    XT<-c(XT,list(xt_tmp))
+  }
+}
+#XTMns,XTPlus read
+#  XTMns[[1:TimechgNum]][[1:PriceChgNum]]
+#   XTMns[[1]]
+#     XTMns[[1]][[1]],XTMns[[1]][[2]],...
+#   XTMns[[2]]
+#     XTMns[[2]][[1]],XTMns[[2]][[2]],...
+#  XTPls[[TimechgNum]][[PriceChgNum]] likewise
+
+for(i in 1:(NumOfTimeChange_G+1)){
+  for(j in 1:(NumOfOnesideStrkPrice_G)){
+    #XTMns
+    f_name=paste("OptionVariablesT",as.character((i-1)*ChangTimeUnit_G),"StrMns",as.character(j),".csv",sep="")
+    (xt_tmp<-read.table(f_name,header=T,sep=","))
+    # Date>ExpDate となっている要素は削除する
+    xt_tmp<-subset(xt_tmp,as.Date(Date,format="%Y/%m/%d")<=as.Date(ExpDate,format="%Y/%m/%d"))
+
+    #XTPls
+    f_name=paste("OptionVariablesT",as.character((i-1)*ChangTimeUnit_G),"StrPlus",as.character(j),".csv",sep="")
+    (xt_tmp_pls<-read.table(f_name,header=T,sep=","))
+    # Date>ExpDate となっている要素は削除する
+    xt_tmp_pls<-subset(xt_tmp_pls,as.Date(Date,format="%Y/%m/%d")<=as.Date(ExpDate,format="%Y/%m/%d"))
+    if(j==1){
+      xtmns_elem<-list(xt_tmp)
+      xtmns_elem_pls<-list(xt_tmp_pls)
+    } else {
+      xtmns_elem<-c(xtmns_elem,list(xt_tmp))
+      xtmns_elem_pls<-c(xtmns_elem_pls,list(xt_tmp_pls))
+    }
+  }
+  if(i==1){
+    XTMns<-list(xtmns_elem)
+    XTPls<-list(xtmns_elem_pls)
+  } else{
+    XTMns<-c(XTMns,list(xtmns_elem))
+    XTPls<-c(XTPls,list(xtmns_elem_pls))
+  }
+}
+
+
+#  xT21StrMns<-c(xT21StrMns,list(xT21_a))
+# T<-list(T,xt)
 
 #2. Expected Return Scenario Stimulation
 #Advance T 1 by 1. Get Payoff Dist. Calc Expected Payoff.

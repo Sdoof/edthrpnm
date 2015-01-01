@@ -22,6 +22,8 @@ riskFreeRate_G=0.01
 divYld_G=0.0
 NumOfOnesideStrkPrice_G=4
 ChangStrkPrUnit_G=10
+ChangTimeUnit_G=7
+#FilePathofData_G=rep('.\\',1)
 
 #xT0の列のアクセス
 #xT0$ContactName
