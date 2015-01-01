@@ -9,7 +9,7 @@ wfilename_<-paste("opprice",today,".txt",sep="")
 #^RUT
 quart<-getQuote("^RUT")
 write.table(quart,wfilename_,quote=T,append=T,sep=",")
-write(wfilename_,"Strike,ContactName,Last,Bid,Ask,Change,%Change,Volume,OI,IV,ExpDate")
+#write(wfilename_,"Strike,ContactName,Last,Bid,Ask,Change,%Change,Volume,OI,IV,ExpDate")
 #2015/01/17
 tbl_<-readHTMLTable("http://finance.yahoo.com/q/op?s=^RUT&date=1421452800")
 expdate<-"2015/01/17"
