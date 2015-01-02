@@ -11,7 +11,8 @@ library(RQuantLib)
 # sum(T7Mns[[i]]$Position*T7Mns[[i]]$Price) at lower than original price.
 # sum(T7Pls[[i]]$Position*T7Pls[[i]]$Price) at higher than original price.
 
-#Set Global Variable set in another file.
+#Set Global Variable also set in another file.
+file_prefix_simple_G<-"OptionVariablesT"
 
 #XT read
 #XT[[1:TimechgNum]]
@@ -65,9 +66,31 @@ for(i in 1:(NumOfTimeChange_G+1)){
   }
 }
 
+#-sum($Price*$Position)
+#  Positionを取った時のCash credit(debtは-)
+#sum($Price*$Position) 
+#  Positionの反対売買した（closed out)時のcash credit(debtは-)
 
-#  xT21StrMns<-c(xT21StrMns,list(xT21_a))
-# T<-list(T,xt)
+x_axis_<-list()
+y_axis_<-list()
+#compute actual NumOfTimeChange_G because of Date > ExpDate
+for( time_chg in 1:3){
+ #from left to center
+ for(prce_chg in 1:(NumOfOnesideStrkPrice_G)){
+   x_axis_<-c(x_axis_,list(XTMns[[time_chg]][[NumOfOnesideStrkPrice_G-prce_chg+1]]$UDLY[1]))
+   y_axis_<-c(y_axis_,list(sum((XTMns[[time_chg]][[NumOfOnesideStrkPrice_G+1-prce_chg]]$Price - XT[[1]]$Price)*XT[[1]]$Position)))
+ }
+ #center
+ x_axis_<-c(x_axis_,list(XT[[time_chg]]$UDLY[1]))
+ y_axis_<-c(y_axis_,list(sum(XT[[time_chg]]$Position*XT[[time_chg]]$Price - XT[[1]]$Position*XT[[1]]$Price)))
+ #center to right
+ for(prce_chg in 1:NumOfOnesideStrkPrice_G){
+   x_axis_<-c(x_axis_,list(XTPls[[time_chg]][[prce_chg]]$UDLY[1]))
+   y_axis_<-c(y_axis_,list(sum((XTPls[[time_chg]][[prce_chg]]$Price - XT[[1]]$Price)*XT[[1]]$Position)))
+ }
+}
+
+plot(x_axis_,y_axis_)
 
 #2. Expected Return Scenario Stimulation
 #Advance T 1 by 1. Get Payoff Dist. Calc Expected Payoff.
