@@ -90,7 +90,7 @@ for( time_chg in 1:3){
  }
 }
 
-plot(x_axis_,y_axis_)
+#plot(x_axis_,y_axis_)
 
 #2. Expected Return Scenario Stimulation
 #Advance T 1 by 1. Get Payoff Dist. Calc Expected Payoff.

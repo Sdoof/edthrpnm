@@ -21,7 +21,7 @@ library(RQuantLib)
 riskFreeRate_G=0.01
 divYld_G=0.0
 #UDLY price range
-NumOfOnesideStrkPrice_G=4
+NumOfOnesideStrkPrice_G=22
 ChangStrkPrUnit_G=10
 #Time range
 NumOfTimeChange_G=5
