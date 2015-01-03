@@ -20,8 +20,10 @@ file_prefix_simple_G<-"OptionVariablesT"
 for(i in 1:(NumOfTimeChange_G+1)){
  f_name=paste("OptionVariablesT",as.character((i-1)*ChangTimeUnit_G),".csv",sep="")
  (xt_tmp<-read.table(f_name,header=T,sep=","))
- # Date>ExpDate となっている要素は削除する
+ # Date>ExpDate となっている行は削除
  xt_tmp<-subset(xt_tmp,as.Date(Date,format="%Y/%m/%d")<=as.Date(ExpDate,format="%Y/%m/%d"))
+ # Position 0となっている行は削除
+ xt_tmp<-subset(xt_tmp,Position!=0)
   if(i==1){
     XT<-list(xt_tmp)
   } else {
@@ -43,12 +45,19 @@ for(i in 1:(NumOfTimeChange_G+1)){
     (xt_tmp<-read.table(f_name,header=T,sep=","))
     # Date>ExpDate となっている要素は削除する
     xt_tmp<-subset(xt_tmp,as.Date(Date,format="%Y/%m/%d")<=as.Date(ExpDate,format="%Y/%m/%d"))
-
+    # Position 0となっている行は削除
+    xt_tmp<-subset(xt_tmp,Position!=0)
+    # Position 0となっている行は削除
+    xt_tmp<-subset(xt_tmp,Position!=0)
+    
     #XTPls
     f_name=paste("OptionVariablesT",as.character((i-1)*ChangTimeUnit_G),"StrPlus",as.character(j),".csv",sep="")
     (xt_tmp_pls<-read.table(f_name,header=T,sep=","))
     # Date>ExpDate となっている要素は削除する
     xt_tmp_pls<-subset(xt_tmp_pls,as.Date(Date,format="%Y/%m/%d")<=as.Date(ExpDate,format="%Y/%m/%d"))
+    # Position 0となっている行は削除
+    xt_tmp<-subset(xt_tmp,Position!=0)
+
     if(j==1){
       xtmns_elem<-list(xt_tmp)
       xtmns_elem_pls<-list(xt_tmp_pls)
@@ -117,6 +126,15 @@ for( time_chg in 1:3){
 
 #Functions Defined
 
+#get business days between the days expressed as character
+get.busdays.between <- function(start,end){
+  bus_day<-businessDaysBetween("UnitedStates/NYSE",
+                               as.Date(start,format="%Y/%m/%d"),
+                               as.Date(end,format="%Y/%m/%d"))
+  bus_day
+}
+
+#Wrapper for horizental.volatility.skew
 volatility.surface.skew <- function(xTb,xTa){
   maturity_b<-businessDaysBetween("UnitedStates/NYSE",
                                   as.Date(xTb$Date,format="%Y/%m/%d"),
@@ -151,13 +169,7 @@ set.EuropeanOptionValueGreeks <- function(xt){
 ##set.AmericanOptionValueGreeks(xt)
 # to be defined
 
-#get business days between the days expressed as character
-get.busdays.between <- function(start,end){
-  bus_day<-businessDaysBetween("UnitedStates/NYSE",
-                              as.Date(start,format="%Y/%m/%d"),
-                               as.Date(end,format="%Y/%m/%d"))
-  bus_day
-}
+
 
 ###
 # Start Stimulation
@@ -167,6 +179,7 @@ get.busdays.between <- function(start,end){
 ###Scenario 1.
 ###
 #volatility never changes throught the stimulation.
+#could pertubate IV based on stiumulation condition
 
 #Total Stimulation Num
 StimultaionNum=2
@@ -180,7 +193,7 @@ for(ith_stim in 1:StimultaionNum){
   
   #Stimulation day
   #returned as a vector. So get the first element.
-  stim_days_num<-get.busdays.between(XTOrig$Date,XTOrig$ExpDate)[1]-1
+  stim_days_num<-min(get.busdays.between(XTOrig$Date,XTOrig$ExpDate))-1
 
   #underlying daily return for geometic brown motion
   mu_udly<-(1.03)^(1/252)-1
@@ -271,9 +284,8 @@ for(ith_stim in 1:StimultaionNum){
 
 ###Scenario 2.
 ###
-#volatility changes based on market condition
-
-
+#volatility changes based on market condition.
+#also should pertubate IV based on stiumulation condition
 
 #Back Test Functions.
 #To Be Designed Later.

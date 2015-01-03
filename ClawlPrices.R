@@ -49,13 +49,6 @@ write.table(tbl_[[3]],wfilename_,append=T,sep=",")
 #SPY
 quart<-getQuote("SPY")
 write.table(quart,wfilename_,quote=T,append=T,sep=",")
-#2015/01/02
-tbl_<-readHTMLTable("http://finance.yahoo.com/q/op?s=SPY&date=1420156800")
-expdate<-"2015/01/02"
-tbl_[[2]]["ExpDate"]<-expdate
-write.table(tbl_[[2]],wfilename_,append=T,sep=",")
-tbl_[[3]]["ExpDate"]<-expdate
-write.table(tbl_[[3]],wfilename_,append=T,sep=",")
 #2015/01/17
 tbl_<-readHTMLTable("http://finance.yahoo.com/q/op?s=SPY&date=1421452800")
 expdate<-"2015/01/17"
