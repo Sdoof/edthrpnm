@@ -113,6 +113,126 @@ for( time_chg in 1:3){
 #
 
 # Import various volatility skew functions included in other files.
+# Import Geometric Brown Motion Stimulation function
+
+#Functions Defined
+
+volatility.surface.skew <- function(xTb,xTa){
+  maturity_b<-businessDaysBetween("UnitedStates/NYSE",
+                                  as.Date(xTb$Date,format="%Y/%m/%d"),
+                                  as.Date(xTb$ExpDate,format="%Y/%m/%d"))
+  maturity_a<-businessDaysBetween("UnitedStates/NYSE",
+                                  as.Date(xTa$Date,format="%Y/%m/%d"),
+                                  as.Date(xTa$ExpDate,format="%Y/%m/%d"))
+  vol_ret_<-horizental.volatility.skew(vol_b=xTb$OrigIV,maturity_b=maturity_b,maturity_a=maturity_a)
+  vol_ret_
+}
+
+#set.ValueGreeks(xt) should be loaded before.
+# Option Value and Greek Change
+set.EuropeanOptionValueGreeks <- function(xt){
+  tmp_<-(set.ValueGreeks(xt))
+  #Price
+  ret_<-list(tmp_[[1]])
+  #Delta
+  ret_<-c(ret_,list(tmp_[[2]]))
+  #Gamma
+  ret_<-c(ret_,list(tmp_[[3]]))
+  #Vega
+  ret_<-c(ret_,list(tmp_[[4]]/100))
+  #Theta
+  ret_<-c(ret_,list(tmp_[[5]]/365))
+  #Rho
+  ret_<-c(ret_,list(tmp_[[6]]/365))
+  names(ret_)<-c("Price","Delta","Gamma","Vega","Theta","Rho")  
+  ret_
+}
+
+##set.AmericanOptionValueGreeks(xt)
+# to be defined
+
+#Stimulation processed on this data frame
+XTStim<-XT[[1]]
+XTOrig<-XT[[1]]
+#Stimulation day
+stim_days_num=12
+#underlying daily return for geometic brown motion
+mu_udly<-(1.03)^(1/252)-1
+#underlying initial daily volatility.
+#HV should be used? or IV should be used?
+sigma_udly<-0.2/sqrt(252)
+
+#Prepare the stored values
+positionProfit <- rep(0, times=stim_days_num)
+PositionDataframe <- NULL
+PositionEvalScores <- NULL
+
+####
+###Scenario 1.
+###
+#volatility never changes throught the stimulation.
+
+#get the underlying changed of all days.
+s0<-XTStim$UDLY[[1]]
+udly_prices <- geombrmtn.stimulate <- geombrmtn.stimulate(s0=s0,mu=mu_udly,sigma=sigma_udly,length=stim_days_num)
+udly_prices <- udly_prices[-1]
+
+for(day_chg in 1:stim_days_num){
+
+  #Just for comparison later.
+  XTStim_b<-XTStim
+
+  #Advance day_chg day
+  XTStim$Date<-format(advance("UnitedStates/NYSE",dates=as.Date(XTOrig$Date,format="%Y/%m/%d"),day_chg,0),"%Y/%m/%d")
+  
+  #Underlying Price change
+  XTStim$UDLY <- rep(udly_prices[day_chg],times=length(XTStim$UDLY))
+
+  #Volatiliy Vertical Skew adjustment
+  XTStim$OrigIV <- XTStim$OrigIV+vertical.volatility.skew(xTb=XTStim_b,xTa=XTStim)
+  #Underlying Price change volatility skew
+  XTStim$OrigIV <- XTStim$OrigIV+Underlying.PriceChange.volatility.skew(xTb=XTStim_b,xTa=XTStim)
+  #Horizental Volatility SKew adjustment
+  XTStim$OrigIV <- XTStim$OrigIV+volatility.surface.skew(xTb=XTStim_b,xTa=XTStim)
+
+  #Set new Price and Greeks
+  #Case of European Option
+  tmp_<-set.EuropeanOptionValueGreeks(XTStim)
+  XTStim$Price<-tmp_$Price
+  XTStim$Delta<-tmp_$Delta
+  XTStim$Gamma<-tmp_$Gamma
+  XTStim$Vega<-tmp_$Vega
+  XTStim$Theta<-tmp_$Theta
+  XTStim$Rho<-tmp_$Theta
+
+  #Case of American Option
+  #TBD
+
+  #Position Profit
+  positionProfit[day_chg]<-(sum(XTStim$Position*XTStim$Price) - sum(XTOrig$Position*XTOrig$Price))
+
+  #Evaluation Function to be used for position adjustment(liqudation)
+  #Suchs as DTRRR, VTRRR, RTRRR. TBD
+  #positionProfit[day_chg] may be used.
+  if(day_chg==1){
+    PositionEvalScores<-list(c(0))
+  }else{
+    PositionEvalScores<-c(PositionEvalScores,list(c(0)))
+  }
+  #Position adjustment(liqudation)
+  #to be defined later
+
+  #Current XTStim appened to a list
+  #Data frame to be stored. Greeks and Everything
+  if(day_chg==1){
+    PositionDataframe<-list(XTStim)
+  }else{
+    PositionDataframe<-c(PositionDataframe,list(XTStim))
+  }
+  #advance a day. loop.
+}
+
+
 
 
 #Back Test Functions.
