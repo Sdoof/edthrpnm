@@ -100,10 +100,20 @@ for( time_chg in 1:3){
   }
 }
 
-points(x_axis_[NumOfOnesideStrkPrice_G*4+3:NumOfOnesideStrkPrice_G*6+3],y_axis_[NumOfOnesideStrkPrice_G*4+3:NumOfOnesideStrkPrice_G*6+3],col="black",pch = 3)
-plot(x_axis_[1:NumOfOnesideStrkPrice_G*2+1],y_axis_[1:NumOfOnesideStrkPrice_G*2+1],col="red",pch = 3)
-plot(x_axis_[NumOfOnesideStrkPrice_G*2+2:NumOfOnesideStrkPrice_G*4+2],y_axis_[NumOfOnesideStrkPrice_G*2+2:NumOfOnesideStrkPrice_G*4+2],col="orange",pch = 3)
-#points(x_axis_[NumOfOnesideStrkPrice_G*4+3:NumOfOnesideStrkPrice_G*6+3],y_axis_[NumOfOnesideStrkPrice_G*4+3:NumOfOnesideStrkPrice_G*6+3],col="darkgrey",pch = 3)
+x_<-NumOfOnesideStrkPrice_G*6+3
+y_<-x_-NumOfOnesideStrkPrice_G*2
+plot(x_axis_[x_:y_],y_axis_[x_:y_],col="black",pch = 3)
+#plot(x_axis_[91:135],y_axis_[91:135],col="black",pch = 3)
+x_<-NumOfOnesideStrkPrice_G*4+2
+y_<-x_-NumOfOnesideStrkPrice_G*2
+points(x_axis_[x_:y_],y_axis_[x_:y_],col="red",pch = 3)
+#points(x_axis_[46:90],y_axis_[46:90],col="red",pch = 3)
+x_<-NumOfOnesideStrkPrice_G*2+1
+y_<-x_-NumOfOnesideStrkPrice_G*2
+points(x_axis_[x_:y_],y_axis_[x_:y_],col="orange",pch = 3)
+#points(x_axis_[1:45],y_axis_[1:45],col="orange",pch = 3)
+
+
 
 #2. Expected Return Scenario Stimulation
 #Advance T 1 by 1. Get Payoff Dist. Calc Expected Payoff.
