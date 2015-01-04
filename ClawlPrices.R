@@ -6,6 +6,7 @@ library("quantmod")
 today<-Sys.Date()
 wfilename_<-paste("opprice",today,".txt",sep="")
 
+
 #^RUT
 quart<-getQuote("^RUT")
 write.table(quart,wfilename_,quote=T,append=T,sep=",")
@@ -172,3 +173,34 @@ write.table(tbl_[[2]],wfilename_,append=T,sep=",")
 tbl_[[3]]["ExpDate"]<-expdate
 write.table(tbl_[[3]],wfilename_,append=T,sep=",")
 
+#AUD/USD Future Option
+  #2015 March European
+  #tbl_<-readHTMLTable("http://www.cmegroup.com/trading/fx/g10/australian-dollar_quotes_globex_options.html?optionExpiration=H5#optionProductId=2535&strikeRange=ALL")
+#2015 March American
+tbl_<-readHTMLTable("http://www.cmegroup.com/trading/fx/g10/australian-dollar_quotes_globex_options.html?optionExpiration=H5#optionProductId=38&strikeRange=ALL")
+write.table(tbl_[[1]],wfilename_,append=T,sep=",")
+write.table(tbl_[[2]],wfilename_,append=T,sep=",")
+   #2015 Jun European
+   #http://www.cmegroup.com/trading/fx/g10/australian-dollar_quotes_globex_options.html?optionExpiration=M5#optionProductId=2535&strikeRange=ALL
+#2015 Jun Americal
+tbl_<-readHTMLTable("http://www.cmegroup.com/trading/fx/g10/australian-dollar_quotes_globex_options.html?optionExpiration=M5#strikeRange=ALL&optionProductId=38")
+write.table(tbl_[[1]],wfilename_,append=T,sep=",")
+write.table(tbl_[[2]],wfilename_,append=T,sep=",")
+#2015 Sep American
+tbl_<-readHTMLTable("http://www.cmegroup.com/trading/fx/g10/australian-dollar_quotes_globex_options.html?optionExpiration=U5#optionProductId=38&strikeRange=ALL")
+write.table(tbl_[[1]],wfilename_,append=T,sep=",")
+write.table(tbl_[[2]],wfilename_,append=T,sep=",")
+
+#JPY/USD Future Option
+#2015 Mar JPYUSD
+tbl_<-readHTMLTable("http://www.cmegroup.com/trading/fx/g10/japanese-yen_quotes_globex_options.html?optionExpiration=H5#strikeRange=ALL&optionProductId=71")
+write.table(tbl_[[1]],wfilename_,append=T,sep=",")
+write.table(tbl_[[2]],wfilename_,append=T,sep=",")
+#2015 Jun JPYUSD
+tbl_<-readHTMLTable("http://www.cmegroup.com/trading/fx/g10/japanese-yen_quotes_globex_options.html?optionExpiration=M5#optionProductId=71&strikeRange=ATM")
+write.table(tbl_[[1]],wfilename_,append=T,sep=",")
+write.table(tbl_[[2]],wfilename_,append=T,sep=",")
+#2015 Sep JPYUSD
+tbl_<-readHTMLTable("http://www.cmegroup.com/trading/fx/g10/japanese-yen_quotes_globex_options.html?optionExpiration=U5#optionProductId=71&strikeRange=ALL")
+write.table(tbl_[[1]],wfilename_,append=T,sep=",")
+write.table(tbl_[[2]],wfilename_,append=T,sep=",")
