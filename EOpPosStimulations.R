@@ -18,12 +18,12 @@ file_prefix_simple_G<-"OptionVariablesT"
 #XT[[1:TimechgNum]]
 # XT[[1]],XT[[2]]...
 for(i in 1:(NumOfTimeChange_G+1)){
- f_name=paste("OptionVariablesT",as.character((i-1)*ChangTimeUnit_G),".csv",sep="")
- (xt_tmp<-read.table(f_name,header=T,sep=","))
- # Date>ExpDate となっている行は削除
- xt_tmp<-subset(xt_tmp,as.Date(Date,format="%Y/%m/%d")<=as.Date(ExpDate,format="%Y/%m/%d"))
- # Position 0となっている行は削除
- xt_tmp<-subset(xt_tmp,Position!=0)
+  f_name=paste("OptionVariablesT",as.character((i-1)*ChangTimeUnit_G),".csv",sep="")
+  (xt_tmp<-read.table(f_name,header=T,sep=","))
+  # Date>ExpDate となっている行は削除
+  xt_tmp<-subset(xt_tmp,as.Date(Date,format="%Y/%m/%d")<=as.Date(ExpDate,format="%Y/%m/%d"))
+  # Position 0となっている行は削除
+  xt_tmp<-subset(xt_tmp,Position!=0)
   if(i==1){
     XT<-list(xt_tmp)
   } else {
@@ -57,7 +57,7 @@ for(i in 1:(NumOfTimeChange_G+1)){
     xt_tmp_pls<-subset(xt_tmp_pls,as.Date(Date,format="%Y/%m/%d")<=as.Date(ExpDate,format="%Y/%m/%d"))
     # Position 0となっている行は削除
     xt_tmp<-subset(xt_tmp,Position!=0)
-
+    
     if(j==1){
       xtmns_elem<-list(xt_tmp)
       xtmns_elem_pls<-list(xt_tmp_pls)
@@ -84,19 +84,19 @@ x_axis_<-list()
 y_axis_<-list()
 #compute actual NumOfTimeChange_G because of Date > ExpDate
 for( time_chg in 1:3){
- #from left to center
- for(prce_chg in 1:(NumOfOnesideStrkPrice_G)){
-   x_axis_<-c(x_axis_,list(XTMns[[time_chg]][[NumOfOnesideStrkPrice_G-prce_chg+1]]$UDLY[1]))
-   y_axis_<-c(y_axis_,list(sum((XTMns[[time_chg]][[NumOfOnesideStrkPrice_G+1-prce_chg]]$Price - XT[[1]]$Price)*XT[[1]]$Position)))
- }
- #center
- x_axis_<-c(x_axis_,list(XT[[time_chg]]$UDLY[1]))
- y_axis_<-c(y_axis_,list(sum(XT[[time_chg]]$Position*XT[[time_chg]]$Price - XT[[1]]$Position*XT[[1]]$Price)))
- #center to right
- for(prce_chg in 1:NumOfOnesideStrkPrice_G){
-   x_axis_<-c(x_axis_,list(XTPls[[time_chg]][[prce_chg]]$UDLY[1]))
-   y_axis_<-c(y_axis_,list(sum((XTPls[[time_chg]][[prce_chg]]$Price - XT[[1]]$Price)*XT[[1]]$Position)))
- }
+  #from left to center
+  for(prce_chg in 1:(NumOfOnesideStrkPrice_G)){
+    x_axis_<-c(x_axis_,list(XTMns[[time_chg]][[NumOfOnesideStrkPrice_G-prce_chg+1]]$UDLY[1]))
+    y_axis_<-c(y_axis_,list(sum((XTMns[[time_chg]][[NumOfOnesideStrkPrice_G+1-prce_chg]]$Price - XT[[1]]$Price)*XT[[1]]$Position)))
+  }
+  #center
+  x_axis_<-c(x_axis_,list(XT[[time_chg]]$UDLY[1]))
+  y_axis_<-c(y_axis_,list(sum(XT[[time_chg]]$Position*XT[[time_chg]]$Price - XT[[1]]$Position*XT[[1]]$Price)))
+  #center to right
+  for(prce_chg in 1:NumOfOnesideStrkPrice_G){
+    x_axis_<-c(x_axis_,list(XTPls[[time_chg]][[prce_chg]]$UDLY[1]))
+    y_axis_<-c(y_axis_,list(sum((XTPls[[time_chg]][[prce_chg]]$Price - XT[[1]]$Price)*XT[[1]]$Position)))
+  }
 }
 
 #plot(x_axis_,y_axis_)
@@ -112,8 +112,8 @@ for( time_chg in 1:3){
 #  Expected Payoff should be the Price position values at T+x day.
 # 
 #  But We should investigate: 
-#    1. The Effect of volatility Skewness
-#    2. The Effect of volatility Changes. Up trend/Down trend
+#    1. The Effect of volatility Skewness and Call/Put IV Differnces
+#    2. The Effect of volatility Trend
 #    3. The Effect of Underlying Price Trend
 #    4. The Effect of Mechanical Position Adjust(Liquidation)
 #       when Forward Risk/Return Ration becomes unfavorable.
@@ -182,7 +182,7 @@ set.EuropeanOptionValueGreeks <- function(xt){
 #could pertubate IV based on stiumulation condition
 
 #Total Stimulation Num
-StimultaionNum=2
+StimultaionNum=1000
 #List of Every Result
 StimRslts<-NULL
 
@@ -194,86 +194,97 @@ for(ith_stim in 1:StimultaionNum){
   #Stimulation day
   #returned as a vector. So get the first element.
   stim_days_num<-min(get.busdays.between(XTOrig$Date,XTOrig$ExpDate))-1
-
+  
   #underlying daily return for geometic brown motion
-  mu_udly<-(1.03)^(1/252)-1
+  mu_udly<-(0.90)^(1/252)-1
   #underlying initial daily volatility.
   #HV should be used? or IV should be used?
-  sigma_udly<-0.2/sqrt(252)
+  sigma_udly<-0.25/sqrt(252)
   
   #Prepare the stored values
   StimulationParameters <- NULL
   positionProfit <- rep(0, times=stim_days_num)
-  positionEvalScores <- rep(0, times=stim_days_num)
+  positionEvalScores <- NULL
   PositionDataframe <- NULL
   
   #get the underlying changed of all days.
   s0<-XTStim$UDLY[[1]]
   udly_prices <- geombrmtn.stimulate(s0=s0,mu=mu_udly,sigma=sigma_udly,length=stim_days_num)
   udly_prices <- udly_prices[-1]
-
+  
   StimulationParameters<-list(stim_days_num)
   StimulationParameters<-c(StimulationParameters,list(mu_udly))
   StimulationParameters<-c(StimulationParameters,list(sigma_udly))
   names(StimulationParameters)<-c("StimDays","Mu","Sigma")
-
+  
   for(day_chg in 1:stim_days_num){
-
-   #Just for comparison later.
-   XTStim_b<-XTStim
-
-   #Advance day_chg day
-   XTStim$Date<-format(advance("UnitedStates/NYSE",dates=as.Date(XTOrig$Date,format="%Y/%m/%d"),day_chg,0),"%Y/%m/%d")
+    
+    #Just for comparison later.
+    XTStim_b<-XTStim
+    
+    #Advance day_chg day
+    XTStim$Date<-format(advance("UnitedStates/NYSE",dates=as.Date(XTOrig$Date,format="%Y/%m/%d"),day_chg,0),"%Y/%m/%d")
+    
+    #Underlying Price change
+    XTStim$UDLY <- rep(udly_prices[day_chg],times=length(XTStim$UDLY))
+    
+    #Volatiliy Vertical Skew adjustment
+    XTStim$OrigIV <- XTStim$OrigIV+vertical.volatility.skew(xTb=XTStim_b,xTa=XTStim)
+    #Underlying Price change volatility skew
+    XTStim$OrigIV <- XTStim$OrigIV+Underlying.PriceChange.volatility.skew(xTb=XTStim_b,xTa=XTStim)
+    #Horizental Volatility SKew adjustment
+    XTStim$OrigIV <- XTStim$OrigIV+volatility.surface.skew(xTb=XTStim_b,xTa=XTStim)
+    
+    #Set new Price and Greeks
+    #Case of European Option
+    tmp_<-set.EuropeanOptionValueGreeks(XTStim)
+    XTStim$Price<-tmp_$Price
+    XTStim$Delta<-tmp_$Delta
+    XTStim$Gamma<-tmp_$Gamma
+    XTStim$Vega<-tmp_$Vega
+    XTStim$Theta<-tmp_$Theta
+    XTStim$Rho<-tmp_$Theta
+    
+    #Case of American Option
+    #TBD
+    
+    #Position Profit
+    positionProfit[day_chg]<-(sum(XTStim$Position*XTStim$Price) - sum(XTOrig$Position*XTOrig$Price))
+    
+    #Evaluation Function to be used for position adjustment(liqudation)
+    #Suchs as DTRRR, VTRRR, RTRRR. TBD
+    #positionProfit[day_chg] may be used.
+    
+    if(day_chg==1){
+      positionEvalScores<-list(day_chg)
+    }else{
+      positionEvalScores<-c(PositionDataframe,list(day_chg))
+    }
+    
+    #Current XTStim appened to a list
+    #Data frame to be stored. Greeks and Everything
+    if(day_chg==1){
+      PositionDataframe<-list(XTStim)
+    }else{
+      PositionDataframe<-c(PositionDataframe,list(XTStim))
+    }
+    
+    #Position adjustment(liqudation) to be defined later
+    # for example. simple los-cut
+    #if (positionProfit[day_chg]<=-15) { 
+    #  break
+    #}
+    
+    #otherwise advance a day. loop.
+  }
   
-   #Underlying Price change
-   XTStim$UDLY <- rep(udly_prices[day_chg],times=length(XTStim$UDLY))
-
-   #Volatiliy Vertical Skew adjustment
-   XTStim$OrigIV <- XTStim$OrigIV+vertical.volatility.skew(xTb=XTStim_b,xTa=XTStim)
-   #Underlying Price change volatility skew
-   XTStim$OrigIV <- XTStim$OrigIV+Underlying.PriceChange.volatility.skew(xTb=XTStim_b,xTa=XTStim)
-   #Horizental Volatility SKew adjustment
-   XTStim$OrigIV <- XTStim$OrigIV+volatility.surface.skew(xTb=XTStim_b,xTa=XTStim)
-
-   #Set new Price and Greeks
-   #Case of European Option
-   tmp_<-set.EuropeanOptionValueGreeks(XTStim)
-   XTStim$Price<-tmp_$Price
-   XTStim$Delta<-tmp_$Delta
-   XTStim$Gamma<-tmp_$Gamma
-   XTStim$Vega<-tmp_$Vega
-   XTStim$Theta<-tmp_$Theta
-   XTStim$Rho<-tmp_$Theta
-
-   #Case of American Option
-   #TBD
-
-   #Position Profit
-   positionProfit[day_chg]<-(sum(XTStim$Position*XTStim$Price) - sum(XTOrig$Position*XTOrig$Price))
-
-   #Evaluation Function to be used for position adjustment(liqudation)
-   #Suchs as DTRRR, VTRRR, RTRRR. TBD
-   #positionProfit[day_chg] may be used.
-  
-    PositionEvalScores[day_chg]<-day_chg
-  
-  #Position adjustment(liqudation)
-  #to be defined later
-
-  #Current XTStim appened to a list
-  #Data frame to be stored. Greeks and Everything
-   if(day_chg==1){
-     PositionDataframe<-list(XTStim)
-   }else{
-     PositionDataframe<-c(PositionDataframe,list(XTStim))
-   }
-   #advance a day. loop.
-}
+  #the ith_stim iteration finished
   content_<-list(StimulationParameters)
+  content_<-c(content_,list(day_chg))
   content_<-c(content_,list(positionProfit))
   content_<-c(content_,list(PositionEvalScores))
   content_<-c(content_,list(PositionDataframe))
-  names(content_)<-c("Parameter","Profit","EvalScore","ValueGreek")
+  names(content_)<-c("Parameter","AdjustDay","Profit","EvalScore","ValueGreek")
   if(ith_stim==1){
     StimRslts<-list(content_)
     names(StimulationParameters)<-c("Result")
@@ -281,6 +292,71 @@ for(ith_stim in 1:StimultaionNum){
     StimRslts<-c(StimRslts,list(content_))
   }
 }
+
+#Result analysis
+profit_each_itr_ <- rep(0,StimultaionNum)
+udly_price_at_liquidation_  <- rep(0,StimultaionNum)
+liq_days_<- rep(0,StimultaionNum)
+for(j in 1:StimultaionNum){
+  profit_each_itr_[j]<-StimRslts[[j]]$Profit[StimRslts[[j]]$AdjustDay]
+  udly_price_at_liquidation_[j]<-mean(StimRslts[[j]]$ValueGreek[[StimRslts[[j]]$AdjustDay]]$UDLY)
+  liq_days_[j]<-StimRslts[[j]]$AdjustDay
+}
+# max profit and corresponding Underlying Price
+max(profit_each_itr_);udly_price_at_liquidation_[order(profit_each_itr_)[length(profit_each_itr_)]]
+# min profit and corresponding Underlying Price
+min(profit_each_itr_);udly_price_at_liquidation_[order(profit_each_itr_)[1]]
+# mean profit
+mean(profit_each_itr_)
+# standard deviation
+sd(profit_each_itr_)
+# median profit
+median(profit_each_itr_)
+
+hist(udly_price_at_liquidation_,breaks="Scott",main="UDLY Liq Prices")
+points(mean(XT[[1]]$UDLY),0, col = "red", pch = 3)
+
+hist(profit_each_itr_,breaks="Scott",main="Profit/Loss")
+points(mean(profit_each_itr_), 0, col = "red", pch = 3)
+points(median(profit_each_itr_), 0, col = "orange", pch = 1)
+points(mean(profit_each_itr_)+sd(profit_each_itr_), 0, col = "darkgrey", pch = 2)
+points(mean(profit_each_itr_)-sd(profit_each_itr_), 0, col = "darkgrey", pch = 2)
+
+
+##
+##New Data Flame made to faciliate futher analying
+##
+res_dtf_ <- data.frame(UDLY=udly_price_at_liquidation_,
+                       Profit=profit_each_itr_,
+                       LIQDAY=liq_days_)
+
+#Condtion
+subset(res_dtf_,Profit<=-15)
+
+#Condition 
+#Underlying > Inital Underlying
+max((subset(res_dtf_,UDLY>mean(XT[[1]]$UDLY)))$Profit)
+min((subset(res_dtf_,UDLY>mean(XT[[1]]$UDLY)))$Profit)
+mean((subset(res_dtf_,UDLY>mean(XT[[1]]$UDLY)))$Profit)
+sd((subset(res_dtf_,UDLY>mean(XT[[1]]$UDLY)))$Profit)
+median((subset(res_dtf_,UDLY>mean(XT[[1]]$UDLY)))$Profit)
+#UDLY histgram
+hist((subset(res_dtf_,UDLY>mean(XT[[1]]$UDLY)))$UDLY,
+     breaks="Scott",main="UDLY Liq Prices over Initial UDL Prc")
+points(mean(XT[[1]]$UDLY),0, col = "red", pch = 3)
+#Profit/Loss histgram
+hist((subset(res_dtf_,UDLY>mean(XT[[1]]$UDLY)))$Profit,
+     breaks="Scott",main="Profit/Loss over initial Underlying Prices")
+points(mean((subset(res_dtf_,UDLY>mean(XT[[1]]$UDLY)))$Profit),
+       0, col = "red", pch = 3)
+points(median((subset(res_dtf_,UDLY>mean(XT[[1]]$UDLY)))$Profit), 
+       0, col = "orange", pch = 1)
+points(mean((subset(res_dtf_,UDLY>mean(XT[[1]]$UDLY)))$Profit)
+       +sd((subset(res_dtf_,UDLY>mean(XT[[1]]$UDLY)))$Profit),
+       0,col = "darkgrey", pch = 2)
+points(mean((subset(res_dtf_,UDLY>mean(XT[[1]]$UDLY)))$Profit)
+       -sd((subset(res_dtf_,UDLY>mean(XT[[1]]$UDLY)))$Profit),
+       0,col = "darkgrey", pch = 2)
 
 ###Scenario 2.
 ###
