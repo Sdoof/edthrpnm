@@ -30,6 +30,7 @@ for(i in 1:(NumOfTimeChange_G+1)){
     XT<-c(XT,list(xt_tmp))
   }
 }
+
 #XTMns,XTPlus read
 #  XTMns[[1:TimechgNum]][[1:PriceChgNum]]
 #   XTMns[[1]]
@@ -80,26 +81,29 @@ for(i in 1:(NumOfTimeChange_G+1)){
 #sum($Price*$Position) 
 #  Positionの反対売買した（closed out)時のcash credit(debtは-)
 
-x_axis_<-list()
-y_axis_<-list()
+x_axis_<-vector()
+y_axis_<-vector()
 #compute actual NumOfTimeChange_G because of Date > ExpDate
 for( time_chg in 1:3){
   #from left to center
   for(prce_chg in 1:(NumOfOnesideStrkPrice_G)){
-    x_axis_<-c(x_axis_,list(XTMns[[time_chg]][[NumOfOnesideStrkPrice_G-prce_chg+1]]$UDLY[1]))
-    y_axis_<-c(y_axis_,list(sum((XTMns[[time_chg]][[NumOfOnesideStrkPrice_G+1-prce_chg]]$Price - XT[[1]]$Price)*XT[[1]]$Position)))
+    x_axis_<-c(x_axis_,XTMns[[time_chg]][[NumOfOnesideStrkPrice_G-prce_chg+1]]$UDLY[1])
+    y_axis_<-c(y_axis_,sum((XTMns[[time_chg]][[NumOfOnesideStrkPrice_G+1-prce_chg]]$Price - XT[[1]]$Price)*XT[[1]]$Position))
   }
   #center
-  x_axis_<-c(x_axis_,list(XT[[time_chg]]$UDLY[1]))
-  y_axis_<-c(y_axis_,list(sum(XT[[time_chg]]$Position*XT[[time_chg]]$Price - XT[[1]]$Position*XT[[1]]$Price)))
+  x_axis_<-c(x_axis_,XT[[time_chg]]$UDLY[1])
+  y_axis_<-c(y_axis_,sum(XT[[time_chg]]$Position*XT[[time_chg]]$Price - XT[[1]]$Position*XT[[1]]$Price))
   #center to right
   for(prce_chg in 1:NumOfOnesideStrkPrice_G){
-    x_axis_<-c(x_axis_,list(XTPls[[time_chg]][[prce_chg]]$UDLY[1]))
-    y_axis_<-c(y_axis_,list(sum((XTPls[[time_chg]][[prce_chg]]$Price - XT[[1]]$Price)*XT[[1]]$Position)))
+    x_axis_<-c(x_axis_,XTPls[[time_chg]][[prce_chg]]$UDLY[1])
+    y_axis_<-c(y_axis_,sum((XTPls[[time_chg]][[prce_chg]]$Price - XT[[1]]$Price)*XT[[1]]$Position))
   }
 }
 
-#plot(x_axis_,y_axis_)
+points(x_axis_[NumOfOnesideStrkPrice_G*4+3:NumOfOnesideStrkPrice_G*6+3],y_axis_[NumOfOnesideStrkPrice_G*4+3:NumOfOnesideStrkPrice_G*6+3],col="black",pch = 3)
+plot(x_axis_[1:NumOfOnesideStrkPrice_G*2+1],y_axis_[1:NumOfOnesideStrkPrice_G*2+1],col="red",pch = 3)
+plot(x_axis_[NumOfOnesideStrkPrice_G*2+2:NumOfOnesideStrkPrice_G*4+2],y_axis_[NumOfOnesideStrkPrice_G*2+2:NumOfOnesideStrkPrice_G*4+2],col="orange",pch = 3)
+#points(x_axis_[NumOfOnesideStrkPrice_G*4+3:NumOfOnesideStrkPrice_G*6+3],y_axis_[NumOfOnesideStrkPrice_G*4+3:NumOfOnesideStrkPrice_G*6+3],col="darkgrey",pch = 3)
 
 #2. Expected Return Scenario Stimulation
 #Advance T 1 by 1. Get Payoff Dist. Calc Expected Payoff.
@@ -196,7 +200,7 @@ for(ith_stim in 1:StimultaionNum){
   stim_days_num<-min(get.busdays.between(XTOrig$Date,XTOrig$ExpDate))-1
   
   #underlying daily return for geometic brown motion
-  mu_udly<-(0.90)^(1/252)-1
+  mu_udly<-(0.92)^(1/252)-1
   #underlying initial daily volatility.
   #HV should be used? or IV should be used?
   sigma_udly<-0.25/sqrt(252)
@@ -271,7 +275,7 @@ for(ith_stim in 1:StimultaionNum){
     
     #Position adjustment(liqudation) to be defined later
     # for example. simple los-cut
-    #if (positionProfit[day_chg]<=-15) { 
+    #if (positionProfit[day_chg]<=-5) { 
     #  break
     #}
     
@@ -330,7 +334,7 @@ res_dtf_ <- data.frame(UDLY=udly_price_at_liquidation_,
                        Profit=profit_each_itr_,
                        LIQDAY=liq_days_)
 
-#Condtion
+#Condition
 subset(res_dtf_,Profit<=-15)
 
 #Condition 
