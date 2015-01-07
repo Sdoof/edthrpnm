@@ -4,7 +4,7 @@ library("quantmod")
 
 #Strike ContactName Last Bid Adk Change %Change Volume OI IV
 today<-Sys.Date()
-wfilename_<-paste("opprice",today,".txt",sep="")
+wfilename_<-paste("opprice",today,".csv",sep="")
 
 
 #^RUT
@@ -42,6 +42,40 @@ write.table(tbl_[[3]],wfilename_,append=T,sep=",")
 #2015/06/19
 tbl_<-readHTMLTable("http://finance.yahoo.com/q/op?s=^RUT&date=1434672000")
 expdate<-"2015/06/19"
+tbl_[[2]]["ExpDate"]<-expdate
+write.table(tbl_[[2]],wfilename_,append=T,sep=",")
+tbl_[[3]]["ExpDate"]<-expdate
+write.table(tbl_[[3]],wfilename_,append=T,sep=",")
+
+#^SPXPM
+quart<-getQuote("^SPXPM")
+write.table(quart,wfilename_,quote=T,append=T,sep=",")
+#2015/01/17
+tbl_<-readHTMLTable("http://finance.yahoo.com/q/op?s=^SPXPM&date=1421452800")
+tbl_[[2]]["ExpDate"]<-expdate
+write.table(tbl_[[2]],wfilename_,append=T,sep=",")
+tbl_[[3]]["ExpDate"]<-expdate
+write.table(tbl_[[3]],wfilename_,append=T,sep=",")
+#2015/02/20
+tbl_<-readHTMLTable("http://finance.yahoo.com/q/op?s=^SPXPM&date=1424390400")
+tbl_[[2]]["ExpDate"]<-expdate
+write.table(tbl_[[2]],wfilename_,append=T,sep=",")
+tbl_[[3]]["ExpDate"]<-expdate
+write.table(tbl_[[3]],wfilename_,append=T,sep=",")
+#2015/03/20
+tbl_<-readHTMLTable("http://finance.yahoo.com/q/op?s=^SPXPM&date=1426809600")
+tbl_[[2]]["ExpDate"]<-expdate
+write.table(tbl_[[2]],wfilename_,append=T,sep=",")
+tbl_[[3]]["ExpDate"]<-expdate
+write.table(tbl_[[3]],wfilename_,append=T,sep=",")
+#2015/04/20
+tbl_<-readHTMLTable("http://finance.yahoo.com/q/op?s=^SPXPM&date=1429228800")
+tbl_[[2]]["ExpDate"]<-expdate
+write.table(tbl_[[2]],wfilename_,append=T,sep=",")
+tbl_[[3]]["ExpDate"]<-expdate
+write.table(tbl_[[3]],wfilename_,append=T,sep=",")
+#2015/06/19
+tbl_<-readHTMLTable("http://finance.yahoo.com/q/op?s=^SPXPM&date=1434672000")
 tbl_[[2]]["ExpDate"]<-expdate
 write.table(tbl_[[2]],wfilename_,append=T,sep=",")
 tbl_[[3]]["ExpDate"]<-expdate
