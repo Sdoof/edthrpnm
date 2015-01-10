@@ -52,30 +52,35 @@ quart<-getQuote("^SPXPM")
 write.table(quart,wfilename_,quote=T,append=T,sep=",")
 #2015/01/17
 tbl_<-readHTMLTable("http://finance.yahoo.com/q/op?s=^SPXPM&date=1421452800")
+expdate<-"2015/01/17"
 tbl_[[2]]["ExpDate"]<-expdate
 write.table(tbl_[[2]],wfilename_,append=T,sep=",")
 tbl_[[3]]["ExpDate"]<-expdate
 write.table(tbl_[[3]],wfilename_,append=T,sep=",")
 #2015/02/20
 tbl_<-readHTMLTable("http://finance.yahoo.com/q/op?s=^SPXPM&date=1424390400")
+expdate<-"2015/02/20"
 tbl_[[2]]["ExpDate"]<-expdate
 write.table(tbl_[[2]],wfilename_,append=T,sep=",")
 tbl_[[3]]["ExpDate"]<-expdate
 write.table(tbl_[[3]],wfilename_,append=T,sep=",")
 #2015/03/20
 tbl_<-readHTMLTable("http://finance.yahoo.com/q/op?s=^SPXPM&date=1426809600")
+expdate<-"2015/03/20"
 tbl_[[2]]["ExpDate"]<-expdate
 write.table(tbl_[[2]],wfilename_,append=T,sep=",")
 tbl_[[3]]["ExpDate"]<-expdate
 write.table(tbl_[[3]],wfilename_,append=T,sep=",")
 #2015/04/20
 tbl_<-readHTMLTable("http://finance.yahoo.com/q/op?s=^SPXPM&date=1429228800")
+expdate<-"2015/04/20"
 tbl_[[2]]["ExpDate"]<-expdate
 write.table(tbl_[[2]],wfilename_,append=T,sep=",")
 tbl_[[3]]["ExpDate"]<-expdate
 write.table(tbl_[[3]],wfilename_,append=T,sep=",")
 #2015/06/19
 tbl_<-readHTMLTable("http://finance.yahoo.com/q/op?s=^SPXPM&date=1434672000")
+expdate<-"2015/06/19"
 tbl_[[2]]["ExpDate"]<-expdate
 write.table(tbl_[[2]],wfilename_,append=T,sep=",")
 tbl_[[3]]["ExpDate"]<-expdate
@@ -231,7 +236,7 @@ tbl_<-readHTMLTable("http://www.cmegroup.com/trading/fx/g10/japanese-yen_quotes_
 write.table(tbl_[[1]],wfilename_,append=T,sep=",")
 write.table(tbl_[[2]],wfilename_,append=T,sep=",")
 #2015 Jun JPYUSD
-tbl_<-readHTMLTable("http://www.cmegroup.com/trading/fx/g10/japanese-yen_quotes_globex_options.html?optionExpiration=M5#optionProductId=71&strikeRange=ATM")
+tbl_<-readHTMLTable("http://www.cmegroup.com/trading/fx/g10/japanese-yen_quotes_globex_options.html?optionExpiration=M5#optionProductId=71&strikeRange=ALL")
 write.table(tbl_[[1]],wfilename_,append=T,sep=",")
 write.table(tbl_[[2]],wfilename_,append=T,sep=",")
 #2015 Sep JPYUSD

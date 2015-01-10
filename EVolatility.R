@@ -16,5 +16,6 @@ annuual.daily.volatility <- function(p){
 p<-c(20,20.1,19.9,20,20.5,20.25,20.9,20.9,20.9,20.75,20.75,21,21.1,20.9,20.9,21.25,21.4,21.4,21.25,21.75,22)
 pv_<-annuual.daily.volatility(p)
 
-
-
+p<-read.table("AUDUSD.csv",header=T,sep=",")
+p<-p$AUDUSD[1:100]
+pv_<-annuual.daily.volatility(p)
