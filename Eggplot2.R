@@ -1,10 +1,11 @@
 library(ggplot2)
 library(plyr)
+library(gcookbook)
 
 ##散布図の作成
 qplot(mtcars$wt,mtcars$mpg)
-  #dataframeの列を指定したsub data.frame
-  #heightweight[,c("sex","ageYear","heightIn")]
+#dataframeの列を指定したsub data.frame
+#heightweight[,c("sex","ageYear","heightIn")]
 ggplot(heightweight,aes(x=ageYear,y=heightIn,colour=sex))+geom_point()
 ggplot(heightweight,aes(x=ageYear,y=heightIn,shape=sex))+geom_point()
 ggplot(heightweight,aes(x=ageYear,y=heightIn,shape=sex,colour=sex))+geom_point()
@@ -19,21 +20,6 @@ ggplot(pressure,aes(x=temperature,y=pressure))+geom_line()
 #折れ線と点の両方を描画する。goemの指定の仕方に注意
 qplot(temperature,pressure,data=pressure,geom=c("line","point"))
 ggplot(pressure,aes(x=temperature,y=pressure))+geom_line()+geom_point()
-
-##１次元のデータの分布をhistgramで表す
-#Only a vector is given to qplot. mtcars is data.frame. mtcars$mpg is vector.
-qplot(mtcars$mpg)
-#for the same data.frame
-qplot(mpg,data=mtcars,binwidth=4)
-
-##plot function curve.
-myfun <- function(xvar){
-  1/(1+exp(-xvar+10))
-}
-#xの範囲は0-20
-qplot(c(0,20),fun=myfun,stat="function",geom="line")
-ggplot(data.frame(x=c(0,20)),aes(x=x))+stat_function(fun=myfun,geom="line")
-
 ##折れ線グラフ。BODはdat.frame
 ggplot(BOD,aes(x=Time,y=demand))+geom_line()
 ggplot(BOD,aes(x=Time,y=demand))+geom_line(linetype="dashed",size=1,colour="blue")
@@ -56,7 +42,6 @@ tg<-ddply(ToothGrowth,c("supp","dose"),summarise,length=mean(len))
 #colour,linetypeに離散値変数をマップする
 ggplot(tg,aes(x=dose,y=length,colour=supp))+geom_line()
 ggplot(tg,aes(x=dose,y=length,colour=supp))+geom_line(linetype="dashed",size=1,colour="blue")
-
 #点のサイズ変更など
 ggplot(tg,aes(x=dose,y=length,colour=supp))+geom_line()+geom_point(size=4,shape=21)
 #重ならないように線と点をずらす
@@ -66,8 +51,23 @@ ggplot(tg,aes(x=dose,y=length,colour=supp))+geom_line(position=position_dodge(0.
 ggplot(tg,aes(x=dose,y=length,group=supp))+geom_line(colour="darkgreen",size=1.5)
 #suppがcolourにマッピングされているため、自動的にグループ分けに使用される
 ggplot(tg,aes(x=dose,y=length,colour=supp))+geom_line(linetype="dashed")+geom_point(shape=22,size=3,fill="white")
-
 #factor。ggplotのgroupに同じ変数を指定する必要あり
 ggplot(tg,aes(x=factor(dose),y=length,colour=supp,group=supp))+geom_line()
 ggplot(tg,aes(x=factor(dose),y=length,linetype=supp,group=supp))+geom_line()
+
+##１次元のデータの分布をhistgramで表す
+#Only a vector is given to qplot. mtcars is data.frame. mtcars$mpg is vector.
+qplot(mtcars$mpg)
+#for the same data.frame
+qplot(mpg,data=mtcars,binwidth=4)
+
+##関数曲線をplotする
+myfun <- function(xvar){
+  1/(1+exp(-xvar+10))
+}
+#xの範囲は0-20
+qplot(c(0,20),fun=myfun,stat="function",geom="line")
+ggplot(data.frame(x=c(0,20)),aes(x=x))+stat_function(fun=myfun,geom="line")
+
+
 
