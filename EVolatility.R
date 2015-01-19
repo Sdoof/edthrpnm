@@ -68,46 +68,96 @@ start_day_<-1;num_day_<-200
 PCIV3dCtC<-histPrc_$PCIV3dCtC[start_day_:(start_day_+num_day_)]
 IVCF3dCtC<-histIV_$IVCF3dCtC[start_day_:(start_day_+num_day_)]
 P2IV3d <- data.frame(PCIV3dCtC=PCIV3dCtC, IVCF3dCtC=IVCF3dCtC)
-ggplot(P2IV3d,aes(x=PCIV3dCtC,y=IVCF3dCtC))+geom_point()
+(gg_<-ggplot(P2IV3d,aes(x=PCIV3dCtC,y=IVCF3dCtC))+geom_point())
+cor(PCIV3dCtC,IVCF3dCtC)
+#linear regression
+norns.lm<-lm(IVCF3dCtC~PCIV3dCtC, data=P2IV3d)
+summary(norns.lm)
+gg_+geom_abline(intercept=norns.lm$coefficient[1],slope=norns.lm$coefficient[2],color="orange")
 
 PC3dCtC<-histPrc_$PC3dCtC[start_day_:(start_day_+num_day_)]
 P2IV3d <- data.frame(PC3dCtC=PC3dCtC, IVCF3dCtC=IVCF3dCtC)
-ggplot(P2IV3d,aes(x=PC3dCtC,y=IVCF3dCtC))+geom_point()
+(gg_<-ggplot(P2IV3d,aes(x=PC3dCtC,y=IVCF3dCtC))+geom_point())
+cor(PC3dCtC,IVCF3dCtC)
+#linear regression
+norns.lm<-lm(IVCF3dCtC~PC3dCtC, data=P2IV3d)
+summary(norns.lm)
+gg_+geom_abline(intercept=norns.lm$coefficient[1],slope=norns.lm$coefficient[2],color="orange")
 
 #5d
 P2IV5d <- data.frame(PCIV5dCtC=PCIV5dCtC[start_day_:(start_day_+num_day_)], IVCF5dCTC=IVCF5dCTC[start_day_:(start_day_+num_day_)])
-ggplot(P2IV5d,aes(x=PCIV5dCtC,y=IVCF5dCTC))+geom_point()
+(gg_<-ggplot(P2IV5d,aes(x=PCIV5dCtC,y=IVCF5dCTC))+geom_point())
+cor(PCIV5dCtC[start_day_:(start_day_+num_day_)],IVCF5dCTC[start_day_:(start_day_+num_day_)])
+#linear regression
+norns.lm<-lm(IVCF5dCTC~PCIV5dCtC, data=P2IV5d)
+summary(norns.lm)
+gg_+geom_abline(intercept=norns.lm$coefficient[1],slope=norns.lm$coefficient[2],color="orange")
 
 P2IV5d <- data.frame(PC5dCtC=PC5dCtC[start_day_:(start_day_+num_day_)], IVCF5dCTC=IVCF5dCTC[start_day_:(start_day_+num_day_)])
-ggplot(P2IV5d,aes(x=PC5dCtC,y=IVCF5dCTC))+geom_point()
+(gg_<-ggplot(P2IV5d,aes(x=PC5dCtC,y=IVCF5dCTC))+geom_point())
+cor(PC5dCtC[start_day_:(start_day_+num_day_)],IVCF5dCTC[start_day_:(start_day_+num_day_)])
+#linear regression
+norns.lm<-lm(IVCF5dCTC~PC5dCtC, data=P2IV5d)
+summary(norns.lm)
+gg_+geom_abline(intercept=norns.lm$coefficient[1],slope=norns.lm$coefficient[2],color="orange")
 
 #7d
 PCIV7dCtC<-histPrc_$PCIV7dCtC[start_day_:(start_day_+num_day_)]
 IVCF7dCtC<-histIV_$IVCF7dCtC[start_day_:(start_day_+num_day_)]
 P2IV7d <- data.frame(PCIV7dCtC=PCIV7dCtC, IVCF7dCtC=IVCF7dCtC)
-ggplot(P2IV7d,aes(x=PCIV7dCtC,y=IVCF7dCtC))+geom_point()
+(gg_<-ggplot(P2IV7d,aes(x=PCIV7dCtC,y=IVCF7dCtC))+geom_point())
+cor(PCIV7dCtC,IVCF7dCtC)
+#linear regression
+norns.lm<-lm(IVCF7dCtC~PCIV7dCtC, data=P2IV7d)
+summary(norns.lm)
+gg_+geom_abline(intercept=norns.lm$coefficient[1],slope=norns.lm$coefficient[2],color="orange")
 
 PC7dCtC<-histPrc_$PC7dCtC[start_day_:(start_day_+num_day_)]
 P2IV7d <- data.frame(PC7dCtC=PC7dCtC, IVCF7dCtC=IVCF7dCtC)
-ggplot(P2IV7d,aes(x=PC7dCtC,y=IVCF7dCtC))+geom_point()
+(gg_<-ggplot(P2IV7d,aes(x=PC7dCtC,y=IVCF7dCtC))+geom_point())
+cor(PC7dCtC,IVCF7dCtC)
+#linear regression
+norns.lm<-lm(IVCF7dCtC~PC7dCtC, data=P2IV7d)
+summary(norns.lm)
+gg_+geom_abline(intercept=norns.lm$coefficient[1],slope=norns.lm$coefficient[2],color="orange")
 
 #1d
 PCIV1dCtC<-histPrc_$PCIV1dCtC[start_day_:(start_day_+num_day_)]
 IVCF1dCtC<-histIV_$IVCF1dCtC[start_day_:(start_day_+num_day_)]
 P2IV1d <- data.frame(PCIV1dCtC=PCIV1dCtC, IVCF1dCtC=IVCF1dCtC)
-ggplot(P2IV1d,aes(x=PCIV1dCtC,y=IVCF1dCtC))+geom_point()
+(gg_<-ggplot(P2IV1d,aes(x=PCIV1dCtC,y=IVCF1dCtC))+geom_point())
+cor(PCIV1dCtC,IVCF1dCtC)
+#linear regression
+norns.lm<-lm(IVCF1dCtC~PCIV1dCtC, data=P2IV1d)
+summary(norns.lm)
+gg_+geom_abline(intercept=norns.lm$coefficient[1],slope=norns.lm$coefficient[2],color="orange")
 
 PC1dCtC<-histPrc_$PC1dCtC[start_day_:(start_day_+num_day_)]
 P2IV1d <- data.frame(PC1dCtC=PC1dCtC, IVCF1dCtC=IVCF1dCtC)
-ggplot(P2IV1d,aes(x=PC1dCtC,y=IVCF1dCtC))+geom_point()
+(gg_<-ggplot(P2IV1d,aes(x=PC1dCtC,y=IVCF1dCtC))+geom_point())
+cor(PC1dCtC,IVCF1dCtC)
+#linear regression
+norns.lm<-lm(IVCF1dCtC~PC1dCtC, data=P2IV1d)
+summary(norns.lm)
+gg_+geom_abline(intercept=norns.lm$coefficient[1],slope=norns.lm$coefficient[2],color="orange")
 
 #Close to Open
 PCIV1dCtO<-histPrc_$PCIV1dCtO[start_day_:(start_day_+num_day_)]
 IVCF1dCtO<-histIV_$IVCF1dCtO[start_day_:(start_day_+num_day_)]
 P2IV1d <- data.frame(PCIV1dCtO=PCIV1dCtO, IVCF1dCtO=IVCF1dCtO)
-ggplot(P2IV1d,aes(x=PCIV1dCtO,y=IVCF1dCtO))+geom_point()
+(gg_<-ggplot(P2IV1d,aes(x=PCIV1dCtO,y=IVCF1dCtO))+geom_point())
+cor(PCIV1dCtO,IVCF1dCtO)
+#linear regression
+norns.lm<-lm(IVCF1dCtO~PCIV1dCtO, data=P2IV1d)
+summary(norns.lm)
+gg_+geom_abline(intercept=norns.lm$coefficient[1],slope=norns.lm$coefficient[2],color="orange")
 
 PC1dCtO<-histPrc_$PC1dCtO[start_day_:(start_day_+num_day_)]
 P2IV1d <- data.frame(PC1dCtO=PC1dCtO, IVCF1dCtO=IVCF1dCtO)
-ggplot(P2IV1d,aes(x=PC1dCtO,y=IVCF1dCtO))+geom_point()
+(gg_<-ggplot(P2IV1d,aes(x=PC1dCtO,y=IVCF1dCtO))+geom_point())
+cor(PC1dCtO,IVCF1dCtO)
+#linear regression
+norns.lm<-lm(IVCF1dCtO~PC1dCtO, data=P2IV1d)
+summary(norns.lm)
+gg_+geom_abline(intercept=norns.lm$coefficient[1],slope=norns.lm$coefficient[2],color="orange")
 
