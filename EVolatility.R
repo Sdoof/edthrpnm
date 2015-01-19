@@ -62,9 +62,9 @@ PC5dCtC  <- PCndCtC(hist=histPrc_$Close,n=5)
 PCIV5dCtC<-PCIVndCtC(hist=histPrc_$Close,iv=histIV_$Close,n=5)
 IVCF5dCTC<-IVCFndCTC(iv=histIV_$Close,n=5)
 
-#Correlation plot etc.
+#Regression
 start_day_<-1;num_day_<-200
-#3d
+##3d
 PCIV3dCtC<-histPrc_$PCIV3dCtC[start_day_:(start_day_+num_day_)]
 IVCF3dCtC<-histIV_$IVCF3dCtC[start_day_:(start_day_+num_day_)]
 P2IV3d <- data.frame(PCIV3dCtC=PCIV3dCtC, IVCF3dCtC=IVCF3dCtC)
@@ -84,7 +84,7 @@ norns.lm<-lm(IVCF3dCtC~PC3dCtC, data=P2IV3d)
 summary(norns.lm)
 gg_+geom_abline(intercept=norns.lm$coefficient[1],slope=norns.lm$coefficient[2],color="orange")
 
-#5d
+##5d
 P2IV5d <- data.frame(PCIV5dCtC=PCIV5dCtC[start_day_:(start_day_+num_day_)], IVCF5dCTC=IVCF5dCTC[start_day_:(start_day_+num_day_)])
 (gg_<-ggplot(P2IV5d,aes(x=PCIV5dCtC,y=IVCF5dCTC))+geom_point())
 cor(PCIV5dCtC[start_day_:(start_day_+num_day_)],IVCF5dCTC[start_day_:(start_day_+num_day_)])
@@ -101,7 +101,7 @@ norns.lm<-lm(IVCF5dCTC~PC5dCtC, data=P2IV5d)
 summary(norns.lm)
 gg_+geom_abline(intercept=norns.lm$coefficient[1],slope=norns.lm$coefficient[2],color="orange")
 
-#7d
+##7d
 PCIV7dCtC<-histPrc_$PCIV7dCtC[start_day_:(start_day_+num_day_)]
 IVCF7dCtC<-histIV_$IVCF7dCtC[start_day_:(start_day_+num_day_)]
 P2IV7d <- data.frame(PCIV7dCtC=PCIV7dCtC, IVCF7dCtC=IVCF7dCtC)
@@ -121,7 +121,7 @@ norns.lm<-lm(IVCF7dCtC~PC7dCtC, data=P2IV7d)
 summary(norns.lm)
 gg_+geom_abline(intercept=norns.lm$coefficient[1],slope=norns.lm$coefficient[2],color="orange")
 
-#1d
+##1d
 PCIV1dCtC<-histPrc_$PCIV1dCtC[start_day_:(start_day_+num_day_)]
 IVCF1dCtC<-histIV_$IVCF1dCtC[start_day_:(start_day_+num_day_)]
 P2IV1d <- data.frame(PCIV1dCtC=PCIV1dCtC, IVCF1dCtC=IVCF1dCtC)
@@ -141,7 +141,7 @@ norns.lm<-lm(IVCF1dCtC~PC1dCtC, data=P2IV1d)
 summary(norns.lm)
 gg_+geom_abline(intercept=norns.lm$coefficient[1],slope=norns.lm$coefficient[2],color="orange")
 
-#Close to Open
+##1d Close to Open
 PCIV1dCtO<-histPrc_$PCIV1dCtO[start_day_:(start_day_+num_day_)]
 IVCF1dCtO<-histIV_$IVCF1dCtO[start_day_:(start_day_+num_day_)]
 P2IV1d <- data.frame(PCIV1dCtO=PCIV1dCtO, IVCF1dCtO=IVCF1dCtO)
