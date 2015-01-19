@@ -26,6 +26,9 @@ ChangStrkPrUnit_G=10
 #Time range
 NumOfTimeChange_G=5
 ChangTimeUnit_G=7
+#File
+Underying_Synbol_G="RUT"
+DataFiles_Path_G="C:\\Users\\kuby\\RProject\\MarketData\\data\\"
 
 
 #xT0の列のアクセス
