@@ -1,0 +1,1 @@
+xcopy "C:\Users\kuby\RProject\MarketData\data" "E:\MarketData" /e /d /h /r /y
