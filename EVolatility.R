@@ -33,21 +33,20 @@ PCIVndCtC <- function(hist,iv,n){
   cp_n_<- replace(p_,rep((length(p_)-(n-1)):length(p_)),NA)
   q_ <- replace(iv, rep(1:(length(iv)-n)),iv[(1+n):length(iv)])
   civ_n_ <- replace(q_,rep((length(q_)-(n-1)):length(q_)),NA)
-  #ret_<-civ_n_/100*cp_n_
   ret_<-(hist-cp_n_)/(civ_n_/100*cp_n_)
   ret_
 }
 #PCndCtC
 PCndCtC <- function(hist,n){
   q_ <- replace(hist, rep(1:(length(hist)-n)),hist[(1+n):length(hist)])
-  cp_n <- replace(q_,rep((length(q_)-(n-1)):length(q_)),NA)
+  cp_n_ <- replace(q_,rep((length(q_)-(n-1)):length(q_)),NA)
   ret_ <- (hist-cp_n_)/cp_n_
   ret_
 }
 #IVCFndCTC
 IVCFndCTC <- function(iv,n){
   q_ <- replace(iv, rep(1:(length(iv)-n)),iv[(1+n):length(iv)])
-  civ_n <- replace(q_,rep((length(q_)-(n-1)):length(q_)),NA)
+  civ_n_ <- replace(q_,rep((length(q_)-(n-1)):length(q_)),NA)
   ret_ <- (iv-civ_n_)/civ_n_
   ret_
 }
@@ -63,7 +62,7 @@ PCIV5dCtC<-PCIVndCtC(hist=histPrc_$Close,iv=histIV_$Close,n=5)
 IVCF5dCTC<-IVCFndCTC(iv=histIV_$Close,n=5)
 
 #Regression
-start_day_<-1;num_day_<-200
+start_day_<-1;num_day_<-400
 ##3d
 PCIV3dCtC<-histPrc_$PCIV3dCtC[start_day_:(start_day_+num_day_)]
 IVCF3dCtC<-histIV_$IVCF3dCtC[start_day_:(start_day_+num_day_)]
@@ -160,4 +159,3 @@ cor(PC1dCtO,IVCF1dCtO)
 norns.lm<-lm(IVCF1dCtO~PC1dCtO, data=P2IV1d)
 summary(norns.lm)
 gg_+geom_abline(intercept=norns.lm$coefficient[1],slope=norns.lm$coefficient[2],color="orange")
-
