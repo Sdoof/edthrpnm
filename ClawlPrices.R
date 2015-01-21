@@ -46,13 +46,6 @@ tbl_[[2]]["ExpDate"]<-expdate
 write.table(tbl_[[2]],wfilename_,append=T,sep=",")
 tbl_[[3]]["ExpDate"]<-expdate
 write.table(tbl_[[3]],wfilename_,append=T,sep=",")
-#2015/06/30
-tbl_<-readHTMLTable("http://finance.yahoo.com/q/op?s=^RUT&date=1435622400")
-expdate<-"2015/06/30"
-tbl_[[2]]["ExpDate"]<-expdate
-write.table(tbl_[[2]],wfilename_,append=T,sep=",")
-tbl_[[3]]["ExpDate"]<-expdate
-write.table(tbl_[[3]],wfilename_,append=T,sep=",")
 #2015/09/18
 tbl_<-readHTMLTable("http://finance.yahoo.com/q/op?s=^RUT&date=1442534400")
 expdate<-"2015/09/18"
@@ -81,13 +74,6 @@ write.table(tbl_[[3]],wfilename_,append=T,sep=",")
 #2015/04/20
 tbl_<-readHTMLTable("http://finance.yahoo.com/q/op?s=^SPXPM&date=1429228800")
 expdate<-"2015/04/20"
-tbl_[[2]]["ExpDate"]<-expdate
-write.table(tbl_[[2]],wfilename_,append=T,sep=",")
-tbl_[[3]]["ExpDate"]<-expdate
-write.table(tbl_[[3]],wfilename_,append=T,sep=",")
-#2015/06/19
-tbl_<-readHTMLTable("http://finance.yahoo.com/q/op?s=^SPXPM&date=1434672000")
-expdate<-"2015/06/19"
 tbl_[[2]]["ExpDate"]<-expdate
 write.table(tbl_[[2]],wfilename_,append=T,sep=",")
 tbl_[[3]]["ExpDate"]<-expdate
