@@ -55,33 +55,25 @@ oprch_pr_<-subset(oprch_pr_,Price!=0)
 oprch_pr_<-subset(oprch_pr_,(Strike-UDLY)*TYPE<Price)
 oprch_pr_<-subset(oprch_pr_,!(TYPE==-1 & Strike<900))
 
-tryCatch(a<-set.IVOrig(xT=oprch_pr_),
-         error=function(e){
-           message(e)
-           print(e)
-         })
+#IVの計算で不定となる要素をdelte vectorに格納
+delete<-c(-1)
+N<-nrow(oprch_pr_)
+for(i in 1:N){
+  tryCatch(a<-set.IVOrig(xT=oprch_pr_[i,]),
+           error=function(e){
+             message(e)
+             print(i)
+             delete<<-c(delete,-i)
+           })
+}
+#要素を削除
+(delete)
+delete<-delete[-1]
+(delete)
+nrow(oprch_pr_)
+nrow(oprch_pr_[delete,])
+oprch_pr_<-oprch_pr_[delete,]
+nrow(oprch_pr_)
+#IVの計算
+oprch_pr_$OrigIV<-set.IVOrig(xT=oprch_pr_)
 
-#> oprch_pr_[978,]
-#Date Strike        ContactName   Last   Bid   Ask Change Volume OI IV   ExpDate TYPE Position
-#1026 2014/12/16   1010 RUT150117C01010000 145.52 128.2 131.6      0      5  5  0 2015/1/17   -1        0
-#Price Delta Gamma Vega Theta Rho OrigIV    UDLY
-#1026 129.9     0     0    0     0   0      0 1139.37
-#oprch_pr_<-oprch_pr_[-978,]
-set.IVOrig(xT=oprch_pr_[1:1100,])
-# oprch_pr_[1170,]
-#Date Strike        ContactName Last Bid  Ask Change Volume OI IV    ExpDate TYPE Position
-#1255 2014/12/16    300 RUT141220P00300000 0.04   0 0.75      0      1 50  0 2014/12/20    1        0
-#Price Delta Gamma Vega Theta Rho OrigIV    UDLY
-#1255 0.375     0     0    0     0   0      0 1139.37
-#oprch_pr_<-oprch_pr_[-1170,]
-#oprch_pr_[1642,]
-#           Date Strike        ContactName   Last Bid Ask Change Volume OI IV   ExpDate TYPE Position
-#1739 2014/12/17    960 RUT150117C00960000 217.05 213 217      0     16 30  0 2015/1/17   -1        0
-#Price Delta Gamma Vega Theta Rho OrigIV    UDLY
-#1739   215     0     0    0     0   0      0 1174.84
-#oprch_pr_<-oprch_pr_[-1642,]
-#Date Strike        ContactName Last Bid  Ask Change Volume OI IV    ExpDate TYPE Position
-#1916 2014/12/17    300 RUT141220P00300000 0.04   0 0.65      0      1 50  0 2014/12/20    1        0
-#Price Delta Gamma Vega Theta Rho OrigIV    UDLY
-
-#> oprch_pr_<-oprch_pr_[-1804,]
