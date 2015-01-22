@@ -25,3 +25,34 @@
 #D1<-OPChainPre
 #D2<-data.frame(HIST$Date,HIST$Close)
 
+#read data file
+rf_<-paste(DataFiles_Path_G,Underying_Synbol_G,"_OPChain_Pre.csv",sep="")
+opch_pr_<-read.table(rf_,header=T,sep=",")
+opch_pr_$X.Change<-NULL
+opch_pr_$Position<-0
+opch_pr_$Price<-(opch_pr_$Bid+opch_pr_$Ask)/2
+
+opch_pr_$Theta<-opch_pr_$Vega<-opch_pr_$Gamma<-opch_pr_$Delta<-0
+opch_pr_$IV<-opch_pr_$OrigIV<-opch_pr_$Rho<-0
+
+rf_<-paste(DataFiles_Path_G,Underying_Synbol_G,"_IV.csv",sep="")
+histIV_<-read.table(rf_,header=T,sep=",",nrows=1999)
+histIV_<-data.frame(Date=histIV_$Date,IVIDX=histIV_$Close)
+
+rf_<-paste(DataFiles_Path_G,Underying_Synbol_G,"_Hist.csv",sep="")
+histPrc_<-read.table(rf_,header=T,sep=",",nrows=1999)
+histPrc_<-data.frame(Date=histPrc_$Date,UDLY=histPrc_$Close)
+
+#remove not used row
+opch_pr_<-subset(opch_pr_,Volume>0)
+oprch_pr2<-merge(opch_pr_,histPrc_,all.x=T)
+oprch_pr_<-oprch_pr2;
+oprch_pr2<-NULL
+#subset(oprch_pr_,Date=="2014/12/31")
+#subset(oprch_pr_,Price==0)
+oprch_pr_<-subset(oprch_pr_,Price>0)
+oprch_pr_<-subset(oprch_pr_,(Strike-UDLY)*TYPE<Price)
+oprch_pr_<-subset(oprch_pr_,!(TYPE==-1 & Strike<900))
+
+a<-set.IVOrig(xT=oprch_pr_)
+

@@ -149,7 +149,7 @@ get.busdays.between <- function(start,end){
 }
 
 #Wrapper for horizental.volatility.skew
-volatility.surface.skew <- function(xTb,xTa){
+volatility.cone.skew <- function(xTb,xTa){
   maturity_b<-businessDaysBetween("UnitedStates/NYSE",
                                   as.Date(xTb$Date,format="%Y/%m/%d"),
                                   as.Date(xTb$ExpDate,format="%Y/%m/%d"))
@@ -247,7 +247,7 @@ for(ith_stim in 1:StimultaionNum){
     #Underlying Price change volatility skew
     XTStim$OrigIV <- XTStim$OrigIV+Underlying.PriceChange.volatility.skew(xTb=XTStim_b,xTa=XTStim)
     #Horizental Volatility SKew adjustment
-    XTStim$OrigIV <- XTStim$OrigIV+volatility.surface.skew(xTb=XTStim_b,xTa=XTStim)
+    XTStim$OrigIV <- XTStim$OrigIV+volatility.cone.skew(xTb=XTStim_b,xTa=XTStim)
     
     #Set new Price and Greeks
     #Case of European Option
