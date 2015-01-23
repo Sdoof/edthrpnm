@@ -1,9 +1,6 @@
 ###Start
 library(RQuantLib)
 
-## Read a txt file(csv file)
-(xT0<-read.table("OptionVariables.csv",header=T,sep=","))
-
 ## Tx later data stored.
 #Here Simple stimulation
 #Only taking Horizental Volatility Skew into accounted.
@@ -85,7 +82,6 @@ set.IVOrig <- function(xT){
   xT$OrigIV
 }
 
-xT0$OrigIV<-set.IVOrig(xT=xT0)
 
 # Set Value Greeks
 set.ValueGreeks <- function(xT){
@@ -124,28 +120,6 @@ set.ValueGreeks <- function(xT){
   tmp_ret
 }
 
-tmp_2<-(set.ValueGreeks(xT0))
-xT0$Delta<-tmp_2[[2]]
-xT0$Gamma<-tmp_2[[3]]
-xT0$Vega<-tmp_2[[4]]/100
-xT0$Theta<-tmp_2[[5]]/365
-xT0$Rho<-tmp_2[[6]]/100
-
-## xT0StrMns[[]],xT0StrPlus[[]] as list
-
-##Test 検算用
-xT0_t<-xT0
-##1. Underlying Price Change
-xT0_t$UDLY<-(xT0$UDLY-30)
-
-oom_mgn_before <- xT0$TYPE*(xT0$UDLY-xT0$Strike)
-oom_mgn_after <- xT0_t$TYPE*(xT0_t$UDLY-xT0_t$Strike)
-
-#(vol_dif_rate <- rep(0,length(xT0$TYPE)))
-#K1<-0.9
-#K2<-0.9
-
-(vol_dif_rate<-rep(0,length(xT0$TYPE)))
 
 ##OOM to OOM
 #(vol_dif_rate <-vol_dif_rate+((abs(oom_mgn_after)/xT0_t$UDLY)*K1-(abs(oom_mgn_before)/xT0$UDLY)*K1)*as.numeric(oom_mgn_before>=0)*as.numeric(oom_mgn_after>=0))
@@ -197,9 +171,36 @@ Underlying.PriceChange.volatility.skew <- function(xTb,xTa){
   vol_dif_rate
 }
 
-#NumOfOnesideStrkPrice_G_TMP=4
-#ChangStrkPrUnit_G_TMP=10
 
+##
+## EOF functions
+##
+## Read a txt file(csv file)
+(xT0<-read.table("OptionVariables.csv",header=T,sep=","))
+
+#Set IV and get Greeks
+xT0$OrigIV<-set.IVOrig(xT=xT0)
+tmp_2<-(set.ValueGreeks(xT0))
+xT0$Delta<-tmp_2[[2]]
+xT0$Gamma<-tmp_2[[3]]
+xT0$Vega<-tmp_2[[4]]/100
+xT0$Theta<-tmp_2[[5]]/365
+xT0$Rho<-tmp_2[[6]]/100
+
+## xT0StrMns[[]],xT0StrPlus[[]] as list
+
+##Test 検算用
+#xT0_t<-xT0
+##1. Underlying Price Change
+#xT0_t$UDLY<-(xT0$UDLY-30)
+#oom_mgn_before <- xT0$TYPE*(xT0$UDLY-xT0$Strike)
+#oom_mgn_after <- xT0_t$TYPE*(xT0_t$UDLY-xT0_t$Strike)
+
+#(vol_dif_rate <- rep(0,length(xT0$TYPE)))
+#K1<-0.9
+#K2<-0.9
+
+#(vol_dif_rate<-rep(0,length(xT0$TYPE)))
 
 ##ListとしてxT0StrMnsを管理
 #1つ目.Listとし宣言。

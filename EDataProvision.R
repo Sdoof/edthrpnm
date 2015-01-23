@@ -35,9 +35,9 @@ opch_pr_$Price<-(opch_pr_$Bid+opch_pr_$Ask)/2
 opch_pr_$Theta<-opch_pr_$Vega<-opch_pr_$Gamma<-opch_pr_$Delta<-0
 opch_pr_$IV<-opch_pr_$OrigIV<-opch_pr_$Rho<-0
 
-rf_<-paste(DataFiles_Path_G,Underying_Synbol_G,"_IV.csv",sep="")
-histIV_<-read.table(rf_,header=T,sep=",",nrows=1999)
-histIV_<-data.frame(Date=histIV_$Date,IVIDX=histIV_$Close)
+#rf_<-paste(DataFiles_Path_G,Underying_Synbol_G,"_IV.csv",sep="")
+#histIV_<-read.table(rf_,header=T,sep=",",nrows=1999)
+#histIV_<-data.frame(Date=histIV_$Date,IVIDX=histIV_$Close)
 
 rf_<-paste(DataFiles_Path_G,Underying_Synbol_G,"_Hist.csv",sep="")
 histPrc_<-read.table(rf_,header=T,sep=",",nrows=1999)
@@ -48,12 +48,19 @@ opch_pr_<-subset(opch_pr_,Volume!=0)
 oprch_pr2<-merge(opch_pr_,histPrc_,all.x=T)
 oprch_pr_<-oprch_pr2;
 oprch_pr2<-NULL
+rm(rf_)
+rm(oprch_pr2)
 #subset(oprch_pr_,Date=="2014/12/31")
 
 #subset(oprch_pr_,Price==0)
 oprch_pr_<-subset(oprch_pr_,Price!=0)
 oprch_pr_<-subset(oprch_pr_,(Strike-UDLY)*TYPE<Price)
 oprch_pr_<-subset(oprch_pr_,!(TYPE==-1 & Strike<900))
+#spread<ASK*k
+k<-0.4
+subset(oprch_pr_,!((Ask-Bid)>(Ask*k)))
+oprch_pr_<-subset(oprch_pr_,!((Ask-Bid)>(Ask*k)))
+rm(k)
 
 #IVの計算で不定となる要素をdelte vectorに格納
 delete<-c(-1)
@@ -74,6 +81,19 @@ nrow(oprch_pr_)
 nrow(oprch_pr_[delete,])
 oprch_pr_<-oprch_pr_[delete,]
 nrow(oprch_pr_)
+rm(delete)
 #IVの計算
 oprch_pr_$OrigIV<-set.IVOrig(xT=oprch_pr_)
+
+tmp<-set.EuropeanOptionValueGreeks(oprch_pr_)
+oprch_pr_$Price<-tmp$Price
+oprch_pr_$Delta<-tmp$Delta
+oprch_pr_$Gamma<-tmp$Gamma
+oprch_pr_$Vega<-tmp$Vega
+oprch_pr_$Theta<-tmp$Theta
+oprch_pr_$Rho<-tmp$Theta
+rm(tmp)
+
+wf_<-paste(DataFiles_Path_G,Underying_Synbol_G,"_OPChain_Pos.csv",sep="")
+write.table(oprch_pr_,wf_,quote=T,row.names=F,sep=",")
 
