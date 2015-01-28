@@ -1,1 +1,1 @@
-robocopy "C:\Users\kuby\RProject\MarketData\data" "E:\MarketData" /E /PURGE 
+robocopy "C:\Users\kuby\RProject\MarketData\data" "D:\MarketData" /E /PURGE 

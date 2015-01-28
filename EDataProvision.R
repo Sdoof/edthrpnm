@@ -45,28 +45,28 @@ histPrc_<-data.frame(Date=histPrc_$Date,UDLY=histPrc_$Close)
 
 #remove not used row
 opch_pr_<-subset(opch_pr_,Volume!=0)
-oprch_pr2<-merge(opch_pr_,histPrc_,all.x=T)
-oprch_pr_<-oprch_pr2;
-oprch_pr2<-NULL
+opch_pr2<-merge(opch_pr_,histPrc_,all.x=T)
+opch_pr_<-oprch_pr2;
+opch_pr2<-NULL
 rm(rf_)
-rm(oprch_pr2)
-#subset(oprch_pr_,Date=="2014/12/31")
+rm(opch_pr2)
+#subset(opch_pr_,Date=="2014/12/31")
 
-#subset(oprch_pr_,Price==0)
-oprch_pr_<-subset(oprch_pr_,Price!=0)
-oprch_pr_<-subset(oprch_pr_,(Strike-UDLY)*TYPE<Price)
-oprch_pr_<-subset(oprch_pr_,!(TYPE==-1 & Strike<900))
+#subset(opch_pr_,Price==0)
+opch_pr_<-subset(opch_pr_,Price!=0)
+opch_pr_<-subset(opch_pr_,(Strike-UDLY)*TYPE<Price)
+opch_pr_<-subset(opch_pr_,!(TYPE==-1 & Strike<900))
 #spread<ASK*k
 k<-0.4
-subset(oprch_pr_,!((Ask-Bid)>(Ask*k)))
-oprch_pr_<-subset(oprch_pr_,!((Ask-Bid)>(Ask*k)))
+subset(opch_pr_,!((Ask-Bid)>(Ask*k)))
+opch_pr_<-subset(opch_pr_,!((Ask-Bid)>(Ask*k)))
 rm(k)
 
 #IVの計算で不定となる要素をdelte vectorに格納
 delete<-c(-1)
-N<-nrow(oprch_pr_)
+N<-nrow(opch_pr_)
 for(i in 1:N){
-  tryCatch(a<-set.IVOrig(xT=oprch_pr_[i,]),
+  tryCatch(a<-set.IVOrig(xT=opch_pr_[i,]),
            error=function(e){
              message(e)
              print(i)
@@ -77,23 +77,23 @@ for(i in 1:N){
 (delete)
 delete<-delete[-1]
 (delete)
-nrow(oprch_pr_)
-nrow(oprch_pr_[delete,])
-oprch_pr_<-oprch_pr_[delete,]
-nrow(oprch_pr_)
+nrow(opch_pr_)
+nrow(opch_pr_[delete,])
+opch_pr_<-opch_pr_[delete,]
+nrow(opch_pr_)
 rm(delete)
 #IVの計算
-oprch_pr_$OrigIV<-set.IVOrig(xT=oprch_pr_)
+opch_pr_$OrigIV<-set.IVOrig(xT=opch_pr_)
 
-tmp<-set.EuropeanOptionValueGreeks(oprch_pr_)
-oprch_pr_$Price<-tmp$Price
-oprch_pr_$Delta<-tmp$Delta
-oprch_pr_$Gamma<-tmp$Gamma
-oprch_pr_$Vega<-tmp$Vega
-oprch_pr_$Theta<-tmp$Theta
-oprch_pr_$Rho<-tmp$Theta
+tmp<-set.EuropeanOptionValueGreeks(opch_pr_)
+opch_pr_$Price<-tmp$Price
+opch_pr_$Delta<-tmp$Delta
+opch_pr_$Gamma<-tmp$Gamma
+opch_pr_$Vega<-tmp$Vega
+opch_pr_$Theta<-tmp$Theta
+opch_pr_$Rho<-tmp$Theta
 rm(tmp)
 
 wf_<-paste(DataFiles_Path_G,Underying_Synbol_G,"_OPChain_Pos.csv",sep="")
-write.table(oprch_pr_,wf_,quote=T,row.names=F,sep=",")
+write.table(opch_pr_,wf_,quote=T,row.names=F,sep=",")
 

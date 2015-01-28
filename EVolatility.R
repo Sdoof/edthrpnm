@@ -14,19 +14,7 @@ annuual.daily.volatility <- function(p){
   ret_
 }
 
-#simple sample
-p<-c(20,20.1,19.9,20,20.5,20.25,20.9,20.9,20.9,20.75,20.75,21,21.1,20.9,20.9,21.25,21.4,21.4,21.25,21.75,22)
-pv_<-annuual.daily.volatility(p)
-
-#AUD uSD
-p<-read.table("AUDUSD.csv",header=T,sep=",")
-p<-p$AUDUSD[1:100]
-pv_<-annuual.daily.volatility(p)
-
-
-###
-## Volatility Level correlaiton and regression
-###
+#Volatility Level correlaiton and regression functions
 #PCIVndCtC
 PCIVndCtC <- function(hist,iv,n){
   p_ <- replace(hist, rep(1:(length(hist)-n)), hist[(1+n):length(hist)])
@@ -51,17 +39,37 @@ IVCFndCTC <- function(iv,n){
   ret_
 }
 
+###
+## AUDUSD volatility examples
+###
+
+#simple sample
+p<-c(20,20.1,19.9,20,20.5,20.25,20.9,20.9,20.9,20.75,20.75,21,21.1,20.9,20.9,21.25,21.4,21.4,21.25,21.75,22)
+pv_<-annuual.daily.volatility(p)
+
+#AUD uSD
+p<-read.table("AUDUSD.csv",header=T,sep=",")
+p<-p$AUDUSD[1:100]
+pv_<-annuual.daily.volatility(p)
+
+
+###
+## Volatility Level correlaiton and regression
+###
+
 #read data file
 rf_<-paste(DataFiles_Path_G,Underying_Synbol_G,"_Hist.csv",sep="")
 histPrc_<-read.table(rf_,header=T,sep=",",nrows=1999)
 rf_<-paste(DataFiles_Path_G,Underying_Synbol_G,"_IV.csv",sep="")
 histIV_<-read.table(rf_,header=T,sep=",",nrows=1999)
+
 #data construct
 PC5dCtC  <- PCndCtC(hist=histPrc_$Close,n=5)
 PCIV5dCtC<-PCIVndCtC(hist=histPrc_$Close,iv=histIV_$Close,n=5)
 IVCF5dCTC<-IVCFndCTC(iv=histIV_$Close,n=5)
 
-#Regression
+##Regression : n day price move(price chg% plus SD(IV)) to IV change fcation(%)
+#Regression from start_day_ ago to num_day_ business days
 start_day_<-1;num_day_<-400
 ##3d
 PCIV3dCtC<-histPrc_$PCIV3dCtC[start_day_:(start_day_+num_day_)]
@@ -159,3 +167,18 @@ cor(PC1dCtO,IVCF1dCtO)
 norns.lm<-lm(IVCF1dCtO~PC1dCtO, data=P2IV1d)
 summary(norns.lm)
 gg_+geom_abline(intercept=norns.lm$coefficient[1],slope=norns.lm$coefficient[2],color="orange")
+
+###
+## Volatility Skew analyzation
+###
+#read data file
+rf_<-paste(DataFiles_Path_G,Underying_Synbol_G,"_OPChain_Pos.csv",sep="")
+opch<-read.table(rf_,header=T,sep=",",nrows=50000)
+rf_<-paste(DataFiles_Path_G,Underying_Synbol_G,"_IV.csv",sep="")
+histIV<-read.table(rf_,header=T,sep=",",nrows=1999)
+
+opch$Moneyness.Frac<-opch$Strike/opch$UDLY
+opch$Moneyness.HowfarOOM.Frac<-(1-opch$Moneyness.Frac)*opch$TYPE
+
+check_mns<-data.frame(Strike=opch$Strike,UDLY=opch$UDLY,TYPE=opch$TYPE,
+           MNS=opch$Moneyness.Frac,OOM=opch$Moneyness.HowfarOOM.Frac)
