@@ -176,9 +176,45 @@ rf_<-paste(DataFiles_Path_G,Underying_Synbol_G,"_OPChain_Pos.csv",sep="")
 opch<-read.table(rf_,header=T,sep=",",nrows=50000)
 rf_<-paste(DataFiles_Path_G,Underying_Synbol_G,"_IV.csv",sep="")
 histIV<-read.table(rf_,header=T,sep=",",nrows=1999)
+rm(rf_)
 
+#NULL unneeded columns.
+#Option Chain
+opch$Last<-opch$Bid<-opch$Ask<-opch$Ask<-opch$Volume<-opch$OI<-NULL
+#Histrical Volatility(Index). VOlatility % to DN. Column name Close to IVIDX
+histIV<-data.frame(Date=histIV$Date,IVIDX=(histIV$Close/100))
+##Historical Implied Volatility(index) merge
+#merge test
+#opch_tmp<-merge(opch,histIV,all.x=T)
+#subset(opch_tmp,Date=="2014/12/18")
+#subset(opch_tmp,Date=="2014/12/23")
+#rm(opch_tmp)
+#mrege
+opch<-merge(opch,histIV,all.x=T)
+rm(histIV)
+
+#if >1.0 Strike is right(bigger) than UDLY, else(<1.0) left(smaller)
 opch$Moneyness.Frac<-opch$Strike/opch$UDLY
-opch$Moneyness.HowfarOOM.Frac<-(1-opch$Moneyness.Frac)*opch$TYPE
+# As fraction of UDLY. positive indicates OOM, negative ITM.
+opch$HowfarOOM<-(1-opch$Moneyness.Frac)*opch$TYPE
+#As fraction of Implied SD. >0 OOM, <0 ITM
+opch$Moneyness.SDFrac<-(opch$UDLY-opch$Strike)*opch$TYPE/(opch$UDLY*opch$IVIDX)
 
-check_mns<-data.frame(Strike=opch$Strike,UDLY=opch$UDLY,TYPE=opch$TYPE,
-           MNS=opch$Moneyness.Frac,OOM=opch$Moneyness.HowfarOOM.Frac)
+#construct Time axis for regression. In this case expressed as Month.
+get.busdays.between(start=opch$Date,end=opch$ExpDate)
+bdays_per_month<-252/12
+opch$TimeToExpDate<-get.busdays.between(start=opch$Date,end=opch$ExpDate)/bdays_per_month
+rm(bdays_per_month)
+
+#Normalized Moneyness
+#log(opch$Moneyness.Frac)
+#opch$IVIDX
+#sqrt(opch$TimeToExpDate)
+opch$Moneyness.Nm<-log(opch$Moneyness.Frac)/opch$IVIDX/sqrt(opch$TimeToExpDate)
+
+#Writing to a file
+wf_<-paste(DataFiles_Path_G,Underying_Synbol_G,"_OPChain_Skew.csv",sep="")
+write.table(opch,wf_,quote=T,row.names=F,sep=",")
+rm(wf_)
+
+rm(opch)
