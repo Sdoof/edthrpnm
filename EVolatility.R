@@ -1,4 +1,7 @@
+library(RQuantLib)
 library(ggplot2)
+library(plyr)
+library(dplyr)
 
 #getting annual and daili volatility
 annuual.daily.volatility <- function(p){
@@ -211,6 +214,18 @@ rm(bdays_per_month)
 #opch$IVIDX
 #sqrt(opch$TimeToExpDate)
 opch$Moneyness.Nm<-log(opch$Moneyness.Frac)/opch$IVIDX/sqrt(opch$TimeToExpDate)
+
+#Get ATM Implied Volatilities for each option types.
+#Only OOM Option's IV is used and..
+opch %>% dplyr::group_by(Date,ExpDate,TYPE) %>% dplyr::filter(HowfarOOM>0) %>% 
+  #Get the OrigIV where HowfarOOM is minimum, ie. IV at ATM.
+  dplyr::summarise(num=n(),OOM=min(abs(HowfarOOM)),min.i=which.min(abs(HowfarOOM)),ATMIV=OrigIV[which.min(abs(HowfarOOM))],TimeToExpDate=TimeToExpDate[which.min(abs(HowfarOOM))]) %>% 
+  as.data.frame() -> atmiv
+atmiv %>% dplyr::select(Date,ExpDate,TYPE,ATMIV,TimeToExpDate) %>% as.data.frame() -> atmiv
+
+opch <- merge(opch,
+        atmiv %>% dplyr::select(Date,ExpDate,TYPE,ATMIV) %>% as.data.frame(),
+        by.x=c("Date","ExpDate","TYPE"),by.y=c("Date","ExpDate","TYPE"),all.x=T)
 
 #Writing to a file
 wf_<-paste(DataFiles_Path_G,Underying_Synbol_G,"_OPChain_Skew.csv",sep="")

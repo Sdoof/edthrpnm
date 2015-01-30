@@ -6,18 +6,10 @@ library("quantmod")
 today<-Sys.Date()
 wfilename_<-paste("opprice",today,".csv",sep="")
 
-
 #^RUT
 quart<-getQuote("^RUT")
 write.table(quart,wfilename_,quote=T,row.names=F,append=T,sep=",")
 write("Strike,ContactName,Last,Bid,Ask,Change,%Change,Volume,OI,IV,ExpDate",wfilename_,append=T)
-#2015/01/30
-tbl_<-readHTMLTable("http://finance.yahoo.com/q/op?s=^RUT&date=1422576000")
-expdate<-"2015/01/30"
-tbl_[[2]]["ExpDate"]<-expdate
-write.table(tbl_[[2]],wfilename_,row.names=F,append=T,sep=",")
-tbl_[[3]]["ExpDate"]<-expdate
-write.table(tbl_[[3]],wfilename_,row.names=F,append=T,sep=",")
 #2015/02/20
 tbl_<-readHTMLTable("http://finance.yahoo.com/q/op?s=^RUT&date=1424390400")
 expdate<-"2015/02/20"
@@ -122,13 +114,6 @@ write.table(tbl_[[3]],wfilename_,row.names=F,append=T,sep=",")
 quart<-getQuote("EEM")
 write.table(quart,wfilename_,quote=T,row.names=F,append=T,sep=",")
 write("Strike,ContactName,Last,Bid,Ask,Change,%Change,Volume,OI,IV")
-#2015/01/30
-tbl_<-readHTMLTable("http://finance.yahoo.com/q/op?s=EEM&date=1422576000")
-expdate<-"2015/01/30"
-tbl_[[2]]["ExpDate"]<-expdate
-write.table(tbl_[[2]],wfilename_,row.names=F,append=T,sep=",")
-tbl_[[3]]["ExpDate"]<-expdate
-write.table(tbl_[[3]],wfilename_,row.names=F,append=T,sep=",")
 #2015/02/20
 tbl_<-readHTMLTable("http://finance.yahoo.com/q/op?s=EEM&date=1424390400")
 expdate<-"2015/02/20"
