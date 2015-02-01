@@ -228,10 +228,13 @@ opch <- merge(opch,
         atmiv %>% dplyr::select(Date,ExpDate,TYPE,ATMIV) %>% as.data.frame(),
         by.x=c("Date","ExpDate","TYPE"),by.y=c("Date","ExpDate","TYPE"),all.x=T)
 
-# Volatility Cone Modeling
+###
+# Volatility Cone and ATMIV%Chg/IVIDX%Chg Analysis, Regression.  
+###
 
 atmiv %>% dplyr::arrange(desc(TYPE),ExpDate,Date) -> atmiv
 
+# called from do below. This function is called for each grouped data frame.
 makeVconAnalDF<- function(atmiv){
   atmiv %>% dplyr::mutate(ATMIV.s=dplyr::lead(atmiv$ATMIV,1)) -> atmiv
   atmiv %>% dplyr::mutate(IVIDX.s=dplyr::lead(atmiv$IVIDX,1)) -> atmiv
@@ -240,13 +243,18 @@ makeVconAnalDF<- function(atmiv){
                           ,IVIDX.f=IVIDX.s/IVIDX
                           ,TimeToExpDate.d=TimeToExpDate-TimeToExpDate.s) -> atmiv
   atmiv$ATMIV.s<-atmiv$IVIDX.s<-atmiv$TimeToExpDate.s<-NULL
-  #filter out data whose busuness days interval are more than x days
-  #x<-7
-  #timeIntervalExclude_max=(1/(252/12))*x
-  #atmiv %>% dplyr::filter(TimeToExpDate.d<=timeIntervalExclude_max) -> atmiv
+
+  #filter out data whose busuness days interval are more than time_max days
+  # if you want to exclude whose intervals are more than 6 days, 
+  #  then set time_max<- 6.2 etc to avoid unncessary boundary misconfigurations.
+  time_max <- 7.2
+  timeIntervalExclude_max=(1/(252/12))*time_max
+  atmiv %>% dplyr::filter(TimeToExpDate.d<=timeIntervalExclude_max) -> atmiv
   atmiv
 }
-atmiv %>% group_by(ExpDate,TYPE)
+#atmiv %>% group_by(ExpDate,TYPE)
+#Row "EachDF" 's members are dataframes. Composite Object Types such as Dataframe, List, etc
+# can also be set as a dataframe member. Note . referes to each grouped partial dataframe.
 atmiv %>% group_by(ExpDate,TYPE) %>% do(EachDF=makeVconAnalDF(.)) -> atmiv.vcone.anal
 atmiv.vcone.anal %>% dplyr::arrange(desc(TYPE),ExpDate) -> atmiv.vcone.anal
 as.data.frame(atmiv.vcone.anal$EachDF[2])  
