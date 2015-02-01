@@ -219,13 +219,39 @@ opch$Moneyness.Nm<-log(opch$Moneyness.Frac)/opch$IVIDX/sqrt(opch$TimeToExpDate)
 #Only OOM Option's IV is used and..
 opch %>% dplyr::group_by(Date,ExpDate,TYPE) %>% dplyr::filter(HowfarOOM>0) %>% 
   #Get the OrigIV where HowfarOOM is minimum, ie. IV at ATM.
-  dplyr::summarise(num=n(),OOM=min(abs(HowfarOOM)),min.i=which.min(abs(HowfarOOM)),ATMIV=OrigIV[which.min(abs(HowfarOOM))],TimeToExpDate=TimeToExpDate[which.min(abs(HowfarOOM))]) %>% 
+  dplyr::summarise(num=n(),OOM=min(abs(HowfarOOM)),min.i=which.min(abs(HowfarOOM)),ATMIV=OrigIV[which.min(abs(HowfarOOM))]
+                   ,TimeToExpDate=TimeToExpDate[which.min(abs(HowfarOOM))],IVIDX=IVIDX[which.min(abs(HowfarOOM))]) %>% 
   as.data.frame() -> atmiv
-atmiv %>% dplyr::select(Date,ExpDate,TYPE,ATMIV,TimeToExpDate) %>% as.data.frame() -> atmiv
+atmiv %>% dplyr::select(Date,ExpDate,TYPE,ATMIV,IVIDX,TimeToExpDate) %>% as.data.frame() -> atmiv
 
 opch <- merge(opch,
         atmiv %>% dplyr::select(Date,ExpDate,TYPE,ATMIV) %>% as.data.frame(),
         by.x=c("Date","ExpDate","TYPE"),by.y=c("Date","ExpDate","TYPE"),all.x=T)
+
+# Volatility Cone Modeling
+
+atmiv %>% dplyr::arrange(desc(TYPE),ExpDate,Date) -> atmiv
+
+makeVconAnalDF<- function(atmiv){
+  atmiv %>% dplyr::mutate(ATMIV.s=dplyr::lead(atmiv$ATMIV,1)) -> atmiv
+  atmiv %>% dplyr::mutate(IVIDX.s=dplyr::lead(atmiv$IVIDX,1)) -> atmiv
+  atmiv %>% dplyr::mutate(TimeToExpDate.s=dplyr::lead(atmiv$TimeToExpDate,1)) -> atmiv
+  atmiv %>% dplyr::mutate(ATMIV.f=ATMIV.s/ATMIV
+                          ,IVIDX.f=IVIDX.s/IVIDX
+                          ,TimeToExpDate.d=TimeToExpDate-TimeToExpDate.s) -> atmiv
+  atmiv$ATMIV.s<-atmiv$IVIDX.s<-atmiv$TimeToExpDate.s<-NULL
+  #filter out data whose busuness days interval are more than x days
+  #x<-7
+  #timeIntervalExclude_max=(1/(252/12))*x
+  #atmiv %>% dplyr::filter(TimeToExpDate.d<=timeIntervalExclude_max) -> atmiv
+  atmiv
+}
+atmiv %>% group_by(ExpDate,TYPE)
+atmiv %>% group_by(ExpDate,TYPE) %>% do(EachDF=makeVconAnalDF(.)) -> atmiv.vcone.anal
+atmiv.vcone.anal %>% dplyr::arrange(desc(TYPE),ExpDate) -> atmiv.vcone.anal
+as.data.frame(atmiv.vcone.anal$EachDF[2])  
+
+rm(atmiv.vcone.anal)
 
 #Writing to a file
 wf_<-paste(DataFiles_Path_G,Underying_Synbol_G,"_OPChain_Skew.csv",sep="")

@@ -38,6 +38,14 @@ tbl_[[2]]["ExpDate"]<-expdate
 write.table(tbl_[[2]],wfilename_,row.names=F,append=T,sep=",")
 tbl_[[3]]["ExpDate"]<-expdate
 write.table(tbl_[[3]],wfilename_,row.names=F,append=T,sep=",")
+#2015/12/19
+tbl_<-readHTMLTable("http://finance.yahoo.com/q/op?s=^RUT&date=1450483200")
+expdate<-"2015/12/19"
+tbl_[[2]]["ExpDate"]<-expdate
+write.table(tbl_[[2]],wfilename_,row.names=F,append=T,sep=",")
+tbl_[[3]]["ExpDate"]<-expdate
+write.table(tbl_[[3]],wfilename_,row.names=F,append=T,sep=",")
+
 
 #^SPXPM
 quart<-getQuote("^SPXPM")
@@ -73,6 +81,13 @@ write.table(tbl_[[3]],wfilename_,row.names=F,append=T,sep=",")
 #2015/09/18
 tbl_<-readHTMLTable("http://finance.yahoo.com/q/op?s=^SPXPM&date=1442534400")
 expdate<-"2015/09/18"
+tbl_[[2]]["ExpDate"]<-expdate
+write.table(tbl_[[2]],wfilename_,row.names=F,append=T,sep=",")
+tbl_[[3]]["ExpDate"]<-expdate
+write.table(tbl_[[3]],wfilename_,row.names=F,append=T,sep=",")
+#2015/12/19
+tbl_<-readHTMLTable("http://finance.yahoo.com/q/op?s=^SPXPM&date=1450483200")
+expdate<-"2015/12/19"
 tbl_[[2]]["ExpDate"]<-expdate
 write.table(tbl_[[2]],wfilename_,row.names=F,append=T,sep=",")
 tbl_[[3]]["ExpDate"]<-expdate
