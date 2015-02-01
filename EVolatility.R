@@ -258,14 +258,26 @@ makeVconAnalDF<- function(atmiv){
 atmiv %>% group_by(ExpDate,TYPE) %>% do(EachDF=makeVconAnalDF(.)) -> atmiv.vcone.anal
 atmiv.vcone.anal %>% dplyr::arrange(desc(TYPE),ExpDate) -> atmiv.vcone.anal
 
-atmiv.vcone.anal %>% dplyr::rowwise() %>% .$EachDF # 下記の一つ一つをdata.frameにしてbindしていく。このままだとDFを複数含んだリスト
-#as.data.frame(atmiv.vcone.anal$EachDF[2])
-
-rm(atmiv.vcone.anal)
+atmiv.vcone.eachDF<-atmiv.vcone.anal$EachDF
+atmiv.vcone.bind<-NULL
+for(i in 1:length(atmiv.vcone.eachDF)){
+  if(i==1){
+    atmiv.vcone.bind <- as.data.frame(atmiv.vcone.eachDF[i])
+  }
+  else{
+    atmiv.vcone.bind<-rbind(atmiv.vcone.bind,as.data.frame(atmiv.vcone.eachDF[i]))
+  }
+  
+}
+#atmiv.vcone.anal: from nested data.frame to data.frame: type changed.
+atmiv.vcone.anal<-NULL
+atmiv.vcone.anal<-atmiv.vcone.bind
+rm(i,atmiv.vcone.eachDF,atmiv.vcone.bind)
 
 #Writing to a file
 wf_<-paste(DataFiles_Path_G,Underying_Synbol_G,"_OPChain_Skew.csv",sep="")
 write.table(opch,wf_,quote=T,row.names=F,sep=",")
 rm(wf_)
 
-rm(opch)
+rm(makeVconAnalDF)
+rm(atmiv.vcone.anal,atmiv,opch)
