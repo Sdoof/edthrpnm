@@ -257,7 +257,9 @@ makeVconAnalDF<- function(atmiv){
 # can also be set as a dataframe member. Note . referes to each grouped partial dataframe.
 atmiv %>% group_by(ExpDate,TYPE) %>% do(EachDF=makeVconAnalDF(.)) -> atmiv.vcone.anal
 atmiv.vcone.anal %>% dplyr::arrange(desc(TYPE),ExpDate) -> atmiv.vcone.anal
-as.data.frame(atmiv.vcone.anal$EachDF[2])  
+
+atmiv.vcone.anal %>% dplyr::rowwise() %>% .$EachDF # 下記の一つ一つをdata.frameにしてbindしていく。このままだとDFを複数含んだリスト
+#as.data.frame(atmiv.vcone.anal$EachDF[2])
 
 rm(atmiv.vcone.anal)
 
