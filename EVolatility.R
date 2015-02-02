@@ -173,7 +173,7 @@ gg_+geom_abline(intercept=norns.lm$coefficient[1],slope=norns.lm$coefficient[2],
 
 ###
 ## Volatility Skew analyzation
-###
+##
 #read data file
 rf_<-paste(DataFiles_Path_G,Underying_Synbol_G,"_OPChain_Pos.csv",sep="")
 opch<-read.table(rf_,header=T,sep=",",nrows=50000)
@@ -181,18 +181,11 @@ rf_<-paste(DataFiles_Path_G,Underying_Synbol_G,"_IV.csv",sep="")
 histIV<-read.table(rf_,header=T,sep=",",nrows=1999)
 rm(rf_)
 
-#NULL unneeded columns.
-#Option Chain
+##START Create complete opch
 opch$Last<-opch$Bid<-opch$Ask<-opch$Ask<-opch$Volume<-opch$OI<-NULL
 #Histrical Volatility(Index). VOlatility % to DN. Column name Close to IVIDX
 histIV<-data.frame(Date=histIV$Date,IVIDX=(histIV$Close/100))
 ##Historical Implied Volatility(index) merge
-#merge test
-#opch_tmp<-merge(opch,histIV,all.x=T)
-#subset(opch_tmp,Date=="2014/12/18")
-#subset(opch_tmp,Date=="2014/12/23")
-#rm(opch_tmp)
-#mrege
 opch<-merge(opch,histIV,all.x=T)
 rm(histIV)
 
@@ -210,13 +203,13 @@ opch$TimeToExpDate<-get.busdays.between(start=opch$Date,end=opch$ExpDate)/bdays_
 rm(bdays_per_month)
 
 #Normalized Moneyness
-#log(opch$Moneyness.Frac)
-#opch$IVIDX
-#sqrt(opch$TimeToExpDate)
 opch$Moneyness.Nm<-log(opch$Moneyness.Frac)/opch$IVIDX/sqrt(opch$TimeToExpDate)
 
+##END Got complete opch
+
 #Get ATM Implied Volatilities for each option types.
-#Only OOM Option's IV is used and..
+#only OOM Option's IV is used and..
+##START Create atmiv
 opch %>% dplyr::group_by(Date,ExpDate,TYPE) %>% dplyr::filter(HowfarOOM>0) %>% 
   #Get the OrigIV where HowfarOOM is minimum, ie. IV at ATM.
   dplyr::summarise(num=n(),OOM=min(abs(HowfarOOM)),min.i=which.min(abs(HowfarOOM)),ATMIV=OrigIV[which.min(abs(HowfarOOM))]
@@ -227,6 +220,9 @@ opch <- merge(opch,
         atmiv %>% dplyr::select(Date,ExpDate,TYPE,ATMIV) %>% as.data.frame(),
         by.x=c("Date","ExpDate","TYPE"),by.y=c("Date","ExpDate","TYPE"),all.x=T)
 atmiv %>% dplyr::arrange(desc(TYPE),ExpDate,Date) -> atmiv
+
+##END Got complete atmiv
+
 ###
 # Volatility Cone and ATMIV%Chg/IVIDX%Chg Analysis, Regression.  
 ###
@@ -253,9 +249,10 @@ makeVconAnalDF<- function(atmiv){
   atmiv %>% dplyr::filter(TimeToExpDate.d<=timeIntervalExclude_max) -> atmiv
   atmiv
 }
-#atmiv %>% group_by(ExpDate,TYPE)
-#Row "EachDF" 's members are dataframes. Composite Object Types such as Dataframe, List, etc
-# can also be set as a dataframe member. Note . referes to each grouped partial dataframe.
+
+#Row "EachDF" 's members are dataframes. Composite Object Types such as Dataframe, List.
+#Thay can also be set as a data frame member. 
+#     note . referes to each grouped partial data frame.
 atmiv %>% group_by(ExpDate,TYPE) %>% do(EachDF=makeVconAnalDF(.)) -> atmiv.vcone.anal
 atmiv.vcone.anal %>% dplyr::arrange(desc(TYPE),ExpDate) -> atmiv.vcone.anal
 atmiv.vcone.eachDF<-atmiv.vcone.anal$EachDF
@@ -279,6 +276,7 @@ rm(i,atmiv.vcone.eachDF,atmiv.vcone.bind)
 
 ##
 #vcone analysis
+#
 
 #functions
 make.vcone.df<-function(atmiv,type=0){
@@ -291,6 +289,8 @@ make.vcone.df<-function(atmiv,type=0){
     iv_mean_p<-mean(vcone$IV)
     vcone %>% dplyr::mutate(IV.nm=IV/iv_mean_p) -> vcone
   }
+  #Time filtering, because when IV is not stable when Time is very close to ExpDate .
+  vcone %>% dplyr::filter(Month>=0.30) -> vcone
   vcone
 }
 
@@ -299,7 +299,6 @@ make.vchg.df<-function(vcone,type=0){
     vcone %>% filter(TYPE==type) -> vcone
   }
   vcone %>% dplyr::mutate(VC.f=ATMIV.f/IVIDX.f) -> vcone
-  vcone %>% dplyr::mutate(VC.f.AbSdf=abs(VC.f-1)) -> vcone
   #Time filtering, because when IV is not stable when Time is very close to ExpDate .
   vcone %>% dplyr::filter(TimeToExpDate>=0.25) -> vcone
   
@@ -312,17 +311,17 @@ vcone<-make.vcone.df(atmiv=atmiv,type=0)
 rm(gg_,vcone)
 #Plotting Put. IV is normalized.
 vcone<-make.vcone.df(atmiv=atmiv,type=1)
-(gg_<-ggplot(vcone,aes(x=Month,y=IV.nm))+geom_point())
+(gg_<-ggplot(vcone,aes(x=Month,y=IV.nm,colour=TYPE))+geom_point())
 rm(gg_,vcone)
 #Plotting Call. IV is normalized.
 vcone<-make.vcone.df(atmiv=atmiv,type=-1)
-(gg_<-ggplot(vcone,aes(x=Month,y=IV.nm))+geom_point())
+(gg_<-ggplot(vcone,aes(x=Month,y=IV.nm,colour=TYPE))+geom_point())
 rm(gg_,vcone)
 
 #Regression of vcone if needed.
 
 ##
-# ATM IV Volatility Change to IV Index.
+# ATM IV Volatility Change to IV Index for TimeToExpDate
 #
 
 #all
@@ -340,9 +339,13 @@ vchg %>% filter(IVIDX.f<1.0) -> vchg_mns
 rm(gg_,vchg,vchg_plus,vchg_mns)
 #Call
 vchg<-make.vchg.df(vcone=atmiv.vcone.anal,type=-1)
-(gg_<-ggplot(vchg,aes(x=TimeToExpDate,y=VC.f,,colour=TYPE))+geom_point())
+(gg_<-ggplot(vchg,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point())
+vchg %>% filter(IVIDX.f>=1.0) -> vchg_plus
+(gg_<-ggplot(vchg_plus,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point())
+vchg %>% filter(IVIDX.f<1.0) -> vchg_mns
+(gg_<-ggplot(vchg_mns,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point())
 #(gg_<-ggplot(vchg,aes(x=TimeToExpDate,y=VC.f.AbSdf,colour=TYPE))+geom_point()
-rm(gg_,vchg)
+rm(gg_,vchg,vchg_plus,vchg_mns)
 
 #Writing to a file
 wf_<-paste(DataFiles_Path_G,Underying_Synbol_G,"_OPChain_Skew.csv",sep="")
