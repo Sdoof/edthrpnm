@@ -301,7 +301,6 @@ make.vchg.df<-function(vcone,type=0){
   vcone %>% dplyr::mutate(VC.f=ATMIV.f/IVIDX.f) -> vcone
   #Time filtering, because when IV is not stable when Time is very close to ExpDate .
   vcone %>% dplyr::filter(TimeToExpDate>=0.25) -> vcone
-  
   vcone
 }
 
@@ -329,15 +328,37 @@ vchg<-make.vchg.df(vcone=atmiv.vcone.anal,type=0)
 (gg_<-ggplot(vchg,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point())
 #(gg_<-ggplot(vchg,aes(x=TimeToExpDate,y=VC.f.AbSdf,colour=TYPE))+geom_point())
 rm(gg_,vchg)
-#Put
+
+##Put
 vchg<-make.vchg.df(vcone=atmiv.vcone.anal,type=1)
 (gg_<-ggplot(vchg,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point())
+
 vchg %>% filter(IVIDX.f>=1.0) -> vchg_plus
 (gg_<-ggplot(vchg_plus,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point())
+
 vchg %>% filter(IVIDX.f<1.0) -> vchg_mns
+#filter outlier
+vchg_mns %>% dplyr::filter(VC.f>0.90) -> vchg_mns
 (gg_<-ggplot(vchg_mns,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point())
-rm(gg_,vchg,vchg_plus,vchg_mns)
-#Call
+
+# regression
+#   vchg_mns
+#    1.exponent function
+nls_vchg_put_mns<-nls(VC.f~a*TimeToExpDate^b+c,data=vchg_mns,start=c(a=0.2,b=0.2,c=-0.2))
+summary(nls_vchg_put_mns)
+predict.c <- predict(nls_vchg_put_mns)
+(gg_<-ggplot(vchg_mns,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point()+
+   geom_line(data=data.frame(vchg_mns,fit=predict.c),aes(TimeToExpDate,fit)))
+#     2.linear 
+nm_vchg_put_mns<-lm(VC.f~TimeToExpDate,data=vchg_mns)
+summary(nm_vchg_put_mns)
+predict.c <- predict(nm_vchg_put_mns)
+(gg_<-ggplot(vchg_mns,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point()+
+   geom_line(data=data.frame(vchg_mns,fit=predict.c),aes(TimeToExpDate,fit)))
+#(gg_<-ggplot(vchg_mns,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point()+
+#   geom_smooth(method="lm",se=F))
+rm(gg_,vchg,vchg_plus,vchg_mns,nls_vchg_put_mns,nm_vchg_put_mns,predict.c)
+##Call
 vchg<-make.vchg.df(vcone=atmiv.vcone.anal,type=-1)
 (gg_<-ggplot(vchg,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point())
 vchg %>% filter(IVIDX.f>=1.0) -> vchg_plus
