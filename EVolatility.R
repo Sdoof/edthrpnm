@@ -329,7 +329,24 @@ vchg<-make.vchg.df(vcone=atmiv.vcone.anal,type=0)
 #(gg_<-ggplot(vchg,aes(x=TimeToExpDate,y=VC.f.AbSdf,colour=TYPE))+geom_point())
 rm(gg_,vchg)
 
+# regression function
+
+vchg_regression<-function(vchg,type=2,start=NULL,ret=1){
+  if(type==1){
+    nls.m<-nls(VC.f~a*TimeToExpDate^b+c,data=vchg,start=start)
+  }else if(type==2){
+    nls.m<-lm(VC.f~TimeToExpDate,data=vchg)
+  }
+  if(ret==2){
+    nls.m
+  }else{
+   predict.m <- predict(nls.m)
+   predict.m
+  }
+}
+
 ##Put
+
 vchg<-make.vchg.df(vcone=atmiv.vcone.anal,type=1)
 (gg_<-ggplot(vchg,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point())
 
@@ -341,23 +358,35 @@ vchg %>% filter(IVIDX.f<1.0) -> vchg_mns
 vchg_mns %>% dplyr::filter(VC.f>0.90) -> vchg_mns
 (gg_<-ggplot(vchg_mns,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point())
 
-# regression
-#   vchg_mns
 #    1.exponent function
-nls_vchg_put_mns<-nls(VC.f~a*TimeToExpDate^b+c,data=vchg_mns,start=c(a=0.2,b=0.2,c=-0.2))
-summary(nls_vchg_put_mns)
-predict.c <- predict(nls_vchg_put_mns)
-(gg_<-ggplot(vchg_mns,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point()+
-   geom_line(data=data.frame(vchg_mns,fit=predict.c),aes(TimeToExpDate,fit)))
-#     2.linear 
-nm_vchg_put_mns<-lm(VC.f~TimeToExpDate,data=vchg_mns)
-summary(nm_vchg_put_mns)
-predict.c <- predict(nm_vchg_put_mns)
-(gg_<-ggplot(vchg_mns,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point()+
-   geom_line(data=data.frame(vchg_mns,fit=predict.c),aes(TimeToExpDate,fit)))
-#(gg_<-ggplot(vchg_mns,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point()+
-#   geom_smooth(method="lm",se=F))
-rm(gg_,vchg,vchg_plus,vchg_mns,nls_vchg_put_mns,nm_vchg_put_mns,predict.c)
+vchg_t<-vchg_plus
+predict.c <- vchg_regression(vchg=vchg_t,type=1,start=c(a=-0.02,b=0.6,c=0.01))
+(gg_<-ggplot(vchg_t,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point()+
+   geom_line(data=data.frame(vchg_t,fit=predict.c),aes(TimeToExpDate,fit)))
+vchg_regression(vchg=vchg_t,type=1,start=c(a=-0.02,b=0.6,c=0.01),ret=2)
+rm(vchg_t)
+
+vchg_t<-vchg_mns
+predict.c <- vchg_regression(vchg=vchg_t,type=1,start=c(a=0.2,b=0.2,c=-0.2))
+(gg_<-ggplot(vchg_t,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point()+
+   geom_line(data=data.frame(vchg_t,fit=predict.c),aes(TimeToExpDate,fit)))
+vchg_regression(vchg=vchg_t,type=1,start=c(a=0.2,b=0.2,c=-0.2),ret=2)
+rm(vchg_t)
+#     2.linear
+vchg_t<-vchg_plus
+predict.c <- vchg_regression(vchg=vchg_t,type=2)
+(gg_<-ggplot(vchg_t,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point()+
+   geom_line(data=data.frame(vchg_t,fit=predict.c),aes(TimeToExpDate,fit)))
+rm(vchg_t)
+
+vchg_t<-vchg_mns
+predict.c <- vchg_regression(vchg=vchg_t,type=2)
+(gg_<-ggplot(vchg_t,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point()+
+   geom_line(data=data.frame(vchg_t,fit=predict.c),aes(TimeToExpDate,fit)))
+rm(vchg_t)
+
+rm(gg_,vchg,vchg_mns,vchg_plus,predict.c)
+
 ##Call
 vchg<-make.vchg.df(vcone=atmiv.vcone.anal,type=-1)
 (gg_<-ggplot(vchg,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point())
@@ -365,8 +394,32 @@ vchg %>% filter(IVIDX.f>=1.0) -> vchg_plus
 (gg_<-ggplot(vchg_plus,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point())
 vchg %>% filter(IVIDX.f<1.0) -> vchg_mns
 (gg_<-ggplot(vchg_mns,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point())
-#(gg_<-ggplot(vchg,aes(x=TimeToExpDate,y=VC.f.AbSdf,colour=TYPE))+geom_point()
-rm(gg_,vchg,vchg_plus,vchg_mns)
+
+#regresson
+#    1.exponent function
+vchg_t<-vchg_plus
+predict.c <- vchg_regression(vchg=vchg_t,type=1,start=c(a=0.1,b=-0.1,c=-0.03))
+(gg_<-ggplot(vchg_t,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point()+
+   geom_line(data=data.frame(vchg_t,fit=predict.c),aes(TimeToExpDate,fit)))
+vchg_regression(vchg=vchg_t,type=1,start=c(a=0.1,b=-0.1,c=-0.03),ret=2)
+rm(vchg_t)
+vchg_t<-vchg_mns
+predict.c <- vchg_regression(vchg=vchg_t,type=1,start=c(a=0.2,b=0.2,c=-0.2))
+(gg_<-ggplot(vchg_t,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point()+
+   geom_line(data=data.frame(vchg_t,fit=predict.c),aes(TimeToExpDate,fit)))
+rm(vchg_t)
+#     2.linear 
+vchg_t<-vchg_plus
+predict.c <- vchg_regression(vchg=vchg_t,type=2)
+(gg_<-ggplot(vchg_t,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point()+
+   geom_line(data=data.frame(vchg_t,fit=predict.c),aes(TimeToExpDate,fit)))
+vchg_t<-vchg_mns
+predict.c <- vchg_regression(vchg=vchg_t,type=2)
+(gg_<-ggplot(vchg_t,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point()+
+   geom_line(data=data.frame(vchg_t,fit=predict.c),aes(TimeToExpDate,fit)))
+rm(vchg_t)
+
+rm(gg_,vchg,vchg_mns,vchg_plus,predict.c)
 
 #Writing to a file
 wf_<-paste(DataFiles_Path_G,Underying_Synbol_G,"_OPChain_Skew.csv",sep="")
