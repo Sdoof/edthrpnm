@@ -61,6 +61,11 @@ get.zei_kojo<-function(kokuho){
   zei_kojo
 }
 
+get.jyumin_zei<-function(syotoku,kojo){
+  jyumin_zei<-as.numeric(syotoku>=kojo)*(syotoku-kojo)*0.08
+  jyumin_zei
+}
+
 aoiro.total.zei<-function(syotoku){
   syotoku<-syotoku*10000
   
@@ -69,7 +74,7 @@ aoiro.total.zei<-function(syotoku){
   zei_kojo<-get.zei_kojo(kokuho)
   syotoku_zei<-get.syotokuzei((syotoku-zei_kojo)/10000)*10000
   
-  jyumin_zei<-(syotoku-zei_kojo)*0.08
+  jyumin_zei<-get.jyumin_zei(syotoku/10000,zei_kojo/10000)*10000
   
   total_zei<-(kokuho+syotoku_zei+jyumin_zei)/10000
   return(total_zei)
@@ -78,14 +83,15 @@ aoiro.total.zei<-function(syotoku){
 aoiro.total.zei.rate<-function(syotoku){
   return(aoiro.total.zei(syotoku)/syotoku)
 }
-syotoku<-700
+syotoku<-500
 aoiro.total.zei(syotoku)
 aoiro.total.zei.rate(syotoku)
 
 syotoku<-seq(1,1200,by=1)
 tax_aoiro_ttl<-data.frame(s=syotoku,aoiro_tax=aoiro.total.zei(syotoku))
-tax_aoiro_ttl %>% filter(aoiro_tax>0) -> tax_aoiro_ttl
 tax_aoiro_ttl$aoiro_tax_rate<-tax_aoiro_ttl$aoiro_tax/tax_aoiro_ttl$s
+
+tax_aoiro_ttl %>% filter(aoiro_tax>6.7) %>% filter(aoiro_tax_rate<0.3) -> tax_aoiro_ttl
 
 (gg_<-ggplot(tax_aoiro_ttl,aes(x=s,y=tax))+
    geom_line(data=tax_aoiro_ttl,aes(s,aoiro_tax)))
@@ -112,4 +118,4 @@ rm(syotoku,tax)
    geom_line(data=tax_df,aes(s,ttl_tax_rate)))
 rm(gg_)
 
-rm(tax_df,get.syotokuzei,get.kokuho,get.aoiro_kojo,get.zei_kojo,aoiro.total.zei,aoiro.total.zei.rate,total.tax.kenpo,total.tax.kokuho)
+rm(tax_df,get.syotokuzei,get.jyumin_zei,get.kokuho,get.aoiro_kojo,get.zei_kojo,aoiro.total.zei,aoiro.total.zei.rate,total.tax.kenpo,total.tax.kokuho)
