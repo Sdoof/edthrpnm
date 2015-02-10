@@ -2,6 +2,7 @@ library(RQuantLib)
 library(ggplot2)
 library(plyr)
 library(dplyr)
+library(rgl)
 
 #getting annual and daili volatility
 annuual.daily.volatility <- function(p){
@@ -205,6 +206,9 @@ rm(bdays_per_month)
 #Normalized Moneyness
 opch$Moneyness.Nm<-log(opch$Moneyness.Frac)/opch$IVIDX/sqrt(opch$TimeToExpDate)
 
+#sort
+opch %>% dplyr::arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="%Y/%m/%d"),desc(TYPE),Strike) -> opch
+
 ##END Got complete opch
 
 #Get ATM Implied Volatilities for each option types.
@@ -219,7 +223,10 @@ atmiv %>% dplyr::select(Date,ExpDate,TYPE,ATMIV,IVIDX,TimeToExpDate) %>% as.data
 opch <- merge(opch,
         atmiv %>% dplyr::select(Date,ExpDate,TYPE,ATMIV) %>% as.data.frame(),
         by.x=c("Date","ExpDate","TYPE"),by.y=c("Date","ExpDate","TYPE"),all.x=T)
-atmiv %>% dplyr::arrange(desc(TYPE),ExpDate,Date) -> atmiv
+#sorting
+atmiv %>% dplyr::arrange(desc(TYPE),as.Date(ExpDate,format="%Y/%m/%d"),as.Date(Date,format="%Y/%m/%d")) -> atmiv
+opch %>% dplyr::arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="%Y/%m/%d"),desc(TYPE),Strike) -> opch
+
 
 ##END Got complete atmiv
 
@@ -275,7 +282,48 @@ rm(i,atmiv.vcone.eachDF,atmiv.vcone.bind)
 #END
 
 ##
-#vcone analysis
+# Option Chain Analysis
+#
+
+## option chain 3D volatility plot
+
+#Without Normalization
+#Put OOM
+opch %>%  dplyr::filter(TYPE==1) %>% 
+  dplyr::filter(OrigIV/ATMIV<3.0)  %>% dplyr::filter(OrigIV/ATMIV>0.2) %>%
+  dplyr::filter(HowfarOOM>=0) %>% dplyr::filter(TimeToExpDate>0.3) -> vplot
+rgl::plot3d(vplot$Moneyness.Frac,vplot$TimeToExpDate,vplot$OrigIV,col=rainbow(3))
+rgl::clear3d()
+
+#Put ITM
+opch %>%  dplyr::filter(TYPE==1) %>% 
+  dplyr::filter(OrigIV/ATMIV<3.0)  %>% dplyr::filter(OrigIV/ATMIV>0.2) %>%
+  dplyr::filter(HowfarOOM<0) %>% dplyr::filter(TimeToExpDate>0.3) -> vplot
+rgl::plot3d(vplot$Moneyness.Frac,vplot$TimeToExpDate,vplot$OrigIV,col=rainbow(3))
+rgl::clear3d()
+
+#Call OOM
+opch %>%  dplyr::filter(TYPE==-1) %>% 
+  dplyr::filter(OrigIV/ATMIV<3.0)  %>% dplyr::filter(OrigIV/ATMIV>0.2) %>%
+  dplyr::filter(HowfarOOM>=0) %>% dplyr::filter(TimeToExpDate>0.3) -> vplot
+rgl::plot3d(vplot$Moneyness.Frac,vplot$TimeToExpDate,vplot$OrigIV,col=rainbow(3))
+rgl::clear3d()
+
+#Call ITM
+opch %>%  dplyr::filter(TYPE==-1) %>% 
+  dplyr::filter(OrigIV/ATMIV<3.0)  %>% dplyr::filter(OrigIV/ATMIV>0.2) %>%
+  dplyr::filter(HowfarOOM<0) %>% dplyr::filter(TimeToExpDate>0.3) -> vplot
+rgl::plot3d(vplot$Moneyness.Frac,vplot$TimeToExpDate,vplot$OrigIV,col=rainbow(3))
+rgl::clear3d()
+
+rm(vplot)
+
+#after creating regression model, we should persp the estimated volatility surface.
+
+
+
+##
+#Vcone Analysis
 #
 
 #functions
