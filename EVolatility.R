@@ -358,8 +358,6 @@ rm(vplot)
 
 #after creating regression model, we should persp the estimated volatility surface.
 
-
-
 ##
 #Vcone Analysis
 #
@@ -370,10 +368,13 @@ make.vcone.df<-function(atmiv,type=0){
     vcone<- data.frame(Month=atmiv$TimeToExpDate, IV=atmiv$ATMIV,TYPE=atmiv$TYPE) 
   }else{
     atmiv %>% filter(TYPE==type) -> atmiv
-    vcone<-data.frame(Month=atmiv$TimeToExpDate, IV=atmiv$ATMIV,TYPE=atmiv$TYPE)
+    vcone<-data.frame(Month=atmiv$TimeToExpDate, IV=atmiv$ATMIV,IVIDX=atmiv$IVIDX,TYPE=atmiv$TYPE)
     #volatility normalize
     iv_mean_p<-mean(vcone$IV)
+    ividx_mean_p<-mean(vcone$IVIDX)
     vcone %>% dplyr::mutate(IV.nm=IV/iv_mean_p) -> vcone
+    #vcone %>% dplyr::mutate(IV2IDX.nm=IV/ividx_mean_p) -> vcone
+    vcone %>% dplyr::mutate(IV2IDX.nm=IV/IVIDX) -> vcone
   }
   #Time filtering, because when IV is not stable when Time is very close to ExpDate .
   vcone %>% dplyr::filter(Month>=0.30) -> vcone
@@ -390,32 +391,19 @@ make.vchg.df<-function(vcone,type=0){
   vcone
 }
 
-#Plotting all type
-vcone<-make.vcone.df(atmiv=atmiv,type=0)
-(gg_<-ggplot(vcone,aes(x=Month,y=IV,colour=TYPE))+geom_point())
-rm(gg_,vcone)
-#Plotting Put. IV is normalized.
-vcone<-make.vcone.df(atmiv=atmiv,type=1)
-(gg_<-ggplot(vcone,aes(x=Month,y=IV.nm,colour=TYPE))+geom_point())
-rm(gg_,vcone)
-#Plotting Call. IV is normalized.
-vcone<-make.vcone.df(atmiv=atmiv,type=-1)
-(gg_<-ggplot(vcone,aes(x=Month,y=IV.nm,colour=TYPE))+geom_point())
-rm(gg_,vcone)
+# regression functions
 
-#Regression of vcone if needed.
-
-##
-# ATM IV Volatility Change to IV Index for TimeToExpDate
-#
-
-#all
-vchg<-make.vchg.df(vcone=atmiv.vcone.anal,type=0)
-(gg_<-ggplot(vchg,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point())
-#(gg_<-ggplot(vchg,aes(x=TimeToExpDate,y=VC.f.AbSdf,colour=TYPE))+geom_point())
-rm(gg_,vchg)
-
-# regression function
+vcone_regression<-function(vcone,regtype=1,ret=1){
+  if(regtype==1){
+    nls.m<-lm(IV2IDX.nm~Month,data=vcone)
+  }
+  if(ret==2){
+    nls.m
+  }else{
+    predict.m <- predict(nls.m)
+    predict.m
+  }
+}
 
 vchg_regression<-function(vchg,type=2,start=NULL,ret=1){
   if(type==1){
@@ -426,10 +414,47 @@ vchg_regression<-function(vchg,type=2,start=NULL,ret=1){
   if(ret==2){
     nls.m
   }else{
-   predict.m <- predict(nls.m)
-   predict.m
+    predict.m <- predict(nls.m)
+    predict.m
   }
 }
+
+#Plotting all type
+vcone<-make.vcone.df(atmiv=atmiv,type=0)
+(gg_<-ggplot(vcone,aes(x=Month,y=IV,colour=TYPE))+geom_point())
+rm(gg_,vcone)
+
+#Plotting Put. IV is normalized.
+vcone<-make.vcone.df(atmiv=atmiv,type=1)
+#(gg_<-ggplot(vcone,aes(x=Month,y=IV.nm,colour=TYPE))+geom_point())
+(gg_<-ggplot(vcone,aes(x=Month,y=IV2IDX.nm,colour=TYPE))+geom_point())
+# Regression of PUT vcone
+#   1.linear
+predict.c <- vcone_regression(vcone=vcone,regtype=1)
+(gg_<-ggplot(vcone,aes(x=Month,y=IV2IDX.nm,colour=TYPE))+geom_point()+
+   geom_line(data=data.frame(vcone,fit=predict.c),aes(Month,fit)))
+rm(gg_,vcone,predict.c)
+
+#Plotting Call. IV is normalized.
+vcone<-make.vcone.df(atmiv=atmiv,type=-1)
+#(gg_<-ggplot(vcone,aes(x=Month,y=IV.nm,colour=TYPE))+geom_point())
+(gg_<-ggplot(vcone,aes(x=Month,y=IV2IDX.nm,colour=TYPE))+geom_point())
+# Regression of PUT vcone
+#   1.linear
+predict.c <- vcone_regression(vcone=vcone,regtype=1)
+(gg_<-ggplot(vcone,aes(x=Month,y=IV2IDX.nm,colour=TYPE))+geom_point()+
+   geom_line(data=data.frame(vcone,fit=predict.c),aes(Month,fit)))
+rm(gg_,vcone,predict.c)
+
+##
+# ATM IV Volatility Change to IV Index for TimeToExpDate
+#
+
+#all
+vchg<-make.vchg.df(vcone=atmiv.vcone.anal,type=0)
+(gg_<-ggplot(vchg,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point())
+#(gg_<-ggplot(vchg,aes(x=TimeToExpDate,y=VC.f.AbSdf,colour=TYPE))+geom_point())
+rm(gg_,vchg)
 
 ##Put
 
