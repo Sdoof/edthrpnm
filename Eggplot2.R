@@ -1,6 +1,7 @@
 library(ggplot2)
 library(plyr)
 library(gcookbook)
+library(rgl)
 
 ##散布図の作成
 qplot(mtcars$wt,mtcars$mpg)
@@ -69,5 +70,77 @@ myfun <- function(xvar){
 qplot(c(0,20),fun=myfun,stat="function",geom="line")
 ggplot(data.frame(x=c(0,20)),aes(x=x))+stat_function(fun=myfun,geom="line")
 
+##
+#rglによる散布図と3次元予測面
+#
+
+#2つのベクトル要素を交互に並べる関数
+interleave<-function(v1,v2) as.vector(rbind(v1,v2))
+
+#
+predictgrid<-function(model,xvar,yvar,zvar,res=16,type=NULL){
+  xrange<-range(model$model[[xvar]])
+  yrange<-range(model$model[[yvar]])
+  
+  newdata<-expand.grid(x=seq(xrange[1],xrange[2],length.out=res),
+                       y=seq(yrange[1],yrange[2],length.out=res))
+  names(newdata)<-c(xvar,yvar)
+  newdata[[zvar]]<-predict(model,newdata,type=type)
+  newdata
+}
+
+#
+df2mat<-function(p,xvar=NULL,yvar=NULL,zvar=NULL){
+  if(is.null(xvar)) xvar <- names(p)[1]
+  if(is.null(yvar)) yvar <- names(p)[2]
+  if(is.null(zvar)) zvar <- names(p)[3]
+  
+  x<-unique(p[[xvar]])
+  y<-unique(p[[yvar]])
+  z<-matrix(p[[zvar]],nrow=length(y),ncol=length(x))
+  
+  m<-list(x,y,z)
+  names(m)<-c(xvar,yvar,zvar)
+  m
+}
+
+m<-mtcars
+mod<-lm(mpg~wt+disp+wt:disp,data=m)
+#mod<-lm(mpg~wt+disp,data=m)
+
+m$pred_mpg<-predict(mod)
+
+mgrid_df<-predictgrid(mod,"wt","disp","mpg")
+mgrid_list<-df2mat(mgrid_df)
+
+plot3d(m$wt,m$disp,m$mpg,
+       xlab="",ylab="",zlab="",
+       axes=FALSE,
+       type="s",size=0.5,lit=FALSE)
 
 
+spheres3d(m$wt,m$disp,m$pred_mpg,alpha=0.4,type="s",size=0.5,lit=FALSE)
+
+segments3d(interleave(m$wt,m$wt),
+          interleave(m$disp,m$disp),
+          interleave(m$mpg,m$pred_mpg),
+          alpha=0.4,col="red")
+
+surface3d(mgrid_list$wt,mgrid_list$disp,mgrid_list$mpg,
+          alpha=0.4,front="lines",back="lines")
+
+rgl.bbox(color="grey50",
+         emission="grey50",
+         xlen=0,ylen=0,zlen=0)
+
+rgl.material(color="black")
+
+axes3d(edges=c("x--","y+-","z--"),
+       ntick=6,
+       cex=0.75)
+
+mtext3d("Weight",edge="x--",line=2)
+mtext3d("Displacement",edge="y+-",line=3)
+mtext3d("MPG",edge="z--",line=3)
+
+rm(mgrid_list,mod,m,mgrid_df)

@@ -55,7 +55,7 @@ sigma<-0.2/sqrt(252)
 #GBMP = function(N,sigma,u,S0){
 #  Wt = (cumsum(rnorm(N,0,1)));
 #  WN = Wt[N];
-#  p1 = (u-0.5*(sigma^2))*N;#p1 = (u-0.5*(sigma^2))*N/365
+#  p1 = (u-0.5*(sigma^2))*N; #p1 = (u-0.5*(sigma^2))*N/365
 #  p2 = sigma*WN;
 #  St = S0*exp(p1+p2);
 #  return (St);

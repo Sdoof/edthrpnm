@@ -322,39 +322,56 @@ rm(vplot)
 opch %>%  dplyr::filter(TYPE==1) %>% 
   dplyr::filter(OrigIV/ATMIV<3.0)  %>% dplyr::filter(OrigIV/ATMIV>0.2) %>%
   dplyr::filter(HowfarOOM>=-100) %>% dplyr::filter(TimeToExpDate>0.3) -> vplot
-(ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV),colour=TimeToExpDate))+geom_point())
-
-#Put OOM
-opch %>%  dplyr::filter(TYPE==1) %>% 
-  dplyr::filter(OrigIV/ATMIV<3.0)  %>% dplyr::filter(OrigIV/ATMIV>0.2) %>%
-  dplyr::filter(HowfarOOM>=0) %>% dplyr::filter(TimeToExpDate>0.3) -> vplot
-(ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV),colour=TimeToExpDate))+geom_point())
-
-#Put ITM
-opch %>%  dplyr::filter(TYPE==1) %>% 
-  dplyr::filter(OrigIV/ATMIV<3.0)  %>% dplyr::filter(OrigIV/ATMIV>0.2) %>%
-  dplyr::filter(HowfarOOM<0) %>% dplyr::filter(TimeToExpDate>0.3) -> vplot
-(ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV),colour=TimeToExpDate))+geom_point())
+(ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV),size=TimeToExpDate/2,colour=Date))+geom_point(alpha=0.2))
 
 #Call
 opch %>%  dplyr::filter(TYPE==-1) %>% 
   dplyr::filter(OrigIV/ATMIV<3.0)  %>% dplyr::filter(OrigIV/ATMIV>0.2) %>%
   dplyr::filter(HowfarOOM>=-100) %>% dplyr::filter(TimeToExpDate>0.3) -> vplot
-(ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV),colour=TimeToExpDate))+geom_point())
+(ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV),size=TimeToExpDate/2,colour=Date))+geom_point(alpha=0.2))
 
-#Call OTM
-opch %>%  dplyr::filter(TYPE==-1) %>% 
-  dplyr::filter(OrigIV/ATMIV<3.0)  %>% dplyr::filter(OrigIV/ATMIV>0.2) %>%
+#Complete Opchain. Using OOM options. By Call-Put parity, ITM IV is same as OOM IV.
+opch %>% dplyr::filter(OrigIV/ATMIV<5.0)  %>% dplyr::filter(OrigIV/ATMIV>0.1) %>%
   dplyr::filter(HowfarOOM>=0) %>% dplyr::filter(TimeToExpDate>0.3) -> vplot
-(ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV),colour=TimeToExpDate))+geom_point())
+(ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV),size=TimeToExpDate/2,colour=Date))+geom_point(alpha=0.2))
 
-#Call ITM
-opch %>%  dplyr::filter(TYPE==-1) %>% 
-  dplyr::filter(OrigIV/ATMIV<3.0)  %>% dplyr::filter(OrigIV/ATMIV>0.2) %>%
-  dplyr::filter(HowfarOOM<0) %>% dplyr::filter(TimeToExpDate>0.3) -> vplot
-(ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV),colour=TimeToExpDate))+geom_point())
+#3D Plot and Plane Fitting test
+data.frame(Moneyness=vplot$Moneyness.Nm,
+           Month=vplot$TimeToExpDate,
+           IV2ATMIV=vplot$OrigIV/vplot$ATMIV)->vplot
 
-rm(vplot)
+model.c<-lm(IV2ATMIV~Moneyness+Month+Moneyness:Month,data=vplot)
+
+vplot$pred_IV2ATMIV<-predict(model.c)
+
+mgrid_df<-predictgrid(model.c,"Moneyness","Month","IV2ATMIV")
+mgrid_list<-df2mat(mgrid_df)
+
+rgl::plot3d(vplot$Moneyness,vplot$Month,vplot$IV2ATMIV,
+            xlab="",ylab="",zlab="",axes=FALSE,lit=FALSE)
+
+#spheres3d(vplot$Moneyness,vplot$Month,vplot$pred_IV2ATMIV,
+#          alpha=0.4,col="blue",lit=FALSE)
+
+#segments3d(interleave(vplot$Moneyness,vplot$Moneyness),
+#           interleave(vplot$Month,vplot$Month),
+#           interleave(vplot$IV2ATMIV,vplot$pred_IV2ATMIV),
+#           alpha=0.4,col="red")
+
+surface3d(mgrid_list$Moneyness,mgrid_list$Month,mgrid_list$IV2ATMIV,
+          alpha=0.4,front="lines",back="lines")
+
+rgl.bbox(color="grey50",
+         emission="grey50",
+         xlen=0,ylen=0,zlen=0)
+rgl.material(color="black")
+axes3d(edges=c("x--","y+-","z--"),
+       ntick=6,
+       cex=0.75)
+mtext3d("Moneyness",edge="x--",line=2)
+mtext3d("Month",edge="y+-",line=3)
+mtext3d("IV2ATMIV",edge="z--",line=3)
+rm(vplot,model.c,mgrid_df,mgrid_list)
 
 #after creating regression model, we should persp the estimated volatility surface.
 
