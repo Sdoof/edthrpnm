@@ -341,7 +341,36 @@ opch %>% dplyr::filter(OrigIV/ATMIV<5.0)  %>% dplyr::filter(OrigIV/ATMIV>0.1) %>
 (ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV),size=TimeToExpDate/2,colour=Date))+geom_point(alpha=0.2))
 
 #Regression
-get.skew.regression.Results<-function(vplot,moneyness_adjust=0.1,atm_adjust=0.0){
+
+#Return the new data frame that contains the predicted value (fit column)
+#from xmin to xmax by x_by data interval. If x_by is given as 0, then
+#single predicted value of Moneyness=xmin is returned as a one data vector.
+get.predicted.skew<-function(models,xmin=-2.0,xmax=1.5,x_by=0.01){  
+  if(x_by==0){
+    if(xmin<=0){
+      vplot<-predict(models$model.m,newdata=data.frame(Moneyness=xmin))
+    }else {
+      vplot<-predict(models$model.p,newdata=data.frame(Moneyness=xmin))
+    }
+    return(vplot)
+  } 
+  vplot_m<-data.frame(Moneyness=seq(xmin,0,by=x_by))  
+  predict.m <- predict(models$model.m,newdata=vplot_m)
+  vplot_m<-data.frame(vplot_m,fit=predict.m)
+  
+  vplot_p<-data.frame(Moneyness=seq(x_by,xmax,by=x_by))  
+  predict.p <- predict(models$model.p,newdata=vplot_p)
+  vplot_p<-data.frame(vplot_p,fit=predict.p)
+  
+  vplot_m %>% dplyr::full_join(vplot_p) -> vplot
+  
+  vplot
+}
+
+#return list that includes model.m(Moneyness<0) and model.p(Moneyness>0)
+#if the same model is employed regardless of Moneyness's value, then
+# model.p and model.p is identical.
+get.skew.regression.Models<-function(vplot,moneyness_adjust=0.1,atm_adjust=0.0){
   data.frame(Moneyness=vplot$Moneyness.Nm,
              Month=vplot$TimeToExpDate,
              IV2ATMIV=vplot$OrigIV/vplot$ATMIV)->vplot
@@ -350,50 +379,39 @@ get.skew.regression.Results<-function(vplot,moneyness_adjust=0.1,atm_adjust=0.0)
   vplot %>% dplyr::filter(Moneyness>(-1*moneyness_adjust)) %>% 
     dplyr::filter(abs(IV2ATMIV-1.0)>=atm_adjust) -> vplot_pls
   model.m<-lm(IV2ATMIV~1+Moneyness+I(Moneyness^2),data=vplot_mns)
-  predict.m <- predict(model.m)
+  #predict.m <- predict(model.m)
   model.p<-lm(IV2ATMIV~1+Moneyness+I(Moneyness^2),data=vplot_pls)
-  predict.p <- predict(model.p)
+  #predict.p <- predict(model.p)
   
-  data.frame(vplot_mns,fit=predict.m) %>% dplyr::filter(Moneyness<=0) %>%
-    dplyr::full_join(data.frame(vplot_pls,fit=predict.p) %>% dplyr::filter(Moneyness>0)) -> vplot
+  models<-list(model.m)
+  models<-c(models,list(model.p))
+  names(models)<-c("model.m","model.p")
   
-  
-  vplot_exp<-data.frame(Moneyness=seq(-2,0,by=0.01))
-  predict.m <- predict(model.m,newdata=vplot_exp)
-  vplot_exp<-data.frame(vplot_exp,fit=predict.m)
-  vplot_exp
-  #predict.m
-  #vplot_exp
+  models
 }
 
 #data.frame(Moneyness=vplot$Moneyness.Nm,
 #           Month=vplot$TimeToExpDate,
 #           IV2ATMIV=vplot$OrigIV/vplot$ATMIV)->vplot
-get.skew.regression.Results(vplot)->vplot_exp
-(ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV)))+geom_point(alpha=0.2)+geom_line(data=vplot_exp,aes(Moneyness,fit),color="red"))
+models <- (get.skew.regression.Models(vplot))
+get.predicted.skew(models,xmin=-1,x_by=0)
+vplot_exp <- get.predicted.skew(models)
+(ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV)))+geom_point(alpha=0.2)+geom_line(data=vplot_exp,aes(Moneyness,fit),color="red",size=0.73))
 
-
-#get.skew.regression.Results(vplot)->vplot
-#(gg_<-ggplot(vplot,aes(x=Moneyness,y=IV2ATMIV,colour=Month))+geom_point(alpha=0.3)+
-#   geom_line(data=vplot,aes(Moneyness,fit)))
-
-rm(gg_,model.pm,vplot,vplot_exp)
+rm(models,vplot_exp)
 
 #3D Plot and Plane Fitting test
 
-model.c<-lm(IV2ATMIV~Moneyness+Month+Moneyness:Month,data=vplot)
-
-vplot$pred_IV2ATMIV<-predict(model.c)
-
-mgrid_df<-predictgrid(model.c,"Moneyness","Month","IV2ATMIV")
-mgrid_list<-df2mat(mgrid_df)
+#Linier regression. This is a test.
+#model.c<-lm(IV2ATMIV~Moneyness+Month+Moneyness:Month,data=vplot)
+#vplot$pred_IV2ATMIV<-predict(model.c)
+#mgrid_df<-predictgrid(model.c,"Moneyness","Month","IV2ATMIV")
+#mgrid_list<-df2mat(mgrid_df)
 
 rgl::plot3d(vplot$Moneyness,vplot$Month,vplot$IV2ATMIV,
             xlab="",ylab="",zlab="",axes=FALSE,lit=FALSE)
 
-#spheres3d(vplot$Moneyness,vplot$Month,vplot$pred_IV2ATMIV,
-#          alpha=0.4,col="blue",lit=FALSE)
-
+#Too much plotting points, so this may be useless.
 #segments3d(interleave(vplot$Moneyness,vplot$Moneyness),
 #           interleave(vplot$Month,vplot$Month),
 #           interleave(vplot$IV2ATMIV,vplot$pred_IV2ATMIV),

@@ -77,8 +77,11 @@ ggplot(data.frame(x=c(0,20)),aes(x=x))+stat_function(fun=myfun,geom="line")
 #2つのベクトル要素を交互に並べる関数
 interleave<-function(v1,v2) as.vector(rbind(v1,v2))
 
-#
+#モデルオブジェエクとを引数として、xvarとyvarからzvarを予測する
+#デフォルトでは指定されたxとy変数の範囲で、16x16グリッドを計算
 predictgrid<-function(model,xvar,yvar,zvar,res=16,type=NULL){
+  #モデルオブジェクトから予測面のxとy変数の範囲を決める
+  #lmとglmなどで使用可能だが、他のモデルではカスタマイズが必要
   xrange<-range(model$model[[xvar]])
   yrange<-range(model$model[[yvar]])
   
@@ -89,7 +92,8 @@ predictgrid<-function(model,xvar,yvar,zvar,res=16,type=NULL){
   newdata
 }
 
-#
+#x,y,zの値を格納したlong形式のデータフレームを、xとyのベクトル行列zを
+#含むリストに変換する
 df2mat<-function(p,xvar=NULL,yvar=NULL,zvar=NULL){
   if(is.null(xvar)) xvar <- names(p)[1]
   if(is.null(yvar)) yvar <- names(p)[2]
@@ -103,44 +107,50 @@ df2mat<-function(p,xvar=NULL,yvar=NULL,zvar=NULL){
   names(m)<-c(xvar,yvar,zvar)
   m
 }
-
+#データセットのコピーを作成
 m<-mtcars
+#線形モデルの作成
 mod<-lm(mpg~wt+disp+wt:disp,data=m)
-#mod<-lm(mpg~wt+disp,data=m)
-
+#wtとdispの値からmpgの予測値を計算
 m$pred_mpg<-predict(mod)
-
+#wtとdispのグリッドに対してmpgの予測値を計算
 mgrid_df<-predictgrid(mod,"wt","disp","mpg")
 mgrid_list<-df2mat(mgrid_df)
-
+#データポイントの散布図を作成
 plot3d(m$wt,m$disp,m$mpg,
        xlab="",ylab="",zlab="",
        axes=FALSE,
        type="s",size=0.5,lit=FALSE)
-
-
+#データポイントに対応した予測点を追加（小さい点で）
 spheres3d(m$wt,m$disp,m$pred_mpg,alpha=0.4,type="s",size=0.5,lit=FALSE)
-
+#予測誤差を示す線を追加
 segments3d(interleave(m$wt,m$wt),
           interleave(m$disp,m$disp),
           interleave(m$mpg,m$pred_mpg),
           alpha=0.4,col="red")
-
+#予測値のメッシュを追加
 surface3d(mgrid_list$wt,mgrid_list$disp,mgrid_list$mpg,
           alpha=0.4,front="lines",back="lines")
-
+#ボックの描画
 rgl.bbox(color="grey50",
          emission="grey50",
          xlen=0,ylen=0,zlen=0)
-
+#これから書くオブジェクトのデフォルトの色を黒に設定
 rgl.material(color="black")
-
+#指定したサイドに軸を追加。指定できる値はx--,x-+,x+-,x++
 axes3d(edges=c("x--","y+-","z--"),
-       ntick=6,
-       cex=0.75)
-
+       ntick=6, #各サイドに6つ程度の目盛を追加
+       cex=0.75) #各フォントを小さく
+#軸ラベルを追加。'line'は軸とラベルの距離を指定
 mtext3d("Weight",edge="x--",line=2)
 mtext3d("Displacement",edge="y+-",line=3)
 mtext3d("MPG",edge="z--",line=3)
+#アニメーション
+#play3d(spin3d())
+#play3d(spin3d(axis=c(1,0,0),rpm=4),duration=20)
+
+
+#rgl.snpshot('3dplot.png',fmt='png')
+#rgl.postscript('3dplot.png',fmt='pdf')
 
 rm(mgrid_list,mod,m,mgrid_df)
