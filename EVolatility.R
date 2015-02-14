@@ -361,6 +361,7 @@ get.skew.regression.Results<-function(vplot,moneyness_adjust=0.1,atm_adjust=0.0)
   vplot_exp<-data.frame(Moneyness=seq(-2,0,by=0.01))
   predict.m <- predict(model.m,newdata=vplot_exp)
   vplot_exp<-data.frame(vplot_exp,fit=predict.m)
+  vplot_exp
   #predict.m
   #vplot_exp
 }
@@ -369,7 +370,8 @@ get.skew.regression.Results<-function(vplot,moneyness_adjust=0.1,atm_adjust=0.0)
 #           Month=vplot$TimeToExpDate,
 #           IV2ATMIV=vplot$OrigIV/vplot$ATMIV)->vplot
 get.skew.regression.Results(vplot)->vplot_exp
-(gg_<-ggplot(vplot_exp,aes(x=Moneyness,y=IV2ATMIV))+geom_line(data=vplot_exp,aes(Moneyness,fit)))
+(ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV)))+geom_point(alpha=0.2)+geom_line(data=vplot_exp,aes(Moneyness,fit),color="red"))
+
 
 #get.skew.regression.Results(vplot)->vplot
 #(gg_<-ggplot(vplot,aes(x=Moneyness,y=IV2ATMIV,colour=Month))+geom_point(alpha=0.3)+
