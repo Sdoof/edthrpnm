@@ -330,15 +330,54 @@ opch %>%  dplyr::filter(TYPE==-1) %>%
   dplyr::filter(HowfarOOM>=-100) %>% dplyr::filter(TimeToExpDate>0.3) -> vplot
 (ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV),size=TimeToExpDate/2,colour=Date))+geom_point(alpha=0.2))
 
+#Complete Opchain. Using OOM/ATM options.
+opch %>% dplyr::filter(OrigIV/ATMIV<5.0)  %>% dplyr::filter(OrigIV/ATMIV>0.1) %>%
+  dplyr::filter(TimeToExpDate>0.3) -> vplot
+(ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV),size=TimeToExpDate/2,colour=TYPE))+geom_point(alpha=0.2))
+
 #Complete Opchain. Using OOM options. By Call-Put parity, ITM IV is same as OOM IV.
 opch %>% dplyr::filter(OrigIV/ATMIV<5.0)  %>% dplyr::filter(OrigIV/ATMIV>0.1) %>%
   dplyr::filter(HowfarOOM>=0) %>% dplyr::filter(TimeToExpDate>0.3) -> vplot
 (ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV),size=TimeToExpDate/2,colour=Date))+geom_point(alpha=0.2))
 
+#Regression
+get.skew.regression.Results<-function(vplot,moneyness_adjust=0.1,atm_adjust=0.0){
+  data.frame(Moneyness=vplot$Moneyness.Nm,
+             Month=vplot$TimeToExpDate,
+             IV2ATMIV=vplot$OrigIV/vplot$ATMIV)->vplot
+  vplot %>% dplyr::filter(Moneyness<=moneyness_adjust) %>% 
+    dplyr::filter(abs(IV2ATMIV-1.0)>=atm_adjust) -> vplot_mns
+  vplot %>% dplyr::filter(Moneyness>(-1*moneyness_adjust)) %>% 
+    dplyr::filter(abs(IV2ATMIV-1.0)>=atm_adjust) -> vplot_pls
+  model.m<-lm(IV2ATMIV~1+Moneyness+I(Moneyness^2),data=vplot_mns)
+  predict.m <- predict(model.m)
+  model.p<-lm(IV2ATMIV~1+Moneyness+I(Moneyness^2),data=vplot_pls)
+  predict.p <- predict(model.p)
+  
+  data.frame(vplot_mns,fit=predict.m) %>% dplyr::filter(Moneyness<=0) %>%
+    dplyr::full_join(data.frame(vplot_pls,fit=predict.p) %>% dplyr::filter(Moneyness>0)) -> vplot
+  
+  
+  vplot_exp<-data.frame(Moneyness=seq(-2,0,by=0.01))
+  predict.m <- predict(model.m,newdata=vplot_exp)
+  vplot_exp<-data.frame(vplot_exp,fit=predict.m)
+  #predict.m
+  #vplot_exp
+}
+
+#data.frame(Moneyness=vplot$Moneyness.Nm,
+#           Month=vplot$TimeToExpDate,
+#           IV2ATMIV=vplot$OrigIV/vplot$ATMIV)->vplot
+get.skew.regression.Results(vplot)->vplot_exp
+(gg_<-ggplot(vplot_exp,aes(x=Moneyness,y=IV2ATMIV))+geom_line(data=vplot_exp,aes(Moneyness,fit)))
+
+#get.skew.regression.Results(vplot)->vplot
+#(gg_<-ggplot(vplot,aes(x=Moneyness,y=IV2ATMIV,colour=Month))+geom_point(alpha=0.3)+
+#   geom_line(data=vplot,aes(Moneyness,fit)))
+
+rm(gg_,model.pm,vplot)
+
 #3D Plot and Plane Fitting test
-data.frame(Moneyness=vplot$Moneyness.Nm,
-           Month=vplot$TimeToExpDate,
-           IV2ATMIV=vplot$OrigIV/vplot$ATMIV)->vplot
 
 model.c<-lm(IV2ATMIV~Moneyness+Month+Moneyness:Month,data=vplot)
 
