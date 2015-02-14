@@ -375,7 +375,7 @@ get.skew.regression.Results(vplot)->vplot_exp
 #(gg_<-ggplot(vplot,aes(x=Moneyness,y=IV2ATMIV,colour=Month))+geom_point(alpha=0.3)+
 #   geom_line(data=vplot,aes(Moneyness,fit)))
 
-rm(gg_,model.pm,vplot)
+rm(gg_,model.pm,vplot,vplot_exp)
 
 #3D Plot and Plane Fitting test
 
