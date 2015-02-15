@@ -172,6 +172,11 @@ norns.lm<-lm(IVCF1dCtO~PC1dCtO, data=P2IV1d)
 summary(norns.lm)
 gg_+geom_abline(intercept=norns.lm$coefficient[1],slope=norns.lm$coefficient[2],color="orange")
 
+rm(gg_,PC1dCtC,PC1dCtO,PC3dCtC,PC5dCtC,PC7dCtC,PCIV1dCtC,PCIV1dCtO,PCIV3dCtC,PCIV5dCtC,PCIV7dCtC)
+rm(IVCF1dCtC,IVCF1dCtO,IVCF3dCtC,IVCF5dCTC,IVCF5dCtC,IVCF7dCtC)
+rm(norns.lm,start_day_,num_day_)
+rm(P2IV1d,P2IV3d,P2IV5d,P2IV7d,histIV,histIV_,histPrc_)
+
 ###
 ## Volatility Skew analyzation
 ##
@@ -418,8 +423,6 @@ vplot_exp <- get.predicted.skew(models)
 (ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV)))+geom_point(alpha=0.2)+
    geom_line(data=vplot_exp,aes(Moneyness,fit),color="red",size=0.73))
 
-rm(models,vplot_exp)
-
 #5. smooth splines
 #(predict.c <- predict(smooth.spline(vplot$Moneyness.Nm,(vplot$OrigIV/vplot$ATMIV),df=10),x=seq(min(vplot$Moneyness.Nm),max(vplot$Moneyness.Nm),by=0.01)))
 #(ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV)))+geom_point(alpha=0.2)+
@@ -435,12 +438,15 @@ rm(models,vplot_exp,predict.c)
 #3D Plot and Plane Fitting test
 
 #Linier regression. This is a test.
-#model.c<-lm(IV2ATMIV~Moneyness+Month+Moneyness:Month,data=vplot)
-#vplot$pred_IV2ATMIV<-predict(model.c)
-#mgrid_df<-predictgrid(model.c,"Moneyness","Month","IV2ATMIV")
-#mgrid_list<-df2mat(mgrid_df)
 
-rgl::plot3d(vplot$Moneyness,vplot$Month,vplot$IV2ATMIV,
+data.frame(Moneyness=vplot$Moneyness.Nm,
+           Month=vplot$TimeToExpDate,
+           IV2ATMIV=vplot$OrigIV/vplot$ATMIV)->vplot_3dp
+model.c<-lm(IV2ATMIV~Moneyness+Month+Moneyness:Month,data=vplot_3dp)
+mgrid_df<-predictgrid(model.c,"Moneyness","Month","IV2ATMIV")
+mgrid_list<-df2mat(mgrid_df)
+
+rgl::plot3d(vplot_3dp$Moneyness,vplot_3dp$Month,vplot_3dp$IV2ATMIV,
             xlab="",ylab="",zlab="",axes=FALSE,lit=FALSE)
 
 #Too much plotting points, so this may be useless.
@@ -462,7 +468,7 @@ axes3d(edges=c("x--","y+-","z--"),
 mtext3d("Moneyness",edge="x--",line=2)
 mtext3d("Month",edge="y+-",line=3)
 mtext3d("IV2ATMIV",edge="z--",line=3)
-rm(vplot,model.c,mgrid_df,mgrid_list)
+rm(vplot,vplot_3dp,model.c,mgrid_df,mgrid_list)
 
 #after creating regression model, we should persp the estimated volatility surface.
 
