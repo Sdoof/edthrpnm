@@ -345,32 +345,47 @@ opch %>% dplyr::filter(OrigIV/ATMIV<5.0)  %>% dplyr::filter(OrigIV/ATMIV>0.1) %>
 #Return the new data frame that contains the predicted value (fit column)
 #from xmin to xmax by x_by data interval. If x_by is given as 0, then
 #single predicted value of Moneyness=xmin is returned as a one data vector.
-get.predicted.skew<-function(models,xmin=-2.0,xmax=1.5,x_by=0.01){  
+get.predicted.skew<-function(models,regtype=1,xmin=-2.0,xmax=1.5,x_by=0.01){  
   if(x_by==0){
-    if(xmin<=0){
-      vplot<-predict(models$model.m,newdata=data.frame(Moneyness=xmin))
-    }else {
-      vplot<-predict(models$model.p,newdata=data.frame(Moneyness=xmin))
+    if(regtype==1){
+      if(xmin<=0){
+        vplot<-predict(models$model.m,newdata=data.frame(Moneyness=xmin))
+      }else{
+        vplot<-predict(models$model.p,newdata=data.frame(Moneyness=xmin))
+      }
+    }else if(regtype==5){
+      if(xmin<=0){
+        vplot<-predict(models$model.m,x=xmin)
+      }else{
+        vplot<-predict(models$model.p,x=xmin)
+      }
+      vplot<-vplot$y
     }
     return(vplot)
-  } 
-  vplot_m<-data.frame(Moneyness=seq(xmin,0,by=x_by))  
-  predict.m <- predict(models$model.m,newdata=vplot_m)
-  vplot_m<-data.frame(vplot_m,fit=predict.m)
-  
-  vplot_p<-data.frame(Moneyness=seq(x_by,xmax,by=x_by))  
-  predict.p <- predict(models$model.p,newdata=vplot_p)
-  vplot_p<-data.frame(vplot_p,fit=predict.p)
-  
-  vplot_m %>% dplyr::full_join(vplot_p) -> vplot
-  
+  }
+  if(regtype==1){
+    vplot_m<-data.frame(Moneyness=seq(xmin,0,by=x_by))  
+    predict.m <- predict(models$model.m,newdata=vplot_m)
+    vplot_m<-data.frame(vplot_m,fit=predict.m)
+    
+    vplot_p<-data.frame(Moneyness=seq(x_by,xmax,by=x_by))  
+    predict.p <- predict(models$model.p,newdata=vplot_p)
+    vplot_p<-data.frame(vplot_p,fit=predict.p)
+    vplot_m %>% dplyr::full_join(vplot_p) -> vplot
+  }else if(regtype==5){
+    vplot_m<-predict(models$model.m,x=seq(xmin,0,by=x_by))
+    vplot_p<-predict(models$model.p,x=seq(x_by,xmax,by=x_by))
+    vplot<-list(append(vplot_m$x,vplot_p$x))
+    vplot<-c(vplot,list(append(vplot_m$y,vplot_p$y)))
+    names(vplot)<-c("x","y")
+  }
   vplot
 }
 
 #return list that includes model.m(Moneyness<0) and model.p(Moneyness>0)
 #if the same model is employed regardless of Moneyness's value, then
 # model.p and model.p is identical.
-get.skew.regression.Models<-function(vplot,moneyness_adjust=0.1,atm_adjust=0.0){
+get.skew.regression.Models<-function(vplot,regtype=1,moneyness_adjust=0.1,atm_adjust=0.0,df=5){
   data.frame(Moneyness=vplot$Moneyness.Nm,
              Month=vplot$TimeToExpDate,
              IV2ATMIV=vplot$OrigIV/vplot$ATMIV)->vplot
@@ -378,10 +393,16 @@ get.skew.regression.Models<-function(vplot,moneyness_adjust=0.1,atm_adjust=0.0){
     dplyr::filter(abs(IV2ATMIV-1.0)>=atm_adjust) -> vplot_mns
   vplot %>% dplyr::filter(Moneyness>(-1*moneyness_adjust)) %>% 
     dplyr::filter(abs(IV2ATMIV-1.0)>=atm_adjust) -> vplot_pls
-  model.m<-lm(IV2ATMIV~1+Moneyness+I(Moneyness^2),data=vplot_mns)
-  #predict.m <- predict(model.m)
-  model.p<-lm(IV2ATMIV~1+Moneyness+I(Moneyness^2),data=vplot_pls)
-  #predict.p <- predict(model.p)
+  
+  if(regtype==1){
+    model.m<-lm(IV2ATMIV~1+Moneyness+I(Moneyness^2),data=vplot_mns)
+    #predict.m <- predict(model.m)
+    model.p<-lm(IV2ATMIV~1+Moneyness+I(Moneyness^2),data=vplot_pls)
+    #predict.p <- predict(model.p)
+  }else if(regtype==5){
+    model.m<-smooth.spline(vplot_mns$Moneyness,vplot_mns$IV2ATMIV,df=df)
+    model.p<-smooth.spline(vplot_pls$Moneyness,vplot_pls$IV2ATMIV,df=df)
+  }
   
   models<-list(model.m)
   models<-c(models,list(model.p))
@@ -390,15 +411,26 @@ get.skew.regression.Models<-function(vplot,moneyness_adjust=0.1,atm_adjust=0.0){
   models
 }
 
-#data.frame(Moneyness=vplot$Moneyness.Nm,
-#           Month=vplot$TimeToExpDate,
-#           IV2ATMIV=vplot$OrigIV/vplot$ATMIV)->vplot
+#1. Poly
 models <- (get.skew.regression.Models(vplot))
 get.predicted.skew(models,xmin=-1,x_by=0)
 vplot_exp <- get.predicted.skew(models)
-(ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV)))+geom_point(alpha=0.2)+geom_line(data=vplot_exp,aes(Moneyness,fit),color="red",size=0.73))
+(ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV)))+geom_point(alpha=0.2)+
+   geom_line(data=vplot_exp,aes(Moneyness,fit),color="red",size=0.73))
 
 rm(models,vplot_exp)
+
+#5. smooth splines
+#(predict.c <- predict(smooth.spline(vplot$Moneyness.Nm,(vplot$OrigIV/vplot$ATMIV),df=10),x=seq(min(vplot$Moneyness.Nm),max(vplot$Moneyness.Nm),by=0.01)))
+#(ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV)))+geom_point(alpha=0.2)+
+#   geom_line(data=data.frame(Moneyness.Nm=predict.c$x,IV2ATMIV=predict.c$y),color="red",aes(Moneyness.Nm,IV2ATMIV)))
+models <- (get.skew.regression.Models(vplot,regtype=5,df=7))
+get.predicted.skew(models,regtype=5,xmin=-1,x_by=0)
+(predict.c<-get.predicted.skew(models,regtype=5,xmin=-2.0,xmax=1.5))
+(ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV)))+geom_point(alpha=0.2)+
+   geom_line(data=data.frame(Moneyness.Nm=predict.c$x,IV2ATMIV=predict.c$y),aes(Moneyness.Nm,IV2ATMIV),color="red"))
+
+rm(models,vplot_exp,predict.c)
 
 #3D Plot and Plane Fitting test
 
@@ -440,18 +472,16 @@ rm(vplot,model.c,mgrid_df,mgrid_list)
 
 #functions
 make.vcone.df<-function(atmiv,type=0){
-  if(type==0){
-    vcone<- data.frame(Month=atmiv$TimeToExpDate, IV=atmiv$ATMIV,TYPE=atmiv$TYPE) 
-  }else{
+  if(type!=0){
     atmiv %>% filter(TYPE==type) -> atmiv
-    vcone<-data.frame(Month=atmiv$TimeToExpDate, IV=atmiv$ATMIV,IVIDX=atmiv$IVIDX,TYPE=atmiv$TYPE)
-    #volatility normalize
-    iv_mean_p<-mean(vcone$IV)
-    ividx_mean_p<-mean(vcone$IVIDX)
-    vcone %>% dplyr::mutate(IV.nm=IV/iv_mean_p) -> vcone
-    #vcone %>% dplyr::mutate(IV2IDX.nm=IV/ividx_mean_p) -> vcone
-    vcone %>% dplyr::mutate(IV2IDX.nm=IV/IVIDX) -> vcone
   }
+  vcone<-data.frame(Month=atmiv$TimeToExpDate, IV=atmiv$ATMIV,IVIDX=atmiv$IVIDX,TYPE=atmiv$TYPE)  
+  #volatility normalize
+  iv_mean_p<-mean(vcone$IV)
+  ividx_mean_p<-mean(vcone$IVIDX)
+  vcone %>% dplyr::mutate(IV.nm=IV/iv_mean_p) -> vcone
+  #vcone %>% dplyr::mutate(IV2IDX.nm=IV/ividx_mean_p) -> vcone
+  vcone %>% dplyr::mutate(IV2IDX.nm=IV/IVIDX) -> vcone
   #Time filtering, because when IV is not stable when Time is very close to ExpDate .
   vcone %>% dplyr::filter(Month>=0.30) -> vcone
   vcone
@@ -472,8 +502,10 @@ make.vchg.df<-function(vcone,type=0){
 vcone_regression<-function(vcone,regtype=1,ret=1){
   if(regtype==1){
     nls.m<-lm(IV2IDX.nm~Month,data=vcone)
+  }else if(regtype==3){
+    nls.m<-lm(IV2IDX.nm~1+Month+I(Month^2),data=vcone)
   }
-  if(ret==2){
+  if(ret==1){
     nls.m
   }else{
     predict.m <- predict(nls.m)
@@ -481,45 +513,88 @@ vcone_regression<-function(vcone,regtype=1,ret=1){
   }
 }
 
-vchg_regression<-function(vchg,type=2,start=NULL,ret=1){
-  if(type==1){
+vchg_regression<-function(vchg,regtype=2,start=NULL,ret=1){
+  if(regtype==2){
     nls.m<-nls(VC.f~a*TimeToExpDate^b+c,data=vchg,start=start)
-  }else if(type==2){
+  }else if(regtype==1){
     nls.m<-lm(VC.f~TimeToExpDate,data=vchg)
   }
-  if(ret==2){
+  if(ret==1){
     nls.m
   }else{
     predict.m <- predict(nls.m)
     predict.m
   }
 }
+##
+#Plotting all type. IV is normalized
 
-#Plotting all type
+#vcone created
 vcone<-make.vcone.df(atmiv=atmiv,type=0)
-(gg_<-ggplot(vcone,aes(x=Month,y=IV,colour=TYPE))+geom_point())
-rm(gg_,vcone)
+#(gg_<-ggplot(vcone,aes(x=Month,y=IV,colour=TYPE))+geom_point())
+(gg_<-ggplot(vcone,aes(x=Month,y=IV2IDX.nm,colour=TYPE))+geom_point())
+# Regression of PUT vcone
+#   1.linear
+predict.c <- vcone_regression(vcone=vcone,regtype=1,ret=2)
+(gg_<-ggplot(vcone,aes(x=Month,y=IV2IDX.nm,colour=TYPE))+geom_point()+
+   geom_line(data=data.frame(vcone,fit=predict.c),aes(Month,fit)))
+#   3.poly
+predict.c <- vcone_regression(vcone=vcone,regtype=3,ret=2)
+(gg_<-ggplot(vcone,aes(x=Month,y=IV2IDX.nm,colour=TYPE))+geom_point()+
+   geom_line(data=data.frame(vcone,fit=predict.c),aes(Month,fit)))
+#   5.smooth spline
+  # predict() S3 method for class 'smooth.spline'
+  # predict(object, x, deriv = 0, ...)
+  #   Arguments
+  #    object  a fit from smooth.spline.
+  #    x	the new values of x.
+  #    deriv	integer; the order of the derivative required.
+  #  Value
+  #   A list with components x(The input x),y(The fitted values or derivatives at x)
+#(predict(smooth.spline(vcone$Month,vcone$IV2IDX.nm,df=3),x=2))
+(predict.c <- predict(smooth.spline(vcone$Month,vcone$IV2IDX.nm,df=3),x=seq(0,max(vcone$Month),by=0.1)))
+(gg_<-ggplot(vcone,aes(x=Month,y=IV2IDX.nm))+geom_point()+
+   geom_line(data=data.frame(Month=predict.c$x,IV2IDX.nm=predict.c$y),aes(Month,IV2IDX.nm)))
+rm(gg_,vcone,predict.c)
 
 #Plotting Put. IV is normalized.
 vcone<-make.vcone.df(atmiv=atmiv,type=1)
-#(gg_<-ggplot(vcone,aes(x=Month,y=IV.nm,colour=TYPE))+geom_point())
-(gg_<-ggplot(vcone,aes(x=Month,y=IV2IDX.nm,colour=TYPE))+geom_point())
+(ggplot(vcone,aes(x=Month,y=IV2IDX.nm,colour=TYPE))+geom_point())
 # Regression of PUT vcone
 #   1.linear
-predict.c <- vcone_regression(vcone=vcone,regtype=1)
+predict.c <- vcone_regression(vcone=vcone,regtype=1,ret=2)
+(ggplot(vcone,aes(x=Month,y=IV2IDX.nm,colour=TYPE))+geom_point()+
+   geom_line(data=data.frame(vcone,fit=predict.c),aes(Month,fit)))
+#   3.poly
+predict.c <- vcone_regression(vcone=vcone,regtype=3,ret=2)
 (gg_<-ggplot(vcone,aes(x=Month,y=IV2IDX.nm,colour=TYPE))+geom_point()+
    geom_line(data=data.frame(vcone,fit=predict.c),aes(Month,fit)))
+#   5.smooth spline
+#(predict(smooth.spline(vcone$Month,vcone$IV2IDX.nm,df=3),x=2))
+(predict.c <- predict(smooth.spline(vcone$Month,vcone$IV2IDX.nm,df=3),x=seq(0,max(vcone$Month),by=0.1)))
+(ggplot(vcone,aes(x=Month,y=IV2IDX.nm,colour=TYPE))+geom_point()+
+   geom_line(data=data.frame(Month=predict.c$x,IV2IDX.nm=predict.c$y,TYPE=1),aes(Month,IV2IDX.nm)))
+
 rm(gg_,vcone,predict.c)
 
 #Plotting Call. IV is normalized.
+#Creating vcone.
 vcone<-make.vcone.df(atmiv=atmiv,type=-1)
-#(gg_<-ggplot(vcone,aes(x=Month,y=IV.nm,colour=TYPE))+geom_point())
 (gg_<-ggplot(vcone,aes(x=Month,y=IV2IDX.nm,colour=TYPE))+geom_point())
-# Regression of PUT vcone
+# Regression of Call vcone
 #   1.linear
-predict.c <- vcone_regression(vcone=vcone,regtype=1)
+predict.c <- vcone_regression(vcone=vcone,regtype=1,ret=2)
 (gg_<-ggplot(vcone,aes(x=Month,y=IV2IDX.nm,colour=TYPE))+geom_point()+
    geom_line(data=data.frame(vcone,fit=predict.c),aes(Month,fit)))
+#   3.poly
+predict.c <- vcone_regression(vcone=vcone,regtype=3,ret=2)
+(gg_<-ggplot(vcone,aes(x=Month,y=IV2IDX.nm,colour=TYPE))+geom_point()+
+   geom_line(data=data.frame(vcone,fit=predict.c),aes(Month,fit)))
+#   5.smooth spline
+#(predict(smooth.spline(vcone$Month,vcone$IV2IDX.nm,df=3),x=2))
+(predict.c <- predict(smooth.spline(vcone$Month,vcone$IV2IDX.nm,df=3),x=seq(0,max(vcone$Month),by=0.1)))
+(ggplot(vcone,aes(x=Month,y=IV2IDX.nm,colour=TYPE))+geom_point()+
+   geom_line(data=data.frame(Month=predict.c$x,IV2IDX.nm=predict.c$y,TYPE=-1),aes(Month,IV2IDX.nm)))
 rm(gg_,vcone,predict.c)
 
 ##
@@ -528,82 +603,105 @@ rm(gg_,vcone,predict.c)
 
 #all
 vchg<-make.vchg.df(vcone=atmiv.vcone.anal,type=0)
-(gg_<-ggplot(vchg,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point())
+(ggplot(vchg,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point())
 #(gg_<-ggplot(vchg,aes(x=TimeToExpDate,y=VC.f.AbSdf,colour=TYPE))+geom_point())
 rm(gg_,vchg)
 
-##Put
-
+##
+#Put
+#
+#Up and Down change
 vchg<-make.vchg.df(vcone=atmiv.vcone.anal,type=1)
-(gg_<-ggplot(vchg,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point())
+(ggplot(vchg,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point())
 
 vchg %>% filter(IVIDX.f>=1.0) -> vchg_plus
-(gg_<-ggplot(vchg_plus,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point())
+(ggplot(vchg_plus,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point())
 
 vchg %>% filter(IVIDX.f<1.0) -> vchg_mns
 #filter outlier
 vchg_mns %>% dplyr::filter(VC.f>0.90) -> vchg_mns
-(gg_<-ggplot(vchg_mns,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point())
+(ggplot(vchg_mns,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point())
 
-#    1.exponent function
+#Regression
+#     1.linear
 vchg_t<-vchg_plus
-predict.c <- vchg_regression(vchg=vchg_t,type=1,start=c(a=-0.02,b=0.6,c=0.01))
-(gg_<-ggplot(vchg_t,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point()+
-   geom_line(data=data.frame(vchg_t,fit=predict.c),aes(TimeToExpDate,fit)))
-vchg_regression(vchg=vchg_t,type=1,start=c(a=-0.02,b=0.6,c=0.01),ret=2)
-rm(vchg_t)
-
-vchg_t<-vchg_mns
-predict.c <- vchg_regression(vchg=vchg_t,type=1,start=c(a=0.2,b=0.2,c=-0.2))
-(gg_<-ggplot(vchg_t,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point()+
-   geom_line(data=data.frame(vchg_t,fit=predict.c),aes(TimeToExpDate,fit)))
-vchg_regression(vchg=vchg_t,type=1,start=c(a=0.2,b=0.2,c=-0.2),ret=2)
-rm(vchg_t)
-#     2.linear
-vchg_t<-vchg_plus
-predict.c <- vchg_regression(vchg=vchg_t,type=2)
-(gg_<-ggplot(vchg_t,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point()+
+predict.c <- vchg_regression(vchg=vchg_t,regtype=1,ret=2)
+(ggplot(vchg_t,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point()+
    geom_line(data=data.frame(vchg_t,fit=predict.c),aes(TimeToExpDate,fit)))
 rm(vchg_t)
 
 vchg_t<-vchg_mns
-predict.c <- vchg_regression(vchg=vchg_t,type=2)
-(gg_<-ggplot(vchg_t,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point()+
+predict.c <- vchg_regression(vchg=vchg_t,regtype=1,ret=2)
+(ggplot(vchg_t,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point()+
+   geom_line(data=data.frame(vchg_t,fit=predict.c),aes(TimeToExpDate,fit)))
+rm(vchg_t)
+#    2.exponent function
+vchg_t<-vchg_plus
+predict.c <- vchg_regression(vchg=vchg_t,regtype=2,ret=2,start=c(a=-0.02,b=0.6,c=0.01))
+(ggplot(vchg_t,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point()+
    geom_line(data=data.frame(vchg_t,fit=predict.c),aes(TimeToExpDate,fit)))
 rm(vchg_t)
 
-rm(gg_,vchg,vchg_mns,vchg_plus,predict.c)
+vchg_t<-vchg_mns
+predict.c <- vchg_regression(vchg=vchg_t,regtype=2,ret=2,start=c(a=0.2,b=0.2,c=-0.2))
+(ggplot(vchg_t,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point()+
+   geom_line(data=data.frame(vchg_t,fit=predict.c),aes(TimeToExpDate,fit)))
+rm(vchg_t)
 
-##Call
+#    5.smooth spline
+vchg_t<-vchg_plus
+(predict.c <- predict(smooth.spline(vchg_t$TimeToExpDate,vchg_t$VC.f,df=3),x=seq(0,max(vchg_t$TimeToExpDate),by=0.1)))
+(ggplot(vchg_t,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point()+
+   geom_line(data=data.frame(TimeToExpDate=predict.c$x,VC.f=predict.c$y,TYPE=1),aes(TimeToExpDate,VC.f)))
+vchg_t<-vchg_mns
+(predict.c <- predict(smooth.spline(vchg_t$TimeToExpDate,vchg_t$VC.f,df=3),x=seq(0,max(vchg_t$TimeToExpDate),by=0.1)))
+(ggplot(vchg_t,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point()+
+   geom_line(data=data.frame(TimeToExpDate=predict.c$x,VC.f=predict.c$y,TYPE=1),aes(TimeToExpDate,VC.f)))
+rm(vchg_t)
+
+rm(vchg,vchg_mns,vchg_plus,predict.c)
+
+##
+#Call
+#Up and Down Changes
 vchg<-make.vchg.df(vcone=atmiv.vcone.anal,type=-1)
-(gg_<-ggplot(vchg,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point())
+(ggplot(vchg,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point())
 vchg %>% filter(IVIDX.f>=1.0) -> vchg_plus
-(gg_<-ggplot(vchg_plus,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point())
+(ggplot(vchg_plus,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point())
 vchg %>% filter(IVIDX.f<1.0) -> vchg_mns
-(gg_<-ggplot(vchg_mns,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point())
+(ggplot(vchg_mns,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point())
 
 #regresson
-#    1.exponent function
+#    2.exponent function
 vchg_t<-vchg_plus
-predict.c <- vchg_regression(vchg=vchg_t,type=1,start=c(a=0.1,b=-0.1,c=-0.03))
-(gg_<-ggplot(vchg_t,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point()+
+predict.c <- vchg_regression(vchg=vchg_t,regtype=2,ret=2,start=c(a=0.1,b=-0.1,c=-0.03))
+(ggplot(vchg_t,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point()+
    geom_line(data=data.frame(vchg_t,fit=predict.c),aes(TimeToExpDate,fit)))
-vchg_regression(vchg=vchg_t,type=1,start=c(a=0.1,b=-0.1,c=-0.03),ret=2)
 rm(vchg_t)
 vchg_t<-vchg_mns
-predict.c <- vchg_regression(vchg=vchg_t,type=1,start=c(a=0.2,b=0.2,c=-0.2))
-(gg_<-ggplot(vchg_t,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point()+
+predict.c <- vchg_regression(vchg=vchg_t,regtype=2,ret=2,start=c(a=0.2,b=0.2,c=-0.2))
+(ggplot(vchg_t,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point()+
    geom_line(data=data.frame(vchg_t,fit=predict.c),aes(TimeToExpDate,fit)))
 rm(vchg_t)
-#     2.linear 
+#     1.linear 
 vchg_t<-vchg_plus
-predict.c <- vchg_regression(vchg=vchg_t,type=2)
-(gg_<-ggplot(vchg_t,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point()+
+predict.c <- vchg_regression(vchg=vchg_t,regtype=1,ret=2)
+(ggplot(vchg_t,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point()+
    geom_line(data=data.frame(vchg_t,fit=predict.c),aes(TimeToExpDate,fit)))
 vchg_t<-vchg_mns
-predict.c <- vchg_regression(vchg=vchg_t,type=2)
-(gg_<-ggplot(vchg_t,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point()+
+predict.c <- vchg_regression(vchg=vchg_t,regtype=1,ret=2)
+(ggplot(vchg_t,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point()+
    geom_line(data=data.frame(vchg_t,fit=predict.c),aes(TimeToExpDate,fit)))
+rm(vchg_t)
+#    5.smooth spline
+vchg_t<-vchg_plus
+(predict.c <- predict(smooth.spline(vchg_t$TimeToExpDate,vchg_t$VC.f,df=3),x=seq(0,max(vchg_t$TimeToExpDate),by=0.1)))
+(ggplot(vchg_t,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point()+
+   geom_line(data=data.frame(TimeToExpDate=predict.c$x,VC.f=predict.c$y,TYPE=-1),aes(TimeToExpDate,VC.f)))
+vchg_t<-vchg_mns
+(predict.c <- predict(smooth.spline(vchg_t$TimeToExpDate,vchg_t$VC.f,df=3),x=seq(0,max(vchg_t$TimeToExpDate),by=0.1)))
+(ggplot(vchg_t,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point()+
+   geom_line(data=data.frame(TimeToExpDate=predict.c$x,VC.f=predict.c$y,TYPE=-1),aes(TimeToExpDate,VC.f)))
 rm(vchg_t)
 
 rm(gg_,vchg,vchg_mns,vchg_plus,predict.c)
