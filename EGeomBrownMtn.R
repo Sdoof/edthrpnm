@@ -7,6 +7,7 @@
 #s0: 初期値
 #length: シミュレーションの長さ。単位時間はvolatility(σ:sigma)
 #        と一貫性を保つこと
+# Should be Vectorized
 geombrmtn.stimulate <- function(s0,mu,sigma,length){
   f <- g <- h<- rep(0, times=(length+1))
   dt<-1
@@ -17,6 +18,33 @@ geombrmtn.stimulate <- function(s0,mu,sigma,length){
   }
   g
 }
+
+#2変量正規分布の単純な関数
+#(x,y) mx,my: x,yの平均。 sx,sy: x,yの標準偏差。 r:xとyの相関
+#オプションのポジションをシミュレーションする時に用いる
+#価格の変化をGBM（のバリエーション）で発生させた後、IVの変化を
+#回帰で決定的にではなく相関のある乱数として生成する
+rnorm2 <- function(mx, sx, my, sy, r) {
+  y = rnorm(1, my, sy)
+  x = rnorm(1, mx + r*sx/sy * (y - my), sx*sqrt(1-r^2))
+  return(c(x,y))
+}
+
+#上記と同じ2変量正規分布の単純な関数。ただし、y=y0という条件付き
+rnorm2cond <- function(mx, sx, my, sy, r,y0) {
+  y = y0
+  x = rnorm(1, mx + r*sx/sy * (y - my), sx*sqrt(1-r^2))
+  return(c(x,y))
+}
+
+#rnorm2,rnorm2condのテスト
+n = 200; mx = 10; sx = 3; my = 20; sy = 5; r = -0.8
+z2 = sapply(1:n, function(x) rnorm2(mx, sx, my, sy, r))
+plot(z2[1,],z2[2,]) # これで100組の乱数の散布図が描かれる
+cor(z2[1,],z2[2,])  # 標本相関係数の計算
+z3 = sapply(1:n, function(x) rnorm2cond(mx, sx, my, sy, r,20))
+plot(z3[1,],z3[2,]) # これで100組の乱数の散布図が描かれる
+
 
 #day by day price stimulation
 s0<-906
