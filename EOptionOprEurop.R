@@ -23,6 +23,9 @@ ChangStrkPrUnit_G=10
 #Time range
 NumOfTimeChange_G=5
 ChangTimeUnit_G=7
+#Definition
+OpType_Put_G=1
+OpType_Call_G=-1
 #File
 Underying_Symbol_G="RUT"
 DataFiles_Path_G="C:\\Users\\kuby\\RProject\\MarketData\\data\\"

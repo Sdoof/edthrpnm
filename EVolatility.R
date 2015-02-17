@@ -4,6 +4,7 @@ library(plyr)
 library(dplyr)
 library(rgl)
 
+# Volatility Level Analysis and Regression ----------
 #getting annual and daili volatility
 annuual.daily.volatility <- function(p){
   p_ <- replace(p, rep(1:(length(p)-1)), p[2:length(p)])
@@ -260,6 +261,9 @@ rm(IVCF1dCtC,IVCF1dCtO,IVCF3dCtC,IVCF5dCtC,IVCF7dCtC)
 rm(norns.lm,start_day_,num_day_)
 rm(P2IV1d,P2IV3d,P2IV5d,P2IV7d)
 
+
+# Creating Option Chain(opch) and ATM IV(atmiv) data frames -------------
+
 ###
 ## Volatility Skew analyzation
 ##
@@ -317,6 +321,8 @@ opch$Moneyness.Nm<-log(opch$Moneyness.Frac)/opch$ATMIV/sqrt(opch$TimeToExpDate)
 
 ##END Got complete atmiv
 
+# Crating ATM IV Volatility Cone (atmiv.vcone.anal) data frame ---------------------------------------
+
 ###
 # Volatility Cone and ATMIV%Chg/IVIDX%Chg Analysis, Regression.  
 ###
@@ -368,6 +374,7 @@ rm(i,atmiv.vcone.eachDF,atmiv.vcone.bind)
 # Now We've got atmiv.vcone.anal data.dframe
 #END
 
+# Option Chain Analysis Without Nmlz **Just For Info --------
 ##
 # Option Chain Analysis
 #
@@ -405,6 +412,8 @@ rgl::clear3d()
 
 rm(vplot)
 
+# Nmlzd Skew Analysis and Regression **Just for Info -----------
+
 #Normalized Skew
 #Put
 opch %>%  dplyr::filter(TYPE==1) %>% 
@@ -423,6 +432,7 @@ opch %>% dplyr::filter(OrigIV/ATMIV<5.0)  %>% dplyr::filter(OrigIV/ATMIV>0.1) %>
   dplyr::filter(TimeToExpDate>0.3) -> vplot
 (ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV),size=TimeToExpDate/2,colour=TYPE))+geom_point(alpha=0.2))
 
+# Nmlzd Skew Analysis and Regression  -----------
 #Complete Opchain. Using OOM options. By Call-Put parity, ITM IV is same as OOM IV.
 opch %>% dplyr::filter(OrigIV/ATMIV<5.0)  %>% dplyr::filter(OrigIV/ATMIV>0.1) %>%
   dplyr::filter(HowfarOOM>=0) %>% dplyr::filter(TimeToExpDate>0.3) -> vplot
@@ -499,6 +509,18 @@ get.skew.regression.Models<-function(vplot,regtype=1,moneyness_adjust=0.1,atm_ad
   models
 }
 
+save.Skew<- function(models){
+  reg_saved_fn<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Skew",sep="")
+  save(models,file=reg_saved_fn)
+}
+
+load.Skew<- function() {
+  #load file name.
+  reg_load_fn<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Skew",sep="")
+  load(reg_load_fn)
+  assign("SkewModel",models,env=.GlobalEnv)
+}
+
 #1. Poly
 models <- (get.skew.regression.Models(vplot))
 get.predicted.skew(models,xmin=-1,x_by=0)
@@ -507,20 +529,25 @@ vplot_exp <- get.predicted.skew(models)
    geom_line(data=vplot_exp,aes(Moneyness,fit),color="red",size=0.73))
 
 #5. smooth splines
-#(predict.c <- predict(smooth.spline(vplot$Moneyness.Nm,(vplot$OrigIV/vplot$ATMIV),df=10),x=seq(min(vplot$Moneyness.Nm),max(vplot$Moneyness.Nm),by=0.01)))
-#(ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV)))+geom_point(alpha=0.2)+
-#   geom_line(data=data.frame(Moneyness.Nm=predict.c$x,IV2ATMIV=predict.c$y),color="red",aes(Moneyness.Nm,IV2ATMIV)))
 models <- (get.skew.regression.Models(vplot,regtype=5,df=7))
 get.predicted.skew(models,regtype=5,xmin=-1,x_by=0)
 (predict.c<-get.predicted.skew(models,regtype=5,xmin=-2.0,xmax=1.5))
 (ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV)))+geom_point(alpha=0.2)+
    geom_line(data=data.frame(Moneyness.Nm=predict.c$x,IV2ATMIV=predict.c$y),aes(Moneyness.Nm,IV2ATMIV),color="red"))
 
-rm(models,vplot_exp,predict.c)
+save.Skew(models)
+#load test
+load.Skew()
+SkewModel
+rm(SkewModel)
 
-#3D Plot and Plane Fitting test
+rm(models,vplot,vplot_exp,predict.c)
 
-#Linier regression. This is a test.
+# Linear 3D Fitting **Just a test -------------------------------------------
+
+#Complete Opchain. Using OOM options. By Call-Put parity, ITM IV is same as OOM IV.
+opch %>% dplyr::filter(OrigIV/ATMIV<5.0)  %>% dplyr::filter(OrigIV/ATMIV>0.1) %>%
+  dplyr::filter(HowfarOOM>=0) %>% dplyr::filter(TimeToExpDate>0.3) -> vplot
 
 data.frame(Moneyness=vplot$Moneyness.Nm,
            Month=vplot$TimeToExpDate,
@@ -555,9 +582,7 @@ rm(vplot,vplot_3dp,model.c,mgrid_df,mgrid_list)
 
 #after creating regression model, we should persp the estimated volatility surface.
 
-##
-#Vcone Analysis
-#
+# Vcone Analysis Functions ----------------------------------------------------------
 
 #functions
 make.vcone.df<-function(atmiv,type=0){
@@ -615,7 +640,29 @@ vchg_regression<-function(vchg,regtype=2,start=NULL,ret=1){
     predict.m
   }
 }
-##
+
+save.VCone<- function(model,optype){
+  if(optype==OpType_Put_G){
+    reg_saved_fn<-paste(DataFiles_Path_G,Underying_Symbol_G,"_PutVCone",sep="")
+  }else if(optype==OpType_Call_G){
+    reg_saved_fn<-paste(DataFiles_Path_G,Underying_Symbol_G,"_CallVCone",sep="")
+  }
+  save(model,file=reg_saved_fn)
+}
+
+load.VCone<- function(optype) {
+  if(optype==OpType_Put_G){
+    reg_load_fn<-paste(DataFiles_Path_G,Underying_Symbol_G,"_PutVCone",sep="")
+    load(reg_load_fn)
+    assign("PutVCone",model,env=.GlobalEnv)
+  }else if(optype==OpType_Call_G){
+   reg_load_fn<-paste(DataFiles_Path_G,Underying_Symbol_G,"_CallVCone",sep="")
+   load(reg_load_fn)
+   assign("CallVCone",model,env=.GlobalEnv)
+  }
+}
+
+#    All Type Vcone *Just for Info -----
 #Plotting all type. IV is normalized
 
 #vcone created
@@ -645,8 +692,8 @@ predict.c <- vcone_regression(vcone=vcone,regtype=3,ret=2)
 (gg_<-ggplot(vcone,aes(x=Month,y=IV2IDX.nm))+geom_point()+
    geom_line(data=data.frame(Month=predict.c$x,IV2IDX.nm=predict.c$y),aes(Month,IV2IDX.nm)))
 rm(gg_,vcone,predict.c)
-
-#Plotting Put. IV is normalized.
+#  Put Vcone IV is normalized ---------------------------------------------------
+#Creating vcone.
 vcone<-make.vcone.df(atmiv=atmiv,type=1)
 (ggplot(vcone,aes(x=Month,y=IV2IDX.nm,colour=TYPE))+geom_point())
 # Regression of PUT vcone
@@ -656,49 +703,77 @@ predict.c <- vcone_regression(vcone=vcone,regtype=1,ret=2)
    geom_line(data=data.frame(vcone,fit=predict.c),aes(Month,fit)))
 #   3.poly
 predict.c <- vcone_regression(vcone=vcone,regtype=3,ret=2)
-(gg_<-ggplot(vcone,aes(x=Month,y=IV2IDX.nm,colour=TYPE))+geom_point()+
+(ggplot(vcone,aes(x=Month,y=IV2IDX.nm,colour=TYPE))+geom_point()+
    geom_line(data=data.frame(vcone,fit=predict.c),aes(Month,fit)))
 #   5.smooth spline
 #(predict(smooth.spline(vcone$Month,vcone$IV2IDX.nm,df=3),x=2))
-(predict.c <- predict(smooth.spline(vcone$Month,vcone$IV2IDX.nm,df=3),x=seq(0,max(vcone$Month),by=0.1)))
+model.ss<-smooth.spline(vcone$Month,vcone$IV2IDX.nm,df=3)
+(predict.c <- predict(model.ss,x=seq(0,max(vcone$Month),by=0.1)))
 (ggplot(vcone,aes(x=Month,y=IV2IDX.nm,colour=TYPE))+geom_point()+
-   geom_line(data=data.frame(Month=predict.c$x,IV2IDX.nm=predict.c$y,TYPE=1),aes(Month,IV2IDX.nm)))
+   geom_line(data=data.frame(Month=predict.c$x,IV2IDX.nm=predict.c$y,TYPE=OpType_Put_G),aes(Month,IV2IDX.nm)))
 
-rm(gg_,vcone,predict.c)
+save.VCone(model=model.ss,optype=OpType_Put_G)
 
-#Plotting Call. IV is normalized.
+rm(vcone,predict.c,model.ss)
+#  Call VCone IV is normalized --------
 #Creating vcone.
 vcone<-make.vcone.df(atmiv=atmiv,type=-1)
-(gg_<-ggplot(vcone,aes(x=Month,y=IV2IDX.nm,colour=TYPE))+geom_point())
+(ggplot(vcone,aes(x=Month,y=IV2IDX.nm,colour=TYPE))+geom_point())
 # Regression of Call vcone
 #   1.linear
 predict.c <- vcone_regression(vcone=vcone,regtype=1,ret=2)
-(gg_<-ggplot(vcone,aes(x=Month,y=IV2IDX.nm,colour=TYPE))+geom_point()+
+(ggplot(vcone,aes(x=Month,y=IV2IDX.nm,colour=TYPE))+geom_point()+
    geom_line(data=data.frame(vcone,fit=predict.c),aes(Month,fit)))
 #   3.poly
 predict.c <- vcone_regression(vcone=vcone,regtype=3,ret=2)
-(gg_<-ggplot(vcone,aes(x=Month,y=IV2IDX.nm,colour=TYPE))+geom_point()+
+(ggplot(vcone,aes(x=Month,y=IV2IDX.nm,colour=TYPE))+geom_point()+
    geom_line(data=data.frame(vcone,fit=predict.c),aes(Month,fit)))
 #   5.smooth spline
 #(predict(smooth.spline(vcone$Month,vcone$IV2IDX.nm,df=3),x=2))
-(predict.c <- predict(smooth.spline(vcone$Month,vcone$IV2IDX.nm,df=3),x=seq(0,max(vcone$Month),by=0.1)))
+model.ss<-smooth.spline(vcone$Month,vcone$IV2IDX.nm,df=3)
+(predict.c <- predict(model.ss,x=seq(0,max(vcone$Month),by=0.1)))
 (ggplot(vcone,aes(x=Month,y=IV2IDX.nm,colour=TYPE))+geom_point()+
    geom_line(data=data.frame(Month=predict.c$x,IV2IDX.nm=predict.c$y,TYPE=-1),aes(Month,IV2IDX.nm)))
-rm(gg_,vcone,predict.c)
 
-##
-# ATM IV Volatility Change to IV Index for TimeToExpDate
-#
+save.VCone(model=model.ss,optype=OpType_Call_G)
+#loat test
+load.VCone(optype=OpType_Put_G)
+PutVCone
+load.VCone(optype=OpType_Call_G)
+CallVCone
+rm(PutVCone,CallVCone)
 
-#all
+rm(vcone,predict.c,model.ss)
+
+# ATM IV Volatility Change to IVIDX as to Time -------
+
+save.IVChg<- function(model,optype,up_dn){
+  if(optype==OpType_Put_G){
+    reg_saved_fn<-paste(DataFiles_Path_G,Underying_Symbol_G,"_PutVCone",sep="")
+  }else if(optype==OpType_Call_G){
+    reg_saved_fn<-paste(DataFiles_Path_G,Underying_Symbol_G,"_CallVCone",sep="")
+  }
+  save(model,file=reg_saved_fn)
+}
+
+load.IVChg<- function(optype,up_dn) {
+  if(optype==OpType_Put_G){
+    reg_load_fn<-paste(DataFiles_Path_G,Underying_Symbol_G,"_PutVCone",sep="")
+    load(reg_load_fn)
+    assign("PutVCone",model,env=.GlobalEnv)
+  }else if(optype==OpType_Call_G){
+    reg_load_fn<-paste(DataFiles_Path_G,Underying_Symbol_G,"_CallVCone",sep="")
+    load(reg_load_fn)
+    assign("CallVCone",model,env=.GlobalEnv)
+  }
+}
+
+#  All Type *Just for Info ----
 vchg<-make.vchg.df(vcone=atmiv.vcone.anal,type=0)
 (ggplot(vchg,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point())
 #(gg_<-ggplot(vchg,aes(x=TimeToExpDate,y=VC.f.AbSdf,colour=TYPE))+geom_point())
 rm(gg_,vchg)
-
-##
-#Put
-#
+#  Put IV Change to IVIDX Up and Down -----
 #Up and Down change
 vchg<-make.vchg.df(vcone=atmiv.vcone.anal,type=1)
 (ggplot(vchg,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point())
@@ -749,9 +824,7 @@ vchg_t<-vchg_mns
 rm(vchg_t)
 
 rm(vchg,vchg_mns,vchg_plus,predict.c)
-
-##
-#Call
+#  Call IV Change to IVIDX Up and Down ----
 #Up and Down Changes
 vchg<-make.vchg.df(vcone=atmiv.vcone.anal,type=-1)
 (ggplot(vchg,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point())
@@ -794,6 +867,8 @@ vchg_t<-vchg_mns
 rm(vchg_t)
 
 rm(gg_,vchg,vchg_mns,vchg_plus,predict.c)
+
+# Post Process ------------------------------------------------------------
 
 #Writing to a file
 wf_<-paste(DataFiles_Path_G,Underying_Symbol_G,"_OPChain_Skew.csv",sep="")
