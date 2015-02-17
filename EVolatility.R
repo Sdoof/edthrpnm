@@ -411,7 +411,6 @@ rgl::plot3d(vplot$Moneyness.Frac,vplot$TimeToExpDate,vplot$OrigIV,col=rainbow(10
 rgl::clear3d()
 
 rm(vplot)
-
 # Nmlzd Skew Analysis and Regression **Just for Info -----------
 
 #Normalized Skew
@@ -431,8 +430,7 @@ opch %>%  dplyr::filter(TYPE==-1) %>%
 opch %>% dplyr::filter(OrigIV/ATMIV<5.0)  %>% dplyr::filter(OrigIV/ATMIV>0.1) %>%
   dplyr::filter(TimeToExpDate>0.3) -> vplot
 (ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV),size=TimeToExpDate/2,colour=TYPE))+geom_point(alpha=0.2))
-
-# Nmlzd Skew Analysis and Regression  -----------
+# Nmlzd Skew Analysis and Regression  -----------------------
 #Complete Opchain. Using OOM options. By Call-Put parity, ITM IV is same as OOM IV.
 opch %>% dplyr::filter(OrigIV/ATMIV<5.0)  %>% dplyr::filter(OrigIV/ATMIV>0.1) %>%
   dplyr::filter(HowfarOOM>=0) %>% dplyr::filter(TimeToExpDate>0.3) -> vplot
@@ -530,6 +528,7 @@ vplot_exp <- get.predicted.skew(models)
 
 #5. smooth splines
 models <- (get.skew.regression.Models(vplot,regtype=5,df=7))
+  #just get one predicted value. wrapped by get.predicted.skew()
 get.predicted.skew(models,regtype=5,xmin=-1,x_by=0)
 (predict.c<-get.predicted.skew(models,regtype=5,xmin=-2.0,xmax=1.5))
 (ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV)))+geom_point(alpha=0.2)+
@@ -542,7 +541,6 @@ SkewModel
 rm(SkewModel)
 
 rm(models,vplot,vplot_exp,predict.c)
-
 # Linear 3D Fitting **Just a test -------------------------------------------
 
 #Complete Opchain. Using OOM options. By Call-Put parity, ITM IV is same as OOM IV.
@@ -661,7 +659,6 @@ load.VCone<- function(optype) {
    assign("CallVCone",model,env=.GlobalEnv)
   }
 }
-
 #    All Type Vcone *Just for Info -----
 #Plotting all type. IV is normalized
 
@@ -787,13 +784,12 @@ load.IVChg<- function(optype,up_dn) {
     }
   }
 }
-
 #  All Type *Just for Info ----
 vchg<-make.vchg.df(vcone=atmiv.vcone.anal,type=0)
 (ggplot(vchg,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point())
 #(gg_<-ggplot(vchg,aes(x=TimeToExpDate,y=VC.f.AbSdf,colour=TYPE))+geom_point())
 rm(gg_,vchg)
-#  Put IV Change to IVIDX Up and Down -----
+#  Put IV Change to IVIDX Up and Down ------------------------------
 #Up and Down change
 vchg<-make.vchg.df(vcone=atmiv.vcone.anal,type=1)
 (ggplot(vchg,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point())
