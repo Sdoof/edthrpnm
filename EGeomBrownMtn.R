@@ -20,7 +20,7 @@ geombrmtn.stimulate <- function(s0,mu,sigma,length){
 }
 
 #2変量正規分布の単純な関数
-#(x,y) mx,my: x,yの平均。 sx,sy: x,yの標準偏差。 r:xとyの相関
+#(x,y) mx,my: x,yの平均。 sx,sy: x,y:SQRT(共分散)。 r:xとyの相関
 #オプションのポジションをシミュレーションする時に用いる
 #価格の変化をGBM（のバリエーション）で発生させた後、IVの変化を
 #回帰で決定的にではなく相関のある乱数として生成する

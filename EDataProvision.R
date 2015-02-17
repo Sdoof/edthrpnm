@@ -2,6 +2,11 @@
 # Data preproceccing, preparing, bridge between Excel and R
 ##
 
+#get variable name utility.
+getvarname <- function(v) {
+  deparse(substitute(v))
+}
+
 #Read Excel CSV file and reformat as "OptionVariables format", saves as a CSV file.
 #OptionVariables format is 
 #  Position  ContactName	Date	ExpDate	TYPE	UDLY	Strike	Price	..(next line)

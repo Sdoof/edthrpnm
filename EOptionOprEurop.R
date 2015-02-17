@@ -24,7 +24,7 @@ ChangStrkPrUnit_G=10
 NumOfTimeChange_G=5
 ChangTimeUnit_G=7
 #File
-Underying_Synbol_G="RUT"
+Underying_Symbol_G="RUT"
 DataFiles_Path_G="C:\\Users\\kuby\\RProject\\MarketData\\data\\"
 
 
