@@ -44,10 +44,15 @@ IVCFndCtC <- function(iv,n){
 }
 
 #Save volatility Level correlaiton and regression function
-save.PC2IV <- function (model, PC, IVC,cor) {
+save.PC2IV <- function (model, PC, IVC,cor,pcstat,ivstat) {
   reg_saved<-list(model)
   reg_saved<-c(reg_saved,list(cor))
-  names(reg_saved)<-c("model","cor")
+  data.frame(Avr=pcstat[1],SD=pcstat[2]) %>% 
+    full_join(data.frame(Avr=ivstat[1],SD=ivstat[2])) -> stat
+  rownames(stat)<-c("PC","IVC") 
+  reg_saved<-c(reg_saved,list(stat))
+  names(reg_saved)<-c("model","cor","stat")
+  
   #saved file name.
   reg_saved_fn<-paste(DataFiles_Path_G,Underying_Symbol_G,"_",PC,"_",IVC,sep="")
   save(reg_saved,file=reg_saved_fn)  
@@ -102,14 +107,23 @@ summary(norns.lm)
 gg_+geom_abline(intercept=norns.lm$coefficient[1],slope=norns.lm$coefficient[2],color="orange")
 
   #Regression File save
-save.PC2IV(model=norns.lm,PC=getvarname(PC3dCtC),IVC=getvarname(IVCF3dCtC),cor=co)
+#mean(PC3dCtC,na.rm=TRUE)
+mean(PC3dCtC)
+sd(PC3dCtC)
+mean(IVCF3dCtC)
+sd(IVCF3dCtC)
+save.PC2IV(model=norns.lm,PC=getvarname(PC3dCtC),IVC=getvarname(IVCF3dCtC),cor=co,
+           pcstat=c(mean(PC3dCtC),sd(PC3dCtC)),
+           ivstat=c(mean(IVCF3dCtC),sd(IVCF3dCtC)))
   #Load test
 load.PC2IV(PC=getvarname(PC3dCtC),IVC=getvarname(IVCF3dCtC))
 PC3dCtC_IVCF3dCtC
 rm(PC3dCtC_IVCF3dCtC)
 
 ##5d
-P2IV5d <- data.frame(PCIV5dCtC=PCIV5dCtC[start_day_:(start_day_+num_day_)], IVCF5dCtC=IVCF5dCtC[start_day_:(start_day_+num_day_)])
+PC5dCtC=PC5dCtC[start_day_:(start_day_+num_day_)]
+IVCF5dCtC=IVCF5dCtC[start_day_:(start_day_+num_day_)]
+P2IV5d <- data.frame(PCIV5dCtC=PC5dCtC, IVCF5dCtC=IVCF5dCtC)
 (gg_<-ggplot(P2IV5d,aes(x=PCIV5dCtC,y=IVCF5dCtC))+geom_point())
 co<-cor(PCIV5dCtC[start_day_:(start_day_+num_day_)],IVCF5dCtC[start_day_:(start_day_+num_day_)])
 #linear regression
@@ -117,7 +131,7 @@ norns.lm<-lm(IVCF5dCtC~PCIV5dCtC, data=P2IV5d)
 summary(norns.lm)
 gg_+geom_abline(intercept=norns.lm$coefficient[1],slope=norns.lm$coefficient[2],color="orange")
 
-P2IV5d <- data.frame(PC5dCtC=PC5dCtC[start_day_:(start_day_+num_day_)], IVCF5dCtC=IVCF5dCtC[start_day_:(start_day_+num_day_)])
+P2IV5d <- data.frame(PC5dCtC=PC5dCtC, IVCF5dCtC=IVCF5dCtC)
 (gg_<-ggplot(P2IV5d,aes(x=PC5dCtC,y=IVCF5dCtC))+geom_point())
 co<-cor(PC5dCtC[start_day_:(start_day_+num_day_)],IVCF5dCtC[start_day_:(start_day_+num_day_)])
 #linear regression
@@ -126,7 +140,14 @@ summary(norns.lm)
 gg_+geom_abline(intercept=norns.lm$coefficient[1],slope=norns.lm$coefficient[2],color="orange")
 
 #Regression File save
-save.PC2IV(model=norns.lm,PC=getvarname(PC5dCtC),IVC=getvarname(IVCF5dCtC),cor=co)
+#mean(PC5dCtC,na.rm=TRUE)
+mean(PC5dCtC)
+sd(PC5dCtC)
+mean(IVCF5dCtC)
+sd(IVCF5dCtC)
+save.PC2IV(model=norns.lm,PC=getvarname(PC5dCtC),IVC=getvarname(IVCF5dCtC),cor=co,
+           pcstat=c(mean(PC5dCtC),sd(PC5dCtC)),
+           ivstat=c(mean(IVCF5dCtC),sd(IVCF5dCtC)))
 #Load test
 load.PC2IV(PC=getvarname(PC5dCtC),IVC=getvarname(IVCF5dCtC))
 PC5dCtC_IVCF5dCtC
@@ -153,7 +174,14 @@ summary(norns.lm)
 gg_+geom_abline(intercept=norns.lm$coefficient[1],slope=norns.lm$coefficient[2],color="orange")
 
 #Regression File save
-save.PC2IV(model=norns.lm,PC=getvarname(PC7dCtC),IVC=getvarname(IVCF7dCtC),cor=co)
+#mean(PC5dCtC,na.rm=TRUE)
+mean(PC7dCtC)
+sd(PC7dCtC)
+mean(IVCF7dCtC)
+sd(IVCF7dCtC)
+save.PC2IV(model=norns.lm,PC=getvarname(PC7dCtC),IVC=getvarname(IVCF7dCtC),cor=co,
+           pcstat=c(mean(PC7dCtC),sd(PC7dCtC)),
+           ivstat=c(mean(IVCF7dCtC),sd(IVCF7dCtC)))
   #Load test
 load.PC2IV(PC=getvarname(PC7dCtC),IVC=getvarname(IVCF7dCtC))
 PC7dCtC_IVCF7dCtC
@@ -178,9 +206,14 @@ co<-cor(PC1dCtC,IVCF1dCtC)
 norns.lm<-lm(IVCF1dCtC~PC1dCtC, data=P2IV1d)
 summary(norns.lm)
 gg_+geom_abline(intercept=norns.lm$coefficient[1],slope=norns.lm$coefficient[2],color="orange")
-
 #Regression File save
-save.PC2IV(model=norns.lm,PC=getvarname(PC1dCtC),IVC=getvarname(IVCF1dCtC),cor=co)
+mean(PC1dCtC)
+sd(PC1dCtC)
+mean(IVCF1dCtC)
+sd(IVCF1dCtC)
+save.PC2IV(model=norns.lm,PC=getvarname(PC1dCtC),IVC=getvarname(IVCF1dCtC),cor=co,
+           pcstat=c(mean(PC1dCtC),sd(PC1dCtC)),
+           ivstat=c(mean(IVCF1dCtC),sd(IVCF1dCtC)))
 #Load test
 load.PC2IV(PC=getvarname(PC1dCtC),IVC=getvarname(IVCF1dCtC))
 PC1dCtC_IVCF1dCtC
@@ -208,7 +241,14 @@ summary(norns.lm)
 gg_+geom_abline(intercept=norns.lm$coefficient[1],slope=norns.lm$coefficient[2],color="orange")
 
 #Regression File save
-save.PC2IV(model=norns.lm,PC=getvarname(PC1dCtO),IVC=getvarname(IVCF1dCtO),cor=co)
+mean(PC1dCtO)
+sd(PC1dCtO)
+mean(IVCF1dCtO)
+sd(IVCF1dCtO)
+save.PC2IV(model=norns.lm,PC=getvarname(PC1dCtO),IVC=getvarname(IVCF1dCtO),cor=co,
+           pcstat=c(mean(PC1dCtO),sd(PC1dCtO)),
+           ivstat=c(mean(IVCF1dCtO),sd(IVCF1dCtO)))
+
 #Load test
 load.PC2IV(PC=getvarname(PC1dCtO),IVC=getvarname(IVCF1dCtO))
 PC1dCtO_IVCF1dCtO
@@ -216,7 +256,7 @@ rm(PC1dCtO_IVCF1dCtO)
 
 rm(gg_,co,histIV_,histPrc_)
 rm(PC1dCtC,PC1dCtO,PC3dCtC,PC5dCtC,PC7dCtC,PCIV1dCtC,PCIV1dCtO,PCIV3dCtC,PCIV5dCtC,PCIV7dCtC)
-rm(IVCF1dCtC,IVCF1dCtO,IVCF3dCtC,IVCF5dCtC,IVCF5dCtC,IVCF7dCtC)
+rm(IVCF1dCtC,IVCF1dCtO,IVCF3dCtC,IVCF5dCtC,IVCF7dCtC)
 rm(norns.lm,start_day_,num_day_)
 rm(P2IV1d,P2IV3d,P2IV5d,P2IV7d)
 
