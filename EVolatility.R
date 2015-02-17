@@ -749,22 +749,42 @@ rm(vcone,predict.c,model.ss)
 
 save.IVChg<- function(model,optype,up_dn){
   if(optype==OpType_Put_G){
-    reg_saved_fn<-paste(DataFiles_Path_G,Underying_Symbol_G,"_PutVCone",sep="")
+    if(up_dn>=0){
+      reg_saved_fn<-paste(DataFiles_Path_G,Underying_Symbol_G,"_PutIVChgUp",sep="")
+    }else if(up_dn<0){
+      reg_saved_fn<-paste(DataFiles_Path_G,Underying_Symbol_G,"_PutIVChgDown",sep="")
+    }
   }else if(optype==OpType_Call_G){
-    reg_saved_fn<-paste(DataFiles_Path_G,Underying_Symbol_G,"_CallVCone",sep="")
+    if(up_dn>=0){
+      reg_saved_fn<-paste(DataFiles_Path_G,Underying_Symbol_G,"_CallIVChgUp",sep="")
+    }else if(up_dn<0){
+      reg_saved_fn<-paste(DataFiles_Path_G,Underying_Symbol_G,"_CallIVChgDown",sep="")
+    }
   }
   save(model,file=reg_saved_fn)
 }
 
 load.IVChg<- function(optype,up_dn) {
   if(optype==OpType_Put_G){
-    reg_load_fn<-paste(DataFiles_Path_G,Underying_Symbol_G,"_PutVCone",sep="")
-    load(reg_load_fn)
-    assign("PutVCone",model,env=.GlobalEnv)
+    if(up_dn>=0){
+      reg_load_fn<-paste(DataFiles_Path_G,Underying_Symbol_G,"_PutIVChgUp",sep="")
+      load(reg_load_fn)
+      assign("PutIVChgUp",model,env=.GlobalEnv)
+    }else if(up_dn<0){
+      reg_load_fn<-paste(DataFiles_Path_G,Underying_Symbol_G,"_PutIVChgDown",sep="")
+      load(reg_load_fn)
+      assign("PutIVChgDown",model,env=.GlobalEnv)
+    }
   }else if(optype==OpType_Call_G){
-    reg_load_fn<-paste(DataFiles_Path_G,Underying_Symbol_G,"_CallVCone",sep="")
-    load(reg_load_fn)
-    assign("CallVCone",model,env=.GlobalEnv)
+    if(up_dn>=0){
+      reg_load_fn<-paste(DataFiles_Path_G,Underying_Symbol_G,"_CallIVChgUp",sep="")
+      load(reg_load_fn)
+      assign("CallIVChgUp",model,env=.GlobalEnv)
+    }else if(up_dn<0){
+      reg_load_fn<-paste(DataFiles_Path_G,Underying_Symbol_G,"_CallIVChgDown",sep="")
+      load(reg_load_fn)
+      assign("CallIVChgDown",model,env=.GlobalEnv)
+    }
   }
 }
 
@@ -814,16 +834,22 @@ rm(vchg_t)
 
 #    5.smooth spline
 vchg_t<-vchg_plus
-(predict.c <- predict(smooth.spline(vchg_t$TimeToExpDate,vchg_t$VC.f,df=3),x=seq(0,max(vchg_t$TimeToExpDate),by=0.1)))
-(ggplot(vchg_t,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point()+
-   geom_line(data=data.frame(TimeToExpDate=predict.c$x,VC.f=predict.c$y,TYPE=1),aes(TimeToExpDate,VC.f)))
-vchg_t<-vchg_mns
-(predict.c <- predict(smooth.spline(vchg_t$TimeToExpDate,vchg_t$VC.f,df=3),x=seq(0,max(vchg_t$TimeToExpDate),by=0.1)))
+model.ss<-smooth.spline(vchg_t$TimeToExpDate,vchg_t$VC.f,df=3)
+(predict.c <- predict(model.ss,x=seq(0,max(vchg_t$TimeToExpDate),by=0.1)))
 (ggplot(vchg_t,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point()+
    geom_line(data=data.frame(TimeToExpDate=predict.c$x,VC.f=predict.c$y,TYPE=1),aes(TimeToExpDate,VC.f)))
 rm(vchg_t)
+save.IVChg(model.ss,OpType_Put_G,10)
 
-rm(vchg,vchg_mns,vchg_plus,predict.c)
+vchg_t<-vchg_mns
+model.ss<-smooth.spline(vchg_t$TimeToExpDate,vchg_t$VC.f,df=3)
+(predict.c <- predict(model.ss,x=seq(0,max(vchg_t$TimeToExpDate),by=0.1)))
+(ggplot(vchg_t,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point()+
+   geom_line(data=data.frame(TimeToExpDate=predict.c$x,VC.f=predict.c$y,TYPE=1),aes(TimeToExpDate,VC.f)))
+rm(vchg_t)
+save.IVChg(model.ss,OpType_Put_G,-10)
+
+rm(vchg,vchg_mns,vchg_plus,model.ss,predict.c)
 #  Call IV Change to IVIDX Up and Down ----
 #Up and Down Changes
 vchg<-make.vchg.df(vcone=atmiv.vcone.anal,type=-1)
@@ -840,6 +866,7 @@ predict.c <- vchg_regression(vchg=vchg_t,regtype=2,ret=2,start=c(a=0.1,b=-0.1,c=
 (ggplot(vchg_t,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point()+
    geom_line(data=data.frame(vchg_t,fit=predict.c),aes(TimeToExpDate,fit)))
 rm(vchg_t)
+
 vchg_t<-vchg_mns
 predict.c <- vchg_regression(vchg=vchg_t,regtype=2,ret=2,start=c(a=0.2,b=0.2,c=-0.2))
 (ggplot(vchg_t,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point()+
@@ -857,16 +884,32 @@ predict.c <- vchg_regression(vchg=vchg_t,regtype=1,ret=2)
 rm(vchg_t)
 #    5.smooth spline
 vchg_t<-vchg_plus
-(predict.c <- predict(smooth.spline(vchg_t$TimeToExpDate,vchg_t$VC.f,df=3),x=seq(0,max(vchg_t$TimeToExpDate),by=0.1)))
+model.ss<-smooth.spline(vchg_t$TimeToExpDate,vchg_t$VC.f,df=3)
+(predict.c <- predict(model.ss,x=seq(0,max(vchg_t$TimeToExpDate),by=0.1)))
 (ggplot(vchg_t,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point()+
    geom_line(data=data.frame(TimeToExpDate=predict.c$x,VC.f=predict.c$y,TYPE=-1),aes(TimeToExpDate,VC.f)))
+save.IVChg(model.ss,OpType_Call_G,10)
+
 vchg_t<-vchg_mns
-(predict.c <- predict(smooth.spline(vchg_t$TimeToExpDate,vchg_t$VC.f,df=3),x=seq(0,max(vchg_t$TimeToExpDate),by=0.1)))
+model.ss<-smooth.spline(vchg_t$TimeToExpDate,vchg_t$VC.f,df=3)
+(predict.c <- predict(model.ss,x=seq(0,max(vchg_t$TimeToExpDate),by=0.1)))
 (ggplot(vchg_t,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point()+
    geom_line(data=data.frame(TimeToExpDate=predict.c$x,VC.f=predict.c$y,TYPE=-1),aes(TimeToExpDate,VC.f)))
 rm(vchg_t)
+save.IVChg(model.ss,OpType_Call_G,-10)
 
-rm(gg_,vchg,vchg_mns,vchg_plus,predict.c)
+#load test
+load.IVChg(OpType_Put_G,10)
+PutIVChgUp
+load.IVChg(OpType_Put_G,-10)
+PutIVChgDown
+load.IVChg(OpType_Call_G,10)
+CallIVChgUp
+load.IVChg(OpType_Call_G,-10)
+CallIVChgDown
+rm(PutIVChgUp,PutIVChgDown,CallIVChgUp,CallIVChgDown)
+
+rm(vchg,vchg_mns,vchg_plus,model.ss,predict.c)
 
 # Post Process ------------------------------------------------------------
 
@@ -875,12 +918,10 @@ wf_<-paste(DataFiles_Path_G,Underying_Symbol_G,"_OPChain_Skew.csv",sep="")
 write.table(opch,wf_,quote=T,row.names=F,sep=",")
 rm(wf_)
 
-rm(makeVconAnalDF)
 rm(atmiv.vcone.anal,atmiv,opch)
 
-###
-## AUDUSD volatility examples
-###
+
+# AUD USD Volatility examples ---------------------------------------------
 
 #simple sample
 p<-c(20,20.1,19.9,20,20.5,20.25,20.9,20.9,20.9,20.75,20.75,21,21.1,20.9,20.9,21.25,21.4,21.4,21.25,21.75,22)
