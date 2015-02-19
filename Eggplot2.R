@@ -76,37 +76,6 @@ ggplot(data.frame(x=c(0,20)),aes(x=x))+stat_function(fun=myfun,geom="line")
 
 #2つのベクトル要素を交互に並べる関数
 interleave<-function(v1,v2) as.vector(rbind(v1,v2))
-
-#モデルオブジェエクとを引数として、xvarとyvarからzvarを予測する
-#デフォルトでは指定されたxとy変数の範囲で、16x16グリッドを計算
-predictgrid<-function(model,xvar,yvar,zvar,res=16,type=NULL){
-  #モデルオブジェクトから予測面のxとy変数の範囲を決める
-  #lmとglmなどで使用可能だが、他のモデルではカスタマイズが必要
-  xrange<-range(model$model[[xvar]])
-  yrange<-range(model$model[[yvar]])
-  
-  newdata<-expand.grid(x=seq(xrange[1],xrange[2],length.out=res),
-                       y=seq(yrange[1],yrange[2],length.out=res))
-  names(newdata)<-c(xvar,yvar)
-  newdata[[zvar]]<-predict(model,newdata,type=type)
-  newdata
-}
-
-#x,y,zの値を格納したlong形式のデータフレームを、xとyのベクトル行列zを
-#含むリストに変換する
-df2mat<-function(p,xvar=NULL,yvar=NULL,zvar=NULL){
-  if(is.null(xvar)) xvar <- names(p)[1]
-  if(is.null(yvar)) yvar <- names(p)[2]
-  if(is.null(zvar)) zvar <- names(p)[3]
-  
-  x<-unique(p[[xvar]])
-  y<-unique(p[[yvar]])
-  z<-matrix(p[[zvar]],nrow=length(y),ncol=length(x))
-  
-  m<-list(x,y,z)
-  names(m)<-c(xvar,yvar,zvar)
-  m
-}
 #データセットのコピーを作成
 m<-mtcars
 #線形モデルの作成

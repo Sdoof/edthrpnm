@@ -375,13 +375,7 @@ rm(i,atmiv.vcone.eachDF,atmiv.vcone.bind)
 #END
 
 # Option Chain Analysis Without Nmlz **Just For Info --------
-##
-# Option Chain Analysis
-#
-
 ## option chain 3D volatility plot
-
-#Without Normalization
 #Put OOM
 opch %>%  dplyr::filter(TYPE==1) %>% 
   dplyr::filter(OrigIV/ATMIV<3.0)  %>% dplyr::filter(OrigIV/ATMIV>0.2) %>%
@@ -411,8 +405,7 @@ rgl::plot3d(vplot$Moneyness.Frac,vplot$TimeToExpDate,vplot$OrigIV,col=rainbow(10
 rgl::clear3d()
 
 rm(vplot)
-# Nmlzd Skew Analysis and Regression **Just for Info -----------
-
+# Nmlzd Skew Analysis Variations **Just for Info -----------
 #Normalized Skew
 #Put
 opch %>%  dplyr::filter(TYPE==1) %>% 
@@ -430,8 +423,8 @@ opch %>%  dplyr::filter(TYPE==-1) %>%
 opch %>% dplyr::filter(OrigIV/ATMIV<5.0)  %>% dplyr::filter(OrigIV/ATMIV>0.1) %>%
   dplyr::filter(TimeToExpDate>0.3) -> vplot
 (ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV),size=TimeToExpDate/2,colour=TYPE))+geom_point(alpha=0.2))
-# Nmlzd Skew Analysis and Regression  -----------------------
-#Complete Opchain. Using OOM options. By Call-Put parity, ITM IV is same as OOM IV.
+# Nmlzd Skew Analysis and Regression  ----------------------------
+#Complete Opchain. Using OOM options. By Call-Put parity, ITM IV is supposed to be the same as OOM IV.
 opch %>% dplyr::filter(OrigIV/ATMIV<5.0)  %>% dplyr::filter(OrigIV/ATMIV>0.1) %>%
   dplyr::filter(HowfarOOM>=0) %>% dplyr::filter(TimeToExpDate>0.3) -> vplot
 (ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV),size=TimeToExpDate/2,colour=Date))+geom_point(alpha=0.2))
@@ -541,7 +534,39 @@ SkewModel
 rm(SkewModel)
 
 rm(models,vplot,vplot_exp,predict.c)
+
 # Linear 3D Fitting **Just a test -------------------------------------------
+#Functions
+#モデルオブジェエクとを引数として、xvarとyvarからzvarを予測する
+#デフォルトでは指定されたxとy変数の範囲で、16x16グリッドを計算
+predictgrid<-function(model,xvar,yvar,zvar,res=16,type=NULL){
+  #モデルオブジェクトから予測面のxとy変数の範囲を決める
+  #lmとglmなどで使用可能だが、他のモデルではカスタマイズが必要
+  xrange<-range(model$model[[xvar]])
+  yrange<-range(model$model[[yvar]])
+  
+  newdata<-expand.grid(x=seq(xrange[1],xrange[2],length.out=res),
+                       y=seq(yrange[1],yrange[2],length.out=res))
+  names(newdata)<-c(xvar,yvar)
+  newdata[[zvar]]<-predict(model,newdata,type=type)
+  newdata
+}
+
+#x,y,zの値を格納したlong形式のデータフレームを、xとyのベクトル行列zを
+#含むリストに変換する
+df2mat<-function(p,xvar=NULL,yvar=NULL,zvar=NULL){
+  if(is.null(xvar)) xvar <- names(p)[1]
+  if(is.null(yvar)) yvar <- names(p)[2]
+  if(is.null(zvar)) zvar <- names(p)[3]
+  
+  x<-unique(p[[xvar]])
+  y<-unique(p[[yvar]])
+  z<-matrix(p[[zvar]],nrow=length(y),ncol=length(x))
+  
+  m<-list(x,y,z)
+  names(m)<-c(xvar,yvar,zvar)
+  m
+}
 
 #Complete Opchain. Using OOM options. By Call-Put parity, ITM IV is same as OOM IV.
 opch %>% dplyr::filter(OrigIV/ATMIV<5.0)  %>% dplyr::filter(OrigIV/ATMIV>0.1) %>%
@@ -580,9 +605,9 @@ rm(vplot,vplot_3dp,model.c,mgrid_df,mgrid_list)
 
 #after creating regression model, we should persp the estimated volatility surface.
 
-# Vcone Analysis Functions ----------------------------------------------------------
+# Vcone Analysis Functions ---------------------------------
 
-#functions
+#Making Volatility Cone data frame
 make.vcone.df<-function(atmiv,type=0){
   if(type!=0){
     atmiv %>% filter(TYPE==type) -> atmiv
@@ -599,6 +624,7 @@ make.vcone.df<-function(atmiv,type=0){
   vcone
 }
 
+#Making Volatility Change data frame
 make.vchg.df<-function(vcone,type=0){
   if(type!=0){
     vcone %>% filter(TYPE==type) -> vcone
@@ -661,7 +687,6 @@ load.VCone<- function(optype) {
 }
 #    All Type Vcone *Just for Info -----
 #Plotting all type. IV is normalized
-
 #vcone created
 vcone<-make.vcone.df(atmiv=atmiv,type=0)
 #(gg_<-ggplot(vcone,aes(x=Month,y=IV,colour=TYPE))+geom_point())
@@ -712,6 +737,7 @@ model.ss<-smooth.spline(vcone$Month,vcone$IV2IDX.nm,df=3)
 save.VCone(model=model.ss,optype=OpType_Put_G)
 
 rm(vcone,predict.c,model.ss)
+
 #  Call VCone IV is normalized --------
 #Creating vcone.
 vcone<-make.vcone.df(atmiv=atmiv,type=-1)
@@ -907,7 +933,7 @@ rm(PutIVChgUp,PutIVChgDown,CallIVChgUp,CallIVChgDown)
 
 rm(vchg,vchg_mns,vchg_plus,model.ss,predict.c)
 
-# Post Process ------------------------------------------------------------
+# Post Process ----------------------------------
 
 #Writing to a file
 wf_<-paste(DataFiles_Path_G,Underying_Symbol_G,"_OPChain_Skew.csv",sep="")
@@ -917,7 +943,7 @@ rm(wf_)
 rm(atmiv.vcone.anal,atmiv,opch)
 
 
-# AUD USD Volatility examples ---------------------------------------------
+# AUD USD Volatility examples --------------------
 
 #simple sample
 p<-c(20,20.1,19.9,20,20.5,20.25,20.9,20.9,20.9,20.75,20.75,21,21.1,20.9,20.9,21.25,21.4,21.4,21.25,21.75,22)
@@ -927,3 +953,5 @@ pv_<-annuual.daily.volatility(p)
 p<-read.table("AUDUSD.csv",header=T,sep=",")
 p<-p$AUDUSD[1:100]
 pv_<-annuual.daily.volatility(p)
+
+rm(p,pv_)

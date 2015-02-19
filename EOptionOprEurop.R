@@ -28,8 +28,8 @@ OpType_Put_G=1
 OpType_Call_G=-1
 #File
 Underying_Symbol_G="RUT"
-DataFiles_Path_G="C:\\Users\\kuby\\RProject\\MarketData\\data\\"
-
+#DataFiles_Path_G="C:\\Users\\kuby\\RProject\\MarketData\\data\\"
+DataFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\MarketData\\data\\"
 
 #xT0の列のアクセス
 #xT0$ContactName

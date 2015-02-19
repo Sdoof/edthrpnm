@@ -12,7 +12,7 @@ getvarname <- function(v) {
 #  Position  ContactName	Date	ExpDate	TYPE	UDLY	Strike	Price	..(next line)
 #  Delta	Gamma	Vega	Theta	Rho	OrigIV	IV
 
-# We must read both (UDL)_HIST.csv and (UDLOPChain)_Pre.csv
+# We must read both (UDL)_HIST.csv and (UDL)_OPChain_Pre.csv
 # UDLY row must be merged. Following example must be referred.
 
 #OPtionOpr/EOptionOprEuro 's functions should be pre-read
