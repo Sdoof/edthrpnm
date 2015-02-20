@@ -31,7 +31,7 @@ CallIVChgDown
 rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep="")
 position<-read.table(rf,header=T,sep=",")
 rm(rf)
-#filtering
+  #filtering
 position %>% dplyr::filter(Position!=0) %>%
   dplyr::select(-(starts_with('dummy',ignore.case=TRUE)),
                 -(contains('Frac',ignore.case=TRUE)),
@@ -39,4 +39,13 @@ position %>% dplyr::filter(Position!=0) %>%
 HPD<-3
 Theta<-sum(position$Position*position$Theta)
 ThetaEffect<-HPD*Theta
-rm(HPD,Theta,ThetaEffect)
+rm(Theta,ThetaEffect)
+
+#Volatility Index is in calinder days. So must adjust. 
+#We calculate our greeks in trading days, so IVIDX must be 
+
+#EPC<-position$UDLY*(exp(position$IVIDX*sqrt(HPD/365))-1)
+expPriceChange<-mean(position$UDLY*(exp(position$IVIDX*sqrt(365/252)*sqrt(HPD/365))-1))
+deltaEfct<-(-abs(sum(position$Delta)))*expPriceChange
+
+
