@@ -89,11 +89,11 @@ getDTRRR<-function(position,multi=PosMultip,hdd=holdDays){
   DTRRR
 }
 
-getVTRRR<-function(position,dviv,multi=PosMultip,hdd=holdDays){
+getVTRRR<-function(position,ividx,dviv,multi=PosMultip,hdd=holdDays){
   thetaEffect<-getThetaEffect(pos=position$Position,greek=position$Theta)
   
   vegaEffect<-getVegaEffect(pos=position$Position,greek=position$Vega,
-                            ividx=position$IVIDX,dviv=dviv)
+                            ividx=ividx,dviv=dviv)
   VTRRR<-vegaEffect/thetaEffect
   VTRRR
 }
@@ -136,14 +136,15 @@ getDTRRR(position=position)
 #thetaEfct<-holdDays*theta  ;rm(theta)
 
 #Expected Change in Impliev Volatility over the holding days.
-#dviv<-annuual.daily.volatility(histIV$IVIDX)$daily
-#expIVChange<-mean(position$IVIDX*(exp(dviv*sqrt(holdDays))-1)) ; rm(dviv)
+#dviv<-annuual.daily.volatility(getIV_td(histIV$IVIDX))$daily
+#expIVChange<-mean(getIV_td(position$IVIDX)*(exp(dviv*sqrt(holdDays))-1)) ; rm(dviv)
  
 #Vega Effect
 #vega<-getPosGreeks(pos=position$Position,greek=position$Vega)
 #vegaEfct<-(-abs(vega))*(expIVChange*100) ;rm(vega)
 #getVegaEffect(pos=position$Position,greek=position$Vega,
-#              ividx=position$IVIDX,dviv=annuual.daily.volatility(histIV$IVIDX)$daily)
+#             ividx=getIV_td(position$IVIDX),dviv=annuual.daily.volatility(getIV_td(histIV$IVIDX))$daily)
 #VTRRR
 #(VTRRR<-(vegaEfct/thetaEfct))   ;rm(thetaEfct,expIVChange,vegaEfct,VTRRR)
-getVTRRR(position=position,dviv=annuual.daily.volatility(histIV$IVIDX)$daily)
+
+getVTRRR(position=position,ividx=getIV_td(position$IVIDX),dviv=annuual.daily.volatility(getIV_td(histIV$IVIDX))$daily)
