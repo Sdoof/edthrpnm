@@ -41,6 +41,63 @@ getPosGreeks<-function(pos,greek,multi=PosMultip){
   pos_greek
 }
 
+getIV_td<-function(ividx_cd){
+  ividx_td <- ividx_cd*sqrt(365/252)
+  ividx_td
+}
+
+getThetaEffect<-function(pos,greek,multi=PosMultip,hdd=holdDays){
+  theta<-getPosGreeks(pos=position$Position,greek=position$Theta)
+  thetaEfct<-holdDays*theta
+  thetaEfct
+}
+
+getDeltaEffect<-function(pos,greek,UDLY,ividx_td,multi=PosMultip,hdd=holdDays){
+  expPriceChange<-mean(UDLY*(exp(ividx_td*sqrt(hdd/365))-1))
+  delta<-getPosGreeks(pos=pos,greek=greek)
+  deltaEfct<-(-abs(delta))*expPriceChange
+  deltaEfct
+}
+
+getGammaEffect<-function(pos,greek,UDLY,ividx_td,multi=PosMultip,hdd=holdDays){
+  expPriceChange<-mean(UDLY*(exp(ividx_td*sqrt(hdd/365))-1))
+  gamma<-getPosGreeks(pos=pos,greek=greek)
+  gammaEfct<-gamma*(expPriceChange^2)/2
+  gammaEfct
+}
+
+#Here we do not care the effect of Volga as we did the Gamma effect, is this really appropriate?
+getVegaEffect<-function(pos,greek,ividx,dviv,multi=PosMultip,hdd=holdDays){
+  expIVChange<-mean(ividx*(exp(dviv*sqrt(holdDays))-1))
+  #Or use Annualized Volatility of Impled Volatility. Should be the same result.
+  #  aviv<-annuual.daily.volatility(histIV$IVIDX)$anlzd*sqrt(holdDays/252)
+  #  expIVChange<-mean(ividx*(exp(aviv)-1))
+  vega<-getPosGreeks(pos=pos,greek=greek)
+  vegaEffect<-(-abs(vega))*(expIVChange*100)
+  vegaEffect
+}
+
+getDTRRR<-function(position,multi=PosMultip,hdd=holdDays){
+  thetaEffect<-getThetaEffect(pos=position$Position,greek=position$Theta)
+  
+  deltaEffect<-getDeltaEffect(pos=position$Position,greek=position$Delta,
+                              UDLY=position$UDLY,ividx_td=getIV_td(position$IVIDX))
+  
+  gammaEffect<-getGammaEffect(pos=position$Position,greek=position$Gamma,
+                              UDLY=position$UDLY,ividx_td=getIV_td(position$IVIDX))  
+  DTRRR<-(deltaEffect+gammaEffect)/thetaEffect
+  DTRRR
+}
+
+getVTRRR<-function(position,dviv,multi=PosMultip,hdd=holdDays){
+  thetaEffect<-getThetaEffect(pos=position$Position,greek=position$Theta)
+  
+  vegaEffect<-getVegaEffect(pos=position$Position,greek=position$Vega,
+                            ividx=position$IVIDX,dviv=dviv)
+  VTRRR<-vegaEffect/thetaEffect
+  VTRRR
+}
+
 #Option Position Data. Here we use UDL_Positions_Pre
 rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep="")
 position<-read.table(rf,header=T,sep=",")
@@ -59,44 +116,34 @@ histIV %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")<=max(as.Date(position$D
   dplyr::arrange(desc(as.Date(Date,format="%Y/%m/%d"))) %>% head(n=dviv_caldays) -> histIV
 
 #Calculating DTRRR (DELTA/THETA RISK/RETURN RATIO)
-
 #Theta Effect
-#theta<-sum(position$Position*position$Theta)
-theta<-getPosGreeks(pos=position$Position,greek=position$Theta)
-thetaEfct<-holdDays*theta  ;rm(theta)
-
+#getThetaEffect(pos=position$Position,greek=position$Theta)
 #Delta Effect
-#Volatility Index is in calinder days. So must adjust. 
-#We calculate our greeks in trading days, so IVIDX must be 
-(IVIDX_td<-position$IVIDX*sqrt(365/252))
-(expPriceChange<-mean(position$UDLY*(exp(IVIDX_td*sqrt(holdDays/365))-1)))
-#delta<-sum(position$Position*position$Delta)
-delta<-getPosGreeks(pos=position$Position,greek=position$Delta)
-deltaEfct<-(-abs(delta))*expPriceChange
-rm(IVIDX_td,delta)
+  #Volatility Index is in calinder days. So must adjust. 
+  #We calculate our greeks in trading days, so IVIDX must be 
+#getDeltaEffect(pos=position$Position,greek=position$Delta,
+#               UDLY=position$UDLY,ividx_td=getIV_td(position$IVIDX))
 #Gamma Effect
-#(gamma<-sum(position$Position*position$Gamma))
-gamma<-getPosGreeks(pos=position$Position,greek=position$Gamma)
-gammaEfct<-gamma*(expPriceChange^2)/2  ;rm(expPriceChange,gamma)
+#getGammaEffect(pos=position$Position,greek=position$Gamma,
+#               UDLY=position$UDLY,ividx_td=getIV_td(position$IVIDX))
 #DTRRR
-(DTRRR<-(deltaEfct+gammaEfct)/thetaEfct)  ;rm(deltaEfct,gammaEfct,thetaEfct,DTRRR)
+getDTRRR(position=position)
 
 #Calculating VTRRR(VEGA/THETA RISK/RETURN RATIO)
 
 #Theta Effect again
-theta<-getPosGreeks(pos=position$Position,greek=position$Theta)
-thetaEfct<-holdDays*theta  ;rm(theta)
+#theta<-getPosGreeks(pos=position$Position,greek=position$Theta)
+#thetaEfct<-holdDays*theta  ;rm(theta)
 
 #Expected Change in Impliev Volatility over the holding days.
-dviv<-annuual.daily.volatility(histIV$IVIDX)$daily
-expIVChange<-mean(position$IVIDX*(exp(dviv*sqrt(holdDays))-1)) ; rm(dviv)
-  #Or use Annualized Volatility of Impled Volatility. Should be the same result.
-  #aviv<-annuual.daily.volatility(histIV$IVIDX)$anlzd*sqrt(holdDays/252)
-  #(expIVChange<-mean(position$IVIDX*(exp(aviv)-1)))  ;rm(aviv)
+#dviv<-annuual.daily.volatility(histIV$IVIDX)$daily
+#expIVChange<-mean(position$IVIDX*(exp(dviv*sqrt(holdDays))-1)) ; rm(dviv)
+ 
 #Vega Effect
-#Here we do not care the effect of Volga as we did the Gamma effect, is this really appropriate?
-vega<-getPosGreeks(pos=position$Position,greek=position$Vega)
-vegaEfct<-(-abs(vega))*(expIVChange*100) ;rm(vega)
-
+#vega<-getPosGreeks(pos=position$Position,greek=position$Vega)
+#vegaEfct<-(-abs(vega))*(expIVChange*100) ;rm(vega)
+#getVegaEffect(pos=position$Position,greek=position$Vega,
+#              ividx=position$IVIDX,dviv=annuual.daily.volatility(histIV$IVIDX)$daily)
 #VTRRR
-(VTRRR<-(vegaEfct/thetaEfct))   ;rm(thetaEfct,expIVChange,vegaEfct,VTRRR)
+#(VTRRR<-(vegaEfct/thetaEfct))   ;rm(thetaEfct,expIVChange,vegaEfct,VTRRR)
+getVTRRR(position=position,dviv=annuual.daily.volatility(histIV$IVIDX)$daily)
