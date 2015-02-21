@@ -16,6 +16,7 @@ annuual.daily.volatility <- function(p){
   vol_<-daily_*sqrt(252)
   ret_<-list(vol_)
   ret_<-c(ret_,list(daily_))
+  names(ret_)<-c("anlzd","daily")
   ret_
 }
 
