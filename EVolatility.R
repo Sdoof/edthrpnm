@@ -68,6 +68,22 @@ load.PC2IV <- function (PC,IVC) {
   assign(paste(PC,"_",IVC,sep=""), reg_saved,env=.GlobalEnv)
 }
 
+#Just like get.predected.Skew. The differnce is here we only use linier regression
+get.predicted.IVIDXChange<-function(model,xmin=-0.03,xmax=0.03,x_by=0.01){  
+  intercept=model$coefficient[1]
+  slope=model$coefficient[2]
+  names(intercept)<-c("1"); names(slope)<-c("1")
+  if(x_by==0){
+    x<-c(xmin)
+    y<-intercept+slope*xmin
+  }else{
+    x<-seq(xmin,xmax,by=x_by)
+    y<-intercept+slope*x   
+  }
+  ivchg<-data.frame(PC=x,IVIDXC=y)
+  ivchg
+}
+
 ###
 ## Volatility Level correlaiton and regression
 ###
@@ -432,6 +448,7 @@ opch %>% dplyr::filter(OrigIV/ATMIV<5.0)  %>% dplyr::filter(OrigIV/ATMIV>0.1) %>
 
 #Regression
 
+
 #Return the new data frame that contains the predicted value (fit column)
 #from xmin to xmax by x_by data interval. If x_by is given as 0, then
 #single predicted value of Moneyness=xmin is returned as a one data vector.
@@ -738,7 +755,6 @@ model.ss<-smooth.spline(vcone$Month,vcone$IV2IDX.nm,df=3)
 save.VCone(model=model.ss,optype=OpType_Put_G)
 
 rm(vcone,predict.c,model.ss)
-
 #  Call VCone IV is normalized --------
 #Creating vcone.
 vcone<-make.vcone.df(atmiv=atmiv,type=-1)

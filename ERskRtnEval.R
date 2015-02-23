@@ -148,3 +148,28 @@ getDTRRR(position=position)
 #(VTRRR<-(vegaEfct/thetaEfct))   ;rm(thetaEfct,expIVChange,vegaEfct,VTRRR)
 
 getVTRRR(position=position,ividx=getIV_td(position$IVIDX),dviv=annuual.daily.volatility(getIV_td(histIV$IVIDX))$daily)
+
+#Factory of Regression Results
+get.Volatility.Level.Regression<-function(Days=holdDays,ctoc=TRUE){
+  if((!ctoc)*(Days==1)){
+    return (PC1dCtO_IVCF1dCtO)
+  }else if(ctoc*(Days==1)){
+    return(PC1dCtC_IVCF1dCtC)
+  } else if(ctoc*(Days==3)){
+    return(PC3dCtC_IVCF3dCtC)
+  }else if(ctoc*(Days==5)){
+    return(PC5dCtC_IVCF5dCtC)
+  }else if(ctoc*(Days==7)){
+    return(PC7dCtC_IVCF7dCtC)
+  }
+}
+
+udly_chg_pct<-0.03
+#udly_chg_value<-mean(position$UDLY*udly_chg_pct)
+regression<-get.Volatility.Level.Regression()
+get.predicted.IVIDXChange(model=regression$model,xmin=udly_chg_pct,xmax=100,x_by=0) ;rm(regression,udly_chg_pct)
+#get.predicted.IVIDXChange(model=regression$model,xmin=udly_chg_pct,xmax=udly_chg_pct)
+#get.predicted.IVIDXChange(model=regression$model,
+#                          xmin=min(c(-udly_chg_pct,udly_chg_pct)),
+#                          xmax=max(c(-udly_chg_pct,udly_chg_pct)))
+
