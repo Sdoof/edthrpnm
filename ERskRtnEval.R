@@ -1,6 +1,6 @@
 library(dplyr)
 library(RQuantLib)
-#
+#Variables -----------
 #Holding Period
 #holdDays<-3*252/365 #Trading Days. This should be correct.
 holdDays<-3
@@ -10,7 +10,7 @@ dviv_caldays<-20
 PosMultip<-100
 
 #Data Setup. Provisioning
-#Load Regression and Correlation Parameters
+#Load Regression and Correlation Parameters ---------------
 load.PC2IV(PC="PC3dCtC",IVC="IVCF3dCtC")
 PC3dCtC_IVCF3dCtC
 load.PC2IV(PC="PC5dCtC",IVC="IVCF5dCtC")
@@ -36,6 +36,7 @@ CallIVChgUp
 load.IVChg(OpType_Call_G,-10)
 CallIVChgDown
 
+#Rsk/Rtn greek related functions --------------
 #get the position's total greek
 getPosGreeks<-function(pos,greek,multi=PosMultip){
   pos_greek<-sum(pos*multi*greek)
@@ -99,7 +100,7 @@ getVTRRR<-function(position,ividx,dviv,multi=PosMultip,hdd=holdDays){
   VTRRR
 }
 
-#Option Position Data. Here we use UDL_Positions_Pre
+#Option Position Data. Here we use UDL_Positions_Pre ---------------
 rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep="")
 position<-read.table(rf,header=T,sep=",")
   #filtering
@@ -108,7 +109,7 @@ position %>% dplyr::filter(Position!=0) %>%
                 -(contains('Frac',ignore.case=TRUE)),
                 -(IV)) %>% as.data.frame() -> position
 
-#Historical Implied Volatility Data
+#Historical Implied Volatility Data -----------
 rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_IV.csv",sep="") 
 histIV<-read.table(rf,header=T,sep=",",nrows=1999);rm(rf)
   #filtering
@@ -127,7 +128,7 @@ histIV %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")<=max(as.Date(position$D
 #Gamma Effect
 #getGammaEffect(pos=position$Position,greek=position$Gamma,
 #               UDLY=position$UDLY,ividx_td=getIV_td(position$IVIDX))
-#DTRRR
+#get DTRRR VTRRR--------------
 getDTRRR(position=position)
 
 #Calculating VTRRR(VEGA/THETA RISK/RETURN RATIO)
@@ -150,6 +151,7 @@ getDTRRR(position=position)
 
 getVTRRR(position=position,ividx=getIV_td(position$IVIDX),dviv=annuual.daily.volatility(getIV_td(histIV$IVIDX))$daily)
 
+##Rsk/Rtn Scenario functions -----------------------------
 #Factory of Volatility Level Regression Result
 get.Volatility.Level.Regression<-function(Days=holdDays,ctoc=TRUE){
   if((!ctoc)*(Days==1)){
@@ -200,7 +202,7 @@ get.UDLY.Changed.Price<-function(udly,chg_pct){
   change
 }
 
-##Risk/Return calculation Scenario　-------------------------------
+##Rsk/Rrn Scenario　-------------------------------
 udly_chg_pct<-0.03
 #position_eval<-position
 
