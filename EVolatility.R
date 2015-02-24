@@ -489,6 +489,15 @@ get.predicted.skew<-function(models,regtype=1,xmin=-2.0,xmax=1.5,x_by=0.01){
   vplot
 }
 
+# This is the get.predicted.skew() dedicated to SmoothSpline regression.
+# monesness and retuned values are Vectorized.
+get.predicted.spline.skew<-function(models,moneyness){
+  skew_nm<-as.numeric(moneyness<=0)*predict(models$model.m,x=moneyness)$y
+  skew_nm<-skew_nm + as.numeric(moneyness>0)*predict(models$model.m,x=moneyness)$y
+  skew_nm
+}
+
+
 #return list that includes model.m(Moneyness<0) and model.p(Moneyness>0)
 #if the same model is employed regardless of Moneyness's value, then
 # model.p and model.p is identical.

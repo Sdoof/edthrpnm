@@ -234,10 +234,22 @@ position$UDLY <- position$UDLY+get.UDLY.Changed.Price(udly=position$UDLY,chg_pct
 #set new value to HowfarOOM, Moneyness.Nm
 position$Moneyness.Frac<-position$Strike/position$UDLY
 position$HowfarOOM<-(1-position$Moneyness.Frac)*position$TYPE
-position$Moneyness.Nm<-log(position$Moneyness.Frac)/position$ATMIV/sqrt(position$TimeToExpDate)
+#if TimeToExpDate < 0.3, TimeToExpDate should be 0.3. Otherwise use the TimeToExpDate.
+eval_timeToExpDate<-as.numeric(position$TimeToExpDate<0.3)*0.3+as.numeric(position$TimeToExpDate>=0.3)*position$TimeToExpDate
+position$Moneyness.Nm<-log(position$Moneyness.Frac)/position$ATMIV/sqrt(eval_timeToExpDate)
 position$Moneyness.Frac<-NULL
 
 #calculate IV_pos(OrigIV) using SkewModel based on model definition formula.
+get.predicted.spline.skew(SkewModel,position$Moneyness.Nm)
+position$ATMIV*get.predicted.spline.skew(SkewModel,position$Moneyness.Nm)
+position$OrigIV<-position$ATMIV*get.predicted.spline.skew(SkewModel,position$Moneyness.Nm)
 
 #calculate pption price and thier greeks
+vgreeks<-set.EuropeanOptionValueGreeks(position)
+position$Price<-vgreeks$Price
+position$Delta<-vgreeks$Delta
+position$Gamma<-vgreeks$Gamma
+position$Vega<-vgreeks$Vega
+position$Theta<-vgreeks$Theta
+position$Rho<-vgreeks$Rho
 

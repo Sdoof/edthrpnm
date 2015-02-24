@@ -96,7 +96,7 @@ opch_pr_$Delta<-tmp$Delta
 opch_pr_$Gamma<-tmp$Gamma
 opch_pr_$Vega<-tmp$Vega
 opch_pr_$Theta<-tmp$Theta
-opch_pr_$Rho<-tmp$Theta
+opch_pr_$Rho<-tmp$Rho
 rm(tmp)
 
 wf_<-paste(DataFiles_Path_G,Underying_Synbol_G,"_OPChain_Pos.csv",sep="")

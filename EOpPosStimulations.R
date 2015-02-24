@@ -257,7 +257,7 @@ for(ith_stim in 1:StimultaionNum){
     XTStim$Gamma<-tmp_$Gamma
     XTStim$Vega<-tmp_$Vega
     XTStim$Theta<-tmp_$Theta
-    XTStim$Rho<-tmp_$Theta
+    XTStim$Rho<-tmp_$Rho
     
     #Case of American Option
     #TBD
