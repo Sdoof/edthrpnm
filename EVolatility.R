@@ -110,7 +110,7 @@ IVCF3dCtC<-histIV_$IVCF3dCtC[start_day_:(start_day_+num_day_)]
 P2IV3d <- data.frame(PCIV3dCtC=PCIV3dCtC, IVCF3dCtC=IVCF3dCtC)
 (gg_<-ggplot(P2IV3d,aes(x=PCIV3dCtC,y=IVCF3dCtC))+geom_point())
 co<-cor(PCIV3dCtC,IVCF3dCtC)
-  #linear regression
+#linear regression
 norns.lm<-lm(IVCF3dCtC~PCIV3dCtC, data=P2IV3d)
 summary(norns.lm)
 gg_+geom_abline(intercept=norns.lm$coefficient[1],slope=norns.lm$coefficient[2],color="orange")
@@ -119,12 +119,12 @@ PC3dCtC<-histPrc_$PC3dCtC[start_day_:(start_day_+num_day_)]
 P2IV3d <- data.frame(PC3dCtC=PC3dCtC, IVCF3dCtC=IVCF3dCtC)
 (gg_<-ggplot(P2IV3d,aes(x=PC3dCtC,y=IVCF3dCtC))+geom_point())
 co<-cor(PC3dCtC,IVCF3dCtC)
-  #linear regression
+#linear regression
 norns.lm<-lm(IVCF3dCtC~PC3dCtC, data=P2IV3d)
 summary(norns.lm)
 gg_+geom_abline(intercept=norns.lm$coefficient[1],slope=norns.lm$coefficient[2],color="orange")
 
-  #Regression File save
+#Regression File save
 #mean(PC3dCtC,na.rm=TRUE)
 mean(PC3dCtC)
 sd(PC3dCtC)
@@ -133,7 +133,7 @@ sd(IVCF3dCtC)
 save.PC2IV(model=norns.lm,PC=getvarname(PC3dCtC),IVC=getvarname(IVCF3dCtC),cor=co,
            pcstat=c(mean(PC3dCtC),sd(PC3dCtC)),
            ivstat=c(mean(IVCF3dCtC),sd(IVCF3dCtC)))
-  #Load test
+#Load test
 load.PC2IV(PC=getvarname(PC3dCtC),IVC=getvarname(IVCF3dCtC))
 PC3dCtC_IVCF3dCtC
 rm(PC3dCtC_IVCF3dCtC)
@@ -177,7 +177,7 @@ IVCF7dCtC<-histIV_$IVCF7dCtC[start_day_:(start_day_+num_day_)]
 P2IV7d <- data.frame(PCIV7dCtC=PCIV7dCtC, IVCF7dCtC=IVCF7dCtC)
 (gg_<-ggplot(P2IV7d,aes(x=PCIV7dCtC,y=IVCF7dCtC))+geom_point())
 co<-cor(PCIV7dCtC,IVCF7dCtC)
-  #linear regression
+#linear regression
 norns.lm<-lm(IVCF7dCtC~PCIV7dCtC, data=P2IV7d)
 summary(norns.lm)
 gg_+geom_abline(intercept=norns.lm$coefficient[1],slope=norns.lm$coefficient[2],color="orange")
@@ -186,7 +186,7 @@ PC7dCtC<-histPrc_$PC7dCtC[start_day_:(start_day_+num_day_)]
 P2IV7d <- data.frame(PC7dCtC=PC7dCtC, IVCF7dCtC=IVCF7dCtC)
 (gg_<-ggplot(P2IV7d,aes(x=PC7dCtC,y=IVCF7dCtC))+geom_point())
 co<-cor(PC7dCtC,IVCF7dCtC)
-  #linear regression
+#linear regression
 norns.lm<-lm(IVCF7dCtC~PC7dCtC, data=P2IV7d)
 summary(norns.lm)
 gg_+geom_abline(intercept=norns.lm$coefficient[1],slope=norns.lm$coefficient[2],color="orange")
@@ -200,7 +200,7 @@ sd(IVCF7dCtC)
 save.PC2IV(model=norns.lm,PC=getvarname(PC7dCtC),IVC=getvarname(IVCF7dCtC),cor=co,
            pcstat=c(mean(PC7dCtC),sd(PC7dCtC)),
            ivstat=c(mean(IVCF7dCtC),sd(IVCF7dCtC)))
-  #Load test
+#Load test
 load.PC2IV(PC=getvarname(PC7dCtC),IVC=getvarname(IVCF7dCtC))
 PC7dCtC_IVCF7dCtC
 rm(PC7dCtC_IVCF7dCtC)
@@ -327,8 +327,8 @@ opch %>% dplyr::group_by(Date,ExpDate,TYPE) %>% dplyr::filter(HowfarOOM>0) %>%
   as.data.frame() -> atmiv
 atmiv %>% dplyr::select(Date,ExpDate,TYPE,ATMIV,IVIDX,TimeToExpDate) %>% as.data.frame() -> atmiv
 opch <- merge(opch,
-        atmiv %>% dplyr::select(Date,ExpDate,TYPE,ATMIV) %>% as.data.frame(),
-        by.x=c("Date","ExpDate","TYPE"),by.y=c("Date","ExpDate","TYPE"),all.x=T)
+              atmiv %>% dplyr::select(Date,ExpDate,TYPE,ATMIV) %>% as.data.frame(),
+              by.x=c("Date","ExpDate","TYPE"),by.y=c("Date","ExpDate","TYPE"),all.x=T)
 #sorting
 atmiv %>% dplyr::arrange(desc(TYPE),as.Date(ExpDate,format="%Y/%m/%d"),as.Date(Date,format="%Y/%m/%d")) -> atmiv
 opch %>% dplyr::arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="%Y/%m/%d"),desc(TYPE),Strike) -> opch
@@ -357,7 +357,7 @@ makeVconAnalDF<- function(atmiv){
                           ,IVIDX.f=IVIDX.s/IVIDX
                           ,TimeToExpDate.d=TimeToExpDate-TimeToExpDate.s) -> atmiv
   atmiv$ATMIV.s<-atmiv$IVIDX.s<-atmiv$TimeToExpDate.s<-NULL
-
+  
   #filter out data whose busuness days interval are more than time_max days
   # if you want to exclude whose intervals are more than 6 days, 
   #  then set time_max<- 6.2 etc to avoid unncessary boundary misconfigurations.
@@ -398,6 +398,53 @@ opch %>%  dplyr::filter(TYPE==1) %>%
   dplyr::filter(OrigIV/ATMIV<3.0)  %>% dplyr::filter(OrigIV/ATMIV>0.2) %>%
   dplyr::filter(HowfarOOM>=0) %>% dplyr::filter(TimeToExpDate>TimeToExp_Limit_Closeness_G) -> vplot
 # dplyr::filter(HowfarOOM>=0) %>% dplyr::filter(TimeToExpDate>0.3) -> vplot
+rgl::plot3d(vplot$Moneyness.Frac,vplot$TimeToExpDate,vplot$OrigIV,col=rainbow(100))
+rgl::clear3d()
+
+#Put ITM
+opch %>% dplyr::filter(TYPE==1) %>%
+  dplyr::filter(OrigIV/ATMIV<3.0) %>% dplyr::filter(OrigIV/ATMIV>0.2) %>%
+  dplyr::filter(HowfarOOM<0) %>% dplyr::filter(TimeToExpDate>0.3) -> vplot
+rgl::plot3d(vplot$Moneyness.Frac,vplot$TimeToExpDate,vplot$OrigIV,col=rainbow(100))
+rgl::clear3d()
+
+#Call OOM
+opch %>% dplyr::filter(TYPE==-1) %>%
+  dplyr::filter(OrigIV/ATMIV<3.0) %>% dplyr::filter(OrigIV/ATMIV>0.2) %>%
+  dplyr::filter(HowfarOOM>=0) %>% dplyr::filter(TimeToExpDate>0.3) -> vplot
+rgl::plot3d(vplot$Moneyness.Frac,vplot$TimeToExpDate,vplot$OrigIV,col=rainbow(100))
+rgl::clear3d()
+
+#Call ITM
+opch %>% dplyr::filter(TYPE==-1) %>%
+  dplyr::filter(OrigIV/ATMIV<3.0) %>% dplyr::filter(OrigIV/ATMIV>0.2) %>%
+  dplyr::filter(HowfarOOM<0) %>% dplyr::filter(TimeToExpDate>0.3) -> vplot
+rgl::plot3d(vplot$Moneyness.Frac,vplot$TimeToExpDate,vplot$OrigIV,col=rainbow(100))
+rgl::clear3d()
+
+rm(vplot)
+# Nmlzd Skew Analysis Variations **Just for Info -----------
+#Normalized Skew
+#Put
+opch %>% dplyr::filter(TYPE==1) %>%
+  dplyr::filter(OrigIV/ATMIV<3.0) %>% dplyr::filter(OrigIV/ATMIV>0.2) %>%
+  dplyr::filter(HowfarOOM>=-100) %>% dplyr::filter(TimeToExpDate>0.3) -> vplot
+(ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV),size=TimeToExpDate/2,colour=Date))+geom_point(alpha=0.2))
+
+#Call
+opch %>% dplyr::filter(TYPE==-1) %>%
+  dplyr::filter(OrigIV/ATMIV<3.0) %>% dplyr::filter(OrigIV/ATMIV>0.2) %>%
+  dplyr::filter(HowfarOOM>=-100) %>% dplyr::filter(TimeToExpDate>0.3) -> vplot
+(ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV),size=TimeToExpDate/2,colour=Date))+geom_point(alpha=0.2))
+
+#Complete Opchain. Using OOM/ATM options.
+opch %>% dplyr::filter(OrigIV/ATMIV<5.0) %>% dplyr::filter(OrigIV/ATMIV>0.1) %>%
+  dplyr::filter(TimeToExpDate>0.3) -> vplot
+(ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV),size=TimeToExpDate/2,colour=TYPE))+geom_point(alpha=0.2))
+# Nmlzd Skew Analysis and Regression ----------------------------
+#Complete Opchain. Using OOM options. By Call-Put parity, ITM IV is supposed to be the same as OOM IV.
+opch %>% dplyr::filter(OrigIV/ATMIV<5.0) %>% dplyr::filter(OrigIV/ATMIV>0.1) %>%
+  dplyr::filter(HowfarOOM>=0) %>% dplyr::filter(TimeToExpDate>0.3) -> vplot
 (ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV),size=TimeToExpDate/2,colour=Date))+geom_point(alpha=0.2))
 
 #Regression
@@ -501,7 +548,7 @@ vplot_exp <- get.predicted.skew(models)
 
 #5. smooth splines
 models <- (get.skew.regression.Models(vplot,regtype=5,df=7))
-  #just get one predicted value. wrapped by get.predicted.skew()
+#just get one predicted value. wrapped by get.predicted.skew()
 get.predicted.skew(models,regtype=5,xmin=-1,x_by=0)
 (predict.c<-get.predicted.skew(models,regtype=5,xmin=-2.0,xmax=1.5))
 (ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV)))+geom_point(alpha=0.2)+
@@ -661,9 +708,9 @@ load.VCone<- function(optype) {
     load(reg_load_fn)
     assign("PutVCone",model,env=.GlobalEnv)
   }else if(optype==OpType_Call_G){
-   reg_load_fn<-paste(DataFiles_Path_G,Underying_Symbol_G,"_CallVCone",sep="")
-   load(reg_load_fn)
-   assign("CallVCone",model,env=.GlobalEnv)
+    reg_load_fn<-paste(DataFiles_Path_G,Underying_Symbol_G,"_CallVCone",sep="")
+    load(reg_load_fn)
+    assign("CallVCone",model,env=.GlobalEnv)
   }
 }
 #    All Type Vcone *Just for Info -----
@@ -682,14 +729,14 @@ predict.c <- vcone_regression(vcone=vcone,regtype=3,ret=2)
 (gg_<-ggplot(vcone,aes(x=Month,y=IV2IDX.nm,colour=TYPE))+geom_point()+
    geom_line(data=data.frame(vcone,fit=predict.c),aes(Month,fit)))
 #   5.smooth spline
-  # predict() S3 method for class 'smooth.spline'
-  # predict(object, x, deriv = 0, ...)
-  #   Arguments
-  #    object  a fit from smooth.spline.
-  #    x	the new values of x.
-  #    deriv	integer; the order of the derivative required.
-  #  Value
-  #   A list with components x(The input x),y(The fitted values or derivatives at x)
+# predict() S3 method for class 'smooth.spline'
+# predict(object, x, deriv = 0, ...)
+#   Arguments
+#    object  a fit from smooth.spline.
+#    x	the new values of x.
+#    deriv	integer; the order of the derivative required.
+#  Value
+#   A list with components x(The input x),y(The fitted values or derivatives at x)
 #(predict(smooth.spline(vcone$Month,vcone$IV2IDX.nm,df=3),x=2))
 (predict.c <- predict(smooth.spline(vcone$Month,vcone$IV2IDX.nm,df=3),x=seq(0,max(vcone$Month),by=0.1)))
 (gg_<-ggplot(vcone,aes(x=Month,y=IV2IDX.nm))+geom_point()+
