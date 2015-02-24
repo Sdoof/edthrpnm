@@ -202,6 +202,7 @@ get.UDLY.Changed.Price<-function(udly,chg_pct){
 
 ##Risk/Return calculation Scenario　-------------------------------
 udly_chg_pct<-0.03
+#position_eval<-position
 
 # UDLY_pre/UDLY_posに対するIVIDX_pre/IVIDX_pos
 regression<-get.Volatility.Level.Regression()
@@ -234,8 +235,10 @@ position$UDLY <- position$UDLY+get.UDLY.Changed.Price(udly=position$UDLY,chg_pct
 #set new value to HowfarOOM, Moneyness.Nm
 position$Moneyness.Frac<-position$Strike/position$UDLY
 position$HowfarOOM<-(1-position$Moneyness.Frac)*position$TYPE
-#if TimeToExpDate < 0.3, TimeToExpDate should be 0.3. Otherwise use the TimeToExpDate.
-eval_timeToExpDate<-as.numeric(position$TimeToExpDate<0.3)*0.3+as.numeric(position$TimeToExpDate>=0.3)*position$TimeToExpDate
+#if TimeToExpDate < TimeToExp_Limit_Closeness_G(0.3 etc), TimeToExpDate should be TimeToExp_Limit_Closeness_G.
+#Otherwise use the TimeToExpDate values themselves.
+eval_timeToExpDate<-as.numeric(position$TimeToExpDate<TimeToExp_Limit_Closeness_G)*TimeToExp_Limit_Closeness_G+
+  as.numeric(position$TimeToExpDate>=TimeToExp_Limit_Closeness_G)*position$TimeToExpDate
 position$Moneyness.Nm<-log(position$Moneyness.Frac)/position$ATMIV/sqrt(eval_timeToExpDate)
 position$Moneyness.Frac<-NULL
 
@@ -253,3 +256,4 @@ position$Vega<-vgreeks$Vega
 position$Theta<-vgreeks$Theta
 position$Rho<-vgreeks$Rho
 
+rm(regression,vgreeks,TimeToExpDate_pos,ividx_chg_pct,dviv_caldays,bdays_per_month)

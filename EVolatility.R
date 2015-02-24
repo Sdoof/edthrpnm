@@ -396,58 +396,11 @@ rm(i,atmiv.vcone.eachDF,atmiv.vcone.bind)
 #Put OOM
 opch %>%  dplyr::filter(TYPE==1) %>% 
   dplyr::filter(OrigIV/ATMIV<3.0)  %>% dplyr::filter(OrigIV/ATMIV>0.2) %>%
-  dplyr::filter(HowfarOOM>=0) %>% dplyr::filter(TimeToExpDate>0.3) -> vplot
-rgl::plot3d(vplot$Moneyness.Frac,vplot$TimeToExpDate,vplot$OrigIV,col=rainbow(100))
-rgl::clear3d()
-
-#Put ITM
-opch %>%  dplyr::filter(TYPE==1) %>% 
-  dplyr::filter(OrigIV/ATMIV<3.0)  %>% dplyr::filter(OrigIV/ATMIV>0.2) %>%
-  dplyr::filter(HowfarOOM<0) %>% dplyr::filter(TimeToExpDate>0.3) -> vplot
-rgl::plot3d(vplot$Moneyness.Frac,vplot$TimeToExpDate,vplot$OrigIV,col=rainbow(100))
-rgl::clear3d()
-
-#Call OOM
-opch %>%  dplyr::filter(TYPE==-1) %>% 
-  dplyr::filter(OrigIV/ATMIV<3.0)  %>% dplyr::filter(OrigIV/ATMIV>0.2) %>%
-  dplyr::filter(HowfarOOM>=0) %>% dplyr::filter(TimeToExpDate>0.3) -> vplot
-rgl::plot3d(vplot$Moneyness.Frac,vplot$TimeToExpDate,vplot$OrigIV,col=rainbow(100))
-rgl::clear3d()
-
-#Call ITM
-opch %>%  dplyr::filter(TYPE==-1) %>% 
-  dplyr::filter(OrigIV/ATMIV<3.0)  %>% dplyr::filter(OrigIV/ATMIV>0.2) %>%
-  dplyr::filter(HowfarOOM<0) %>% dplyr::filter(TimeToExpDate>0.3) -> vplot
-rgl::plot3d(vplot$Moneyness.Frac,vplot$TimeToExpDate,vplot$OrigIV,col=rainbow(100))
-rgl::clear3d()
-
-rm(vplot)
-# Nmlzd Skew Analysis Variations **Just for Info -----------
-#Normalized Skew
-#Put
-opch %>%  dplyr::filter(TYPE==1) %>% 
-  dplyr::filter(OrigIV/ATMIV<3.0)  %>% dplyr::filter(OrigIV/ATMIV>0.2) %>%
-  dplyr::filter(HowfarOOM>=-100) %>% dplyr::filter(TimeToExpDate>0.3) -> vplot
-(ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV),size=TimeToExpDate/2,colour=Date))+geom_point(alpha=0.2))
-
-#Call
-opch %>%  dplyr::filter(TYPE==-1) %>% 
-  dplyr::filter(OrigIV/ATMIV<3.0)  %>% dplyr::filter(OrigIV/ATMIV>0.2) %>%
-  dplyr::filter(HowfarOOM>=-100) %>% dplyr::filter(TimeToExpDate>0.3) -> vplot
-(ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV),size=TimeToExpDate/2,colour=Date))+geom_point(alpha=0.2))
-
-#Complete Opchain. Using OOM/ATM options.
-opch %>% dplyr::filter(OrigIV/ATMIV<5.0)  %>% dplyr::filter(OrigIV/ATMIV>0.1) %>%
-  dplyr::filter(TimeToExpDate>0.3) -> vplot
-(ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV),size=TimeToExpDate/2,colour=TYPE))+geom_point(alpha=0.2))
-# Nmlzd Skew Analysis and Regression  ----------------------------
-#Complete Opchain. Using OOM options. By Call-Put parity, ITM IV is supposed to be the same as OOM IV.
-opch %>% dplyr::filter(OrigIV/ATMIV<5.0)  %>% dplyr::filter(OrigIV/ATMIV>0.1) %>%
-  dplyr::filter(HowfarOOM>=0) %>% dplyr::filter(TimeToExpDate>0.3) -> vplot
+  dplyr::filter(HowfarOOM>=0) %>% dplyr::filter(TimeToExpDate>TimeToExp_Limit_Closeness_G) -> vplot
+# dplyr::filter(HowfarOOM>=0) %>% dplyr::filter(TimeToExpDate>0.3) -> vplot
 (ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV),size=TimeToExpDate/2,colour=Date))+geom_point(alpha=0.2))
 
 #Regression
-
 
 #Return the new data frame that contains the predicted value (fit column)
 #from xmin to xmax by x_by data interval. If x_by is given as 0, then
@@ -597,7 +550,8 @@ df2mat<-function(p,xvar=NULL,yvar=NULL,zvar=NULL){
 
 #Complete Opchain. Using OOM options. By Call-Put parity, ITM IV is same as OOM IV.
 opch %>% dplyr::filter(OrigIV/ATMIV<5.0)  %>% dplyr::filter(OrigIV/ATMIV>0.1) %>%
-  dplyr::filter(HowfarOOM>=0) %>% dplyr::filter(TimeToExpDate>0.3) -> vplot
+  dplyr::filter(HowfarOOM>=0) %>% dplyr::filter(TimeToExpDate>TimeToExp_Limit_Closeness_G) -> vplot
+#  dplyr::filter(HowfarOOM>=0) %>% dplyr::filter(TimeToExpDate>0.3) -> vplot
 
 data.frame(Moneyness=vplot$Moneyness.Nm,
            Month=vplot$TimeToExpDate,

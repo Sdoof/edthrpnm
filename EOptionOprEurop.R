@@ -26,6 +26,8 @@ ChangTimeUnit_G=7
 #Definition
 OpType_Put_G=1
 OpType_Call_G=-1
+#Skewness Calculation
+TimeToExp_Limit_Closeness_G=0.3
 #File
 Underying_Symbol_G="RUT"
 #DataFiles_Path_G="C:\\Users\\kuby\\RProject\\MarketData\\data\\"
