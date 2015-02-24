@@ -1,4 +1,5 @@
 library(dplyr)
+library(RQuantLib)
 #
 #Holding Period
 #holdDays<-3*252/365 #Trading Days. This should be correct.
@@ -108,8 +109,8 @@ position %>% dplyr::filter(Position!=0) %>%
                 -(IV)) %>% as.data.frame() -> position
 
 #Historical Implied Volatility Data
-rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_IV.csv",sep="") ;rm(rf)
-histIV<-read.table(rf,header=T,sep=",",nrows=1999)
+rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_IV.csv",sep="") 
+histIV<-read.table(rf,header=T,sep=",",nrows=1999);rm(rf)
   #filtering
 histIV %>% dplyr::transmute(Date=Date,IVIDX=Close/100) -> histIV
 histIV %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")<=max(as.Date(position$Date,format="%Y/%m/%d"))) %>%
@@ -164,23 +165,6 @@ get.Volatility.Level.Regression<-function(Days=holdDays,ctoc=TRUE){
   }
 }
 
-#Factory of Volatility Change Regression Resulst
-get.Volatility.Change.Regression<-function(optype,up_dn){
-  if(optype==OpType_Put_G){
-    if(up_dn>=0){
-      return(PutIVChgUp)
-    }else {
-      return(PutIVChgDown)
-    }
-  }else if(optype==OpType_Call_G){
-    if(up_dn>=0){
-      return(CallIVChgUp)
-    }else {
-      return(CallIVChgDown)
-    }
-  }
-}
-
 #read from get.Volatility.Change.Regression.Result to get specific regression values.
 get.VolChg<-function(model,month){
   chg<-predict(model,x=month)
@@ -209,24 +193,51 @@ get.Volatility.Cone.Regression.Result<-function(optype,month){
   cone
 }
 
-udly_chg_pct<-0.03
-#udly_chg_value<-mean(position$UDLY*udly_chg_pct)
-regression<-get.Volatility.Level.Regression()
+#when we get the Future Option, we must consider spot change and
+#their forward(future) prices. here just treat stock or other (not future) option
+get.UDLY.Changed.Price<-function(udly,chg_pct){
+  change<-udly*chg_pct
+  change
+}
 
+##Risk/Return calculation Scenario　-------------------------------
+udly_chg_pct<-0.03
+
+# UDLY_pre/UDLY_posに対するIVIDX_pre/IVIDX_pos
+regression<-get.Volatility.Level.Regression()
+ividx_chg_pct<-get.predicted.IVIDXChange(model=regression$model,xmin=udly_chg_pct,xmax=100,x_by=0)$IVIDXC
 #IVIDX_pre/IVIDX_posに対するATMIV_pos/ATMIV_pre
-get.predicted.IVIDXChange(model=regression$model,xmin=udly_chg_pct,xmax=100,x_by=0) ;rm(regression,udly_chg_pct)
-#get.predicted.IVIDXChange(model=regression$model,xmin=udly_chg_pct,xmax=udly_chg_pct)
 #get.predicted.IVIDXChange(model=regression$model,
 #                          xmin=min(c(-udly_chg_pct,udly_chg_pct)),
 #                          xmax=max(c(-udly_chg_pct,udly_chg_pct)))
-get.Volatility.Change.Regression(optype=position$TYPE,up_dn=udly_chg_pct)
+position$IVIDX<-position$IVIDX*(1+ividx_chg_pct)
+
+## ATM IV change
+position$ATMIV<-position$ATMIV*(1+ividx_chg_pct)*get.Volatility.Change.Regression.Result(position,ividx_chg_pct)
 
 #Volatility Cone の影響。時間変化した分の影響を受ける。その比の分だけ比率変化
-#上で求めたATMIV_pos <- ATMIV_pos*(ATMIV_pos/IVIDX_pos)t=TimeToExp_pre/(ATMIV_pos/IVIDX_pos)t=TimeToExp_pos
+#上で求めたATMIV_pos <- ATMIV_pos*(ATMIV_pos/IVIDX_pos)t=TimeToExpDate_pre/(ATMIV_pos/IVIDX_pos)t=TimeToExpDate_pos
 bdays_per_month<-252/12
-timeToExp_pos<-(position$TimeToExp*bdays_per_month-holdDays)/bdays_per_month
-get.Volatility.Cone.Regression.Result(position$TYPE,position$TimeToExp)
-get.Volatility.Cone.Regression.Result(position$TYPE,timeToExp_pos)
-get.Volatility.Cone.Regression.Result(position$TYPE,timeToExp_pos)/
-  get.Volatility.Cone.Regression.Result(position$TYPE,position$TimeToExp)
+TimeToExpDate_pos<-(position$TimeToExpDate*bdays_per_month-holdDays)/bdays_per_month
+#get.Volatility.Cone.Regression.Result(position$TYPE,position$TimeToExpDate)
+#get.Volatility.Cone.Regression.Result(position$TYPE,TimeToExpDate_pos)
+position$ATMIV<-position$ATMIV *
+  get.Volatility.Cone.Regression.Result(position$TYPE,TimeToExpDate_pos)/
+  get.Volatility.Cone.Regression.Result(position$TYPE,position$TimeToExpDate)
+#set new TimeToExpDate
+position$TimeToExpDate<-TimeToExpDate_pos
+#time advance
+position$Date <- format(advance("UnitedStates/NYSE",dates=as.Date(position$Date,format="%Y/%m/%d"),
+                              holdDays,0),"%Y/%m/%d")
+#set new value to UDLY
+position$UDLY <- position$UDLY+get.UDLY.Changed.Price(udly=position$UDLY,chg_pct=udly_chg_pct)
+#set new value to HowfarOOM, Moneyness.Nm
+position$Moneyness.Frac<-position$Strike/position$UDLY
+position$HowfarOOM<-(1-position$Moneyness.Frac)*position$TYPE
+position$Moneyness.Nm<-log(position$Moneyness.Frac)/position$ATMIV/sqrt(position$TimeToExpDate)
+position$Moneyness.Frac<-NULL
+
+#calculate IV_pos(OrigIV) using SkewModel based on model definition formula.
+
+#calculate pption price and thier greeks
 
