@@ -49,7 +49,7 @@ getIV_td<-function(ividx_cd){
 }
 
 getThetaEffect<-function(pos,greek,multi=PosMultip,hdd=holdDays){
-  theta<-getPosGreeks(pos=position$Position,greek=position$Theta)
+  theta<-getPosGreeks(pos=pos$Position,greek=pos$Theta)
   thetaEfct<-holdDays*theta
   thetaEfct
 }
@@ -332,9 +332,65 @@ evalPosRskRtnDTRRR<- function(pos_eval=pos){
   dtrrr
 }
 
+evalPosRskRtnVTRRR<- function(pos_eval=pos){
+  pos_DTRRR<-pos_eval$pos
+  print(pos_DTRRR)
+  #dviv should be pre-calculated when optimize
+  vtrrr<-getVTRRR(position=pos_DTRRR,ividx=getIV_td(pos_DTRRR$IVIDX),dviv=annuual.daily.volatility(getIV_td(histIV$IVIDX))$daily)
+  vtrrr
+}
+
+evalPosRskRtnThetaEffect<- function(pos_eval=pos){
+  pos<-pos_eval$pos
+  print(pos$Theta)
+  thetaEffect<-getThetaEffect(pos=pos,greek=pos$Theta)
+  thetaEffect
+}
+
 posEvalTbl %>% group_by(udlChgPct) %>% do(pos=reflectPosChg(.)) -> posEvalTbl
+
 posEvalTbl %>% rowwise() %>% do(DTRRR=evalPosRskRtnDTRRR(.)) -> tmp
 unlist(tmp$DTRRR)->tmp
 posEvalTbl$DTRRR <- tmp ;rm(tmp)
+
+posEvalTbl %>% rowwise() %>% do(VTRRR=evalPosRskRtnVTRRR(.)) -> tmp
+unlist(tmp$VTRRR)->tmp
+posEvalTbl$VTRRR <- tmp ;rm(tmp)
+
+
+
+#debugging(Just for Info ) purpose. when optimized, not necessary.
+posEvalTbl %>% rowwise() %>% do(ThetaEffect=evalPosRskRtnThetaEffect(.)) -> tmp
+
+# getThetaEffect<-function(pos,greek,multi=PosMultip,hdd=holdDays){
+#   theta<-getPosGreeks(pos=position$Position,greek=position$Theta)
+#   thetaEfct<-holdDays*theta
+#   thetaEfct
+# }
+# 
+# getDeltaEffect<-function(pos,greek,UDLY,ividx_td,multi=PosMultip,hdd=holdDays){
+#   expPriceChange<-mean(UDLY*(exp(ividx_td*sqrt(hdd/365))-1))
+#   delta<-getPosGreeks(pos=pos,greek=greek)
+#   deltaEfct<-(-abs(delta))*expPriceChange
+#   deltaEfct
+# }
+# 
+# getGammaEffect<-function(pos,greek,UDLY,ividx_td,multi=PosMultip,hdd=holdDays){
+#   expPriceChange<-mean(UDLY*(exp(ividx_td*sqrt(hdd/365))-1))
+#   gamma<-getPosGreeks(pos=pos,greek=greek)
+#   gammaEfct<-gamma*(expPriceChange^2)/2
+#   gammaEfct
+# }
+# 
+# #Here we do not care the effect of Volga as we did the Gamma effect, is this really appropriate?
+# getVegaEffect<-function(pos,greek,ividx,dviv,multi=PosMultip,hdd=holdDays){
+#   expIVChange<-mean(ividx*(exp(dviv*sqrt(holdDays))-1))
+#   #Or use Annualized Volatility of Impled Volatility. Should be the same result.
+#   #  aviv<-annuual.daily.volatility(histIV$IVIDX)$anlzd*sqrt(holdDays/252)
+#   #  expIVChange<-mean(ividx*(exp(aviv)-1))
+#   vega<-getPosGreeks(pos=pos,greek=greek)
+#   vegaEffect<-(-abs(vega))*(expIVChange*100)
+#   vegaEffect
+# }
 
 rm(posEvalTbl)
