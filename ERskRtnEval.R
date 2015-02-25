@@ -229,7 +229,7 @@ position$ATMIV<-position$ATMIV *
   get.Volatility.Cone.Regression.Result(position$TYPE,position$TimeToExpDate)
 #set new TimeToExpDate
 position$TimeToExpDate<-TimeToExpDate_pos
-#time advance
+#Date advance
 position$Date <- format(advance("UnitedStates/NYSE",dates=as.Date(position$Date,format="%Y/%m/%d"),
                               holdDays,0),"%Y/%m/%d")
 #set new value to UDLY
@@ -259,3 +259,82 @@ position$Theta<-vgreeks$Theta
 position$Rho<-vgreeks$Rho
 
 rm(regression,vgreeks,TimeToExpDate_pos,ividx_chg_pct,dviv_caldays,bdays_per_month)
+
+##Rsk/Rrn Scenario Vectorized Oparation　-------------------------------
+udlStepNum<-3;udlStepPct<-0.03
+udlChgPct<-seq(-udlStepPct*udlStepNum,udlStepPct*udlStepNum,length=(2*udlStepNum)+1)
+posEvalTbl<-data.frame(udlChgPct=udlChgPct) ;rm(udlStepNum,udlStepPct)
+#Set data frames as a row value of another data frame.
+posEvalTbl %>% group_by(udlChgPct) %>% do(pos=position) -> posEvalTbl
+
+reflectPosChg<- function(process_df){
+  pos<-as.data.frame(process_df$pos[1])
+  chg<-as.numeric(process_df$udlChgPct[1])
+  print(chg)
+  
+  # get (IVIDX_pre/IVIDX_pos)/(UDLY_pre/UDLY_pos)
+  regression<-get.Volatility.Level.Regression()
+  ividx_chg_pct<-get.predicted.IVIDXChange(model=regression$model,xmin=chg,xmax=100,x_by=0)$IVIDXC
+  pos$IVIDX<-pos$IVIDX*(1+ividx_chg_pct)
+  
+  # ATM IV change
+  pos$ATMIV<-pos$ATMIV*(1+ividx_chg_pct)*get.Volatility.Change.Regression.Result(pos,ividx_chg_pct)
+  
+  #Volatility Cone の影響。時間変化した分の影響を受ける。その比の分だけ比率変化
+  #ATMIV_pos <- ATMIV_pos*(ATMIV_pos/IVIDX_pos)t=TimeToExpDate_pre/(ATMIV_pos/IVIDX_pos)t=TimeToExpDate_pos
+  bdays_per_month<-252/12
+  TimeToExpDate_pos<-(pos$TimeToExpDate*bdays_per_month-holdDays)/bdays_per_month
+  pos$ATMIV<-pos$ATMIV *
+    get.Volatility.Cone.Regression.Result(pos$TYPE,TimeToExpDate_pos)/
+    get.Volatility.Cone.Regression.Result(pos$TYPE,pos$TimeToExpDate)
+
+  #set new TimeToExpDate
+  pos$TimeToExpDate<-TimeToExpDate_pos
+
+  #Date advance
+  pos$Date <- format(advance("UnitedStates/NYSE",dates=as.Date(pos$Date,format="%Y/%m/%d"),
+                                  holdDays,0),"%Y/%m/%d")
+  
+  #set new value to UDLY
+  pos$UDLY <- pos$UDLY+get.UDLY.Changed.Price(udly=pos$UDLY,chg_pct=chg)
+  
+  #set new value to HowfarOOM, Moneyness.Nm
+  pos$Moneyness.Frac<-pos$Strike/pos$UDLY
+  pos$HowfarOOM<-(1-pos$Moneyness.Frac)*pos$TYPE
+  
+  #if TimeToExpDate < TimeToExp_Limit_Closeness_G(0.3 etc), TimeToExpDate should be TimeToExp_Limit_Closeness_G.
+  #Otherwise use the TimeToExpDate values themselves.
+  eval_timeToExpDate<-as.numeric(pos$TimeToExpDate<TimeToExp_Limit_Closeness_G)*TimeToExp_Limit_Closeness_G+
+    as.numeric(pos$TimeToExpDate>=TimeToExp_Limit_Closeness_G)*pos$TimeToExpDate
+  pos$Moneyness.Nm<-log(pos$Moneyness.Frac)/pos$ATMIV/sqrt(eval_timeToExpDate)
+  pos$Moneyness.Frac<-NULL
+  
+  #calculate IV_pos(OrigIV) using SkewModel based on model definition formula.
+  get.predicted.spline.skew(SkewModel,pos$Moneyness.Nm)
+  pos$ATMIV*get.predicted.spline.skew(SkewModel,pos$Moneyness.Nm)
+  pos$OrigIV<-pos$ATMIV*get.predicted.spline.skew(SkewModel,pos$Moneyness.Nm)
+  
+  #calculate pption price and thier greeks
+  vgreeks<-set.EuropeanOptionValueGreeks(pos)
+  pos$Price<-vgreeks$Price
+  pos$Delta<-vgreeks$Delta
+  pos$Gamma<-vgreeks$Gamma
+  pos$Vega<-vgreeks$Vega
+  pos$Theta<-vgreeks$Theta
+  pos$Rho<-vgreeks$Rho
+
+  pos
+}
+
+evalPosRskRtnDTRRR<- function(pos_eval=pos){
+  pos_eval$pos
+  dtrrr<-getDTRRR(position=pos_eval$pos)
+  dtrrr
+}
+
+posEvalTbl %>% group_by(udlChgPct) %>% do(pos=reflectPosChg(.)) -> posEvalTbl
+posEvalTbl %>% rowwise() %>% do(DTRRR=evalPosRskRtnDTRRR(.)) -> tmp
+unlist(tmp$DTRRR)->tmp
+posEvalTbl$DTRRR <- tmp ;rm(tmp)
+
+rm(posEvalTbl)
