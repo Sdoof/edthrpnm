@@ -1,5 +1,6 @@
 library(dplyr)
 library(RQuantLib)
+
 #Variables -----------
 #Holding Period
 #holdDays<-3*252/365 #Trading Days. This should be correct.
@@ -49,7 +50,7 @@ getIV_td<-function(ividx_cd){
 }
 
 getThetaEffect<-function(pos,greek,multi=PosMultip,hdd=holdDays){
-  theta<-getPosGreeks(pos=pos$Position,greek=pos$Theta)
+  theta<-getPosGreeks(pos=pos,greek=greek)
   thetaEfct<-holdDays*theta
   thetaEfct
 }
@@ -117,38 +118,8 @@ histIV %>% dplyr::transmute(Date=Date,IVIDX=Close/100) -> histIV
 histIV %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")<=max(as.Date(position$Date,format="%Y/%m/%d"))) %>%
   dplyr::arrange(desc(as.Date(Date,format="%Y/%m/%d"))) %>% head(n=dviv_caldays) -> histIV
 
-#Calculating DTRRR (DELTA/THETA RISK/RETURN RATIO)
-#Theta Effect
-#getThetaEffect(pos=position$Position,greek=position$Theta)
-#Delta Effect
-  #Volatility Index is in calinder days. So must adjust. 
-  #We calculate our greeks in trading days, so IVIDX must be 
-#getDeltaEffect(pos=position$Position,greek=position$Delta,
-#               UDLY=position$UDLY,ividx_td=getIV_td(position$IVIDX))
-#Gamma Effect
-#getGammaEffect(pos=position$Position,greek=position$Gamma,
-#               UDLY=position$UDLY,ividx_td=getIV_td(position$IVIDX))
 #get DTRRR VTRRR--------------
 getDTRRR(position=position)
-
-#Calculating VTRRR(VEGA/THETA RISK/RETURN RATIO)
-
-#Theta Effect again
-#theta<-getPosGreeks(pos=position$Position,greek=position$Theta)
-#thetaEfct<-holdDays*theta  ;rm(theta)
-
-#Expected Change in Impliev Volatility over the holding days.
-#dviv<-annuual.daily.volatility(getIV_td(histIV$IVIDX))$daily
-#expIVChange<-mean(getIV_td(position$IVIDX)*(exp(dviv*sqrt(holdDays))-1)) ; rm(dviv)
- 
-#Vega Effect
-#vega<-getPosGreeks(pos=position$Position,greek=position$Vega)
-#vegaEfct<-(-abs(vega))*(expIVChange*100) ;rm(vega)
-#getVegaEffect(pos=position$Position,greek=position$Vega,
-#             ividx=getIV_td(position$IVIDX),dviv=annuual.daily.volatility(getIV_td(histIV$IVIDX))$daily)
-#VTRRR
-#(VTRRR<-(vegaEfct/thetaEfct))   ;rm(thetaEfct,expIVChange,vegaEfct,VTRRR)
-
 getVTRRR(position=position,ividx=getIV_td(position$IVIDX),dviv=annuual.daily.volatility(getIV_td(histIV$IVIDX))$daily)
 
 ##Rsk/Rtn Scenario functions -----------------------------
@@ -202,70 +173,7 @@ get.UDLY.Changed.Price<-function(udly,chg_pct){
   change
 }
 
-##Rsk/Rrn Scenario　-------------------------------
-udly_chg_pct<-0.03
-#position_eval<-position
-
-# UDLY_pre/UDLY_posに対するIVIDX_pre/IVIDX_pos
-regression<-get.Volatility.Level.Regression()
-ividx_chg_pct<-get.predicted.IVIDXChange(model=regression$model,xmin=udly_chg_pct,xmax=100,x_by=0)$IVIDXC
-#IVIDX_pre/IVIDX_posに対するATMIV_pos/ATMIV_pre
-#get.predicted.IVIDXChange(model=regression$model,
-#                          xmin=min(c(-udly_chg_pct,udly_chg_pct)),
-#                          xmax=max(c(-udly_chg_pct,udly_chg_pct)))
-position$IVIDX<-position$IVIDX*(1+ividx_chg_pct)
-
-## ATM IV change
-position$ATMIV<-position$ATMIV*(1+ividx_chg_pct)*get.Volatility.Change.Regression.Result(position,ividx_chg_pct)
-
-#Volatility Cone の影響。時間変化した分の影響を受ける。その比の分だけ比率変化
-#上で求めたATMIV_pos <- ATMIV_pos*(ATMIV_pos/IVIDX_pos)t=TimeToExpDate_pre/(ATMIV_pos/IVIDX_pos)t=TimeToExpDate_pos
-bdays_per_month<-252/12
-TimeToExpDate_pos<-(position$TimeToExpDate*bdays_per_month-holdDays)/bdays_per_month
-#get.Volatility.Cone.Regression.Result(position$TYPE,position$TimeToExpDate)
-#get.Volatility.Cone.Regression.Result(position$TYPE,TimeToExpDate_pos)
-position$ATMIV<-position$ATMIV *
-  get.Volatility.Cone.Regression.Result(position$TYPE,TimeToExpDate_pos)/
-  get.Volatility.Cone.Regression.Result(position$TYPE,position$TimeToExpDate)
-#set new TimeToExpDate
-position$TimeToExpDate<-TimeToExpDate_pos
-#Date advance
-position$Date <- format(advance("UnitedStates/NYSE",dates=as.Date(position$Date,format="%Y/%m/%d"),
-                              holdDays,0),"%Y/%m/%d")
-#set new value to UDLY
-position$UDLY <- position$UDLY+get.UDLY.Changed.Price(udly=position$UDLY,chg_pct=udly_chg_pct)
-#set new value to HowfarOOM, Moneyness.Nm
-position$Moneyness.Frac<-position$Strike/position$UDLY
-position$HowfarOOM<-(1-position$Moneyness.Frac)*position$TYPE
-#if TimeToExpDate < TimeToExp_Limit_Closeness_G(0.3 etc), TimeToExpDate should be TimeToExp_Limit_Closeness_G.
-#Otherwise use the TimeToExpDate values themselves.
-eval_timeToExpDate<-as.numeric(position$TimeToExpDate<TimeToExp_Limit_Closeness_G)*TimeToExp_Limit_Closeness_G+
-  as.numeric(position$TimeToExpDate>=TimeToExp_Limit_Closeness_G)*position$TimeToExpDate
-position$Moneyness.Nm<-log(position$Moneyness.Frac)/position$ATMIV/sqrt(eval_timeToExpDate)
-position$Moneyness.Frac<-NULL
-
-#calculate IV_pos(OrigIV) using SkewModel based on model definition formula.
-get.predicted.spline.skew(SkewModel,position$Moneyness.Nm)
-position$ATMIV*get.predicted.spline.skew(SkewModel,position$Moneyness.Nm)
-position$OrigIV<-position$ATMIV*get.predicted.spline.skew(SkewModel,position$Moneyness.Nm)
-
-#calculate pption price and thier greeks
-vgreeks<-set.EuropeanOptionValueGreeks(position)
-position$Price<-vgreeks$Price
-position$Delta<-vgreeks$Delta
-position$Gamma<-vgreeks$Gamma
-position$Vega<-vgreeks$Vega
-position$Theta<-vgreeks$Theta
-position$Rho<-vgreeks$Rho
-
-rm(regression,vgreeks,TimeToExpDate_pos,ividx_chg_pct,dviv_caldays,bdays_per_month)
-
 ##Rsk/Rrn Scenario Vectorized Oparation　-------------------------------
-udlStepNum<-3;udlStepPct<-0.03
-udlChgPct<-seq(-udlStepPct*udlStepNum,udlStepPct*udlStepNum,length=(2*udlStepNum)+1)
-posEvalTbl<-data.frame(udlChgPct=udlChgPct) ;rm(udlStepNum,udlStepPct)
-#Set data frames as a row value of another data frame.
-posEvalTbl %>% group_by(udlChgPct) %>% do(pos=position) -> posEvalTbl
 
 reflectPosChg<- function(process_df){
   pos<-as.data.frame(process_df$pos[1])
@@ -326,13 +234,13 @@ reflectPosChg<- function(process_df){
   pos
 }
 
-evalPosRskRtnDTRRR<- function(pos_eval=pos){
-  pos_eval$pos
-  dtrrr<-getDTRRR(position=pos_eval$pos)
+evalPosRskRtnDTRRR<- function(pos_eval){
+  pos_DTRRR<-pos_eval$pos
+  dtrrr<-getDTRRR(position=pos_DTRRR)
   dtrrr
 }
 
-evalPosRskRtnVTRRR<- function(pos_eval=pos){
+evalPosRskRtnVTRRR<- function(pos_eval){
   pos_DTRRR<-pos_eval$pos
   print(pos_DTRRR)
   #dviv should be pre-calculated when optimize
@@ -340,57 +248,96 @@ evalPosRskRtnVTRRR<- function(pos_eval=pos){
   vtrrr
 }
 
-evalPosRskRtnThetaEffect<- function(pos_eval=pos){
+evalPosRskRtnThetaEffect<- function(pos_eval){
   pos<-pos_eval$pos
-  print(pos$Theta)
-  thetaEffect<-getThetaEffect(pos=pos,greek=pos$Theta)
+  print(pos)
+  thetaEffect<-getThetaEffect(pos=pos$Position,greek=pos$Theta)
   thetaEffect
 }
 
+evalPosRskRtnDeltaEffect<- function(pos_eval){
+  pos<-pos_eval$pos
+  print(pos)
+  deltaEffect<-getDeltaEffect(pos=pos$Position,greek=pos$Delta,
+                              UDLY=pos$UDLY,ividx_td=getIV_td(pos$IVIDX))
+  deltaEffect
+}
+
+evalPosRskRtnGammaEffect<- function(pos_eval){
+  pos<-pos_eval$pos
+  print(pos)
+  gammaEffect<-getGammaEffect(pos=pos$Position,greek=pos$Gamma,
+                              UDLY=pos$UDLY,ividx_td=getIV_td(pos$IVIDX)) 
+  gammaEffect
+}
+
+evalPosRskRtnVegaEffect<- function(pos_eval){
+  pos<-pos_eval$pos
+  print(pos)
+  #dviv should be pre-calculated when optimize
+  vegaEffect<-getVegaEffect(pos=pos$Position,greek=pos$Vega,
+                            ividx=getIV_td(pos$IVIDX),dviv=annuual.daily.volatility(getIV_td(histIV$IVIDX))$daily)
+  vegaEffect
+}
+
+#START
+udlStepNum<-3;udlStepPct<-0.03
+udlChgPct<-seq(-udlStepPct*udlStepNum,udlStepPct*udlStepNum,length=(2*udlStepNum)+1)
+posEvalTbl<-data.frame(udlChgPct=udlChgPct) ;rm(udlStepNum,udlStepPct)
+#Set data frames as a row value of another data frame.
+posEvalTbl %>% group_by(udlChgPct) %>% do(pos=position) -> posEvalTbl
+#Modify pos based on scenario
 posEvalTbl %>% group_by(udlChgPct) %>% do(pos=reflectPosChg(.)) -> posEvalTbl
-
+#DTRRR
 posEvalTbl %>% rowwise() %>% do(DTRRR=evalPosRskRtnDTRRR(.)) -> tmp
-unlist(tmp$DTRRR)->tmp
-posEvalTbl$DTRRR <- tmp ;rm(tmp)
-
+unlist(tmp$DTRRR)->tmp ; posEvalTbl$DTRRR <- tmp ;rm(tmp)
+#VTRRR
 posEvalTbl %>% rowwise() %>% do(VTRRR=evalPosRskRtnVTRRR(.)) -> tmp
-unlist(tmp$VTRRR)->tmp
-posEvalTbl$VTRRR <- tmp ;rm(tmp)
-
-
+unlist(tmp$VTRRR)->tmp ; posEvalTbl$VTRRR <- tmp ;rm(tmp)
 
 #debugging(Just for Info ) purpose. when optimized, not necessary.
-posEvalTbl %>% rowwise() %>% do(ThetaEffect=evalPosRskRtnThetaEffect(.)) -> tmp
+##
+#  Greek Effects
 
-# getThetaEffect<-function(pos,greek,multi=PosMultip,hdd=holdDays){
-#   theta<-getPosGreeks(pos=position$Position,greek=position$Theta)
-#   thetaEfct<-holdDays*theta
-#   thetaEfct
-# }
-# 
-# getDeltaEffect<-function(pos,greek,UDLY,ividx_td,multi=PosMultip,hdd=holdDays){
-#   expPriceChange<-mean(UDLY*(exp(ividx_td*sqrt(hdd/365))-1))
-#   delta<-getPosGreeks(pos=pos,greek=greek)
-#   deltaEfct<-(-abs(delta))*expPriceChange
-#   deltaEfct
-# }
-# 
-# getGammaEffect<-function(pos,greek,UDLY,ividx_td,multi=PosMultip,hdd=holdDays){
-#   expPriceChange<-mean(UDLY*(exp(ividx_td*sqrt(hdd/365))-1))
-#   gamma<-getPosGreeks(pos=pos,greek=greek)
-#   gammaEfct<-gamma*(expPriceChange^2)/2
-#   gammaEfct
-# }
-# 
-# #Here we do not care the effect of Volga as we did the Gamma effect, is this really appropriate?
-# getVegaEffect<-function(pos,greek,ividx,dviv,multi=PosMultip,hdd=holdDays){
-#   expIVChange<-mean(ividx*(exp(dviv*sqrt(holdDays))-1))
-#   #Or use Annualized Volatility of Impled Volatility. Should be the same result.
-#   #  aviv<-annuual.daily.volatility(histIV$IVIDX)$anlzd*sqrt(holdDays/252)
-#   #  expIVChange<-mean(ividx*(exp(aviv)-1))
-#   vega<-getPosGreeks(pos=pos,greek=greek)
-#   vegaEffect<-(-abs(vega))*(expIVChange*100)
-#   vegaEffect
-# }
+#  ThetaEffect
+#posEvalTbl %>% rowwise() %>% do(ThetaEffect=evalPosRskRtnThetaEffect(.)) -> tmp
+posEvalTbl %>% rowwise() %>% do(ThetaEffect=getThetaEffect(pos=.$pos$Position,greek=.$pos$Theta)) -> tmp
+unlist(tmp$ThetaEffect)->tmp ; posEvalTbl$ThetaEffect <- tmp ;rm(tmp)
+#  DeltaEffect
+#posEvalTbl %>% rowwise() %>% do(DeltaEffect=evalPosRskRtnDeltaEffect(.)) -> tmp
+posEvalTbl %>% rowwise() %>% do(DeltaEffect=getDeltaEffect(pos=.$pos$Position,greek=.$pos$Delta,
+                                                           UDLY=.$pos$UDLY,
+                                                           ividx_td=getIV_td(.$pos$IVIDX))) -> tmp
+unlist(tmp$DeltaEffect)->tmp ; posEvalTbl$DeltaEffect <- tmp ;rm(tmp)
+#  GammaEffect
+#posEvalTbl %>% rowwise() %>% do(GammaEffect=evalPosRskRtnGammaEffect(.)) -> tmp
+posEvalTbl %>% rowwise() %>% do(GammaEffect=getGammaEffect(pos=.$pos$Position,greek=.$pos$Gamma,
+                                                           UDLY=.$pos$UDLY,
+                                                           ividx_td=getIV_td(.$pos$IVIDX))) -> tmp
+unlist(tmp$GammaEffect)->tmp ; posEvalTbl$GammaEffect <- tmp ;rm(tmp) 
+#  VegaEffect
+#posEvalTbl %>% rowwise() %>% do(VegaEffect=evalPosRskRtnVegaEffect(.)) -> tmp
+posEvalTbl %>% rowwise() %>% do(VegaEffect=getVegaEffect(pos=.$pos$Position,greek=.$pos$Vega,
+                                                         ividx=getIV_td(.$pos$IVIDX)
+                                                         #dviv should be precalulated when optimized
+                                                         ,dviv=annuual.daily.volatility(getIV_td(histIV$IVIDX))$daily)) -> tmp
+unlist(tmp$VegaEffect)->tmp ; posEvalTbl$VegaEffect <- tmp ;rm(tmp)
+
+##
+#  Greeks
+#
+
+#  Delta
+posEvalTbl %>% rowwise() %>% do(Delta=getPosGreeks(pos=.$pos$Position,greek=.$pos$Delta))->tmp
+unlist(tmp$Delta)->tmp ; posEvalTbl$Delta <- tmp ;rm(tmp)
+#  Gamma
+posEvalTbl %>% rowwise() %>% do(Gamma=getPosGreeks(pos=.$pos$Position,greek=.$pos$Gamma))->tmp
+unlist(tmp$Gamma)->tmp ; posEvalTbl$Gamma <- tmp ;rm(tmp)
+#  Vega
+posEvalTbl %>% rowwise() %>% do(Vega=getPosGreeks(pos=.$pos$Position,greek=.$pos$Vega))->tmp
+unlist(tmp$Vega)->tmp ; posEvalTbl$Vega <- tmp ;rm(tmp)
+#  Theta
+posEvalTbl %>% rowwise() %>% do(Theta=getPosGreeks(pos=.$pos$Position,greek=.$pos$Theta))->tmp
+unlist(tmp$Theta)->tmp ; posEvalTbl$Theta <- tmp ;rm(tmp)
 
 rm(posEvalTbl)
