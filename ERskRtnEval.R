@@ -101,16 +101,20 @@ getVTRRR<-function(position,ividx,dviv,multi=PosMultip,hdd=holdDays){
   VTRRR
 }
 
-#Option Position Data. Here we use UDL_Positions_Pre ---------------
+#Option Chain and Position Data. Here we use UDL_Positions_Pre ---------------
 rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep="")
-position<-read.table(rf,header=T,sep=",")
-  #filtering
-position %>% dplyr::filter(Position!=0) %>%
-  dplyr::select(-(starts_with('dummy',ignore.case=TRUE)),
-                -(contains('Frac',ignore.case=TRUE)),
-                -(IV)) %>% as.data.frame() -> position
+opchain<-read.table(rf,header=T,sep=",")
+#filtering. deleting unnecessary column
+opchain %>% dplyr::select(-(starts_with('dummy',ignore.case=TRUE)),
+                      -(contains('Frac',ignore.case=TRUE)),
+                      -(IV)) %>% as.data.frame() -> opchain
+#only OOM targeted
+opchain %>% dplyr::filter(HowfarOOM>=0) -> opchain
+#assiging initial Position?
+#get position where opchain$Position!=0
+opchain %>% dplyr::filter(Position!=0) -> position
 
-#Historical Implied Volatility Data -----------
+##Historical Implied Volatility Data ---------------
 rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_IV.csv",sep="") 
 histIV<-read.table(rf,header=T,sep=",",nrows=1999);rm(rf)
   #filtering
@@ -118,11 +122,13 @@ histIV %>% dplyr::transmute(Date=Date,IVIDX=Close/100) -> histIV
 histIV %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")<=max(as.Date(position$Date,format="%Y/%m/%d"))) %>%
   dplyr::arrange(desc(as.Date(Date,format="%Y/%m/%d"))) %>% head(n=dviv_caldays) -> histIV
 
-#get DTRRR VTRRR--------------
+#get DTRRR VTRRR (**Just for test)---------
 getDTRRR(position=position)
-getVTRRR(position=position,ividx=getIV_td(position$IVIDX),dviv=annuual.daily.volatility(getIV_td(histIV$IVIDX))$daily)
+getVTRRR(position=position,
+         ividx=getIV_td(position$IVIDX),
+         dviv=annuual.daily.volatility(getIV_td(histIV$IVIDX))$daily)
 
-##Rsk/Rtn Scenario functions -----------------------------
+#Rsk/Rtn Scenario functions -----------------------------
 #Factory of Volatility Level Regression Result
 get.Volatility.Level.Regression<-function(Days=holdDays,ctoc=TRUE){
   if((!ctoc)*(Days==1)){
@@ -173,8 +179,55 @@ get.UDLY.Changed.Price<-function(udly,chg_pct){
   change
 }
 
-##Rsk/Rrn Scenario Vectorized Oparation　-------------------------------
+#Inner functions for gruped or rowwise operations. -------------
+#evalPosRskRtnXXX is just wrappers for Rsk/Rtn greek related functions.
+evalPosRskRtnDTRRR<- function(pos_eval){
+  pos_DTRRR<-pos_eval$pos
+  dtrrr<-getDTRRR(position=pos_DTRRR)
+  dtrrr
+}
 
+evalPosRskRtnVTRRR<- function(pos_eval){
+  pos_DTRRR<-pos_eval$pos
+  print(pos_DTRRR)
+  #dviv should be pre-calculated when optimize
+  vtrrr<-getVTRRR(position=pos_DTRRR,ividx=getIV_td(pos_DTRRR$IVIDX),dviv=annuual.daily.volatility(getIV_td(histIV$IVIDX))$daily)
+  vtrrr
+}
+
+evalPosRskRtnThetaEffect<- function(pos_eval){
+  pos<-pos_eval$pos
+  print(pos)
+  thetaEffect<-getThetaEffect(pos=pos$Position,greek=pos$Theta)
+  thetaEffect
+}
+
+evalPosRskRtnDeltaEffect<- function(pos_eval){
+  pos<-pos_eval$pos
+  print(pos)
+  deltaEffect<-getDeltaEffect(pos=pos$Position,greek=pos$Delta,
+                              UDLY=pos$UDLY,ividx_td=getIV_td(pos$IVIDX))
+  deltaEffect
+}
+
+evalPosRskRtnGammaEffect<- function(pos_eval){
+  pos<-pos_eval$pos
+  print(pos)
+  gammaEffect<-getGammaEffect(pos=pos$Position,greek=pos$Gamma,
+                              UDLY=pos$UDLY,ividx_td=getIV_td(pos$IVIDX))
+  gammaEffect
+}
+
+evalPosRskRtnVegaEffect<- function(pos_eval){
+  pos<-pos_eval$pos
+  print(pos)
+  #dviv should be pre-calculated when optimize
+  vegaEffect<-getVegaEffect(pos=pos$Position,greek=pos$Vega,
+                            ividx=getIV_td(pos$IVIDX),dviv=annuual.daily.volatility(getIV_td(histIV$IVIDX))$daily)
+  vegaEffect
+}
+
+# operate to each position data frame based on scenaro changes
 reflectPosChg<- function(process_df){
   pos<-as.data.frame(process_df$pos[1])
   chg<-as.numeric(process_df$udlChgPct[1])
@@ -234,53 +287,7 @@ reflectPosChg<- function(process_df){
   pos
 }
 
-evalPosRskRtnDTRRR<- function(pos_eval){
-  pos_DTRRR<-pos_eval$pos
-  dtrrr<-getDTRRR(position=pos_DTRRR)
-  dtrrr
-}
-
-evalPosRskRtnVTRRR<- function(pos_eval){
-  pos_DTRRR<-pos_eval$pos
-  print(pos_DTRRR)
-  #dviv should be pre-calculated when optimize
-  vtrrr<-getVTRRR(position=pos_DTRRR,ividx=getIV_td(pos_DTRRR$IVIDX),dviv=annuual.daily.volatility(getIV_td(histIV$IVIDX))$daily)
-  vtrrr
-}
-
-evalPosRskRtnThetaEffect<- function(pos_eval){
-  pos<-pos_eval$pos
-  print(pos)
-  thetaEffect<-getThetaEffect(pos=pos$Position,greek=pos$Theta)
-  thetaEffect
-}
-
-evalPosRskRtnDeltaEffect<- function(pos_eval){
-  pos<-pos_eval$pos
-  print(pos)
-  deltaEffect<-getDeltaEffect(pos=pos$Position,greek=pos$Delta,
-                              UDLY=pos$UDLY,ividx_td=getIV_td(pos$IVIDX))
-  deltaEffect
-}
-
-evalPosRskRtnGammaEffect<- function(pos_eval){
-  pos<-pos_eval$pos
-  print(pos)
-  gammaEffect<-getGammaEffect(pos=pos$Position,greek=pos$Gamma,
-                              UDLY=pos$UDLY,ividx_td=getIV_td(pos$IVIDX)) 
-  gammaEffect
-}
-
-evalPosRskRtnVegaEffect<- function(pos_eval){
-  pos<-pos_eval$pos
-  print(pos)
-  #dviv should be pre-calculated when optimize
-  vegaEffect<-getVegaEffect(pos=pos$Position,greek=pos$Vega,
-                            ividx=getIV_td(pos$IVIDX),dviv=annuual.daily.volatility(getIV_td(histIV$IVIDX))$daily)
-  vegaEffect
-}
-
-#START
+#START evaluation ------------
 udlStepNum<-3;udlStepPct<-0.03
 udlChgPct<-seq(-udlStepPct*udlStepNum,udlStepPct*udlStepNum,length=(2*udlStepNum)+1)
 posEvalTbl<-data.frame(udlChgPct=udlChgPct) ;rm(udlStepNum,udlStepPct)
@@ -300,23 +307,19 @@ unlist(tmp$VTRRR)->tmp ; posEvalTbl$VTRRR <- tmp ;rm(tmp)
 #  Greek Effects
 
 #  ThetaEffect
-#posEvalTbl %>% rowwise() %>% do(ThetaEffect=evalPosRskRtnThetaEffect(.)) -> tmp
 posEvalTbl %>% rowwise() %>% do(ThetaEffect=getThetaEffect(pos=.$pos$Position,greek=.$pos$Theta)) -> tmp
 unlist(tmp$ThetaEffect)->tmp ; posEvalTbl$ThetaEffect <- tmp ;rm(tmp)
 #  DeltaEffect
-#posEvalTbl %>% rowwise() %>% do(DeltaEffect=evalPosRskRtnDeltaEffect(.)) -> tmp
 posEvalTbl %>% rowwise() %>% do(DeltaEffect=getDeltaEffect(pos=.$pos$Position,greek=.$pos$Delta,
                                                            UDLY=.$pos$UDLY,
                                                            ividx_td=getIV_td(.$pos$IVIDX))) -> tmp
 unlist(tmp$DeltaEffect)->tmp ; posEvalTbl$DeltaEffect <- tmp ;rm(tmp)
 #  GammaEffect
-#posEvalTbl %>% rowwise() %>% do(GammaEffect=evalPosRskRtnGammaEffect(.)) -> tmp
 posEvalTbl %>% rowwise() %>% do(GammaEffect=getGammaEffect(pos=.$pos$Position,greek=.$pos$Gamma,
                                                            UDLY=.$pos$UDLY,
                                                            ividx_td=getIV_td(.$pos$IVIDX))) -> tmp
 unlist(tmp$GammaEffect)->tmp ; posEvalTbl$GammaEffect <- tmp ;rm(tmp) 
 #  VegaEffect
-#posEvalTbl %>% rowwise() %>% do(VegaEffect=evalPosRskRtnVegaEffect(.)) -> tmp
 posEvalTbl %>% rowwise() %>% do(VegaEffect=getVegaEffect(pos=.$pos$Position,greek=.$pos$Vega,
                                                          ividx=getIV_td(.$pos$IVIDX)
                                                          #dviv should be precalulated when optimized
@@ -326,7 +329,12 @@ unlist(tmp$VegaEffect)->tmp ; posEvalTbl$VegaEffect <- tmp ;rm(tmp)
 ##
 #  Greeks
 #
-
+#  UDLY
+posEvalTbl %>% rowwise() %>% do(UDLY=mean(.$pos$UDLY)) ->tmp
+unlist(tmp$UDLY)->tmp ; posEvalTbl$UDLY <- tmp ;rm(tmp)
+#  Price
+posEvalTbl %>% rowwise() %>% do(Price=getPosGreeks(pos=.$pos$Position,greek=.$pos$Price)) ->tmp
+unlist(tmp$Price)->tmp ; posEvalTbl$Price <- tmp ;rm(tmp)
 #  Delta
 posEvalTbl %>% rowwise() %>% do(Delta=getPosGreeks(pos=.$pos$Position,greek=.$pos$Delta))->tmp
 unlist(tmp$Delta)->tmp ; posEvalTbl$Delta <- tmp ;rm(tmp)
@@ -337,7 +345,7 @@ unlist(tmp$Gamma)->tmp ; posEvalTbl$Gamma <- tmp ;rm(tmp)
 posEvalTbl %>% rowwise() %>% do(Vega=getPosGreeks(pos=.$pos$Position,greek=.$pos$Vega))->tmp
 unlist(tmp$Vega)->tmp ; posEvalTbl$Vega <- tmp ;rm(tmp)
 #  Theta
-posEvalTbl %>% rowwise() %>% do(Theta=getPosGreeks(pos=.$pos$Position,greek=.$pos$Theta))->tmp
+posEvalTbl %>% rowwise() %>% do(Theta=getPosGreeks(pos=.$pos$Position,greek=.$pos$Theta)) ->tmp
 unlist(tmp$Theta)->tmp ; posEvalTbl$Theta <- tmp ;rm(tmp)
 
 rm(posEvalTbl)
