@@ -1,5 +1,6 @@
 library(dplyr)
 library(RQuantLib)
+library(DEoptim)
 
 #Variables -----------
 #Holding Period
@@ -82,7 +83,6 @@ getVegaEffect<-function(pos,greek,ividx,dviv,multi=PosMultip,hdd=holdDays){
 
 getDTRRR<-function(position,multi=PosMultip,hdd=holdDays){
   thetaEffect<-getThetaEffect(pos=position$Position,greek=position$Theta)
-  #thetaEffect<-as.numeric(thetaEffect>0)*thetaEffect+as.numeric(thetaEffect<0)*(0.00001-abs(1/thetaEffect))+as.numeric(thetaEffect==0)*0.00001
   
   deltaEffect<-getDeltaEffect(pos=position$Position,greek=position$Delta,
                               UDLY=position$UDLY,ividx_td=getIV_td(position$IVIDX))
@@ -90,17 +90,24 @@ getDTRRR<-function(position,multi=PosMultip,hdd=holdDays){
   gammaEffect<-getGammaEffect(pos=position$Position,greek=position$Gamma,
                               UDLY=position$UDLY,ividx_td=getIV_td(position$IVIDX)) 
   
-  DTRRR<-(deltaEffect+gammaEffect)/thetaEffect
+  #DTRRR<-(deltaEffect+gammaEffect)/thetaEffect
+  #DTRRR<- exp(deltaEffect+gammaEffect)*exp(thetaEffect)
+  thetaEffect<-as.numeric(thetaEffect!=0)*thetaEffect+as.numeric(thetaEffect==0)*0.001
+  DTRRR<- (deltaEffect+gammaEffect+(0.5*thetaEffect))/abs(thetaEffect)
   DTRRR
 }
 
 getVTRRR<-function(position,ividx,dviv,multi=PosMultip,hdd=holdDays){
   thetaEffect<-getThetaEffect(pos=position$Position,greek=position$Theta)
-  #thetaEffect<-as.numeric(thetaEffect>0)*thetaEffect+as.numeric(thetaEffect<0)*(0.00001-abs(1/thetaEffect))+as.numeric(thetaEffect==0)*0.00001
+  #thetaEffect<-as.numeric(thetaEffect>0)*thetaEffect+as.numeric(thetaEffect<0)*(0.001)+as.numeric(thetaEffect==0)*0.001
   
   vegaEffect<-getVegaEffect(pos=position$Position,greek=position$Vega,
                             ividx=ividx,dviv=dviv)
-  VTRRR<-vegaEffect/thetaEffect
+  #VTRRR<-vegaEffect/thetaEffect
+  #VTRRR<- exp(vegaEffect)*exp(-1*thetaEffect)
+  
+  thetaEffect<-as.numeric(thetaEffect!=0)*thetaEffect+as.numeric(thetaEffect==0)*0.001
+  VTRRR<- (vegaEffect+(0.5*thetaEffect))/abs(thetaEffect)
   VTRRR
 }
 
@@ -439,12 +446,15 @@ obj_Income <- function(x){
   weight<-dnorm(udlChgPct,mean=0,sd=(anlzd_sd/sqrt(252/sd_multp)))*udlStepPct / 
     sum(dnorm(udlChgPct,mean=0,sd=(anlzd_sd/sqrt(252/sd_multp)))*udlStepPct)
 
+  #print(posEvalTbl$pos)
   print(posEvalTbl)
-  print(weight)
   
-  return(posEvalTbl)
-  #sum(posEvalTbl$DTRRR*weight+posEvalTbl$VTRRR*weight)
+  #print(weight)
   
+  #return(posEvalTbl)
+  val<--sum(posEvalTbl$DTRRR*weight+posEvalTbl$VTRRR*weight)
+  print(val)
+  return(val)
 }
 
 iniPos<-opchain$Position
@@ -452,5 +462,5 @@ evaPos<-opchain$Position
 evaPos<-rnorm(n=length(iniPos),mean=0,sd=1)
 
 obj_Income(x=evaPos)
-
+out <- DEoptim(fn=obj_Income,lower = rep(-5.2,length(iniPos)),upper = rep(5.2,length(iniPos)))
 
