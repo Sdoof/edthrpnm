@@ -361,7 +361,7 @@ unlist(tmp$Vega)->tmp ; posEvalTbl$Vega <- tmp ;rm(tmp)
 posEvalTbl %>% rowwise() %>% do(Theta=getPosGreeks(pos=.$pos$Position,greek=.$pos$Theta)) ->tmp
 unlist(tmp$Theta)->tmp ; posEvalTbl$Theta <- tmp ;rm(tmp)
 
-rm(position,posEvalTbl)
+rm(position,posEvalTbl,udlChgPct,udlStepPct)
 
 ## Optimization Test -------------------
 
@@ -535,12 +535,10 @@ evaPos<-rnorm(n=length(iniPos),mean=0,sd=1)
 obj_Income(x=evaPos)
 obj_Income_solnp(x=evaPos)
 
-#DEOptim
-outdeop <- DEoptim(fn=obj_Income,lower = rep(-5.2,length(iniPos)),upper = rep(5.2,length(iniPos)))
-
 #genoud
 domain<-matrix(c(rep(-5.2,length(evaPos)),rep(5.2,length(iniPos))), nrow=length(iniPos), ncol=2)
 outgen <- genoud(fn=obj_Income,nvars=length(iniPos),starting.values=evaPos,Domains=domain)
+rm(domain)
 # genoud(fn, nvars, max=FALSE, pop.size=1000, max.generations=100, wait.generations=10,
 #        hard.generation.limit=TRUE, starting.values=NULL, MemoryMatrix=TRUE,
 #        Domains=NULL, default.domains=10, solution.tolerance=0.001,
@@ -554,6 +552,8 @@ outgen <- genoud(fn=obj_Income,nvars=length(iniPos),starting.values=evaPos,Domai
 #        control=list(),
 #        optim.method=ifelse(boundary.enforcement < 2, "BFGS", "L-BFGS-B"),
 #        transform=FALSE, debug=FALSE, cluster=FALSE, balance=FALSE, ...)
+
+
 #EDoptimR
 edoprCon=function(x){
   x<-round(x)
@@ -563,6 +563,9 @@ edoprCon=function(x){
 outjdopr<-JDEoptim(lower=rep(-5.2,length(iniPos)),upper=rep(5.2,length(iniPos)), fn=obj_Income,
                    constr=edoprCon, meq = 0)
 rm(edoprCon)
+
+#DEOptim
+outdeop <- DEoptim(fn=obj_Income,lower = rep(-5.2,length(iniPos)),upper = rep(5.2,length(iniPos)))
 
 #solnp
 solnpIneqfn = function(x)
@@ -582,4 +585,5 @@ outsolnp<-solnp(pars=evaPos,fun=obj_Income_solnp,
                   LB=solnpLB,UB=solnpUB)
 
 rm(solnpIneqfn,solnpIneqLB,solnpIneqUB,solnpLB,solnpUB)
-
+#rm(iniPos,evaPos)
+rm(amlzd_sd)
