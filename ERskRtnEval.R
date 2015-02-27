@@ -1,6 +1,9 @@
 library(dplyr)
 library(RQuantLib)
 library(DEoptim)
+library(rgenoud)
+library(Rsolnp)
+library(DEoptimR)
 
 #Variables -----------
 #Holding Period
@@ -363,6 +366,7 @@ rm(position,posEvalTbl)
 ## Optimization Test -------------------
 
 hollowNonZeroPosition<-function(pos){
+  #opchain is global parameter. to avoid unnessary copying
   opchain$Position<-pos
   opchain %>% dplyr::filter(Position!=0) -> position
   position
@@ -433,9 +437,12 @@ createPositinEvalTable<-function(position,udlStepNum=3,udlStepPct=0.03){
 }
 
 #function optimized
+
 obj_Income <- function(x){
-  #opchain is global parameter. to avoid unnessary copying
-  #opchain$Position<-x
+#  x<-round(x)
+   x<-floor(x)
+
+  print(x)
   position<-hollowNonZeroPosition(pos=x)
 
   udlStepNum<-3; udlStepPct<-0.03
@@ -447,20 +454,132 @@ obj_Income <- function(x){
     sum(dnorm(udlChgPct,mean=0,sd=(anlzd_sd/sqrt(252/sd_multp)))*udlStepPct)
 
   #print(posEvalTbl$pos)
-  print(posEvalTbl)
+  # print(posEvalTbl)
+    
+  #print(weight)
+ 
+  #return(posEvalTbl)
+  pos_change<-sum(as.numeric((x-iniPos)!=0))
+  penalty1<-(1+as.numeric((pos_change-10)>0)*(pos_change-10))^5
+  print(pos_change)
+  print(penalty1) 
+  grkeval<--sum(posEvalTbl$DTRRR*weight+posEvalTbl$VTRRR*weight)
+  print(grkeval)
+ 
+  val<-grkeval*penalty1
+  print(val)
+  return(val)
+}
+
+#initially evaluate using continuous value, after some point evaluated by
+#INT round values. In both cases, pos_change should be evaluated by INT.
+obj_Income_hyb <- function(x){
+  x<-round(x)
+  x<-floor(x)
+  print(x)
+  position<-hollowNonZeroPosition(pos=x)
   
+  udlStepNum<-3; udlStepPct<-0.03
+  posEvalTbl<-createPositinEvalTable(position=position,udlStepNum=udlStepNum,udlStepPct=udlStepPct)
+  sd_multp<-25;anlzd_sd<-0.2
+  
+  #weight is normalized
+  weight<-dnorm(udlChgPct,mean=0,sd=(anlzd_sd/sqrt(252/sd_multp)))*udlStepPct / 
+    sum(dnorm(udlChgPct,mean=0,sd=(anlzd_sd/sqrt(252/sd_multp)))*udlStepPct)
+  
+  #print(posEvalTbl$pos)
+  #print(posEvalTbl)
   #print(weight)
   
   #return(posEvalTbl)
-  val<--sum(posEvalTbl$DTRRR*weight+posEvalTbl$VTRRR*weight)
+  pos_change<-sum(as.numeric((x-iniPos)!=0))
+  penalty1<-(1+as.numeric((pos_change-10)>0)*(pos_change-10))^5
+  print(pos_change)
+  print(penalty1) 
+  grkeval<--sum(posEvalTbl$DTRRR*weight+posEvalTbl$VTRRR*weight)
+  print(grkeval)
+  
+  val<-grkeval*penalty1
+  print(val)
+  return(val)
+}
+
+obj_Income_solnp <- function(x){
+  print(sum(as.numeric((round(x)-iniPos)!=0)))
+  print(x)
+  #print(iniPos)
+
+  position<-hollowNonZeroPosition(pos=x)
+  
+  udlStepNum<-3; udlStepPct<-0.03
+  posEvalTbl<-createPositinEvalTable(position=position,udlStepNum=udlStepNum,udlStepPct=udlStepPct)
+  sd_multp<-25;anlzd_sd<-0.2
+  
+  #weight is normalized
+  weight<-dnorm(udlChgPct,mean=0,sd=(anlzd_sd/sqrt(252/sd_multp)))*udlStepPct / 
+    sum(dnorm(udlChgPct,mean=0,sd=(anlzd_sd/sqrt(252/sd_multp)))*udlStepPct)
+  #print(posEvalTbl$pos)
+  #return(posEvalTbl)
+ 
+  grkeval<--sum(posEvalTbl$DTRRR*weight+posEvalTbl$VTRRR*weight)
+  val<-grkeval
   print(val)
   return(val)
 }
 
 iniPos<-opchain$Position
+iniPos<-rep(0,length(iniPos))
 evaPos<-opchain$Position
 evaPos<-rnorm(n=length(iniPos),mean=0,sd=1)
 
 obj_Income(x=evaPos)
-out <- DEoptim(fn=obj_Income,lower = rep(-5.2,length(iniPos)),upper = rep(5.2,length(iniPos)))
+obj_Income_solnp(x=evaPos)
+
+#DEOptim
+outdeop <- DEoptim(fn=obj_Income,lower = rep(-5.2,length(iniPos)),upper = rep(5.2,length(iniPos)))
+
+#genoud
+domain<-matrix(c(rep(-5.2,length(evaPos)),rep(5.2,length(iniPos))), nrow=length(iniPos), ncol=2)
+outgen <- genoud(fn=obj_Income,nvars=length(iniPos),starting.values=evaPos,Domains=domain)
+# genoud(fn, nvars, max=FALSE, pop.size=1000, max.generations=100, wait.generations=10,
+#        hard.generation.limit=TRUE, starting.values=NULL, MemoryMatrix=TRUE,
+#        Domains=NULL, default.domains=10, solution.tolerance=0.001,
+#        gr=NULL, boundary.enforcement=0, lexical=FALSE, gradient.check=TRUE,
+#        BFGS=TRUE, data.type.int=FALSE, hessian=FALSE,
+#        unif.seed=812821, int.seed=53058,
+#        print.level=2, share.type=0, instance.number=0,
+#        output.path="stdout", output.append=FALSE, project.path=NULL,
+#        P1=50, P2=50, P3=50, P4=50, P5=50, P6=50, P7=50, P8=50, P9=0,
+#        P9mix=NULL, BFGSburnin=0, BFGSfn=NULL, BFGShelp=NULL,
+#        control=list(),
+#        optim.method=ifelse(boundary.enforcement < 2, "BFGS", "L-BFGS-B"),
+#        transform=FALSE, debug=FALSE, cluster=FALSE, balance=FALSE, ...)
+#EDoptimR
+edoprCon=function(x){
+  x<-round(x)
+  pos_change<-(sum(as.numeric((x-iniPos)!=0))-10)
+  c(pos_change)
+}
+outjdopr<-JDEoptim(lower=rep(-5.2,length(iniPos)),upper=rep(5.2,length(iniPos)), fn=obj_Income,
+                   constr=edoprCon, meq = 0)
+rm(edoprCon)
+
+#solnp
+solnpIneqfn = function(x)
+{
+  x<-round(x)
+  pos_change<-sum(as.numeric((x-iniPos)!=0))
+  pos_change
+}
+solnpIneqLB = rep(0,1)
+solnpIneqUB = rep(10,1)
+solnpLB = rep(-5.2,length(iniPos))
+solnpUB = rep(5.2,length(iniPos))
+
+outsolnp<-solnp(pars=evaPos,fun=obj_Income_solnp,
+                  #distr=rnorm(n=length(iniPos),mean=0,sd=1),
+                  ineqfun=solnpIneqfn,ineqLB=solnpIneqLB,ineqUB=solnpIneqUB,
+                  LB=solnpLB,UB=solnpUB)
+
+rm(solnpIneqfn,solnpIneqLB,solnpIneqUB,solnpLB,solnpUB)
 
