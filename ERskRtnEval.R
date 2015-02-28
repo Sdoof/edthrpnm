@@ -4,6 +4,12 @@ library(DEoptim)
 library(rgenoud)
 library(Rsolnp)
 library(DEoptimR)
+library(mcga)
+library(GenSA)
+library(powell)
+library(hydroPSO)
+#library(nleqslv)
+#library(dfoptim)
 
 #Variables -----------
 #Holding Period
@@ -439,8 +445,8 @@ createPositinEvalTable<-function(position,udlStepNum=3,udlStepPct=0.03){
 #function optimized
 
 obj_Income <- function(x){
-#  x<-round(x)
-   x<-floor(x)
+  x<-round(x)
+#   x<-floor(x)
 
   print(x)
   position<-hollowNonZeroPosition(pos=x)
@@ -466,6 +472,44 @@ obj_Income <- function(x){
   grkeval<--sum(posEvalTbl$DTRRR*weight+posEvalTbl$VTRRR*weight)
   print(grkeval)
  
+  val<-grkeval*penalty1
+  print(val)
+  return(val)
+}
+
+obj_Income_mcga <- function(x){
+  #x<-as.numeric(x<(-5))*(-5)+as.numeric(x>(5))*(5)+as.numeric(x>=(-5)&x<=5)*x
+  x<-as.numeric(x<(-5))*runif(1,-5,0)+as.numeric(x>(5))*runif(1,0,5)+as.numeric(x>=(-5)&x<=5)*x
+  x<-round(x)
+  if(sum(as.numeric(x==0))==0){
+    x<-runif(length(x)-3.2,3.2)
+    x<-round(x)
+  }
+  #   x<-floor(x)
+  print(x)
+  position<-hollowNonZeroPosition(pos=x)
+  
+  udlStepNum<-3; udlStepPct<-0.03
+  posEvalTbl<-createPositinEvalTable(position=position,udlStepNum=udlStepNum,udlStepPct=udlStepPct)
+  sd_multp<-25;anlzd_sd<-0.2
+  
+  #weight is normalized
+  weight<-dnorm(udlChgPct,mean=0,sd=(anlzd_sd/sqrt(252/sd_multp)))*udlStepPct / 
+    sum(dnorm(udlChgPct,mean=0,sd=(anlzd_sd/sqrt(252/sd_multp)))*udlStepPct)
+  
+  #print(posEvalTbl$pos)
+  # print(posEvalTbl)
+  
+  #print(weight)
+  
+  #return(posEvalTbl)
+  pos_change<-sum(as.numeric((x-iniPos)!=0))
+  penalty1<-(1+as.numeric((pos_change-10)>0)*(pos_change-10))^5
+  print(pos_change)
+  print(penalty1) 
+  grkeval<--sum(posEvalTbl$DTRRR*weight+posEvalTbl$VTRRR*weight)
+  print(grkeval)
+  
   val<-grkeval*penalty1
   print(val)
   return(val)
@@ -527,6 +571,8 @@ obj_Income_solnp <- function(x){
   return(val)
 }
 
+##
+#Initial and evaluation vector
 iniPos<-opchain$Position
 iniPos<-rep(0,length(iniPos))
 evaPos<-opchain$Position
@@ -535,24 +581,8 @@ evaPos<-rnorm(n=length(iniPos),mean=0,sd=1)
 obj_Income(x=evaPos)
 obj_Income_solnp(x=evaPos)
 
-#genoud
-domain<-matrix(c(rep(-5.2,length(evaPos)),rep(5.2,length(iniPos))), nrow=length(iniPos), ncol=2)
-outgen <- genoud(fn=obj_Income,nvars=length(iniPos),starting.values=evaPos,Domains=domain)
-rm(domain)
-# genoud(fn, nvars, max=FALSE, pop.size=1000, max.generations=100, wait.generations=10,
-#        hard.generation.limit=TRUE, starting.values=NULL, MemoryMatrix=TRUE,
-#        Domains=NULL, default.domains=10, solution.tolerance=0.001,
-#        gr=NULL, boundary.enforcement=0, lexical=FALSE, gradient.check=TRUE,
-#        BFGS=TRUE, data.type.int=FALSE, hessian=FALSE,
-#        unif.seed=812821, int.seed=53058,
-#        print.level=2, share.type=0, instance.number=0,
-#        output.path="stdout", output.append=FALSE, project.path=NULL,
-#        P1=50, P2=50, P3=50, P4=50, P5=50, P6=50, P7=50, P8=50, P9=0,
-#        P9mix=NULL, BFGSburnin=0, BFGSfn=NULL, BFGShelp=NULL,
-#        control=list(),
-#        optim.method=ifelse(boundary.enforcement < 2, "BFGS", "L-BFGS-B"),
-#        transform=FALSE, debug=FALSE, cluster=FALSE, balance=FALSE, ...)
-
+##
+# Optimize Engine
 
 #EDoptimR
 edoprCon=function(x){
@@ -564,10 +594,35 @@ outjdopr<-JDEoptim(lower=rep(-5.2,length(iniPos)),upper=rep(5.2,length(iniPos)),
                    constr=edoprCon, meq = 0)
 rm(edoprCon)
 
-#DEOptim
+#MCGA
+#mcga_chsize<-length(iniPos)
+outm <- mcga( popsize=200,chsize=as.numeric(length(iniPos)),minval=-5,maxval=5,maxiter=2500,
+              crossprob=1.0,mutateprob=0.01,evalFunc=obj_Income_mcga)
+rm(mcga_chsize)
+
+#genoud
+domain<-matrix(c(rep(-5.2,length(evaPos)),rep(5.2,length(iniPos))), nrow=length(iniPos), ncol=2)
+outgen <- genoud(fn=obj_Income,nvars=length(iniPos),starting.values=evaPos,Domains=domain)
+rm(domain)
+
+#GenSA
+GenSA(par=evaPos,fn=obj_Income,lower=rep(-5.2,length(iniPos)),upper=rep(5.2,length(iniPos)))
+
+#hydroPSO
+hydroPSO(par=evaPos,fn=obj_Income,
+         lower=rep(-5.2,length(iniPos)), upper=rep(5.2,length(iniPos)))
+
+#DEOptim Intermediate not sufficient
 outdeop <- DEoptim(fn=obj_Income,lower = rep(-5.2,length(iniPos)),upper = rep(5.2,length(iniPos)))
 
-#solnp
+#dfoptim. Intermediate not suffucient
+outhjkb<-hjkb(par=evaPos, fn=obj_Income_mcga, lower = rep(-5.2,length(iniPos)), upper =rep(5.2,length(iniPos)))
+outnmkb<-nmkb(par=evaPos, fn=obj_Income_mcga, lower = rep(-5.2,length(iniPos)), upper =rep(5.2,length(iniPos)))
+
+#powell Intermediate not suffucient.
+powell(par=evaPos,fn=obj_Income_mcga)
+
+#solnp XXXX not suffucient
 solnpIneqfn = function(x)
 {
   x<-round(x)
@@ -580,10 +635,18 @@ solnpLB = rep(-5.2,length(iniPos))
 solnpUB = rep(5.2,length(iniPos))
 
 outsolnp<-solnp(pars=evaPos,fun=obj_Income_solnp,
-                  #distr=rnorm(n=length(iniPos),mean=0,sd=1),
-                  ineqfun=solnpIneqfn,ineqLB=solnpIneqLB,ineqUB=solnpIneqUB,
-                  LB=solnpLB,UB=solnpUB)
+                #distr=rnorm(n=length(iniPos),mean=0,sd=1),
+                ineqfun=solnpIneqfn,ineqLB=solnpIneqLB,ineqUB=solnpIneqUB,
+                LB=solnpLB,UB=solnpUB)
 
 rm(solnpIneqfn,solnpIneqLB,solnpIneqUB,solnpLB,solnpUB)
-#rm(iniPos,evaPos)
 rm(amlzd_sd)
+
+#nleqslv doesn't work
+#nleqslv(x=evaPos,fn=obj_Income_mcga)
+
+#optim XXX not sufficient
+optim(par=evaPos, f=obj_Income,
+      #method ="SANN",
+      lower = rep(-5.2,length(iniPos)), upper =rep(5.2,length(iniPos)))
+     # control = list(), hessian = FALSE, ...)
