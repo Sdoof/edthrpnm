@@ -452,6 +452,7 @@ obj_Income <- function(x){
   position<-hollowNonZeroPosition(pos=x)
 
   udlStepNum<-3; udlStepPct<-0.03
+  udlChgPct<-seq(-udlStepPct*udlStepNum,udlStepPct*udlStepNum,length=(2*udlStepNum)+1)
   posEvalTbl<-createPositinEvalTable(position=position,udlStepNum=udlStepNum,udlStepPct=udlStepPct)
   sd_multp<-25;anlzd_sd<-0.2
   
@@ -489,6 +490,7 @@ obj_Income <- function(x){
   position<-hollowNonZeroPosition(pos=x)
   
   udlStepNum<-3; udlStepPct<-0.03
+  udlChgPct<-seq(-udlStepPct*udlStepNum,udlStepPct*udlStepNum,length=(2*udlStepNum)+1)
   posEvalTbl<-createPositinEvalTable(position=position,udlStepNum=udlStepNum,udlStepPct=udlStepPct)
   sd_multp<-25;anlzd_sd<-0.2
   
@@ -524,6 +526,7 @@ obj_Income_genoud_int <- function(x){
   position<-hollowNonZeroPosition(pos=x)
   
   udlStepNum<-3; udlStepPct<-0.03
+  udlChgPct<-seq(-udlStepPct*udlStepNum,udlStepPct*udlStepNum,length=(2*udlStepNum)+1)
   posEvalTbl<-createPositinEvalTable(position=position,udlStepNum=udlStepNum,udlStepPct=udlStepPct)
   sd_multp<-25;anlzd_sd<-0.2
   
@@ -559,6 +562,7 @@ obj_Income_genoud_lex_int <- function(x){
   position<-hollowNonZeroPosition(pos=x)
   
   udlStepNum<-3; udlStepPct<-0.03
+  udlChgPct<-seq(-udlStepPct*udlStepNum,udlStepPct*udlStepNum,length=(2*udlStepNum)+1)
   posEvalTbl<-createPositinEvalTable(position=position,udlStepNum=udlStepNum,udlStepPct=udlStepPct)
   sd_multp<-25;anlzd_sd<-0.2
   
@@ -598,6 +602,7 @@ obj_Income_mcga <- function(x){
   position<-hollowNonZeroPosition(pos=x)
   
   udlStepNum<-3; udlStepPct<-0.03
+  udlChgPct<-seq(-udlStepPct*udlStepNum,udlStepPct*udlStepNum,length=(2*udlStepNum)+1)
   posEvalTbl<-createPositinEvalTable(position=position,udlStepNum=udlStepNum,udlStepPct=udlStepPct)
   #print(posEvalTbl$pos)
   #print(posEvalTbl)
@@ -631,7 +636,6 @@ obj_Income_mcga_f1 <- function(x){
   penalty1<-(1+as.numeric((pos_change-10)>0)*(pos_change-10))^5
   print(pos_change)
   print(penalty1) 
-  grkeval<--sum(posEvalTbl$DTRRR*weight+posEvalTbl$VTRRR*weight)
   return(penalty1)
 }
 
@@ -646,6 +650,7 @@ obj_Income_mcga_f2 <- function(x){
   position<-hollowNonZeroPosition(pos=x)
   
   udlStepNum<-3; udlStepPct<-0.03
+  udlChgPct<-seq(-udlStepPct*udlStepNum,udlStepPct*udlStepNum,length=(2*udlStepNum)+1)
   posEvalTbl<-createPositinEvalTable(position=position,udlStepNum=udlStepNum,udlStepPct=udlStepPct)
   #return(posEvalTbl)
   
@@ -688,9 +693,10 @@ edoprCon=function(x){
   c(pos_change)
 }
 outjdopr<-JDEoptim(lower=rep(-5.2,length(iniPos)),upper=rep(5.2,length(iniPos)), fn=obj_Income,
-#                   tol=1e-15,NP=15*length(iniPos),maxiter=100*length(iniPos),
+                   tol=1e-10,NP=15*length(iniPos),maxiter=100*length(iniPos),
                    constr=edoprCon, meq = 0)
 rm(edoprCon)
+#JDEoptim(.., NP = 10*d, tol = 1e-15, maxiter = 200*d, trace = FALSE, triter = 1, details = FALSE, ...)
 
 #MCGA
 #mcga_chsize<-length(iniPos)
