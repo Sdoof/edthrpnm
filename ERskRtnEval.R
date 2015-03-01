@@ -6,8 +6,8 @@ library(Rsolnp)
 library(DEoptimR)
 library(mcga)
 library(GenSA)
-library(powell)
-library(hydroPSO)
+#library(powell)
+#library(hydroPSO)
 #library(nleqslv)
 #library(dfoptim)
 
@@ -477,15 +477,14 @@ obj_Income <- function(x){
   return(val)
 }
 
-obj_Income_mcga <- function(x){
-  #x<-as.numeric(x<(-5))*(-5)+as.numeric(x>(5))*(5)+as.numeric(x>=(-5)&x<=5)*x
-  x<-as.numeric(x<(-5))*runif(1,-5,0)+as.numeric(x>(5))*runif(1,0,5)+as.numeric(x>=(-5)&x<=5)*x
+obj_Income <- function(x){
   x<-round(x)
-  if(sum(as.numeric(x==0))==0){
-    x<-runif(length(x)-3.2,3.2)
+  if(sum(as.numeric(round(x)!=0))==0){
+    x<-runif(length(x),-5,5)
     x<-round(x)
   }
   #   x<-floor(x)
+  
   print(x)
   position<-hollowNonZeroPosition(pos=x)
   
@@ -515,11 +514,12 @@ obj_Income_mcga <- function(x){
   return(val)
 }
 
-#initially evaluate using continuous value, after some point evaluated by
-#INT round values. In both cases, pos_change should be evaluated by INT.
-obj_Income_hyb <- function(x){
-  x<-round(x)
-  x<-floor(x)
+obj_Income_genoud_int <- function(x){
+  #x<-round(x)
+  if(sum(as.numeric(round(x)!=0))==0){
+    x<-runif(length(x),-5,5)
+    x<-round(x)
+  }
   print(x)
   position<-hollowNonZeroPosition(pos=x)
   
@@ -532,11 +532,12 @@ obj_Income_hyb <- function(x){
     sum(dnorm(udlChgPct,mean=0,sd=(anlzd_sd/sqrt(252/sd_multp)))*udlStepPct)
   
   #print(posEvalTbl$pos)
-  #print(posEvalTbl)
+  # print(posEvalTbl)
+  
   #print(weight)
   
   #return(posEvalTbl)
-  pos_change<-sum(as.numeric((x-iniPos)!=0))
+  pos_change<-sum(as.numeric((round(x)-iniPos)!=0))
   penalty1<-(1+as.numeric((pos_change-10)>0)*(pos_change-10))^5
   print(pos_change)
   print(penalty1) 
@@ -548,11 +549,13 @@ obj_Income_hyb <- function(x){
   return(val)
 }
 
-obj_Income_solnp <- function(x){
-  print(sum(as.numeric((round(x)-iniPos)!=0)))
+obj_Income_genoud_lex_int <- function(x){
+  #x<-round(x)
+  if(sum(as.numeric(round(x)!=0))==0){
+    x<-runif(length(x),-5,5)
+    x<-round(x)
+  }
   print(x)
-  #print(iniPos)
-
   position<-hollowNonZeroPosition(pos=x)
   
   udlStepNum<-3; udlStepPct<-0.03
@@ -562,14 +565,108 @@ obj_Income_solnp <- function(x){
   #weight is normalized
   weight<-dnorm(udlChgPct,mean=0,sd=(anlzd_sd/sqrt(252/sd_multp)))*udlStepPct / 
     sum(dnorm(udlChgPct,mean=0,sd=(anlzd_sd/sqrt(252/sd_multp)))*udlStepPct)
+  
   #print(posEvalTbl$pos)
+  # print(posEvalTbl)
+  
+  #print(weight)
+  
   #return(posEvalTbl)
- 
+  pos_change<-sum(as.numeric((round(x)-iniPos)!=0))
+  penalty1<-(1+as.numeric((pos_change-10)>0)*(pos_change-10))^5
+  print(pos_change)
+  print(penalty1) 
   grkeval<--sum(posEvalTbl$DTRRR*weight+posEvalTbl$VTRRR*weight)
-  val<-grkeval
+  print(grkeval)
+  
+  #val<-grkeval*penalty1
+  val<-c(penalty1,grkeval)
+  
+  return(val)
+}
+
+obj_Income_mcga <- function(x){
+  #x<-as.numeric(x<(-5))*(-5)+as.numeric(x>(5))*(5)+as.numeric(x>=(-5)&x<=5)*x
+  x<-as.numeric(x<(-5))*runif(1,-5,0)+as.numeric(x>(5))*runif(1,0,5)+as.numeric(x>=(-5)&x<=5)*x
+  x<-round(x)
+  if(sum(as.numeric(round(x)!=0))==0){
+    x<-runif(length(x),-5,5)
+    x<-round(x)
+  }
+
+  print(x)
+  position<-hollowNonZeroPosition(pos=x)
+  
+  udlStepNum<-3; udlStepPct<-0.03
+  posEvalTbl<-createPositinEvalTable(position=position,udlStepNum=udlStepNum,udlStepPct=udlStepPct)
+  #print(posEvalTbl$pos)
+  #print(posEvalTbl)
+
+  sd_multp<-25;anlzd_sd<-0.2
+  #weight is normalized
+  weight<-dnorm(udlChgPct,mean=0,sd=(anlzd_sd/sqrt(252/sd_multp)))*udlStepPct / 
+    sum(dnorm(udlChgPct,mean=0,sd=(anlzd_sd/sqrt(252/sd_multp)))*udlStepPct)
+  #print(weight)
+  
+  pos_change<-sum(as.numeric((x-iniPos)!=0))
+  penalty1<-(1+as.numeric((pos_change-10)>0)*(pos_change-10))^5
+  print(pos_change)
+  print(penalty1) 
+
+  grkeval<--sum(posEvalTbl$DTRRR*weight+posEvalTbl$VTRRR*weight)
+  print(grkeval)
+  
+  val<-grkeval*penalty1
   print(val)
   return(val)
 }
+
+obj_Income_mcga_f1 <- function(x){
+  x<-as.numeric(x<(-5))*(-5)+as.numeric(x>(5))*5+as.numeric(x>=(-5)&x<=5)*x
+  if(sum(as.numeric(round(x)!=0))==0){
+    x<-rep(1:length(x))
+    x<-round(x)
+  }
+  pos_change<-sum(as.numeric((round(x)-iniPos)!=0))
+  penalty1<-(1+as.numeric((pos_change-10)>0)*(pos_change-10))^5
+  print(pos_change)
+  print(penalty1) 
+  grkeval<--sum(posEvalTbl$DTRRR*weight+posEvalTbl$VTRRR*weight)
+  return(penalty1)
+}
+
+obj_Income_mcga_f2 <- function(x){
+  x<-as.numeric(x<(-5))*(-5)+as.numeric(x>(5))*5+as.numeric(x>=(-5)&x<=5)*x
+  x<-round(x)
+  if(sum(as.numeric(round(x)!=0))==0){
+    x<-rep(1:length(x))
+    x<-round(x)
+  }
+  print(x)
+  position<-hollowNonZeroPosition(pos=x)
+  
+  udlStepNum<-3; udlStepPct<-0.03
+  posEvalTbl<-createPositinEvalTable(position=position,udlStepNum=udlStepNum,udlStepPct=udlStepPct)
+  #return(posEvalTbl)
+  
+  sd_multp<-25;anlzd_sd<-0.2
+  #weight is normalized
+  weight<-dnorm(udlChgPct,mean=0,sd=(anlzd_sd/sqrt(252/sd_multp)))*udlStepPct / 
+    sum(dnorm(udlChgPct,mean=0,sd=(anlzd_sd/sqrt(252/sd_multp)))*udlStepPct)
+ 
+  grkeval<--sum(posEvalTbl$DTRRR*weight+posEvalTbl$VTRRR*weight)
+  print(grkeval)
+  
+  val<-grkeval
+  return(val)
+}
+
+obj_Income_mcga_mf<-function(x){
+  return ( c(obj_Income_mcga_f1(x),obj_Income_mcga_f2(x)) )
+}
+
+#initially evaluate using continuous value, after some point evaluated by
+#INT round values. In both cases, pos_change should be evaluated by INT.
 
 ##
 #Initial and evaluation vector
@@ -591,6 +688,7 @@ edoprCon=function(x){
   c(pos_change)
 }
 outjdopr<-JDEoptim(lower=rep(-5.2,length(iniPos)),upper=rep(5.2,length(iniPos)), fn=obj_Income,
+#                   tol=1e-15,NP=15*length(iniPos),maxiter=100*length(iniPos),
                    constr=edoprCon, meq = 0)
 rm(edoprCon)
 
@@ -601,14 +699,19 @@ outm <- mcga( popsize=200,chsize=as.numeric(length(iniPos)),minval=-5,maxval=5,m
 rm(mcga_chsize)
 
 #genoud
-domain<-matrix(c(rep(-5.2,length(evaPos)),rep(5.2,length(iniPos))), nrow=length(iniPos), ncol=2)
-outgen <- genoud(fn=obj_Income,nvars=length(iniPos),starting.values=evaPos,Domains=domain)
+domain<-matrix(c(rep(-5,length(evaPos)),rep(5,length(iniPos))), nrow=length(iniPos), ncol=2)
+outgen <- genoud(fn=obj_Income_genoud_lex_int,nvars=length(iniPos),
+                 pop.size=3000,max.generations=100,
+                 data.type.int=TRUE,
+                 lexical=TRUE,
+                 wait.generations=30,gradient.check=FALSE,MemoryMatrix=TRUE,
+                 starting.values=rnorm(n=length(iniPos),mean=0,sd=2),Domains=domain)
 rm(domain)
 
-#GenSA
+#GenSA Intermediate not sufficient
 GenSA(par=evaPos,fn=obj_Income,lower=rep(-5.2,length(iniPos)),upper=rep(5.2,length(iniPos)))
 
-#hydroPSO
+#hydroPSO Intermediate not sufficient
 hydroPSO(par=evaPos,fn=obj_Income,
          lower=rep(-5.2,length(iniPos)), upper=rep(5.2,length(iniPos)))
 
