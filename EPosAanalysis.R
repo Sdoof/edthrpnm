@@ -39,7 +39,7 @@ posStepDays$scene[[2]];posStepDays$scene[[2]]$pos[2]
 
 #Now drawing
 #rowwise() -> dataframe(days,UDLY,Price)
-
+rm(stepdays,pos_anlys,totalstep,udlChgPct,udlStepNum,udlStepPct)
 rm(posStepDays,thePosition)
 
 #innfer functions : position operation related.
