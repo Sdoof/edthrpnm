@@ -247,7 +247,7 @@ evalPosRskRtnVegaEffect<- function(pos_eval){
 }
 
 # operate to each position data frame based on scenaro changes
-reflectPosChg<- function(process_df){
+reflectPosChg<- function(process_df,days=holdDays){
   pos<-as.data.frame(process_df$pos[1])
   chg<-as.numeric(process_df$udlChgPct[1])
  # print(chg)
@@ -263,7 +263,7 @@ reflectPosChg<- function(process_df){
   #Volatility Cone の影響。時間変化した分の影響を受ける。その比の分だけ比率変化
   #ATMIV_pos <- ATMIV_pos*(ATMIV_pos/IVIDX_pos)t=TimeToExpDate_pre/(ATMIV_pos/IVIDX_pos)t=TimeToExpDate_pos
   bdays_per_month<-252/12
-  TimeToExpDate_pos<-(pos$TimeToExpDate*bdays_per_month-holdDays)/bdays_per_month
+  TimeToExpDate_pos<-(pos$TimeToExpDate*bdays_per_month-days)/bdays_per_month
   pos$ATMIV<-pos$ATMIV *
     get.Volatility.Cone.Regression.Result(pos$TYPE,TimeToExpDate_pos)/
     get.Volatility.Cone.Regression.Result(pos$TYPE,pos$TimeToExpDate)
@@ -273,7 +273,7 @@ reflectPosChg<- function(process_df){
 
   #Date advance
   pos$Date <- format(advance("UnitedStates/NYSE",dates=as.Date(pos$Date,format="%Y/%m/%d"),
-                                  holdDays,0),"%Y/%m/%d")
+                                  days,0),"%Y/%m/%d")
   
   #set new value to UDLY
   pos$UDLY <- pos$UDLY+get.UDLY.Changed.Price(udly=pos$UDLY,chg_pct=chg)
@@ -384,7 +384,7 @@ createPositinEvalTable<-function(position,udlStepNum=3,udlStepPct=0.03,days=hold
   #Set data frames as a row value of another data frame.
   posEvalTbl %>% group_by(udlChgPct) %>% do(pos=position) -> posEvalTbl
   #Modify pos based on scenario
-  posEvalTbl %>% group_by(udlChgPct) %>% do(pos=reflectPosChg(.)) -> posEvalTbl
+  posEvalTbl %>% group_by(udlChgPct) %>% do(pos=reflectPosChg(.,days)) -> posEvalTbl
   #DTRRR
   posEvalTbl %>% rowwise() %>% do(DTRRR=evalPosRskRtnDTRRR(.)) -> tmp
   unlist(tmp$DTRRR)->tmp ; posEvalTbl$DTRRR <- tmp ;rm(tmp)

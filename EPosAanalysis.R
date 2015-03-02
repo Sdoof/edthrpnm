@@ -35,7 +35,8 @@ posStepDays %>% group_by(days) %>%
 posStepDays %>% group_by(days) %>% rowwise() %>% do(days=.$days,scene2=adjustPosChg(.$scene,.$days-stepdays)) -> tmp
 unlist(tmp$days) -> posStepDays$days ; tmp$scene2 -> posStepDays$scene ;rm(tmp)
 #We've got the complete posStepDays.
-posStepDays$scene[[2]];posStepDays$scene[[2]]$pos[2]
+posStepDays$scene[[2]];
+posStepDays$scene[[2]]$pos
 
 #Now drawing
 #rowwise() -> dataframe(days,UDLY,Price)
@@ -102,6 +103,29 @@ adjustPosChg<-function(process_df,time_advcd){
   print(time_advcd)
   
   process_df %>% group_by(udlChgPct) %>% do(pos=adjustPosChgInner(.,time_advcd)) -> process_df
+  
+  ##
+  #  Greeks
+  #
+  #  UDLY
+  process_df %>% rowwise() %>% do(UDLY=mean(.$pos$UDLY)) ->tmp
+  unlist(tmp$UDLY)->tmp ; process_df$UDLY <- tmp ;rm(tmp)
+  #  Price
+  process_df %>% rowwise() %>% do(Price=getPosGreeks(pos=.$pos$Position,greek=.$pos$Price)) ->tmp
+  unlist(tmp$Price)->tmp ; process_df$Price <- tmp ;rm(tmp)
+  #  Delta
+  process_df %>% rowwise() %>% do(Delta=getPosGreeks(pos=.$pos$Position,greek=.$pos$Delta))->tmp
+  unlist(tmp$Delta)->tmp ; process_df$Delta <- tmp ;rm(tmp)
+  #  Gamma
+  process_df %>% rowwise() %>% do(Gamma=getPosGreeks(pos=.$pos$Position,greek=.$pos$Gamma))->tmp
+  unlist(tmp$Gamma)->tmp ; process_df$Gamma <- tmp ;rm(tmp)
+  #  Vega
+  process_df %>% rowwise() %>% do(Vega=getPosGreeks(pos=.$pos$Position,greek=.$pos$Vega))->tmp
+  unlist(tmp$Vega)->tmp ; process_df$Vega <- tmp ;rm(tmp)
+  #  Theta
+  process_df %>% rowwise() %>% do(Theta=getPosGreeks(pos=.$pos$Position,greek=.$pos$Theta)) ->tmp
+  unlist(tmp$Theta)->tmp ; process_df$Theta <- tmp ;rm(tmp)
+  
   return(process_df)
 }
 
