@@ -378,7 +378,7 @@ hollowNonZeroPosition<-function(pos){
   position
 }
 
-createPositinEvalTable<-function(position,udlStepNum=3,udlStepPct=0.03){
+createPositinEvalTable<-function(position,udlStepNum=3,udlStepPct=0.03,days=holdDays){
   udlChgPct<-seq(-udlStepPct*udlStepNum,udlStepPct*udlStepNum,length=(2*udlStepNum)+1)
   posEvalTbl<-data.frame(udlChgPct=udlChgPct) ;rm(udlStepNum,udlStepPct)
   #Set data frames as a row value of another data frame.
