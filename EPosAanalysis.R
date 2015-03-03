@@ -1,5 +1,6 @@
 library(dplyr)
 library(RQuantLib)
+library(ggplot2)
 
 # set days interval between which the position is analyzed step by step.
 stepdays<-5
@@ -35,13 +36,105 @@ posStepDays %>% group_by(days) %>%
 posStepDays %>% group_by(days) %>% rowwise() %>% do(days=.$days,scene2=adjustPosChg(.$scene,.$days-stepdays)) -> tmp
 unlist(tmp$days) -> posStepDays$days ; tmp$scene2 -> posStepDays$scene ;rm(tmp)
 #We've got the complete posStepDays.
-posStepDays$scene[[2]];
-posStepDays$scene[[2]]$pos
+#show for a test.
+#posStepDays$scene[[2]];
+#posStepDays$scene[[2]]$pos
 
 #Now drawing
-#rowwise() -> dataframe(days,UDLY,Price)
-rm(stepdays,pos_anlys,totalstep,udlChgPct,udlStepNum,udlStepPct)
-rm(posStepDays,thePosition)
+drawtbl<-createdAgrregatedPriceTbl(posStepDays,thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,iniCredit=iniCredit)
+gg<-ggplot(drawtbl,aes(x=UDLY,y=profit,group=day,colour=day))
+(
+  gg + geom_point()+geom_line(linetype="dashed")+geom_point()
+   # +ylim(min(c(min(drawtbl$profit),-20000)),max(drawtbl$profit+200)) +
+   # + xlim(min(c(min(thePosition$UDLY)*(1-0.2),min(drawtbl$UDLY))),max(c(min(thePosition$UDLY)*(1+0.2),max(drawtbl$UDLY))))
+ )
+
+rm(gg,drawtbl); rm(stepdays,pos_anlys,totalstep,udlStepNum,udlStepPct); rm(posStepDays,thePosition)
+
+#inner functions : graphical related.
+#create Aggregated Price Table for Drawing
+createdAgrregatedPriceTbl<-function(posStepDays,thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,
+                                    multi=PosMultip,iniCredit=iniCredit){
+  posStepDays %>% group_by(days) %>% rowwise() %>% do(ptbl=createPriceTbl(.$days,.$scene,iniCredit)) -> tmp
+# posStepDays %>% group_by(days) %>% rowwise() %>% do(ptbl=createGreekTbl(.$days,.$scene$UDLY,.$scene$Price,iniCredit)) -> tmp
+  agr_tbl<-full_join(tmp$ptbl[[1]],tmp$ptbl[[2]])
+  for(i in 2:length(tmp$ptbl)){
+    agr_tbl<-full_join(agr_tbl,tmp$ptbl[[i]])
+  }
+  
+  #thePosition's data frame
+  udly_<-posStepDays$scene[[1]]$UDLY
+  day_<-min(get.busdays.between(thePosition$Date,thePosition$ExpDate))
+  day_<-rep(day_,times=length(udly_))
+  
+  tmp<-createPositinEvalTable(position=thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,days=c(0))  
+
+  for(i in 1:length(day_)){ 
+    if(i==1){
+      profit_<- c(
+        sum (
+        as.numeric(((tmp$pos[[i]]$UDLY-tmp$pos[[i]]$Strike)*(-tmp$pos[[i]]$TYPE)>0))*
+          (tmp$pos[[i]]$UDLY-tmp$pos[[i]]$Strike)*(-tmp$pos[[i]]$TYPE)*PosMultip*tmp$pos[[i]]$Position
+        )
+      )
+    }else{
+      profit_<-c(profit_,
+                 sum(
+                   as.numeric(((tmp$pos[[i]]$UDLY-tmp$pos[[i]]$Strike)*(-tmp$pos[[i]]$TYPE)>0))*
+                     (tmp$pos[[i]]$UDLY-tmp$pos[[i]]$Strike)*(-tmp$pos[[i]]$TYPE)*PosMultip*tmp$pos[[i]]$Position
+                 )
+      )
+    }
+  }
+  profit_<-profit_+iniCredit
+  intr_val<-data.frame(day=day_,UDLY=udly_,profit=profit_)
+
+  agr_tbl<-full_join(agr_tbl,intr_val)
+  agr_tbl
+}
+
+getThePositionDrawtable <- function (posStepDays, thePosition, udlStepNum=udlStepNum, udlStepPct=udlStepPct, PosMultip=PosMulti) {
+  udly_<-posStepDays$scene[[1]]$UDLY
+  day_<-min(get.busdays.between(thePosition$Date,thePosition$ExpDate))
+  day_<-rep(day_,times=length(udly_))
+  
+  tmp<-createPositinEvalTable(position=thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,days=c(0))  
+  
+  for(i in 1:length(day_)){ 
+    if(i==1){
+      profit_<- c(
+        sum (
+          as.numeric(((tmp$pos[[i]]$UDLY-tmp$pos[[i]]$Strike)*(-tmp$pos[[i]]$TYPE)>0))*
+            (tmp$pos[[i]]$UDLY-tmp$pos[[i]]$Strike)*(-tmp$pos[[i]]$TYPE)*PosMultip*tmp$pos[[i]]$Position
+        )
+      )
+    }else{
+      profit_<-c(profit_,
+                 sum(
+                   as.numeric(((tmp$pos[[i]]$UDLY-tmp$pos[[i]]$Strike)*(-tmp$pos[[i]]$TYPE)>0))*
+                     (tmp$pos[[i]]$UDLY-tmp$pos[[i]]$Strike)*(-tmp$pos[[i]]$TYPE)*PosMultip*tmp$pos[[i]]$Position
+                 )
+      )
+    }
+  }
+  profit_<-profit_+iniCredit
+  intr_val<-data.frame(day=day_,UDLY=udly_,profit=profit_)
+  intr_val
+}
+
+createPriceTbl<-function(days,pos_smry,credit){
+  pos_smry$UDLY
+  pos_smry$Price+credit
+  
+  pricetbl<-data.frame(day=days,UDLY=pos_smry$UDLY, profit=(pos_smry$Price+credit))
+  pricetbl
+}
+
+createGreekTbl<-function(days,pos_smry_x,pos_smry_greek,credit){ 
+  greektbl<-data.frame(day=days,x=pos_smry_x, greek=(pos_smry_greek+credit))
+  greektbl
+}
+
 
 #innfer functions : position operation related.
 
@@ -129,5 +222,4 @@ adjustPosChg<-function(process_df,time_advcd){
   return(process_df)
 }
 
-#innfer functions : graphical related.
 
