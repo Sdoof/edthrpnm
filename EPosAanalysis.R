@@ -4,8 +4,8 @@ library(ggplot2)
 
 # set days interval between which the position is analyzed step by step.
 stepdays<-5
-udlStepNum<-2
-udlStepPct=0.05
+udlStepNum<-40
+udlStepPct=0.005
 
 #get evaluation days vector, evaldays
 opchain$Date<-as.character(opchain$Date);
@@ -44,7 +44,7 @@ unlist(tmp$days) -> posStepDays$days ; tmp$scene2 -> posStepDays$scene ;rm(tmp)
 drawtbl<-createdAgrregatedPriceTbl(posStepDays,thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,iniCredit=iniCredit)
 gg<-ggplot(drawtbl,aes(x=UDLY,y=profit,group=day,colour=day))
 (
-  gg + geom_point()+geom_line(linetype="dashed")+geom_point()
+  gg + geom_line(linetype="dashed")+geom_point(x=mean(thePosition$UDLY),y=0,size=3.5)
    # +ylim(min(c(min(drawtbl$profit),-20000)),max(drawtbl$profit+200)) +
    # + xlim(min(c(min(thePosition$UDLY)*(1-0.2),min(drawtbl$UDLY))),max(c(min(thePosition$UDLY)*(1+0.2),max(drawtbl$UDLY))))
  )
@@ -62,38 +62,14 @@ createdAgrregatedPriceTbl<-function(posStepDays,thePosition,udlStepNum=udlStepNu
     agr_tbl<-full_join(agr_tbl,tmp$ptbl[[i]])
   }
   
-  #thePosition's data frame
-  udly_<-posStepDays$scene[[1]]$UDLY
-  day_<-min(get.busdays.between(thePosition$Date,thePosition$ExpDate))
-  day_<-rep(day_,times=length(udly_))
-  
-  tmp<-createPositinEvalTable(position=thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,days=c(0))  
-
-  for(i in 1:length(day_)){ 
-    if(i==1){
-      profit_<- c(
-        sum (
-        as.numeric(((tmp$pos[[i]]$UDLY-tmp$pos[[i]]$Strike)*(-tmp$pos[[i]]$TYPE)>0))*
-          (tmp$pos[[i]]$UDLY-tmp$pos[[i]]$Strike)*(-tmp$pos[[i]]$TYPE)*PosMultip*tmp$pos[[i]]$Position
-        )
-      )
-    }else{
-      profit_<-c(profit_,
-                 sum(
-                   as.numeric(((tmp$pos[[i]]$UDLY-tmp$pos[[i]]$Strike)*(-tmp$pos[[i]]$TYPE)>0))*
-                     (tmp$pos[[i]]$UDLY-tmp$pos[[i]]$Strike)*(-tmp$pos[[i]]$TYPE)*PosMultip*tmp$pos[[i]]$Position
-                 )
-      )
-    }
-  }
-  profit_<-profit_+iniCredit
-  intr_val<-data.frame(day=day_,UDLY=udly_,profit=profit_)
+  #thePosition's data frame 
+  intr_val<-getThePositionDrawtable(posStepDays, thePosition, udlStepNum=udlStepNum, udlStepPct=udlStepPct, PosMultip=PosMultip)
 
   agr_tbl<-full_join(agr_tbl,intr_val)
   agr_tbl
 }
 
-getThePositionDrawtable <- function (posStepDays, thePosition, udlStepNum=udlStepNum, udlStepPct=udlStepPct, PosMultip=PosMulti) {
+getThePositionDrawtable <- function (posStepDays, thePosition, udlStepNum=udlStepNum, udlStepPct=udlStepPct, PosMultip=PosMultip) {
   udly_<-posStepDays$scene[[1]]$UDLY
   day_<-min(get.busdays.between(thePosition$Date,thePosition$ExpDate))
   day_<-rep(day_,times=length(udly_))
