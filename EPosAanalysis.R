@@ -4,7 +4,7 @@ library(ggplot2)
 
 # set days interval between which the position is analyzed step by step.
 stepdays<-5
-udlStepNum<-40
+udlStepNum<-60
 udlStepPct=0.005
 
 #get evaluation days vector, evaldays
@@ -17,7 +17,10 @@ evaldays<-rep(stepdays,times=totalstep)
 evaldays<- cumsum(evaldays)
 
 #read analyzed positon. here we give by copy and paste
-pos_anlys<-c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,0,0,0,-3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-3,2,0,0,0,0)
+pos_anlys<-c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,0,0,0,-3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-3,3,0,0,0,0)
+  #c(-1,0,-2,0,0,0,-1,-1,-4,0,0,0,0,0,0,-2,0,0,0,1,0,0,0,1,0,-1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)
+  #c(0,-1,-1,0,0,0,0,0,0,0,-1,0,0,0,0,0,0,0,-1,0,0,0,0,0,-1,0,0,0,0,0,0,0,0,0,0,0,0,0,-3,0,1,0,2,0,0,1,0,0,0,0,0)
+  #c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,0,0,0,-3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-3,2,0,0,0,0)
 
 #note opchain is already instanciated by the proceduces of ERskRtnEval
 opchain$Position<-pos_anlys
@@ -32,9 +35,13 @@ posStepDays<-data.frame(days=evaldays)
 #Set data frames as a row value of another data frame.
 posStepDays %>% group_by(days) %>%
   do(scene=createPositinEvalTable(position=thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,days=stepdays)) -> posStepDays
+posStepDays_vc<-posStepDays
 #We must adjust each position values
-posStepDays %>% group_by(days) %>% rowwise() %>% do(days=.$days,scene2=adjustPosChg(.$scene,.$days-stepdays)) -> tmp
+posStepDays %>% group_by(days) %>% rowwise() %>% do(days=.$days,scene2=adjustPosChg(.$scene,.$days-stepdays,base_vol_chg=0)) -> tmp
 unlist(tmp$days) -> posStepDays$days ; tmp$scene2 -> posStepDays$scene ;rm(tmp)
+vol_chg<-0.2
+posStepDays_vc %>% group_by(days) %>% rowwise() %>% do(days=.$days,scene2=adjustPosChg(.$scene,.$days-stepdays,base_vol_chg=vol_chg)) -> tmp
+unlist(tmp$days) -> posStepDays_vc$days ; tmp$scene2 -> posStepDays_vc$scene ;rm(tmp)
 #We've got the complete posStepDays.
 #show for a test.
 #posStepDays$scene[[2]];
@@ -42,14 +49,33 @@ unlist(tmp$days) -> posStepDays$days ; tmp$scene2 -> posStepDays$scene ;rm(tmp)
 
 #Now drawing
 drawtbl<-createdAgrregatedPriceTbl(posStepDays,thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,iniCredit=iniCredit)
+drawtbl_vc<-createdAgrregatedPriceTbl(posStepDays_vc,thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,iniCredit=iniCredit)
+
+#draw profit
 gg<-ggplot(drawtbl,aes(x=UDLY,y=profit,group=day,colour=day))
 (
-  gg + geom_line(linetype="dashed")+geom_point(x=mean(thePosition$UDLY),y=0,size=3.5)
-   # +ylim(min(c(min(drawtbl$profit),-20000)),max(drawtbl$profit+200)) +
-   # + xlim(min(c(min(thePosition$UDLY)*(1-0.2),min(drawtbl$UDLY))),max(c(min(thePosition$UDLY)*(1+0.2),max(drawtbl$UDLY))))
- )
+  gg + geom_line(size=0.60)+geom_point(x=mean(thePosition$UDLY),y=0,size=3.5) + geom_point(x=mean(thePosition$UDLY),y=0,size=3.5)
+  # +ylim(min(c(min(drawtbl$profit),-20000)),max(drawtbl$profit+200)) +
+  # +xlim(min(c(min(thePosition$UDLY)*(1-0.2),min(drawtbl$UDLY))),max(c(min(thePosition$UDLY)*(1+0.2),max(drawtbl$UDLY))))
+)
+gg<-ggplot(drawtbl_vc,aes(x=UDLY,y=profit,group=day,colour=day))
+(
+  gg + geom_line(linetype="dashed",size=0.60)+geom_point(x=mean(thePosition$UDLY),y=0,size=3.5)
+  # +ylim(min(c(min(drawtbl$profit),-20000)),max(drawtbl$profit+200)) +
+  # +xlim(min(c(min(thePosition$UDLY)*(1-0.2),min(drawtbl$UDLY))),max(c(min(thePosition$UDLY)*(1+0.2),max(drawtbl$UDLY))))
+)
+gg<-ggplot(drawtbl,aes(x=UDLY,y=profit,group=day,colour=day))
+(
+  gg + geom_line(size=0.60)+geom_point(x=mean(thePosition$UDLY),y=0,size=3.5)
+  + geom_line(x=drawtbl_vc$UDLY,y=drawtbl_vc$profit,linetype="dashed",size=0.70,colour="orange")
+  + geom_point(x=mean(thePosition$UDLY),y=0,size=3.5,colour="red")
+  # +ylim(min(c(min(drawtbl$profit),-20000)),max(drawtbl$profit+200)) +
+  # +xlim(min(c(min(thePosition$UDLY)*(1-0.2),min(drawtbl$UDLY))),max(c(min(thePosition$UDLY)*(1+0.2),max(drawtbl$UDLY))))
+)
 
-rm(gg,drawtbl); rm(stepdays,pos_anlys,totalstep,udlStepNum,udlStepPct); rm(posStepDays,thePosition)
+#draw other parameters
+
+rm(gg,drawtbl,drawtbl_vc); rm(stepdays,pos_anlys,totalstep,udlStepNum,udlStepPct); rm(posStepDays,posStepDays_vc,thePosition)
 
 #inner functions : graphical related.
 #create Aggregated Price Table for Drawing
@@ -122,10 +148,17 @@ createGreekTbl<-function(days,pos_smry_x,pos_smry_greek,credit){
 #instance price change had only occured from stepdays before.
 
 #nested. adjustPosChg() calls adjustPosChgInner()
-adjustPosChgInner<-function(process_df,time_advcd){
+adjustPosChgInner<-function(process_df,time_advcd, base_vol_chg=0){
   pos<-as.data.frame(process_df$pos[1])
   if(sum(as.numeric(time_advcd==0))!=0) return(pos)
-#  print(pos)
+  #print(pos)
+
+  #base volatility change relrected to IVIDX
+  ividx_chg_pct<-as.numeric(base_vol_chg)
+  pos$IVIDX<-pos$IVIDX*(1+ividx_chg_pct)
+
+  # ATM IV change
+  pos$ATMIV<-pos$ATMIV*(1+ividx_chg_pct)*get.Volatility.Change.Regression.Result(pos,ividx_chg_pct)
 
   #Volatility Cone の影響。時間変化した分の影響を受ける。その比の分だけ比率変化
   #ATMIV_pos <- ATMIV_pos*(ATMIV_pos/IVIDX_pos)t=TimeToExpDate_pre/(ATMIV_pos/IVIDX_pos)t=TimeToExpDate_pos
@@ -167,11 +200,11 @@ adjustPosChgInner<-function(process_df,time_advcd){
   pos
 }
 
-adjustPosChg<-function(process_df,time_advcd){
+adjustPosChg<-function(process_df,time_advcd,base_vol_chg=0){
   print(process_df)
   print(time_advcd)
   
-  process_df %>% group_by(udlChgPct) %>% do(pos=adjustPosChgInner(.,time_advcd)) -> process_df
+  process_df %>% group_by(udlChgPct) %>% do(pos=adjustPosChgInner(.,time_advcd,base_vol_chg=base_vol_chg)) -> process_df
   
   ##
   #  Greeks
