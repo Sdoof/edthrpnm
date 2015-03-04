@@ -48,8 +48,10 @@ unlist(tmp$days) -> posStepDays_vc$days ; tmp$scene2 -> posStepDays_vc$scene ;rm
 #posStepDays$scene[[2]]$pos
 
 #Now drawing
-drawtbl<-createdAgrregatedPriceTbl(posStepDays,thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,iniCredit=iniCredit)
-drawtbl_vc<-createdAgrregatedPriceTbl(posStepDays_vc,thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,iniCredit=iniCredit)
+drawtbl<-createdAgrregatedPriceTbl(posStepDays,thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,multi=PosMultip,iniCredit=iniCredit)
+drawtbl_vc<-createdAgrregatedPriceTbl(posStepDays_vc,thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,multi=PosMultip,iniCredit=iniCredit)
+
+drawGrktbl<-createdAgrregatedGreekTbl(posStepDays,thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,multi=PosMultip)
 
 #draw profit
 gg<-ggplot(drawtbl,aes(x=UDLY,y=profit,group=day,colour=day))
@@ -67,22 +69,23 @@ gg<-ggplot(drawtbl_vc,aes(x=UDLY,y=profit,group=day,colour=day))
 gg<-ggplot(drawtbl,aes(x=UDLY,y=profit,group=day,colour=day))
 (
   gg + geom_line(size=0.60)+geom_point(x=mean(thePosition$UDLY),y=0,size=3.5)
-  + geom_line(x=drawtbl_vc$UDLY,y=drawtbl_vc$profit,linetype="dashed",size=0.70,colour="orange")
-  + geom_point(x=mean(thePosition$UDLY),y=0,size=3.5,colour="red")
+  + geom_line(x=drawtbl_vc$UDLY,y=drawtbl_vc$profit,linetype="dashed",size=0.70,colour="darkorange")
+  + geom_point(x=mean(thePosition$UDLY),y=0,size=3.5)
   # +ylim(min(c(min(drawtbl$profit),-20000)),max(drawtbl$profit+200)) +
   # +xlim(min(c(min(thePosition$UDLY)*(1-0.2),min(drawtbl$UDLY))),max(c(min(thePosition$UDLY)*(1+0.2),max(drawtbl$UDLY))))
 )
 
 #draw other parameters
 
-rm(gg,drawtbl,drawtbl_vc); rm(stepdays,pos_anlys,totalstep,udlStepNum,udlStepPct); rm(posStepDays,posStepDays_vc,thePosition)
+rm(gg,drawtbl,drawtbl_vc, drawGrktbl); rm(stepdays,pos_anlys,totalstep,udlStepNum,udlStepPct,vol_chg)
+rm(posStepDays,posStepDays_vc,thePosition)
 
 #inner functions : graphical related.
 #create Aggregated Price Table for Drawing
 createdAgrregatedPriceTbl<-function(posStepDays,thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,
                                     multi=PosMultip,iniCredit=iniCredit){
   posStepDays %>% group_by(days) %>% rowwise() %>% do(ptbl=createPriceTbl(.$days,.$scene,iniCredit)) -> tmp
-# posStepDays %>% group_by(days) %>% rowwise() %>% do(ptbl=createGreekTbl(.$days,.$scene$UDLY,.$scene$Price,iniCredit)) -> tmp
+
   agr_tbl<-full_join(tmp$ptbl[[1]],tmp$ptbl[[2]])
   for(i in 2:length(tmp$ptbl)){
     agr_tbl<-full_join(agr_tbl,tmp$ptbl[[i]])
@@ -132,8 +135,84 @@ createPriceTbl<-function(days,pos_smry,credit){
   pricetbl
 }
 
-createGreekTbl<-function(days,pos_smry_x,pos_smry_greek,credit){ 
-  greektbl<-data.frame(day=days,x=pos_smry_x, greek=(pos_smry_greek+credit))
+createdAgrregatedGreekTbl<-function(posStepDays,thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,multi=PosMultip){
+  #Delta
+  posStepDays %>% group_by(days) %>% rowwise() %>% do(ptbl=createGreekTbl(.$days,.$scene$UDLY,.$scene$Delta)) -> tmp
+  greek_tbl<-full_join(tmp$ptbl[[1]],tmp$ptbl[[2]])
+  for(i in 2:length(tmp$ptbl)){
+    greek_tbl<-full_join(greek_tbl,tmp$ptbl[[i]])
+  }
+  greek_tbl %>% dplyr::rename(UDLY=x,Delta=greek) -> greek_tbl
+  agr_tbl <- greek_tbl
+  
+  #Gamma
+  posStepDays %>% group_by(days) %>% rowwise() %>% do(ptbl=createGreekTbl(.$days,.$scene$UDLY,.$scene$Gamma)) -> tmp
+  greek_tbl<-full_join(tmp$ptbl[[1]],tmp$ptbl[[2]])
+  for(i in 2:length(tmp$ptbl)){
+    greek_tbl<-full_join(greek_tbl,tmp$ptbl[[i]])
+  }
+  greek_tbl %>% rename(UDLY=x,Gamma=greek) -> greek_tbl
+  agr_tbl  %>% left_join(greek_tbl)  -> agr_tbl
+  
+  #Vega
+  posStepDays %>% group_by(days) %>% rowwise() %>% do(ptbl=createGreekTbl(.$days,.$scene$UDLY,.$scene$Vega)) -> tmp
+  greek_tbl<-full_join(tmp$ptbl[[1]],tmp$ptbl[[2]])
+  for(i in 2:length(tmp$ptbl)){
+    greek_tbl<-full_join(greek_tbl,tmp$ptbl[[i]])
+  }
+  greek_tbl %>% rename(UDLY=x,Vega=greek) -> greek_tbl
+  agr_tbl  %>% left_join(greek_tbl)  -> agr_tbl
+  
+  #Theta
+  posStepDays %>% group_by(days) %>% rowwise() %>% do(ptbl=createGreekTbl(.$days,.$scene$UDLY,.$scene$Theta)) -> tmp
+  greek_tbl<-full_join(tmp$ptbl[[1]],tmp$ptbl[[2]])
+  for(i in 2:length(tmp$ptbl)){
+    greek_tbl<-full_join(greek_tbl,tmp$ptbl[[i]])
+  }
+  greek_tbl %>% rename(UDLY=x,Theta=greek) -> greek_tbl
+  agr_tbl  %>% left_join(greek_tbl)  -> agr_tbl
+  
+  #ThetaEffect
+  posStepDays %>% group_by(days) %>% rowwise() %>% do(ptbl=createGreekTbl(.$days,.$scene$UDLY,.$scene$ThetaEffect)) -> tmp
+  greek_tbl<-full_join(tmp$ptbl[[1]],tmp$ptbl[[2]])
+  for(i in 2:length(tmp$ptbl)){
+    greek_tbl<-full_join(greek_tbl,tmp$ptbl[[i]])
+  }
+  greek_tbl %>% rename(UDLY=x,ThetaEffect=greek) -> greek_tbl
+  agr_tbl  %>% left_join(greek_tbl)  -> agr_tbl
+  
+  #GammaEffect
+  posStepDays %>% group_by(days) %>% rowwise() %>% do(ptbl=createGreekTbl(.$days,.$scene$UDLY,.$scene$GammaEffect)) -> tmp
+  greek_tbl<-full_join(tmp$ptbl[[1]],tmp$ptbl[[2]])
+  for(i in 2:length(tmp$ptbl)){
+    greek_tbl<-full_join(greek_tbl,tmp$ptbl[[i]])
+  }
+  greek_tbl %>% rename(UDLY=x,GammaEffect=greek) -> greek_tbl
+  agr_tbl  %>% left_join(greek_tbl)  -> agr_tbl
+  
+  #DeltaEffect
+  posStepDays %>% group_by(days) %>% rowwise() %>% do(ptbl=createGreekTbl(.$days,.$scene$UDLY,.$scene$DeltaEffect)) -> tmp
+  greek_tbl<-full_join(tmp$ptbl[[1]],tmp$ptbl[[2]])
+  for(i in 2:length(tmp$ptbl)){
+    greek_tbl<-full_join(greek_tbl,tmp$ptbl[[i]])
+  }
+  greek_tbl %>% rename(UDLY=x,DeltaEffect=greek) -> greek_tbl
+  agr_tbl  %>% left_join(greek_tbl)  -> agr_tbl
+  
+  #VegaEffect
+  posStepDays %>% group_by(days) %>% rowwise() %>% do(ptbl=createGreekTbl(.$days,.$scene$UDLY,.$scene$VegaEffect)) -> tmp
+  greek_tbl<-full_join(tmp$ptbl[[1]],tmp$ptbl[[2]])
+  for(i in 2:length(tmp$ptbl)){
+    greek_tbl<-full_join(greek_tbl,tmp$ptbl[[i]])
+  }
+  greek_tbl %>% rename(UDLY=x,VegaEffect=greek) -> greek_tbl
+  agr_tbl  %>% left_join(greek_tbl)  -> agr_tbl
+  
+  agr_tbl
+}
+
+createGreekTbl<-function(days,pos_smry_x,pos_smry_greek){ 
+  greektbl<-data.frame(day=days,x=pos_smry_x, greek=pos_smry_greek)
   greektbl
 }
 
@@ -227,6 +306,29 @@ adjustPosChg<-function(process_df,time_advcd,base_vol_chg=0){
   #  Theta
   process_df %>% rowwise() %>% do(Theta=getPosGreeks(pos=.$pos$Position,greek=.$pos$Theta)) ->tmp
   unlist(tmp$Theta)->tmp ; process_df$Theta <- tmp ;rm(tmp)
+  
+  ##
+  # Greek Effects
+  
+  # ThetaEffect
+  process_df %>% rowwise() %>% do(ThetaEffect=getThetaEffect(pos=.$pos$Position,greek=.$pos$Theta)) -> tmp
+  unlist(tmp$ThetaEffect)->tmp ; process_df$ThetaEffect <- tmp ;rm(tmp)
+  # DeltaEffect
+  process_df %>% rowwise() %>% do(DeltaEffect=getDeltaEffect(pos=.$pos$Position,greek=.$pos$Delta,
+                                                             UDLY=.$pos$UDLY,
+                                                             ividx_td=getIV_td(.$pos$IVIDX))) -> tmp
+  unlist(tmp$DeltaEffect)->tmp ; process_df$DeltaEffect <- tmp ;rm(tmp)
+  # GammaEffect
+  process_df %>% rowwise() %>% do(GammaEffect=getGammaEffect(pos=.$pos$Position,greek=.$pos$Gamma,
+                                                             UDLY=.$pos$UDLY,
+                                                             ividx_td=getIV_td(.$pos$IVIDX))) -> tmp
+  unlist(tmp$GammaEffect)->tmp ; process_df$GammaEffect <- tmp ;rm(tmp)
+  # VegaEffect
+  process_df %>% rowwise() %>% do(VegaEffect=getVegaEffect(pos=.$pos$Position,greek=.$pos$Vega,
+                                                           ividx=getIV_td(.$pos$IVIDX)
+                                                           #dviv should be precalulated when optimized
+                                                           ,dviv=annuual.daily.volatility(getIV_td(histIV$IVIDX))$daily)) -> tmp
+  unlist(tmp$VegaEffect)->tmp ; process_df$VegaEffect <- tmp ;rm(tmp)
   
   return(process_df)
 }
