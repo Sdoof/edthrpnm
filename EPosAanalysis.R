@@ -39,6 +39,8 @@ posStepDays_vc<-posStepDays
 #We must adjust each position values
 posStepDays %>% group_by(days) %>% rowwise() %>% do(days=.$days,scene2=adjustPosChg(.$scene,.$days-stepdays,base_vol_chg=0)) -> tmp
 unlist(tmp$days) -> posStepDays$days ; tmp$scene2 -> posStepDays$scene ;rm(tmp)
+####volatility change scenario
+# set the percent by which volatility index (IVIDX) changes. Up(%)>0 Down(%)<0
 vol_chg<-0.2
 posStepDays_vc %>% group_by(days) %>% rowwise() %>% do(days=.$days,scene2=adjustPosChg(.$scene,.$days-stepdays,base_vol_chg=vol_chg)) -> tmp
 unlist(tmp$days) -> posStepDays_vc$days ; tmp$scene2 -> posStepDays_vc$scene ;rm(tmp)
@@ -76,6 +78,25 @@ gg<-ggplot(drawtbl,aes(x=UDLY,y=profit,group=day,colour=day))
 )
 
 #draw other parameters
+#ThetaEffect(orange), DeltaEffect(blue), GammaEffect(red), VegaEffect(green)
+gg<-ggplot(drawGrktbl,aes(x=UDLY,y=ThetaEffect,group=day))
+(
+  gg + geom_line(size=1.0-0.15*round(drawGrktbl$day/stepdays),colour="orange",linetype=round(drawGrktbl$day/stepdays))
+  + geom_line(x=drawGrktbl$UDLY,y=drawGrktbl$DeltaEffect,size=1.0-0.15*round(drawGrktbl$day/stepdays),colour="blue",group=drawGrktbl$day,linetype=round(drawGrktbl$day/stepdays))
+  + geom_line(x=drawGrktbl$UDLY,y=drawGrktbl$GammaEffect,size=1.0-0.15*round(drawGrktbl$day/stepdays),colour="red",group=drawGrktbl$day,linetype=round(drawGrktbl$day/stepdays))
+  + geom_line(x=drawGrktbl$UDLY,y=drawGrktbl$VegaEffect,size=1.0-0.15*round(drawGrktbl$day/stepdays),colour="green",group=drawGrktbl$day,linetype=round(drawGrktbl$day/stepdays))
+  +ylim(
+    min(c(min(drawGrktbl$ThetaEffect),min(drawGrktbl$DeltaEffect),min(drawGrktbl$GammaEffect),min(drawGrktbl$VegaEffect))),
+    max(c(max(drawGrktbl$ThetaEffect),max(drawGrktbl$DeltaEffect),max(drawGrktbl$GammaEffect),max(drawGrktbl$VegaEffect))))
+)
+
+#ThetaEffect+DeltaEffect+GammaEffect+VegaEffect
+drawGrktbl %>% dplyr::mutate(TotalEffect=ThetaEffect+DeltaEffect+GammaEffect+VegaEffect) -> drawGrktbl
+gg<-ggplot(drawGrktbl,aes(x=UDLY,y=TotalEffect,group=day,colour=day))
+(
+  gg + geom_line(size=0.9-0.05*round(drawGrktbl$day/stepdays),linetype=round(drawGrktbl$day/stepdays))
+   +ylim( min(drawGrktbl$TotalEffect),  max(drawGrktbl$TotalEffect) )
+)
 
 rm(gg,drawtbl,drawtbl_vc, drawGrktbl); rm(stepdays,pos_anlys,totalstep,udlStepNum,udlStepPct,vol_chg)
 rm(posStepDays,posStepDays_vc,thePosition)
