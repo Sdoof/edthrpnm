@@ -3,7 +3,7 @@ library(RQuantLib)
 library(ggplot2)
 
 # set days interval between which the position is analyzed step by step.
-stepdays<-5
+stepdays<-3
 udlStepNum<-60
 udlStepPct=0.005
 
@@ -17,10 +17,10 @@ evaldays<-rep(stepdays,times=totalstep)
 evaldays<- cumsum(evaldays)
 
 #read analyzed positon. here we give by copy and paste
-pos_anlys<-c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,0,0,0,-3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-3,3,0,0,0,0)
+pos_anlys<-c(0,-1,-1,0,0,0,0,0,0,0,-1,0,0,0,0,0,0,0,-1,0,0,0,0,0,-1,0,0,0,0,0,0,0,0,0,0,0,0,0,-3,0,1,0,2,0,0,1,0,0,0,0,0)
+  #c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,0,0,0,-3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-3,3,0,0,0,0)
   #c(-1,0,-2,0,0,0,-1,-1,-4,0,0,0,0,0,0,-2,0,0,0,1,0,0,0,1,0,-1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)
   #c(0,-1,-1,0,0,0,0,0,0,0,-1,0,0,0,0,0,0,0,-1,0,0,0,0,0,-1,0,0,0,0,0,0,0,0,0,0,0,0,0,-3,0,1,0,2,0,0,1,0,0,0,0,0)
-  #c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,0,0,0,-3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-3,2,0,0,0,0)
 
 #note opchain is already instanciated by the proceduces of ERskRtnEval
 opchain$Position<-pos_anlys
@@ -52,19 +52,47 @@ unlist(tmp$days) -> posStepDays_vc$days ; tmp$scene2 -> posStepDays_vc$scene ;rm
 #Now drawing
 drawtbl<-createdAgrregatedPriceTbl(posStepDays,thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,multi=PosMultip,iniCredit=iniCredit)
 drawtbl_vc<-createdAgrregatedPriceTbl(posStepDays_vc,thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,multi=PosMultip,iniCredit=iniCredit)
-
 drawGrktbl<-createdAgrregatedGreekTbl(posStepDays,thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,multi=PosMultip)
 
+##Delta Headge Effect
+if(FALSE){
+  #initial Delta
+  iniDelta<-getPosGreeks(pos=thePosition$Position,greek=thePosition$Delta,multi=PosMultip)
+  #new Profit
+  drawtbl$profit<-drawtbl$profit-as.numeric(iniDelta)*(drawtbl$UDLY-mean(thePosition$UDLY))
+  drawGrktbl$profit<-drawGrktbl$profit-as.numeric(iniDelta)*(drawGrktbl$UDLY-mean(thePosition$UDLY))
+  #new DeltaEffect
+  expPriceChange<-as.numeric(drawGrktbl$Delta!=0)*drawGrktbl$DeltaEffect/(-abs(drawGrktbl$Delta))
+  drawGrktbl$DeltaEffect<-drawGrktbl$DeltaEffect-as.numeric(iniDelta)*expPriceChange
+  rm(expPriceChange)
+  #new delta
+  drawGrktbl$Delta<-drawGrktbl$Delta-as.numeric(iniDelta)
+}
+#Effect Aggregation
+drawGrktbl %>% dplyr::mutate(TotalEffect=ThetaEffect+DeltaEffect+GammaEffect+VegaEffect) -> drawGrktbl
+drawGrktbl %>% dplyr::mutate(NdEffect=ThetaEffect+GammaEffect) -> drawGrktbl
+drawGrktbl %>% dplyr::mutate(DEffect=DeltaEffect+VegaEffect) -> drawGrktbl
+
+#expPriceChange<-mean(UDLY*(exp(ividx_td*sqrt(hdd/365))-1))
+#delta<-getPosGreeks(pos=pos,greek=greek)
+#deltaEfct<-(-abs(delta))*expPriceChange
+#deltaEfct
+
 #draw profit
+
+#limit the UDLY range.
+# dawtbl %>% dplyr::filter(UDLY>mean(thePosition$UDLY)*(1-0.12)) %>% 
+#  dplyr::filter(UDLY<mean(thePosition$UDLY)*(1+0.12)) -> drawtbl
 gg<-ggplot(drawtbl,aes(x=UDLY,y=profit,group=day,colour=day))
 (
-  gg + geom_line(size=0.60)+geom_point(x=mean(thePosition$UDLY),y=0,size=3.5) + geom_point(x=mean(thePosition$UDLY),y=0,size=3.5)
+  gg + geom_line(size=0.60)+geom_point(x=mean(thePosition$UDLY),y=0,size=3.5) 
   # +ylim(min(c(min(drawtbl$profit),-20000)),max(drawtbl$profit+200)) +
   # +xlim(min(c(min(thePosition$UDLY)*(1-0.2),min(drawtbl$UDLY))),max(c(min(thePosition$UDLY)*(1+0.2),max(drawtbl$UDLY))))
 )
 gg<-ggplot(drawtbl_vc,aes(x=UDLY,y=profit,group=day,colour=day))
 (
-  gg + geom_line(linetype="dashed",size=0.60)+geom_point(x=mean(thePosition$UDLY),y=0,size=3.5)
+  gg + geom_line(linetype="dashed",size=0.60)
+  + geom_point(x=mean(thePosition$UDLY),y=0,size=3.5)
   # +ylim(min(c(min(drawtbl$profit),-20000)),max(drawtbl$profit+200)) +
   # +xlim(min(c(min(thePosition$UDLY)*(1-0.2),min(drawtbl$UDLY))),max(c(min(thePosition$UDLY)*(1+0.2),max(drawtbl$UDLY))))
 )
@@ -79,23 +107,42 @@ gg<-ggplot(drawtbl,aes(x=UDLY,y=profit,group=day,colour=day))
 
 #draw other parameters
 #ThetaEffect(orange), DeltaEffect(blue), GammaEffect(red), VegaEffect(green)
+
+#limit the UDLY range.
+drawGrktbl %>% dplyr::filter(UDLY>mean(thePosition$UDLY)*(1-0.10)) %>% 
+  dplyr::filter(UDLY<mean(thePosition$UDLY)*(1+0.10)) -> drawGrktbl
 gg<-ggplot(drawGrktbl,aes(x=UDLY,y=ThetaEffect,group=day))
 (
-  gg + geom_line(size=1.0-0.15*round(drawGrktbl$day/stepdays),colour="orange",linetype=round(drawGrktbl$day/stepdays))
-  + geom_line(x=drawGrktbl$UDLY,y=drawGrktbl$DeltaEffect,size=1.0-0.15*round(drawGrktbl$day/stepdays),colour="blue",group=drawGrktbl$day,linetype=round(drawGrktbl$day/stepdays))
-  + geom_line(x=drawGrktbl$UDLY,y=drawGrktbl$GammaEffect,size=1.0-0.15*round(drawGrktbl$day/stepdays),colour="red",group=drawGrktbl$day,linetype=round(drawGrktbl$day/stepdays))
-  + geom_line(x=drawGrktbl$UDLY,y=drawGrktbl$VegaEffect,size=1.0-0.15*round(drawGrktbl$day/stepdays),colour="green",group=drawGrktbl$day,linetype=round(drawGrktbl$day/stepdays))
+  gg + geom_line(size=1.1-0.01*round(drawGrktbl$day/stepdays),colour="orange",linetype=round(drawGrktbl$day/stepdays))
+  + geom_line(x=drawGrktbl$UDLY,y=drawGrktbl$DeltaEffect,size=1.1-0.01*round(drawGrktbl$day/stepdays),colour="blue",group=drawGrktbl$day,linetype=round(drawGrktbl$day/stepdays))
+  + geom_line(x=drawGrktbl$UDLY,y=drawGrktbl$GammaEffect,size=1.1-0.01*round(drawGrktbl$day/stepdays),colour="red",group=drawGrktbl$day,linetype=round(drawGrktbl$day/stepdays))
+  + geom_line(x=drawGrktbl$UDLY,y=drawGrktbl$VegaEffect,size=1.1-0.01*round(drawGrktbl$day/stepdays),colour="green",group=drawGrktbl$day,linetype=round(drawGrktbl$day/stepdays))
+  + geom_point(x=mean(thePosition$UDLY),y=0,size=3.5)
   +ylim(
     min(c(min(drawGrktbl$ThetaEffect),min(drawGrktbl$DeltaEffect),min(drawGrktbl$GammaEffect),min(drawGrktbl$VegaEffect))),
     max(c(max(drawGrktbl$ThetaEffect),max(drawGrktbl$DeltaEffect),max(drawGrktbl$GammaEffect),max(drawGrktbl$VegaEffect))))
 )
 
 #ThetaEffect+DeltaEffect+GammaEffect+VegaEffect
-drawGrktbl %>% dplyr::mutate(TotalEffect=ThetaEffect+DeltaEffect+GammaEffect+VegaEffect) -> drawGrktbl
-gg<-ggplot(drawGrktbl,aes(x=UDLY,y=TotalEffect,group=day,colour=day))
+gg<-ggplot(drawGrktbl,aes(x=UDLY,y=TotalEffect,group=day))
 (
-  gg + geom_line(size=0.9-0.05*round(drawGrktbl$day/stepdays),linetype=round(drawGrktbl$day/stepdays))
-   +ylim( min(drawGrktbl$TotalEffect),  max(drawGrktbl$TotalEffect) )
+  gg + geom_line(size=0.9-0.05*round(drawGrktbl$day/stepdays),linetype=round(drawGrktbl$day/stepdays),colour="black")
+  + geom_line(x=drawGrktbl$UDLY,y=drawGrktbl$NdEffect,size=0.9-0.05*round(drawGrktbl$day/stepdays),linetype=round(drawGrktbl$day/stepdays),colour="red")
+  + geom_line(x=drawGrktbl$UDLY,y=drawGrktbl$DEffect,size=0.9-0.05*round(drawGrktbl$day/stepdays),linetype=round(drawGrktbl$day/stepdays),colour="orange")
+  + geom_point(x=mean(thePosition$UDLY),y=0,size=3.5)
+  +ylim( 
+     min(c(min(drawGrktbl$TotalEffect),min(drawGrktbl$NdEffect))), 
+     max(c(max(drawGrktbl$TotalEffect),max(drawGrktbl$NdEffect))))
+)
+#combined
+gg<-ggplot(drawGrktbl,aes(x=UDLY,y=profit,group=day))
+(
+  gg
+  + geom_line(size=0.9-0.01*round(drawGrktbl$day/stepdays),linetype=round(drawGrktbl$day/stepdays))
+  + geom_line(x=drawGrktbl$UDLY,y=drawGrktbl$TotalEffect,colour="blue",size=0.9-0.01*round(drawGrktbl$day/stepdays),linetype=round(drawGrktbl$day/stepdays))
+  + geom_line(x=drawGrktbl$UDLY,y=drawGrktbl$GammaEffect,colour="red",size=0.9-0.01*round(drawGrktbl$day/stepdays),group=drawGrktbl$day,linetype=round(drawGrktbl$day/stepdays))
+  + geom_line(x=drawGrktbl$UDLY,y=drawGrktbl$ThetaEffect,colour="orange",size=0.9-0.01*round(drawGrktbl$day/stepdays),group=drawGrktbl$day,linetype=round(drawGrktbl$day/stepdays))
+  +geom_point(x=mean(thePosition$UDLY),y=0,size=3.5,colour="green")
 )
 
 rm(gg,drawtbl,drawtbl_vc, drawGrktbl); rm(stepdays,pos_anlys,totalstep,udlStepNum,udlStepPct,vol_chg)
@@ -157,6 +204,7 @@ createPriceTbl<-function(days,pos_smry,credit){
 }
 
 createdAgrregatedGreekTbl<-function(posStepDays,thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,multi=PosMultip){
+  
   #Delta
   posStepDays %>% group_by(days) %>% rowwise() %>% do(ptbl=createGreekTbl(.$days,.$scene$UDLY,.$scene$Delta)) -> tmp
   greek_tbl<-full_join(tmp$ptbl[[1]],tmp$ptbl[[2]])
@@ -227,6 +275,14 @@ createdAgrregatedGreekTbl<-function(posStepDays,thePosition,udlStepNum=udlStepNu
     greek_tbl<-full_join(greek_tbl,tmp$ptbl[[i]])
   }
   greek_tbl %>% rename(UDLY=x,VegaEffect=greek) -> greek_tbl
+  agr_tbl  %>% left_join(greek_tbl)  -> agr_tbl
+  
+  #profit
+  posStepDays %>% group_by(days) %>% rowwise() %>% do(ptbl=createPriceTbl(.$days,.$scene,iniCredit)) -> tmp
+  greek_tbl<-full_join(tmp$ptbl[[1]],tmp$ptbl[[2]])
+  for(i in 2:length(tmp$ptbl)){
+    greek_tbl<-full_join(greek_tbl,tmp$ptbl[[i]])
+  }
   agr_tbl  %>% left_join(greek_tbl)  -> agr_tbl
   
   agr_tbl
