@@ -246,14 +246,59 @@ evalPosRskRtnVegaEffect<- function(pos_eval){
   vegaEffect
 }
 
+#initial Data Frame
+reflectInitialPosChg<- function(process_df,days=0){
+  pos<-as.data.frame(process_df$pos[1])
+  chg<-as.numeric(process_df$udlChgPct[1])
+  
+  #set new value to UDLY
+  pos$UDLY <- pos$UDLY+get.UDLY.Changed.Price(udly=pos$UDLY,chg_pct=chg)
+  
+  #set new value to HowfarOOM, Moneyness.Nm
+  pos$Moneyness.Frac<-pos$Strike/pos$UDLY
+  pos$HowfarOOM<-(1-pos$Moneyness.Frac)*pos$TYPE
+  
+  #if TimeToExpDate < TimeToExp_Limit_Closeness_G(0.3 etc), TimeToExpDate should be TimeToExp_Limit_Closeness_G.
+  #Otherwise use the TimeToExpDate values themselves.
+  eval_timeToExpDate<-as.numeric(pos$TimeToExpDate<TimeToExp_Limit_Closeness_G)*TimeToExp_Limit_Closeness_G+
+    as.numeric(pos$TimeToExpDate>=TimeToExp_Limit_Closeness_G)*pos$TimeToExpDate
+  pos$Moneyness.Nm<-log(pos$Moneyness.Frac)/pos$ATMIV/sqrt(eval_timeToExpDate)
+  pos$Moneyness.Frac<-NULL
+  
+  #calculate IV_pos(OrigIV) using SkewModel based on model definition formula.
+  get.predicted.spline.skew(SkewModel,pos$Moneyness.Nm)
+  pos$ATMIV*get.predicted.spline.skew(SkewModel,pos$Moneyness.Nm)
+  pos$OrigIV<-pos$ATMIV*get.predicted.spline.skew(SkewModel,pos$Moneyness.Nm)
+  
+  #calculate pption price and thier greeks
+  vgreeks<-set.EuropeanOptionValueGreeks(pos)
+  pos$Price<-vgreeks$Price
+  pos$Delta<-vgreeks$Delta
+  pos$Gamma<-vgreeks$Gamma
+  pos$Vega<-vgreeks$Vega
+  pos$Theta<-vgreeks$Theta
+  pos$Rho<-vgreeks$Rho
+  
+  pos
+  
+  
+}
+
 # operate to each position data frame based on scenaro changes
 reflectPosChg<- function(process_df,days=holdDays){
+  
+  #thePosition just change volatility skew related changes
+  if(days==0){
+    pos<-reflectInitialPosChg(process_df,days=0)
+    return(pos)
+  }
+  
   pos<-as.data.frame(process_df$pos[1])
   chg<-as.numeric(process_df$udlChgPct[1])
  # print(chg)
   
   # get (IVIDX_pre/IVIDX_pos)/(UDLY_pre/UDLY_pos)
-  regression<-get.Volatility.Level.Regression()
+  regression<-get.Volatility.Level.Regression(Days=days)
   ividx_chg_pct<-get.predicted.IVIDXChange(model=regression$model,xmin=chg,xmax=100,x_by=0)$IVIDXC
   pos$IVIDX<-pos$IVIDX*(1+ividx_chg_pct)
   
@@ -305,69 +350,6 @@ reflectPosChg<- function(process_df,days=holdDays){
 
   pos
 }
-
-#START evaluation ------------
-udlStepNum<-3;udlStepPct<-0.03
-udlChgPct<-seq(-udlStepPct*udlStepNum,udlStepPct*udlStepNum,length=(2*udlStepNum)+1)
-posEvalTbl<-data.frame(udlChgPct=udlChgPct) ;rm(udlStepNum,udlStepPct)
-#Set data frames as a row value of another data frame.
-posEvalTbl %>% group_by(udlChgPct) %>% do(pos=position) -> posEvalTbl
-#Modify pos based on scenario
-posEvalTbl %>% group_by(udlChgPct) %>% do(pos=reflectPosChg(.)) -> posEvalTbl
-#DTRRR
-posEvalTbl %>% rowwise() %>% do(DTRRR=evalPosRskRtnDTRRR(.)) -> tmp
-unlist(tmp$DTRRR)->tmp ; posEvalTbl$DTRRR <- tmp ;rm(tmp)
-#VTRRR
-posEvalTbl %>% rowwise() %>% do(VTRRR=evalPosRskRtnVTRRR(.)) -> tmp
-unlist(tmp$VTRRR)->tmp ; posEvalTbl$VTRRR <- tmp ;rm(tmp)
-
-#debugging(Just for Info ) purpose. when optimized, not necessary.
-##
-#  Greek Effects
-
-#  ThetaEffect
-posEvalTbl %>% rowwise() %>% do(ThetaEffect=getThetaEffect(pos=.$pos$Position,greek=.$pos$Theta)) -> tmp
-unlist(tmp$ThetaEffect)->tmp ; posEvalTbl$ThetaEffect <- tmp ;rm(tmp)
-#  DeltaEffect
-posEvalTbl %>% rowwise() %>% do(DeltaEffect=getDeltaEffect(pos=.$pos$Position,greek=.$pos$Delta,
-                                                           UDLY=.$pos$UDLY,
-                                                           ividx_td=getIV_td(.$pos$IVIDX))) -> tmp
-unlist(tmp$DeltaEffect)->tmp ; posEvalTbl$DeltaEffect <- tmp ;rm(tmp)
-#  GammaEffect
-posEvalTbl %>% rowwise() %>% do(GammaEffect=getGammaEffect(pos=.$pos$Position,greek=.$pos$Gamma,
-                                                           UDLY=.$pos$UDLY,
-                                                           ividx_td=getIV_td(.$pos$IVIDX))) -> tmp
-unlist(tmp$GammaEffect)->tmp ; posEvalTbl$GammaEffect <- tmp ;rm(tmp) 
-#  VegaEffect
-posEvalTbl %>% rowwise() %>% do(VegaEffect=getVegaEffect(pos=.$pos$Position,greek=.$pos$Vega,
-                                                         ividx=getIV_td(.$pos$IVIDX)
-                                                         #dviv should be precalulated when optimized
-                                                         ,dviv=annuual.daily.volatility(getIV_td(histIV$IVIDX))$daily)) -> tmp
-unlist(tmp$VegaEffect)->tmp ; posEvalTbl$VegaEffect <- tmp ;rm(tmp)
-
-##
-#  Greeks
-#
-#  UDLY
-posEvalTbl %>% rowwise() %>% do(UDLY=mean(.$pos$UDLY)) ->tmp
-unlist(tmp$UDLY)->tmp ; posEvalTbl$UDLY <- tmp ;rm(tmp)
-#  Price
-posEvalTbl %>% rowwise() %>% do(Price=getPosGreeks(pos=.$pos$Position,greek=.$pos$Price)) ->tmp
-unlist(tmp$Price)->tmp ; posEvalTbl$Price <- tmp ;rm(tmp)
-#  Delta
-posEvalTbl %>% rowwise() %>% do(Delta=getPosGreeks(pos=.$pos$Position,greek=.$pos$Delta))->tmp
-unlist(tmp$Delta)->tmp ; posEvalTbl$Delta <- tmp ;rm(tmp)
-#  Gamma
-posEvalTbl %>% rowwise() %>% do(Gamma=getPosGreeks(pos=.$pos$Position,greek=.$pos$Gamma))->tmp
-unlist(tmp$Gamma)->tmp ; posEvalTbl$Gamma <- tmp ;rm(tmp)
-#  Vega
-posEvalTbl %>% rowwise() %>% do(Vega=getPosGreeks(pos=.$pos$Position,greek=.$pos$Vega))->tmp
-unlist(tmp$Vega)->tmp ; posEvalTbl$Vega <- tmp ;rm(tmp)
-#  Theta
-posEvalTbl %>% rowwise() %>% do(Theta=getPosGreeks(pos=.$pos$Position,greek=.$pos$Theta)) ->tmp
-unlist(tmp$Theta)->tmp ; posEvalTbl$Theta <- tmp ;rm(tmp)
-
-rm(position,posEvalTbl,udlChgPct,udlStepPct)
 
 ## Optimization Test -------------------
 
@@ -444,47 +426,12 @@ createPositinEvalTable<-function(position,udlStepNum=3,udlStepPct=0.03,days=hold
 
 #function optimized
 
-obj_Income <- function(x){
-  x<-round(x)
-#   x<-floor(x)
-
-  print(x)
-  position<-hollowNonZeroPosition(pos=x)
-
-  udlStepNum<-3; udlStepPct<-0.03
-  udlChgPct<-seq(-udlStepPct*udlStepNum,udlStepPct*udlStepNum,length=(2*udlStepNum)+1)
-  posEvalTbl<-createPositinEvalTable(position=position,udlStepNum=udlStepNum,udlStepPct=udlStepPct)
-  sd_multp<-25;anlzd_sd<-0.2
-  
-  #weight is normalized
-  weight<-dnorm(udlChgPct,mean=0,sd=(anlzd_sd/sqrt(252/sd_multp)))*udlStepPct / 
-    sum(dnorm(udlChgPct,mean=0,sd=(anlzd_sd/sqrt(252/sd_multp)))*udlStepPct)
-
-  #print(posEvalTbl$pos)
-  # print(posEvalTbl)
-    
-  #print(weight)
- 
-  #return(posEvalTbl)
-  pos_change<-sum(as.numeric((x-iniPos)!=0))
-  penalty1<-(1+as.numeric((pos_change-10)>0)*(pos_change-10))^5
-  print(pos_change)
-  print(penalty1) 
-  grkeval<--sum(posEvalTbl$DTRRR*weight+posEvalTbl$VTRRR*weight)
-  print(grkeval)
- 
-  val<-grkeval*penalty1
-  print(val)
-  return(val)
-}
-
-obj_Income <- function(x){
+obj_Income <- function(x,isDebug=FALSE){
   x<-round(x)
   if(sum(as.numeric(round(x)!=0))==0){
     x<-runif(length(x),-5,5)
     x<-round(x)
   }
-  #   x<-floor(x)
   
   print(x)
   position<-hollowNonZeroPosition(pos=x)
@@ -499,20 +446,20 @@ obj_Income <- function(x){
     sum(dnorm(udlChgPct,mean=0,sd=(anlzd_sd/sqrt(252/sd_multp)))*udlStepPct)
   
   #print(posEvalTbl$pos)
-  # print(posEvalTbl)
+  #print(posEvalTbl)
   
   #print(weight)
   
   #return(posEvalTbl)
   pos_change<-sum(as.numeric((x-iniPos)!=0))
-  penalty1<-(1+as.numeric((pos_change-10)>0)*(pos_change-10))^5
   print(pos_change)
-  print(penalty1) 
+  penalty1<-(1+as.numeric((pos_change-10)>0)*(pos_change-10))^5
   grkeval<--sum(posEvalTbl$DTRRR*weight+posEvalTbl$VTRRR*weight)
   print(grkeval)
   
   val<-grkeval*penalty1
   print(val)
+  if(isDebug) { return(posEvalTbl) }
   return(val)
 }
 
@@ -679,6 +626,7 @@ iniPos<-opchain$Position
 iniPos<-rep(0,length(iniPos))
 evaPos<-opchain$Position
 evaPos<-rnorm(n=length(iniPos),mean=0,sd=1)
+evaPos<-c(-1,0,-2,0,0,0,-1,-1,-4,0,0,0,0,0,0,-2,0,0,0,1,0,0,0,1,0,-1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)
 
 obj_Income(x=evaPos)
 obj_Income_solnp(x=evaPos)
