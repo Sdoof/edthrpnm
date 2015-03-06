@@ -3,7 +3,7 @@ library(RQuantLib)
 library(ggplot2)
 
 # set days interval between which the position is analyzed step by step.
-stepdays<-3
+stepdays<-5
 udlStepNum<-60
 udlStepPct=0.005
 
@@ -17,7 +17,9 @@ evaldays<-rep(stepdays,times=totalstep)
 evaldays<- cumsum(evaldays)
 
 #read analyzed positon. here we give by copy and paste
-pos_anlys<-c(0,-1,-1,0,0,0,0,0,0,0,-1,0,0,0,0,0,0,0,-1,0,0,0,0,0,-1,0,0,0,0,0,0,0,0,0,0,0,0,0,-3,0,1,0,2,0,0,1,0,0,0,0,0)
+pos_anlys<-c(-1,0,-2,0,0,0,-1,-1,-4,0,0,0,0,0,0,-2,0,0,0,1,0,0,0,1,0,-1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)
+  #c(-2,3,0,0,0,0,-1,0,-2,0,0,0,0,0,0,-1,0,-2,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)
+  #c(3,0,-1,0,0,0,0,0,1,-1,0,0,0,4,0,0,0,0,1,0,0,0,2,0,0,-1,0,0,0,-1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)
   #c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,0,0,0,-3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-3,3,0,0,0,0)
   #c(-1,0,-2,0,0,0,-1,-1,-4,0,0,0,0,0,0,-2,0,0,0,1,0,0,0,1,0,-1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)
   #c(0,-1,-1,0,0,0,0,0,0,0,-1,0,0,0,0,0,0,0,-1,0,0,0,0,0,-1,0,0,0,0,0,0,0,0,0,0,0,0,0,-3,0,1,0,2,0,0,1,0,0,0,0,0)
@@ -62,6 +64,7 @@ if(FALSE){
   drawtbl$profit<-drawtbl$profit-as.numeric(iniDelta)*(drawtbl$UDLY-mean(thePosition$UDLY))
   drawGrktbl$profit<-drawGrktbl$profit-as.numeric(iniDelta)*(drawGrktbl$UDLY-mean(thePosition$UDLY))
   #new DeltaEffect
+   #temporal. you shoud get IVIX and calculte #expPriceChange<-mean(UDLY*(exp(ividx_td*sqrt(hdd/365))-1))
   expPriceChange<-as.numeric(drawGrktbl$Delta!=0)*drawGrktbl$DeltaEffect/(-abs(drawGrktbl$Delta))
   drawGrktbl$DeltaEffect<-drawGrktbl$DeltaEffect-as.numeric(iniDelta)*expPriceChange
   rm(expPriceChange)
@@ -73,16 +76,11 @@ drawGrktbl %>% dplyr::mutate(TotalEffect=ThetaEffect+DeltaEffect+GammaEffect+Veg
 drawGrktbl %>% dplyr::mutate(NdEffect=ThetaEffect+GammaEffect) -> drawGrktbl
 drawGrktbl %>% dplyr::mutate(DEffect=DeltaEffect+VegaEffect) -> drawGrktbl
 
-#expPriceChange<-mean(UDLY*(exp(ividx_td*sqrt(hdd/365))-1))
-#delta<-getPosGreeks(pos=pos,greek=greek)
-#deltaEfct<-(-abs(delta))*expPriceChange
-#deltaEfct
-
 #draw profit
 
 #limit the UDLY range.
-# dawtbl %>% dplyr::filter(UDLY>mean(thePosition$UDLY)*(1-0.12)) %>% 
-#  dplyr::filter(UDLY<mean(thePosition$UDLY)*(1+0.12)) -> drawtbl
+ drawtbl %>% dplyr::filter(UDLY>mean(thePosition$UDLY)*(1-0.09)) %>% 
+  dplyr::filter(UDLY<mean(thePosition$UDLY)*(1+0.09)) -> drawtbl
 gg<-ggplot(drawtbl,aes(x=UDLY,y=profit,group=day,colour=day))
 (
   gg + geom_line(size=0.60)+geom_point(x=mean(thePosition$UDLY),y=0,size=3.5) 
@@ -109,14 +107,14 @@ gg<-ggplot(drawtbl,aes(x=UDLY,y=profit,group=day,colour=day))
 #ThetaEffect(orange), DeltaEffect(blue), GammaEffect(red), VegaEffect(green)
 
 #limit the UDLY range.
-drawGrktbl %>% dplyr::filter(UDLY>mean(thePosition$UDLY)*(1-0.10)) %>% 
-  dplyr::filter(UDLY<mean(thePosition$UDLY)*(1+0.10)) -> drawGrktbl
+drawGrktbl %>% dplyr::filter(UDLY>mean(thePosition$UDLY)*(1-0.09)) %>% 
+  dplyr::filter(UDLY<mean(thePosition$UDLY)*(1+0.09)) -> drawGrktbl
 gg<-ggplot(drawGrktbl,aes(x=UDLY,y=ThetaEffect,group=day))
 (
-  gg + geom_line(size=1.1-0.01*round(drawGrktbl$day/stepdays),colour="orange",linetype=round(drawGrktbl$day/stepdays))
-  + geom_line(x=drawGrktbl$UDLY,y=drawGrktbl$DeltaEffect,size=1.1-0.01*round(drawGrktbl$day/stepdays),colour="blue",group=drawGrktbl$day,linetype=round(drawGrktbl$day/stepdays))
-  + geom_line(x=drawGrktbl$UDLY,y=drawGrktbl$GammaEffect,size=1.1-0.01*round(drawGrktbl$day/stepdays),colour="red",group=drawGrktbl$day,linetype=round(drawGrktbl$day/stepdays))
-  + geom_line(x=drawGrktbl$UDLY,y=drawGrktbl$VegaEffect,size=1.1-0.01*round(drawGrktbl$day/stepdays),colour="green",group=drawGrktbl$day,linetype=round(drawGrktbl$day/stepdays))
+  gg + geom_line(size=0.9-0.01*round(drawGrktbl$day/stepdays),colour="orange",linetype=round(drawGrktbl$day/stepdays))
+  + geom_line(x=drawGrktbl$UDLY,y=drawGrktbl$DeltaEffect,size=0.9-0.01*round(drawGrktbl$day/stepdays),colour="blue",group=drawGrktbl$day,linetype=round(drawGrktbl$day/stepdays))
+  + geom_line(x=drawGrktbl$UDLY,y=drawGrktbl$GammaEffect,size=0.9-0.01*round(drawGrktbl$day/stepdays),colour="red",group=drawGrktbl$day,linetype=round(drawGrktbl$day/stepdays))
+  + geom_line(x=drawGrktbl$UDLY,y=drawGrktbl$VegaEffect,size=0.9-0.01*round(drawGrktbl$day/stepdays),colour="green",group=drawGrktbl$day,linetype=round(drawGrktbl$day/stepdays))
   + geom_point(x=mean(thePosition$UDLY),y=0,size=3.5)
   +ylim(
     min(c(min(drawGrktbl$ThetaEffect),min(drawGrktbl$DeltaEffect),min(drawGrktbl$GammaEffect),min(drawGrktbl$VegaEffect))),
