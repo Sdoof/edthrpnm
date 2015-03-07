@@ -17,7 +17,7 @@ evaldays<-rep(stepdays,times=totalstep)
 evaldays<- cumsum(evaldays)
 
 #read analyzed positon. here we give by copy and paste
-pos_anlys<-c(-1,0,-2,0,0,0,-1,-1,-4,0,0,0,0,0,0,-2,0,0,0,1,0,0,0,1,0,-1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)
+pos_anlys<-c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5,0,0,0,0,0,0,0,5,0,0,0,0,0,0,0,0,5,5,0,5,5,5,0,5,5,0,0,0,0,0,5,0,0,0)
   #c(-2,3,0,0,0,0,-1,0,-2,0,0,0,0,0,0,-1,0,-2,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)
   #c(3,0,-1,0,0,0,0,0,1,-1,0,0,0,4,0,0,0,0,1,0,0,0,2,0,0,-1,0,0,0,-1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)
   #c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,0,0,0,-3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-3,3,0,0,0,0)
@@ -433,7 +433,7 @@ getPositionGreeks<-function(position,multi=PosMultip){
                   dviv=annuual.daily.volatility(getIV_td(histIV$IVIDX))$daily)
   
   data.frame(Price=price,Delta=delta,Gamma=gamma,Theta=theta,Vega=vega,UDLY=udly,
-             thetaEffect=thetaEffect,gammaEffect=gammaEffect,deltaEffect=deltaEffect,vegaEffect=vegaEffect,
+             ThetaEffect=thetaEffect,GammaEffect=gammaEffect,DeltaEffect=deltaEffect,VegaEffect=vegaEffect,
              DTRRR=DTRRR,VTRRR=VTRRR)
   
 }

@@ -463,33 +463,27 @@ obj_Income_genoud_int <- function(x,isDebug=FALSE){
   return(val)
 }
 
-obj_Income_genoud_lex_int <- function(x,isDebug=FALSE){
+obj_Income_genoud_lex_int <- function(x,isDebug=TRUE){
   #x<-round(x)
   if(sum(as.numeric(round(x)!=0))==0){
     x<-runif(length(x),-5,5)
     x<-round(x)
   }
-  print(x)
+  cat(x,"\n")
   position<-hollowNonZeroPosition(pos=x)
   
   udlStepNum<-3; udlStepPct<-0.03
   udlChgPct<-seq(-udlStepPct*udlStepNum,udlStepPct*udlStepNum,length=(2*udlStepNum)+1)
   posEvalTbl<-createPositinEvalTable(position=position,udlStepNum=udlStepNum,udlStepPct=udlStepPct)
-  sd_multp<-25;anlzd_sd<-0.2
   
-  #weight is normalized
-  weight<-dnorm(udlChgPct,mean=0,sd=(anlzd_sd/sqrt(252/sd_multp)))*udlStepPct / 
-    sum(dnorm(udlChgPct,mean=0,sd=(anlzd_sd/sqrt(252/sd_multp)))*udlStepPct)
+  #if(isDebug){print(posEvalTbl$pos)}
+  #if(isDebug){print(posEvalTbl)}
   
-  if(isDebug){print(posEvalTbl$pos)}
-  if(isDebug){print(posEvalTbl)}
-  
-  #print(weight)
-  #penalty1
+  #penalty1: position total num
   pos_change<-sum(as.numeric((round(x)-iniPos)!=0))
   penalty1<-(1+as.numeric((pos_change-10)>0)*(pos_change-10))^5
-  print(pos_change)
-  if(isDebug){print(penalty1)}
+  cat("pos num",pos_change)
+  if(isDebug){cat(" :p1",penalty1)}
   
   #penalty2 tail-risk
   tail_rate<-0.5
@@ -497,34 +491,47 @@ obj_Income_genoud_lex_int <- function(x,isDebug=FALSE){
       sum(getIntrisicValue(position$UDLY[1]*(1+tail_rate),position)))
   lossLimitPrice <- -1*position$UDLY[1]*PosMultip*(tail_rate+0.1)
   penalty2<-(1+as.numeric((tailPrice-lossLimitPrice)<0)*(abs(tailPrice)))
-  if(isDebug){print(tailPrice);print(lossLimitPrice);print(penalty2)}
+  if(isDebug){cat(" :tlpr",tailPrice);cat(" :lslmt",lossLimitPrice);cat(" :p2",penalty2)}
 
-  #penalty3 profit must be positive. also must be a cost term.
-  
-  if(isDebug){print(posEvalTbl$Price);print(getPositionGreeks(position,multi=PosMultip)$Price)}
-  if(isDebug){print(posEvalTbl$Price-getPositionGreeks(position,multi=PosMultip)$Price)}
+  #penalty3, cost1 profit must be positive. also must be a cost term.
+  #if(isDebug){cat(" :prc_hd",posEvalTbl$Price);cat(" :prc_ini:",getPositionGreeks(position,multi=PosMultip)$Price)}
+  #if(isDebug){cat(" :prft",posEvalTbl$Price-getPositionGreeks(position,multi=PosMultip)$Price)}
   thePositionGrk<-getPositionGreeks(position,multi=PosMultip)
-  print(thePositionGrk$Price)
+ 
+  sd_multp<-holdDays;anlzd_sd<-0.2;sd_hd<-(anlzd_sd/sqrt(252/sd_multp))
+  weight<-dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd / sum(dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd)
+  #if(isDebug){cat(" :wht",weight)}
+
   profit_hdays<-sum((posEvalTbl$Price-thePositionGrk$Price)*weight)
-  if(isDebug){print(profit_hdays)}
-  penalty3<-(1+as.numeric(profit_hdays)<0)*(abs(profit_hdays))^2
-  if(isDebug){print(penalty3)}
+  if(isDebug){cat(" :prft_wt",profit_hdays)}
+  penalty3<-(1+as.numeric(profit_hdays<0)*(abs(profit_hdays)))^2
+  if(isDebug){cat(" :p3",penalty3)}
   cost1<- -1*profit_hdays
-
-  #penalty4. ThetaEffect. This should be soft constraint
   
-  #cost2 Each Effects.
+  #cost2 Each Effects.  
+  #weight is normalized
+  sd_multp<-holdDays;anlzd_sd<-0.2;sd_hd<-(anlzd_sd/sqrt(252/sd_multp))*3
+  weight<-dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd / sum(dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd)
+  #if(isDebug){cat(" :wht2",weight)}  
   cost2<--sum(posEvalTbl$DTRRR*weight+posEvalTbl$VTRRR*weight)
-  if(isDebug){print(cost2)}
-
+  if(isDebug){cat(" c2",cost2)}
+  
+  #penalty4. ThetaEffect. This should be soft constraint
+  #print(thePositionGrk)
+  theta_ttl<-thePositionGrk$ThetaEffect+sum(posEvalTbl$ThetaEffect*weight)
+  penalty4<-(1+as.numeric(theta_ttl<0)*(abs(theta_ttl)))^2
+  if(isDebug){cat(" :thta_ttl",theta_ttl);cat(" :p4",penalty4)}
+  #cat(" :thta_ini",thePositionGrk$ThetaEffect);cat(" :thta_hld",sum(posEvalTbl$ThetaEffect*weight))
+  
   #total cost is weighted sum of each cost.
-  cost<-(0.03*cost1+cost2+15)#*penalty4
-  if(isDebug){print(cost)}
+  cost<-(0.03*cost1+cost2+15)*penalty4
+  if(isDebug){cat(" :cost",cost," ")}
   
   #non lex cost function should be like this.
   #val<-grkeval*penalty1*penalty2*penalty3
   val<-c(penalty1,penalty2,penalty3,cost)
   
+  if(isDebug){cat(" val:",val,"\n")}
   return(val)
 }
 
@@ -619,7 +626,7 @@ iniPos<-rep(0,length(iniPos))
 evaPos<-opchain$Position
 evaPos<-rnorm(n=length(iniPos),mean=0,sd=1)
 evaPos<-c(-1,0,-2,0,0,0,-1,-1,-4,0,0,0,0,0,0,-2,0,0,0,1,0,0,0,1,0,-1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)
-
+evaPos<-c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5,0,0,0,0,0,0,0,5,0,0,0,0,0,0,0,0,5,5,0,5,5,5,0,5,5,0,0,0,0,0,5,0,0,0)
 obj_Income(x=evaPos)
 obj_Income_genoud_lex_int(x=evaPos,isDebug=TRUE)
 
