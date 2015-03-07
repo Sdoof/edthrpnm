@@ -29,7 +29,7 @@ opchain$Position<-pos_anlys
 opchain %>% dplyr::filter(Position!=0) -> thePosition
 
 #thePosition's greek df and initial price
-thePositonGrks<-getPositionGreesk(thePosition)
+thePositonGrks<-getPositionGreeks(thePosition)
 iniPrice <- thePositonGrks$Price
 iniCredit <- -1*iniPrice
 
@@ -410,7 +410,7 @@ adjustPosChg<-function(process_df,time_advcd,base_vol_chg=0){
 }
 
 #One position's greeks are retuned as a data frame which has only one row.
-getPositionGreesk<-function(position,multi=PosMultip){
+getPositionGreeks<-function(position,multi=PosMultip){
   price<-getPosGreeks(pos=position$Position,greek=position$Price,multi=PosMultip)
   delta<-getPosGreeks(pos=position$Position,greek=position$Delta,multi=PosMultip)
   gamma<-getPosGreeks(pos=position$Position,greek=position$Gamma,multi=PosMultip)
