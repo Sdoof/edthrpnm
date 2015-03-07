@@ -4,7 +4,7 @@ library(ggplot2)
 
 # set days interval between which the position is analyzed step by step.
 stepdays<-5
-udlStepNum<-60
+udlStepNum<-80
 udlStepPct=0.005
 
 #get evaluation days vector, evaldays
@@ -28,8 +28,9 @@ pos_anlys<-c(-1,0,-2,0,0,0,-1,-1,-4,0,0,0,0,0,0,-2,0,0,0,1,0,0,0,1,0,-1,0,1,0,0,
 opchain$Position<-pos_anlys
 opchain %>% dplyr::filter(Position!=0) -> thePosition
 
-#initial price
-iniPrice <- getPosGreeks(pos=thePosition$Position,greek=thePosition$Price,multi=PosMultip)
+#thePosition's greek df and initial price
+thePositonGrks<-getPositionGreesk(thePosition)
+iniPrice <- thePositonGrks$Price
 iniCredit <- -1*iniPrice
 
 #total data frame
@@ -144,7 +145,7 @@ gg<-ggplot(drawGrktbl,aes(x=UDLY,y=profit,group=day))
 )
 
 rm(gg,drawtbl,drawtbl_vc, drawGrktbl); rm(stepdays,pos_anlys,totalstep,udlStepNum,udlStepPct,vol_chg)
-rm(posStepDays,posStepDays_vc,thePosition)
+rm(posStepDays,posStepDays_vc,thePosition,thePositonGrks)
 
 #inner functions : graphical related.
 #create Aggregated Price Table for Drawing
@@ -408,4 +409,31 @@ adjustPosChg<-function(process_df,time_advcd,base_vol_chg=0){
   return(process_df)
 }
 
-
+#One position's greeks are retuned as a data frame which has only one row.
+getPositionGreesk<-function(position,multi=PosMultip){
+  price<-getPosGreeks(pos=position$Position,greek=position$Price,multi=PosMultip)
+  delta<-getPosGreeks(pos=position$Position,greek=position$Delta,multi=PosMultip)
+  gamma<-getPosGreeks(pos=position$Position,greek=position$Gamma,multi=PosMultip)
+  theta<-getPosGreeks(pos=position$Position,greek=position$Theta,multi=PosMultip)
+  vega<-getPosGreeks(pos=position$Position,greek=position$Vega,multi=PosMultip)
+  udly<-mean(position$UDLY)
+  
+  thetaEffect<-getThetaEffect(pos=position$Position,greek=position$Theta)
+  vegaEffect<-getVegaEffect(pos=position$Position,greek=position$Vega,
+                            ividx=getIV_td(position$IVIDX),dviv=annuual.daily.volatility(getIV_td(histIV$IVIDX))$daily)
+  deltaEffect<-getDeltaEffect(pos=position$Position,greek=position$Delta,
+                              UDLY=position$UDLY,ividx_td=getIV_td(position$IVIDX))
+  
+  gammaEffect<-getGammaEffect(pos=position$Position,greek=position$Gamma,
+                              UDLY=position$UDLY,ividx_td=getIV_td(position$IVIDX))
+  
+  DTRRR<-getDTRRR(position=position)
+  VTRRR<-getVTRRR(position=position,
+                  ividx=getIV_td(position$IVIDX),
+                  dviv=annuual.daily.volatility(getIV_td(histIV$IVIDX))$daily)
+  
+  data.frame(Price=price,Delta=delta,Gamma=gamma,Theta=theta,Vega=vega,UDLY=udly,
+             thetaEffect=thetaEffect,gammaEffect=gammaEffect,deltaEffect=deltaEffect,vegaEffect=vegaEffect,
+             DTRRR=DTRRR,VTRRR=VTRRR)
+  
+}

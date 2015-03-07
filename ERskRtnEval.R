@@ -246,52 +246,8 @@ evalPosRskRtnVegaEffect<- function(pos_eval){
   vegaEffect
 }
 
-#initial Data Frame
-reflectInitialPosChg<- function(process_df,days=0){
-  pos<-as.data.frame(process_df$pos[1])
-  chg<-as.numeric(process_df$udlChgPct[1])
-  
-  #set new value to UDLY
-  pos$UDLY <- pos$UDLY+get.UDLY.Changed.Price(udly=pos$UDLY,chg_pct=chg)
-  
-  #set new value to HowfarOOM, Moneyness.Nm
-  pos$Moneyness.Frac<-pos$Strike/pos$UDLY
-  pos$HowfarOOM<-(1-pos$Moneyness.Frac)*pos$TYPE
-  
-  #if TimeToExpDate < TimeToExp_Limit_Closeness_G(0.3 etc), TimeToExpDate should be TimeToExp_Limit_Closeness_G.
-  #Otherwise use the TimeToExpDate values themselves.
-  eval_timeToExpDate<-as.numeric(pos$TimeToExpDate<TimeToExp_Limit_Closeness_G)*TimeToExp_Limit_Closeness_G+
-    as.numeric(pos$TimeToExpDate>=TimeToExp_Limit_Closeness_G)*pos$TimeToExpDate
-  pos$Moneyness.Nm<-log(pos$Moneyness.Frac)/pos$ATMIV/sqrt(eval_timeToExpDate)
-  pos$Moneyness.Frac<-NULL
-  
-  #calculate IV_pos(OrigIV) using SkewModel based on model definition formula.
-  get.predicted.spline.skew(SkewModel,pos$Moneyness.Nm)
-  pos$ATMIV*get.predicted.spline.skew(SkewModel,pos$Moneyness.Nm)
-  pos$OrigIV<-pos$ATMIV*get.predicted.spline.skew(SkewModel,pos$Moneyness.Nm)
-  
-  #calculate pption price and thier greeks
-  vgreeks<-set.EuropeanOptionValueGreeks(pos)
-  pos$Price<-vgreeks$Price
-  pos$Delta<-vgreeks$Delta
-  pos$Gamma<-vgreeks$Gamma
-  pos$Vega<-vgreeks$Vega
-  pos$Theta<-vgreeks$Theta
-  pos$Rho<-vgreeks$Rho
-  
-  pos
-  
-  
-}
-
 # operate to each position data frame based on scenaro changes
 reflectPosChg<- function(process_df,days=holdDays){
-  
-  #thePosition just change volatility skew related changes
-  if(days==0){
-    pos<-reflectInitialPosChg(process_df,days=0)
-    return(pos)
-  }
   
   pos<-as.data.frame(process_df$pos[1])
   chg<-as.numeric(process_df$udlChgPct[1])
@@ -463,7 +419,7 @@ obj_Income <- function(x,isDebug=FALSE){
   return(val)
 }
 
-obj_Income_genoud_int <- function(x){
+obj_Income_genoud_int <- function(x,isDebug=FALSE){
   #x<-round(x)
   if(sum(as.numeric(round(x)!=0))==0){
     x<-runif(length(x),-5,5)
@@ -499,7 +455,7 @@ obj_Income_genoud_int <- function(x){
   return(val)
 }
 
-obj_Income_genoud_lex_int <- function(x){
+obj_Income_genoud_lex_int <- function(x,isDebug=FALSE){
   #x<-round(x)
   if(sum(as.numeric(round(x)!=0))==0){
     x<-runif(length(x),-5,5)
@@ -536,7 +492,7 @@ obj_Income_genoud_lex_int <- function(x){
   return(val)
 }
 
-obj_Income_mcga <- function(x){
+obj_Income_mcga <- function(x,isDebug=FALSE){
   #x<-as.numeric(x<(-5))*(-5)+as.numeric(x>(5))*(5)+as.numeric(x>=(-5)&x<=5)*x
   x<-as.numeric(x<(-5))*runif(1,-5,0)+as.numeric(x>(5))*runif(1,0,5)+as.numeric(x>=(-5)&x<=5)*x
   x<-round(x)
@@ -573,7 +529,7 @@ obj_Income_mcga <- function(x){
   return(val)
 }
 
-obj_Income_mcga_f1 <- function(x){
+obj_Income_mcga_f1 <- function(x,isDebug=FALSE){
   x<-as.numeric(x<(-5))*(-5)+as.numeric(x>(5))*5+as.numeric(x>=(-5)&x<=5)*x
   if(sum(as.numeric(round(x)!=0))==0){
     x<-rep(1:length(x))
@@ -586,7 +542,7 @@ obj_Income_mcga_f1 <- function(x){
   return(penalty1)
 }
 
-obj_Income_mcga_f2 <- function(x){
+obj_Income_mcga_f2 <- function(x,isDebug=FALSE){
   x<-as.numeric(x<(-5))*(-5)+as.numeric(x>(5))*5+as.numeric(x>=(-5)&x<=5)*x
   x<-round(x)
   if(sum(as.numeric(round(x)!=0))==0){
