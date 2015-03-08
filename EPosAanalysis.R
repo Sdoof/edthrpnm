@@ -17,13 +17,11 @@ evaldays<-rep(stepdays,times=totalstep)
 evaldays<- cumsum(evaldays)
 
 #read analyzed positon. here we give by copy and paste
-pos_anlys<-c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5,0,0,0,0,0,0,0,5,0,0,0,0,0,0,0,0,5,5,0,5,5,5,0,5,5,0,0,0,0,0,5,0,0,0)
+pos_anlys<-c(0,4,4,-2,-2,0,2,4,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-3,0,0,0,0,-3,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0)
   #c(-2,3,0,0,0,0,-1,0,-2,0,0,0,0,0,0,-1,0,-2,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)
   #c(3,0,-1,0,0,0,0,0,1,-1,0,0,0,4,0,0,0,0,1,0,0,0,2,0,0,-1,0,0,0,-1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)
   #c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,0,0,0,-3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-3,3,0,0,0,0)
-  #c(-1,0,-2,0,0,0,-1,-1,-4,0,0,0,0,0,0,-2,0,0,0,1,0,0,0,1,0,-1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)
-  #c(0,-1,-1,0,0,0,0,0,0,0,-1,0,0,0,0,0,0,0,-1,0,0,0,0,0,-1,0,0,0,0,0,0,0,0,0,0,0,0,0,-3,0,1,0,2,0,0,1,0,0,0,0,0)
-
+  
 #note opchain is already instanciated by the proceduces of ERskRtnEval
 opchain$Position<-pos_anlys
 opchain %>% dplyr::filter(Position!=0) -> thePosition
@@ -138,8 +136,9 @@ gg<-ggplot(drawGrktbl,aes(x=UDLY,y=profit,group=day))
 (
   gg
   + geom_line(size=0.9-0.01*round(drawGrktbl$day/stepdays),linetype=round(drawGrktbl$day/stepdays))
-  + geom_line(x=drawGrktbl$UDLY,y=drawGrktbl$TotalEffect,colour="blue",size=0.9-0.01*round(drawGrktbl$day/stepdays),linetype=round(drawGrktbl$day/stepdays))
+  + geom_line(x=drawGrktbl$UDLY,y=drawGrktbl$DeltaEffect,colour="blue",size=0.9-0.01*round(drawGrktbl$day/stepdays),linetype=round(drawGrktbl$day/stepdays))
   + geom_line(x=drawGrktbl$UDLY,y=drawGrktbl$GammaEffect,colour="red",size=0.9-0.01*round(drawGrktbl$day/stepdays),group=drawGrktbl$day,linetype=round(drawGrktbl$day/stepdays))
+  + geom_line(x=drawGrktbl$UDLY,y=drawGrktbl$VegaEffect,colour="green",size=0.9-0.01*round(drawGrktbl$day/stepdays),group=drawGrktbl$day,linetype=round(drawGrktbl$day/stepdays))
   + geom_line(x=drawGrktbl$UDLY,y=drawGrktbl$ThetaEffect,colour="orange",size=0.9-0.01*round(drawGrktbl$day/stepdays),group=drawGrktbl$day,linetype=round(drawGrktbl$day/stepdays))
   +geom_point(x=mean(thePosition$UDLY),y=0,size=3.5,colour="green")
 )
@@ -427,13 +426,13 @@ getPositionGreeks<-function(position,multi=PosMultip){
   gammaEffect<-getGammaEffect(pos=position$Position,greek=position$Gamma,
                               UDLY=position$UDLY,ividx_td=getIV_td(position$IVIDX))
   
-  DTRRR<-getDTRRR(position=position)
-  VTRRR<-getVTRRR(position=position,
-                  ividx=getIV_td(position$IVIDX),
-                  dviv=annuual.daily.volatility(getIV_td(histIV$IVIDX))$daily)
+  #DTRRR<-getDTRRR(position=position)
+  #VTRRR<-getVTRRR(position=position,
+  #                ividx=getIV_td(position$IVIDX),
+  #                dviv=annuual.daily.volatility(getIV_td(histIV$IVIDX))$daily)
   
   data.frame(Price=price,Delta=delta,Gamma=gamma,Theta=theta,Vega=vega,UDLY=udly,
-             ThetaEffect=thetaEffect,GammaEffect=gammaEffect,DeltaEffect=deltaEffect,VegaEffect=vegaEffect,
-             DTRRR=DTRRR,VTRRR=VTRRR)
+             ThetaEffect=thetaEffect,GammaEffect=gammaEffect,DeltaEffect=deltaEffect,VegaEffect=vegaEffect)
+             #,DTRRR=DTRRR,VTRRR=VTRRR)
   
 }

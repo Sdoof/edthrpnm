@@ -324,11 +324,11 @@ createPositinEvalTable<-function(position,udlStepNum=3,udlStepPct=0.03,days=hold
   #Modify pos based on scenario
   posEvalTbl %>% group_by(udlChgPct) %>% do(pos=reflectPosChg(.,days)) -> posEvalTbl
   #DTRRR
-  posEvalTbl %>% rowwise() %>% do(DTRRR=evalPosRskRtnDTRRR(.)) -> tmp
-  unlist(tmp$DTRRR)->tmp ; posEvalTbl$DTRRR <- tmp ;rm(tmp)
+  #posEvalTbl %>% rowwise() %>% do(DTRRR=evalPosRskRtnDTRRR(.)) -> tmp
+  #unlist(tmp$DTRRR)->tmp ; posEvalTbl$DTRRR <- tmp ;rm(tmp)
   #VTRRR
-  posEvalTbl %>% rowwise() %>% do(VTRRR=evalPosRskRtnVTRRR(.)) -> tmp
-  unlist(tmp$VTRRR)->tmp ; posEvalTbl$VTRRR <- tmp ;rm(tmp)
+  #posEvalTbl %>% rowwise() %>% do(VTRRR=evalPosRskRtnVTRRR(.)) -> tmp
+  #unlist(tmp$VTRRR)->tmp ; posEvalTbl$VTRRR <- tmp ;rm(tmp)
   
   #debugging(Just for Info ) purpose. when optimized, not necessary.
   ##
@@ -389,13 +389,14 @@ getIntrisicValue<-function(udly_price,position,multip=PosMultip){
 
 #function optimized
 
-obj_Income <- function(x,isDebug=TRUE,isMCGA=FALSE){
+obj_Income <- function(x,isDebug=TRUE,isMCGA=TRUE){
   x<-as.numeric(x<(-5))*runif(1,-5,0)+as.numeric(x>(5))*runif(1,0,5)+as.numeric(x>=(-5)&x<=5)*x
   x<-round(x)
   if(sum(as.numeric(round(x)!=0))==0){
     x<-runif(length(x),-5,5)
     x<-round(x)
   }
+  exp_c<-0
   cat(x,"\n")
   position<-hollowNonZeroPosition(pos=x)
   
@@ -407,27 +408,29 @@ obj_Income <- function(x,isDebug=TRUE,isMCGA=FALSE){
   #if(isDebug){print(posEvalTbl$pos)}
   #if(isDebug){print(posEvalTbl)}
   
-  #penalty1: position total num
+  ##
+  # penalty1: position total num
   pos_change<-sum(as.numeric((round(x)-iniPos)!=0))
   penalty1<-(1+as.numeric((pos_change-10)>0)*(pos_change-10))^5
   cat("pos num",pos_change)
   if(isDebug){cat(" :p1",penalty1)}
   
-  #penalty4. ThetaEffect. This should be soft constraint
-  #print(thePositionGrk)
+  ##
+  # penalty4. ThetaEffect. This should be soft constraint
+
   sd_multp<-holdDays;anlzd_sd<-0.2;sd_hd<-(anlzd_sd/sqrt(252/sd_multp))*3
   weight<-dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd / sum(dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd)
   theta_ttl<-thePositionGrk$ThetaEffect+sum(posEvalTbl$ThetaEffect*weight)
 
   exp_c<-as.numeric((pos_change-10)>0)*0+as.numeric((pos_change-10)<=0)*3
   penalty4<-(1+as.numeric(theta_ttl<0)*(abs(theta_ttl)))^exp_c
-  
-  #cost4 <- -1*theta_ttl
-  cost4<-0
+  ##
+  #cost4 <- -1*theta_ttl;cost4<-0
   if(isDebug){cat(" :thta_ttl",theta_ttl);cat(" :p4",penalty4)}
   #cat(" :thta_ini",thePositionGrk$ThetaEffect);cat(" :thta_hld",sum(posEvalTbl$ThetaEffect*weight))
   
-  #penalty2 tail-risk
+  ##
+  # penalty2 tail-risk
   tail_rate<-0.5
   tailPrice<-min(sum(getIntrisicValue(position$UDLY[1]*(1-tail_rate),position)),
                  sum(getIntrisicValue(position$UDLY[1]*(1+tail_rate),position)))
@@ -437,11 +440,12 @@ obj_Income <- function(x,isDebug=TRUE,isMCGA=FALSE){
   #exp_c<-as.numeric((pos_change-10)>0)*0+as.numeric((pos_change-10)<=0)*2
   penalty2<-(1+as.numeric((tailPrice-lossLimitPrice)<0)*(abs(tailPrice)))^exp_c
   
-  #cost2<-(1+as.numeric((tailPrice-lossLimitPrice)<0)*10
-  cost2<-0
+  ##
+  #cost2<-(1+as.numeric((tailPrice-lossLimitPrice)<0)*10;cost2<-0
   if(isDebug){cat(" :tlpr",tailPrice);cat(" :lslmt",lossLimitPrice);cat(" :p2",penalty2)}
   
-  #penalty3, cost1 profit must be positive. also must be a cost term.
+  ##
+  # penalty3, cost1 profit must be positive. also must be a cost term.
   #if(isDebug){cat(" :prc_hd",posEvalTbl$Price);cat(" :prc_ini:",getPositionGreeks(position,multi=PosMultip)$Price)}
   #if(isDebug){cat(" :prft",posEvalTbl$Price-getPositionGreeks(position,multi=PosMultip)$Price)}
   
@@ -455,23 +459,29 @@ obj_Income <- function(x,isDebug=TRUE,isMCGA=FALSE){
   exp_c<-as.numeric((pos_change-10)>0)*0+as.numeric((pos_change-10)<=0)*2
   penalty3<-(1+as.numeric(profit_hdays<0)*(abs(profit_hdays)))^exp_c
   if(isDebug){cat(" :p3",penalty3)}
+  ##
+  # cost 3
   cost3<- -1*profit_hdays
   
-  #cost5 Each Effects.  
+  ##
+  # cost5 Each Effects.  
   #weight is normalized
   sd_multp<-holdDays;anlzd_sd<-0.2;sd_hd<-(anlzd_sd/sqrt(252/sd_multp))*3
   weight<-dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd / sum(dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd)
   #if(isDebug){cat(" :wht2",weight)}  
-  cost5<--sum(posEvalTbl$DTRRR*weight+posEvalTbl$VTRRR*weight)
-  if(isDebug){cat(" c2",cost2)}
+  #cost5<--sum(posEvalTbl$DTRRR*weight+posEvalTbl$VTRRR*weight)
+  cost5<- -sum((posEvalTbl$DeltaEffect+posEvalTbl$GammaEffect+
+                 posEvalTbl$VegaEffect+posEvalTbl$ThetaEffect)*weight)
+  if(isDebug){cat(" c5",cost5)}
   
-  #total cost is weighted sum of each cost.
-  cost<-(0.03*cost3+cost5+0.05*cost4+cost2+10000)
+  ##
+  # total cost is weighted sum of each cost.
+  cost<-(0.03*cost3+0.01*cost5+500)
   if(isDebug){cat(" :cost",cost," ")}
   
-  #non lex cost function should be like this.
+  ##
+  # total cost and penalty
   val<-cost*penalty1*penalty2*penalty3*penalty4
-  #val<-c(penalty1,penalty2,penalty3,cost)
   
   if(isDebug){cat(" val:",val,"\n")}
   return(val)
@@ -772,8 +782,8 @@ rm(edoprCon)
 
 #MCGA
 #mcga_chsize<-length(iniPos)
-outm <- mcga( popsize=200,chsize=as.numeric(length(iniPos)),minval=-5,maxval=5,maxiter=1000,
-              crossprob=1.0,mutateprob=0.01,evalFunc=obj_Income_mcga)
+outm <- mcga( popsize=200,chsize=as.numeric(length(iniPos)),minval=-5,maxval=5,maxiter=300,
+              crossprob=1.0,mutateprob=0.01,evalFunc=obj_Income)
 # outm <- multi_mcga( popsize=200,chsize=as.numeric(length(iniPos)),minval=-5,maxval=5,maxiter=2500,
 #                     crossprob=1.0,mutateprob=0.01,evalFunc=obj_Income_mcga_mf,numfunc=4)
 rm(mcga_chsize)
