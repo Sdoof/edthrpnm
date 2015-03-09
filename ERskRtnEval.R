@@ -20,6 +20,28 @@ dviv_caldays<-20
 #Multipler of Position
 PosMultip<-100
 
+#Option Chain and Position Data. Here we use UDL_Positions_Pre ---------------
+rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep="")
+opchain<-read.table(rf,header=T,sep=",")
+#filtering. deleting unnecessary column
+opchain %>% dplyr::select(-(starts_with('dummy',ignore.case=TRUE)),
+                          -(contains('Frac',ignore.case=TRUE)),
+                          -(IV)) %>% as.data.frame() -> opchain
+#only OOM targeted
+opchain %>% dplyr::filter(HowfarOOM>=0) -> opchain
+#assiging initial Position?
+#get position where opchain$Position!=0
+opchain %>% dplyr::filter(Position!=0) -> position
+
+##Historical Implied Volatility Data ---------------
+rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_IV.csv",sep="") 
+histIV<-read.table(rf,header=T,sep=",",nrows=1999);rm(rf)
+#filtering
+histIV %>% dplyr::transmute(Date=Date,IVIDX=Close/100) -> histIV
+histIV %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")<=max(as.Date(position$Date,format="%Y/%m/%d"))) %>%
+  dplyr::arrange(desc(as.Date(Date,format="%Y/%m/%d"))) %>% head(n=dviv_caldays) -> histIV
+
+
 #Data Setup. Provisioning
 #Load Regression and Correlation Parameters ---------------
 load.PC2IV(PC="PC3dCtC",IVC="IVCF3dCtC")
@@ -120,33 +142,6 @@ getVTRRR<-function(position,ividx,dviv,multi=PosMultip,hdd=holdDays){
   VTRRR
 }
 
-#Option Chain and Position Data. Here we use UDL_Positions_Pre ---------------
-rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep="")
-opchain<-read.table(rf,header=T,sep=",")
-#filtering. deleting unnecessary column
-opchain %>% dplyr::select(-(starts_with('dummy',ignore.case=TRUE)),
-                      -(contains('Frac',ignore.case=TRUE)),
-                      -(IV)) %>% as.data.frame() -> opchain
-#only OOM targeted
-opchain %>% dplyr::filter(HowfarOOM>=0) -> opchain
-#assiging initial Position?
-#get position where opchain$Position!=0
-opchain %>% dplyr::filter(Position!=0) -> position
-
-##Historical Implied Volatility Data ---------------
-rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_IV.csv",sep="") 
-histIV<-read.table(rf,header=T,sep=",",nrows=1999);rm(rf)
-  #filtering
-histIV %>% dplyr::transmute(Date=Date,IVIDX=Close/100) -> histIV
-histIV %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")<=max(as.Date(position$Date,format="%Y/%m/%d"))) %>%
-  dplyr::arrange(desc(as.Date(Date,format="%Y/%m/%d"))) %>% head(n=dviv_caldays) -> histIV
-
-#get DTRRR VTRRR (**Just for test)---------
-getDTRRR(position=position)
-getVTRRR(position=position,
-         ividx=getIV_td(position$IVIDX),
-         dviv=annuual.daily.volatility(getIV_td(histIV$IVIDX))$daily)
-
 #Rsk/Rtn Scenario functions -----------------------------
 #Factory of Volatility Level Regression Result
 get.Volatility.Level.Regression<-function(Days=holdDays,ctoc=TRUE){
@@ -198,7 +193,7 @@ get.UDLY.Changed.Price<-function(udly,chg_pct){
   change
 }
 
-#Inner functions for gruped or rowwise operations. -------------
+#Functions for gruped or rowwise operations. -------------
 #evalPosRskRtnXXX is just wrappers for Rsk/Rtn greek related functions.
 evalPosRskRtnDTRRR<- function(pos_eval){
   pos_DTRRR<-pos_eval$pos
@@ -307,8 +302,6 @@ reflectPosChg<- function(process_df,days=holdDays){
   pos
 }
 
-## Optimization Test -------------------
-
 hollowNonZeroPosition<-function(pos){
   #opchain is global parameter. to avoid unnessary copying
   opchain$Position<-pos
@@ -387,13 +380,26 @@ getIntrisicValue<-function(udly_price,position,multip=PosMultip){
     (udly_price-position$Strike)*(-position$TYPE)*multip*position$Position
 }
 
-#function optimized
+## Optimization Test -------------------
+#Initial and evaluation vector
+iniPos<-opchain$Position
+iniPos<-rep(0,length(iniPos))
+evaPos<-opchain$Position
+
+#test
+evaPos<-rnorm(n=length(iniPos),mean=0,sd=1)
+obj_Income(x=evaPos,isDebug=TRUE)
+obj_Income_genoud_lex_int(x=evaPos,isDebug=TRUE)
+
+#functions optimized
 
 obj_Income <- function(x,isDebug=TRUE,isMCGA=TRUE){
-  x<-as.numeric(x<(-5))*runif(1,-5,0)+as.numeric(x>(5))*runif(1,0,5)+as.numeric(x>=(-5)&x<=5)*x
+  if(isMCGA){
+    x<-as.numeric(x<(-5))*(-5)+as.numeric(x>(5))*5+as.numeric(x>=(-5)&x<=5)*x
+  }
   x<-round(x)
   if(sum(as.numeric(round(x)!=0))==0){
-    x<-runif(length(x),-5,5)
+    x<-rep(1,length=length(x))
     x<-round(x)
   }
   exp_c<-0
@@ -487,42 +493,6 @@ obj_Income <- function(x,isDebug=TRUE,isMCGA=TRUE){
   return(val)
 }
 
-obj_Income_genoud_int <- function(x,isDebug=FALSE){
-  #x<-round(x)
-  if(sum(as.numeric(round(x)!=0))==0){
-    x<-runif(length(x),-5,5)
-    x<-round(x)
-  }
-  print(x)
-  position<-hollowNonZeroPosition(pos=x)
-  
-  udlStepNum<-3; udlStepPct<-0.03
-  udlChgPct<-seq(-udlStepPct*udlStepNum,udlStepPct*udlStepNum,length=(2*udlStepNum)+1)
-  posEvalTbl<-createPositinEvalTable(position=position,udlStepNum=udlStepNum,udlStepPct=udlStepPct)
-  sd_multp<-25;anlzd_sd<-0.2
-  
-  #weight is normalized
-  weight<-dnorm(udlChgPct,mean=0,sd=(anlzd_sd/sqrt(252/sd_multp)))*udlStepPct / 
-    sum(dnorm(udlChgPct,mean=0,sd=(anlzd_sd/sqrt(252/sd_multp)))*udlStepPct)
-  
-  #print(posEvalTbl$pos)
-  # print(posEvalTbl)
-  
-  #print(weight)
-  
-  #return(posEvalTbl)
-  pos_change<-sum(as.numeric((round(x)-iniPos)!=0))
-  penalty1<-(1+as.numeric((pos_change-10)>0)*(pos_change-10))^5
-  print(pos_change)
-  print(penalty1) 
-  grkeval<--sum(posEvalTbl$DTRRR*weight+posEvalTbl$VTRRR*weight)
-  print(grkeval)
-  
-  val<-grkeval*penalty1
-  print(val)
-  return(val)
-}
-
 obj_Income_genoud_lex_int <- function(x,isDebug=TRUE){
   #x<-round(x)
   if(sum(as.numeric(round(x)!=0))==0){
@@ -595,175 +565,9 @@ obj_Income_genoud_lex_int <- function(x,isDebug=TRUE){
   return(val)
 }
 
-obj_Income_mcga <- function(x,isDebug=TRUE){
-  #x<-as.numeric(x<(-5))*(-5)+as.numeric(x>(5))*(5)+as.numeric(x>=(-5)&x<=5)*x
-  x<-as.numeric(x<(-5))*runif(1,-5,0)+as.numeric(x>(5))*runif(1,0,5)+as.numeric(x>=(-5)&x<=5)*x
-  x<-round(x)
-  if(sum(as.numeric(round(x)!=0))==0){
-    x<-runif(length(x),-5,5)
-    x<-round(x)
-  }
-  cat(x,"\n")
-  position<-hollowNonZeroPosition(pos=x)
-  
-  udlStepNum<-3; udlStepPct<-0.03
-  udlChgPct<-seq(-udlStepPct*udlStepNum,udlStepPct*udlStepNum,length=(2*udlStepNum)+1)
-  posEvalTbl<-createPositinEvalTable(position=position,udlStepNum=udlStepNum,udlStepPct=udlStepPct)
-  
-  thePositionGrk<-getPositionGreeks(position,multi=PosMultip)
-  #if(isDebug){print(posEvalTbl$pos)}
-  #if(isDebug){print(posEvalTbl)}
-  
-  #penalty1: position total num
-  pos_change<-sum(as.numeric((round(x)-iniPos)!=0))
-  penalty1<-(1+as.numeric((pos_change-10)>0)*(pos_change-10))^4
-  cat("pos num",pos_change)
-  if(isDebug){cat(" :p1",penalty1)}
-  
-  #penalty2 tail-risk
-  tail_rate<-0.5
-  tailPrice<-min(sum(getIntrisicValue(position$UDLY[1]*(1-tail_rate),position)),
-                 sum(getIntrisicValue(position$UDLY[1]*(1+tail_rate),position)))
-  lossLimitPrice <- -1*position$UDLY[1]*PosMultip*(tail_rate+0.1)
-  penalty2<-(1+as.numeric((tailPrice-lossLimitPrice)<0)*(abs(tailPrice)))
-  if(isDebug){cat(" :tlpr",tailPrice);cat(" :lslmt",lossLimitPrice);cat(" :p2",penalty2)}
-  
-  #penalty3, cost1 profit must be positive. also must be a cost term.
-  #if(isDebug){cat(" :prc_hd",posEvalTbl$Price);cat(" :prc_ini:",getPositionGreeks(position,multi=PosMultip)$Price)}
-  #if(isDebug){cat(" :prft",posEvalTbl$Price-getPositionGreeks(position,multi=PosMultip)$Price)}
-  
-  
-  sd_multp<-holdDays;anlzd_sd<-0.2;sd_hd<-(anlzd_sd/sqrt(252/sd_multp))
-  weight<-dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd / sum(dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd)
-  #if(isDebug){cat(" :wht",weight)}
-  
-  profit_hdays<-sum((posEvalTbl$Price-thePositionGrk$Price)*weight)
-  if(isDebug){cat(" :prft_wt",profit_hdays)}
-  penalty3<-(1+as.numeric(profit_hdays<0)*(abs(profit_hdays)))
-  if(isDebug){cat(" :p3",penalty3)}
-  cost1<- -1*profit_hdays
-  
-  #cost2 Each Effects.  
-  #weight is normalized
-  sd_multp<-holdDays;anlzd_sd<-0.2;sd_hd<-(anlzd_sd/sqrt(252/sd_multp))*3
-  weight<-dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd / sum(dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd)
-  #if(isDebug){cat(" :wht2",weight)}  
-  cost2<--sum(posEvalTbl$DTRRR*weight+posEvalTbl$VTRRR*weight)
-  if(isDebug){cat(" c2",cost2)}
-  
-  #penalty4. ThetaEffect. This should be soft constraint
-  #print(thePositionGrk)
-  theta_ttl<-thePositionGrk$ThetaEffect+sum(posEvalTbl$ThetaEffect*weight)
-  penalty4<-(1+as.numeric(theta_ttl<0)*(abs(theta_ttl)))^2
-  if(isDebug){cat(" :thta_ttl",theta_ttl);cat(" :p4",penalty4)}
-  #cat(" :thta_ini",thePositionGrk$ThetaEffect);cat(" :thta_hld",sum(posEvalTbl$ThetaEffect*weight))
-  
-  #total cost is weighted sum of each cost.
-  cost<-(0.03*cost1+cost2+500)
-  if(isDebug){cat(" :cost",cost," ")}
-  
-  #non lex cost function should be like this.
-  val<-cost*penalty1*penalty2*penalty3*penalty4
-  #val<-c(penalty1,penalty2,penalty3,cost)
-  
-  if(isDebug){cat(" val:",val,"\n")}
-  return(val)
-}
-
-obj_Income_mcga_f1 <- function(x,position=position,posEvalTbl=posEvalTbl,thePositionGrk=thePositionGrk,isDebug=TRUE){
-  #penalty1: position total num
-  pos_change<-sum(as.numeric((round(x)-iniPos)!=0))
-  penalty1<-(1+as.numeric((pos_change-10)>0)*(pos_change-10))^5
-  cat(" :pos num",pos_change)
-  if(isDebug){cat(" :p1",penalty1)}
-  return(penalty1)
-}
-
-obj_Income_mcga_f2 <- function(x,position=position,posEvalTbl=posEvalTbl,thePositionGrk=thePositionGrk,isDebug=TRUE){
-  #penalty2 tail risk
-  tail_rate<-0.5
-  tailPrice<-min(sum(getIntrisicValue(position$UDLY[1]*(1-tail_rate),position)),
-                 sum(getIntrisicValue(position$UDLY[1]*(1+tail_rate),position)))
-  lossLimitPrice <- -1*position$UDLY[1]*PosMultip*(tail_rate+0.1)
-  penalty2<-(1+as.numeric((tailPrice-lossLimitPrice)<0)*(abs(tailPrice)))
-  if(isDebug){cat(" :tlpr",tailPrice);cat(" :lslmt",lossLimitPrice);cat(" :p2",penalty2)}
-  
-  return(penalty2)
-}
-
-obj_Income_mcga_f3 <- function(x,position=position,posEvalTbl=posEvalTbl,thePositionGrk=thePositionGrk,udlChgPct=udlChgPct,profit_hdays=profit_hdays,isDebug=TRUE){ 
-  #profit 
-  penalty3<-(1+as.numeric(profit_hdays<0)*(abs(profit_hdays)))^2
-  if(isDebug){cat(" :p3",penalty3)}
-  return(penalty3)
-}
-
-obj_Income_mcga_f4 <- function(x,position=position,posEvalTbl=posEvalTbl,thePositionGrk=thePositionGrk,udlChgPct=udlChgPct,profit_hdays=profit_hdays,isDebug=TRUE){ 
-  cost1<- -1*profit_hdays
-  if(isDebug){cat(" c1",cost1)}
-  #cost2 Each Effects.  
-  #weight is normalized
-  sd_multp<-holdDays;anlzd_sd<-0.2;sd_hd<-(anlzd_sd/sqrt(252/sd_multp))*3
-  weight<-dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd / sum(dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd)
-  #if(isDebug){cat(" :wht2",weight)}  
-  cost2<--sum(posEvalTbl$DTRRR*weight+posEvalTbl$VTRRR*weight)
-  if(isDebug){cat(" c2",cost2)}
-  
-  #penalty4. ThetaEffect. This should be soft constraint
-  #print(thePositionGrk)
-  theta_ttl<-thePositionGrk$ThetaEffect+sum(posEvalTbl$ThetaEffect*weight)
-  penalty4<-(1+as.numeric(theta_ttl<0)*(abs(theta_ttl)))^2
-  if(isDebug){cat(" :thta_ttl",theta_ttl);cat(" :p4",penalty4)}
-  #cat(" :thta_ini",thePositionGrk$ThetaEffect);cat(" :thta_hld",sum(posEvalTbl$ThetaEffect*weight))
-  
-  #total cost is weighted sum of each cost.
-  cost<-(0.03*cost1+cost2+500)*penalty4
-  if(isDebug){cat(" :cost",cost,"\n")}
-  return(cost)
-}
-
-obj_Income_mcga_mf<-function(x,isDebug=TRUE){
-  x<-as.numeric(x<(-5))*(-5)+as.numeric(x>(5))*5+as.numeric(x>=(-5)&x<=5)*x
-  x<-round(x)
-  if(sum(as.numeric(round(x)!=0))==0){
-    x<-runif(length(x),-5,5)
-    x<-round(x)
-  }
-  
-  cat(x,"\n")
-  position<-hollowNonZeroPosition(pos=x)
-  
-  udlStepNum<-3; udlStepPct<-0.03
-  udlChgPct<-seq(-udlStepPct*udlStepNum,udlStepPct*udlStepNum,length=(2*udlStepNum)+1)
- 
-  posEvalTbl<-createPositinEvalTable(position=position,udlStepNum=udlStepNum,udlStepPct=udlStepPct)
-  thePositionGrk<-getPositionGreeks(position,multi=PosMultip)
-  
-  sd_multp<-holdDays;anlzd_sd<-0.2;sd_hd<-(anlzd_sd/sqrt(252/sd_multp))
-  weight<-dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd / sum(dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd)
-  #if(isDebug){cat(" :wht",weight)} 
-  profit_hdays<-sum((posEvalTbl$Price-thePositionGrk$Price)*weight)
-  if(isDebug){cat(" :prft_wt",profit_hdays)}
-  
-  return ( c(obj_Income_mcga_f1(x,position=position,posEvalTbl=posEvalTbl,thePositionGrk=thePositionGrk,isDebug=TRUE),
-             obj_Income_mcga_f2(x,position=position,posEvalTbl=posEvalTbl,thePositionGrk=thePositionGrk,isDebug=TRUE),
-             obj_Income_mcga_f3(x,position=position,posEvalTbl=posEvalTbl,thePositionGrk=thePositionGrk,udlChgPct=udlChgPct,profit_hdays=profit_hdays,isDebug=TRUE),
-             obj_Income_mcga_f4(x,position=position,posEvalTbl=posEvalTbl,thePositionGrk=thePositionGrk,udlChgPct=udlChgPct,profit_hdays=profit_hdays,isDebug=TRUE)))
-}
 
 #initially evaluate using continuous value, after some point evaluated by
 #INT round values. In both cases, pos_change should be evaluated by INT.
-
-##
-#Initial and evaluation vector
-iniPos<-opchain$Position
-iniPos<-rep(0,length(iniPos))
-evaPos<-opchain$Position
-evaPos<-rnorm(n=length(iniPos),mean=0,sd=1)
-evaPos<-c(-1,0,-2,0,0,0,-1,-1,-4,0,0,0,0,0,0,-2,0,0,0,1,0,0,0,1,0,-1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)
-evaPos<-c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5,0,0,0,0,0,0,0,5,0,0,0,0,0,0,0,0,5,5,0,5,5,5,0,5,5,0,0,0,0,0,5,0,0,0)
-obj_Income(x=evaPos)
-obj_Income_genoud_lex_int(x=evaPos,isDebug=TRUE)
 
 ##
 # Optimize Engine
