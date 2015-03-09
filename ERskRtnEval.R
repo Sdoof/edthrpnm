@@ -393,9 +393,9 @@ obj_Income_genoud_lex_int(x=evaPos,isDebug=TRUE)
 
 #functions optimized
 
-obj_Income <- function(x,isDebug=TRUE,isMCGA=TRUE){
+obj_Income <- function(x,isDebug=TRUE,isMCGA=FALSE,isGenoud=FALSE){
   if(isMCGA){
-    x<-as.numeric(x<(-5))*(-5)+as.numeric(x>(5))*5+as.numeric(x>=(-5)&x<=5)*x
+    x<-as.numeric(x<(-6))*(-6)+as.numeric(x>(6))*6+as.numeric(x>=(-6)&x<=6)*x
   }
   x<-round(x)
   if(sum(as.numeric(round(x)!=0))==0){
@@ -403,7 +403,7 @@ obj_Income <- function(x,isDebug=TRUE,isMCGA=TRUE){
     x<-round(x)
   }
   exp_c<-0
-  cat(x,"\n")
+  cat(x," ")
   position<-hollowNonZeroPosition(pos=x)
   
   udlStepNum<-3; udlStepPct<-0.03
@@ -424,11 +424,11 @@ obj_Income <- function(x,isDebug=TRUE,isMCGA=TRUE){
   ##
   # penalty4. ThetaEffect. This should be soft constraint
 
-  sd_multp<-holdDays;anlzd_sd<-0.2;sd_hd<-(anlzd_sd/sqrt(252/sd_multp))*3
+  sd_multp<-holdDays;anlzd_sd<-0.2;sd_hd<-(anlzd_sd/sqrt(252/sd_multp))*2
   weight<-dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd / sum(dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd)
   theta_ttl<-thePositionGrk$ThetaEffect+sum(posEvalTbl$ThetaEffect*weight)
 
-  exp_c<-as.numeric((pos_change-10)>0)*0+as.numeric((pos_change-10)<=0)*3
+  exp_c<-as.numeric((pos_change-10)>0)*0+as.numeric((pos_change-10)<=0)
   penalty4<-(1+as.numeric(theta_ttl<0)*(abs(theta_ttl)))^exp_c
   ##
   #cost4 <- -1*theta_ttl;cost4<-0
@@ -437,17 +437,18 @@ obj_Income <- function(x,isDebug=TRUE,isMCGA=TRUE){
   
   ##
   # penalty2 tail-risk
-  tail_rate<-0.5
+  tail_rate<-0.4
   tailPrice<-min(sum(getIntrisicValue(position$UDLY[1]*(1-tail_rate),position)),
                  sum(getIntrisicValue(position$UDLY[1]*(1+tail_rate),position)))
-  lossLimitPrice <- -1*position$UDLY[1]*PosMultip*(tail_rate+0.1)
+  #lossLimitPrice <- -1*position$UDLY[1]*PosMultip*(tail_rate+0.1)
+  lossLimitPrice <- -20000
   
-  exp_c<-as.numeric(exp_c>0)*(as.numeric((penalty4-2)>0)*0+as.numeric((penalty4-2)<0)*2)
-  #exp_c<-as.numeric((pos_change-10)>0)*0+as.numeric((pos_change-10)<=0)*2
-  penalty2<-(1+as.numeric((tailPrice-lossLimitPrice)<0)*(abs(tailPrice)))^exp_c
-  
+  #exp_c<-as.numeric(exp_c>0)*(as.numeric((penalty4-2)>0)*0+as.numeric((penalty4-2)<0)*2)
+  #penalty2<-(1+as.numeric((tailPrice-lossLimitPrice)<0)*(abs(tailPrice)))^exp_c
+  penalty2<-(1+as.numeric((tailPrice-lossLimitPrice)<0)*(10))^exp_c
+
   ##
-  #cost2<-(1+as.numeric((tailPrice-lossLimitPrice)<0)*10;cost2<-0
+  #cost2<-(1+as.numeric(penalty2>1)*10);cost2<-0
   if(isDebug){cat(" :tlpr",tailPrice);cat(" :lslmt",lossLimitPrice);cat(" :p2",penalty2)}
   
   ##
@@ -459,11 +460,12 @@ obj_Income <- function(x,isDebug=TRUE,isMCGA=TRUE){
   weight<-dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd / sum(dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd)
   #if(isDebug){cat(" :wht",weight)}
   
+  #exp_c<-as.numeric(exp_c>0)*(as.numeric((penalty3-2)>0)*0+as.numeric((penalty3-2)<0)*2)
   profit_hdays<-sum((posEvalTbl$Price-thePositionGrk$Price)*weight)
   if(isDebug){cat(" :prft_wt",profit_hdays)}
 
-  exp_c<-as.numeric((pos_change-10)>0)*0+as.numeric((pos_change-10)<=0)*2
   penalty3<-(1+as.numeric(profit_hdays<0)*(abs(profit_hdays)))^exp_c
+  penalty3<-1
   if(isDebug){cat(" :p3",penalty3)}
   ##
   # cost 3
@@ -475,7 +477,6 @@ obj_Income <- function(x,isDebug=TRUE,isMCGA=TRUE){
   sd_multp<-holdDays;anlzd_sd<-0.2;sd_hd<-(anlzd_sd/sqrt(252/sd_multp))*3
   weight<-dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd / sum(dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd)
   #if(isDebug){cat(" :wht2",weight)}  
-  #cost5<--sum(posEvalTbl$DTRRR*weight+posEvalTbl$VTRRR*weight)
   cost5<- -sum((posEvalTbl$DeltaEffect+posEvalTbl$GammaEffect+
                  posEvalTbl$VegaEffect+posEvalTbl$ThetaEffect)*weight)
   if(isDebug){cat(" c5",cost5)}
@@ -496,7 +497,7 @@ obj_Income <- function(x,isDebug=TRUE,isMCGA=TRUE){
 obj_Income_genoud_lex_int <- function(x,isDebug=TRUE){
   #x<-round(x)
   if(sum(as.numeric(round(x)!=0))==0){
-    x<-runif(length(x),-5,5)
+    x<-rep(1,length=length(x))
     x<-round(x)
   }
   cat(x,"\n")
@@ -578,39 +579,40 @@ edoprCon=function(x){
   pos_change<-(sum(as.numeric((x-iniPos)!=0))-10)
   c(pos_change)
 }
-outjdopr<-JDEoptim(lower=rep(-5,length(iniPos)),upper=rep(5,length(iniPos)), fn=obj_Income,
-                   tol=1e-10,NP=15*length(iniPos),maxiter=100*length(iniPos),#meq=0)
+outjdopr<-JDEoptim(lower=rep(-6,length(iniPos)),upper=rep(6,length(iniPos)), fn=obj_Income,
+                   tol=1e-10,NP=15*length(iniPos),maxiter=50*length(iniPos),#meq=0)
                    constr=edoprCon, meq = 0)
 rm(edoprCon)
 #JDEoptim(.., NP = 10*d, tol = 1e-15, maxiter = 200*d, trace = FALSE, triter = 1, details = FALSE, ...)
 
 #MCGA
 #mcga_chsize<-length(iniPos)
-outm <- mcga( popsize=200,chsize=as.numeric(length(iniPos)),minval=-5,maxval=5,maxiter=300,
+outm <- mcga( popsize=200,chsize=as.numeric(length(iniPos)),minval=-6,maxval=6,maxiter=300,
               crossprob=1.0,mutateprob=0.01,evalFunc=obj_Income)
 # outm <- multi_mcga( popsize=200,chsize=as.numeric(length(iniPos)),minval=-5,maxval=5,maxiter=2500,
 #                     crossprob=1.0,mutateprob=0.01,evalFunc=obj_Income_mcga_mf,numfunc=4)
 rm(mcga_chsize)
 
 #genoud
-domain<-matrix(c(rep(-5,length(evaPos)),rep(5,length(iniPos))), nrow=length(iniPos), ncol=2)
-outgen <- genoud(fn=obj_Income_genoud_lex_int,nvars=length(iniPos),
-                 pop.size=4000,max.generations=150,
-                 data.type.int=TRUE,
-                 lexical=TRUE,
+domain<-matrix(c(rep(-6,length(evaPos)),rep(6,length(iniPos))), nrow=length(iniPos), ncol=2)
+outgen <- genoud(#fn=obj_Income_genoud_lex_int,lexical=TRUE,
+                 fn=obj_Income,
+                 nvars=length(iniPos),pop.size=4000,max.generations=150,
+                 data.type.int=TRUE,#FALSE
                  wait.generations=50,gradient.check=FALSE,MemoryMatrix=TRUE,
-                 starting.values=rnorm(n=length(iniPos),mean=0,sd=2),Domains=domain)
+                 starting.values=evaPos,#rnorm(n=length(iniPos),mean=0,sd=2),
+                 Domains=domain)
 rm(domain)
 
 #GenSA Intermediate not sufficient
-GenSA(par=evaPos,fn=obj_Income,lower=rep(-5.2,length(iniPos)),upper=rep(5.2,length(iniPos)))
+GenSA(par=evaPos,fn=obj_Income,lower=rep(-6,length(iniPos)),upper=rep(6,length(iniPos)))
 
 #hydroPSO Intermediate not sufficient
 hydroPSO(par=evaPos,fn=obj_Income,
          lower=rep(-5.2,length(iniPos)), upper=rep(5.2,length(iniPos)))
 
 #DEOptim Intermediate not sufficient
-outdeop <- DEoptim(fn=obj_Income,lower = rep(-5.2,length(iniPos)),upper = rep(5.2,length(iniPos)))
+outdeop <- DEoptim(fn=obj_Income,lower = rep(-6,length(iniPos)),upper = rep(6,length(iniPos)))
 
 #dfoptim. Intermediate not suffucient
 outhjkb<-hjkb(par=evaPos, fn=obj_Income_mcga, lower = rep(-5.2,length(iniPos)), upper =rep(5.2,length(iniPos)))

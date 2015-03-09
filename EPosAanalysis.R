@@ -17,7 +17,7 @@ evaldays<-rep(stepdays,times=totalstep)
 evaldays<- cumsum(evaldays)
 
 #read analyzed positon. here we give by copy and paste
-pos_anlys<-c(0)
+pos_anlys<-evaPos
  
 #note opchain is already instanciated by the proceduces of ERskRtnEval
 opchain$Position<-pos_anlys
