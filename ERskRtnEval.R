@@ -391,9 +391,9 @@ evaPos<-rnorm(n=length(iniPos),mean=0,sd=1)
 obj_Income(x=evaPos,isDebug=TRUE)
 obj_Income_genoud_lex_int(x=evaPos,isDebug=TRUE)
 
-#functions optimized
+#functions optimized  -------------
 
-obj_Income <- function(x,isDebug=TRUE,isMCGA=FALSE,isGenoud=FALSE){
+obj_Income <- function(x,isDebug=TRUE,isMCGA=FALSE,isGenoud=TRUE){
   if(isMCGA){
     x<-as.numeric(x<(-6))*(-6)+as.numeric(x>(6))*6+as.numeric(x>=(-6)&x<=6)*x
   }
@@ -401,7 +401,8 @@ obj_Income <- function(x,isDebug=TRUE,isMCGA=FALSE,isGenoud=FALSE){
     x<-round(x)
   }
   if(sum(as.numeric(round(x)!=0))==0){
-    x<-rep(1,length=length(x))
+    #x<-rep(1,length=length(x))
+    x<-rnorm(n=length(iniPos),mean=0,sd=1)
     x<-round(x)
   }
   exp_c<-0
@@ -494,13 +495,13 @@ obj_Income <- function(x,isDebug=TRUE,isMCGA=FALSE,isGenoud=FALSE){
   
   if(isDebug){cat(" val:",val,"\n")}
   
-  if(!isGenoud){
+  if(isDebug){
     if(val<best_result){
-     write(x,result_file,append=T)
-     write(val,result_file,append=T)
-     #ou use cat which gives further details on the format used
-     best_result<<-val
-     #assign(best_result,val,env=.GlobalEnv) 
+      write(x,result_file,append=T)
+      write(val,result_file,append=T)
+      #ou use cat which gives further details on the format used
+      best_result<<-val
+      #assign(best_result,val,env=.GlobalEnv)
     }
   }
   return(val)
@@ -583,9 +584,9 @@ obj_Income_genoud_lex_int <- function(x,isDebug=TRUE){
 #INT round values. In both cases, pos_change should be evaluated by INT.
 
 ##
-# Optimize Engine
 
-#EDoptimR
+# Optimize Engine  
+#EDoptimR  =======
 result_file<-paste(".\\ResultData\\expresult-",format(Sys.time(),"%Y-%b-%d-%H%M%S"),".txt",sep="")
 best_result<-520
 isGenoud=FALSE ; isMCGA=FALSE
@@ -600,18 +601,9 @@ outjdopr<-JDEoptim(lower=rep(-6,length(iniPos)),upper=rep(6,length(iniPos)), fn=
 rm(edoprCon)
 #JDEoptim(.., NP = 10*d, tol = 1e-15, maxiter = 200*d, trace = FALSE, triter = 1, details = FALSE, ...)
 
-#MCGA
-#mcga_chsize<-length(iniPos)
+#genoud ========
 result_file<-paste(".\\ResultData\\expresult-",format(Sys.time(),"%Y-%b-%d-%H%M%S"),".txt",sep="")
 best_result<-520
-isGenoud=FALSE ; isMCGA=TRUE
-outm2 <- mcga( popsize=200,chsize=as.numeric(length(iniPos)),minval=-6,maxval=6,maxiter=300,
-              crossprob=1.0,mutateprob=0.01,evalFunc=obj_Income)
-# outm <- multi_mcga( popsize=200,chsize=as.numeric(length(iniPos)),minval=-5,maxval=5,maxiter=2500,
-#                     crossprob=1.0,mutateprob=0.01,evalFunc=obj_Income_mcga_mf,numfunc=4)
-rm(mcga_chsize)
-
-#genoud
 isGenoud=TRUE ; isMCGA=FALSE
 domain<-matrix(c(rep(-6,length(evaPos)),rep(6,length(iniPos))), nrow=length(iniPos), ncol=2)
 outgen <- genoud(#fn=obj_Income_genoud_lex_int,lexical=TRUE,
@@ -623,26 +615,33 @@ outgen <- genoud(#fn=obj_Income_genoud_lex_int,lexical=TRUE,
                  Domains=domain)
 rm(domain)
 
-#dfoptim. 最後の最適化に
+#dfoptim 最後の最適化に =======
 outhjkb<-hjkb(par=evaPos, fn=obj_Income, lower = rep(-6,length(iniPos)), upper =rep(6,length(iniPos)))
 outnmkb<-nmkb(par=evaPos, fn=obj_Income, lower = rep(-6,length(iniPos)), upper =rep(6,length(iniPos)))
 
-#GenSA Intermediate not sufficient
+#MCGA ========
+result_file<-paste(".\\ResultData\\expresult-",format(Sys.time(),"%Y-%b-%d-%H%M%S"),".txt",sep="")
+best_result<-520
+isMCGA=TRUE ;isGenoud=FALSE
+outm <- mcga( popsize=200,chsize=as.numeric(length(iniPos)),minval=-6,maxval=6,maxiter=300,
+              crossprob=1.0,mutateprob=0.01,evalFunc=obj_Income)
+# outm <- multi_mcga( popsize=200,chsize=as.numeric(length(iniPos)),minval=-5,maxval=5,maxiter=2500,
+#                     crossprob=1.0,mutateprob=0.01,evalFunc=obj_Income_mcga_mf,numfunc=4)
+
+#GenSA Intermediate not sufficient =======
 GenSA(par=evaPos,fn=obj_Income,lower=rep(-6.1,length(iniPos)),upper=rep(6.1,length(iniPos)))
 
-#hydroPSO Intermediate not sufficient
+#hydroPSO Intermediate not sufficient  =======
 hydroPSO(par=evaPos,fn=obj_Income,
          lower=rep(-6,length(evaPos)), upper=rep(6,length(evaPos)))
 
-#DEOptim Intermediate not sufficient
+#DEOptim Intermediate not sufficient  =======
 outdeop <- DEoptim(fn=obj_Income,lower = rep(-6,length(iniPos)),upper = rep(6,length(iniPos)))
 
-
-
-#powell Intermediate not suffucient.
+#powell Intermediate not suffucient.  ======
 powell(par=evaPos,fn=obj_Income_mcga)
 
-#solnp XXXX not suffucient
+#solnp XXXX not suffucient =======
 solnpIneqfn = function(x)
 {
   x<-round(x)
@@ -662,10 +661,10 @@ outsolnp<-solnp(pars=evaPos,fun=obj_Income,
 rm(solnpIneqfn,solnpIneqLB,solnpIneqUB,solnpLB,solnpUB)
 rm(amlzd_sd)
 
-#nleqslv doesn't work
+#nleqslv doesn't work =======
 #nleqslv(x=evaPos,fn=obj_Income_mcga)
 
-#optim XXX not sufficient
+#optim XXX not sufficient  ========
 optim(par=evaPos, f=obj_Income,
       #method ="SANN",
       lower = rep(-6,length(iniPos)), upper =rep(6,length(iniPos)))

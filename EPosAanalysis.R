@@ -140,7 +140,8 @@ gg<-ggplot(drawGrktbl,aes(x=UDLY,y=profit,group=day))
   +geom_point(x=mean(thePosition$UDLY),y=0,size=3.5,colour="green")
 )
 
-rm(gg,drawtbl,drawtbl_vc, drawGrktbl); rm(stepdays,pos_anlys,totalstep,udlStepNum,udlStepPct,vol_chg)
+rm(gg,drawtbl,drawtbl_vc, drawGrktbl) \
+rm(stepdays,pos_anlys,totalstep,udlStepNum,udlStepPct,vol_chg,iniPrice,iniCredit,iniDelta)
 rm(posStepDays,posStepDays_vc,thePosition,thePositonGrks)
 
 #inner functions : graphical related.
