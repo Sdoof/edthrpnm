@@ -24,8 +24,7 @@ PosMultip<-100
 rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep="")
 opchain<-read.table(rf,header=T,sep=",")
 #filtering. deleting unnecessary column
-opchain %>% dplyr::select(-(starts_with('dummy',ignore.case=TRUE)),
-                          -(contains('Frac',ignore.case=TRUE)),
+opchain %>% dplyr::select(-(contains('Frac',ignore.case=TRUE)),
                           -(IV)) %>% as.data.frame() -> opchain
 #only OOM targeted
 opchain %>% dplyr::filter(HowfarOOM>=0) -> opchain
@@ -393,7 +392,7 @@ obj_Income_genoud_lex_int(x=evaPos,isDebug=TRUE)
 
 #functions optimized  -------------
 
-obj_Income <- function(x,isDebug=TRUE,isMCGA=FALSE,isGenoud=TRUE){
+obj_Income <- function(x,isDebug=TRUE,isMCGA=FALSE,isGenoud=FALSE){
   if(isMCGA){
     x<-as.numeric(x<(-6))*(-6)+as.numeric(x>(6))*6+as.numeric(x>=(-6)&x<=6)*x
   }
@@ -629,7 +628,10 @@ outm <- mcga( popsize=200,chsize=as.numeric(length(iniPos)),minval=-6,maxval=6,m
 #                     crossprob=1.0,mutateprob=0.01,evalFunc=obj_Income_mcga_mf,numfunc=4)
 
 #GenSA Intermediate not sufficient =======
-GenSA(par=evaPos,fn=obj_Income,lower=rep(-6.1,length(iniPos)),upper=rep(6.1,length(iniPos)))
+result_file<-paste(".\\ResultData\\expresult-",format(Sys.time(),"%Y-%b-%d-%H%M%S"),".txt",sep="")
+best_result<-520
+isGenoud=FALSE ; isMCGA=FALSE
+outgensa<-GenSA(par=as.numeric(evaPos),fn=obj_Income,lower=rep(-6.1,length(iniPos)),upper=rep(6.1,length(iniPos)))
 
 #hydroPSO Intermediate not sufficient  =======
 hydroPSO(par=evaPos,fn=obj_Income,
