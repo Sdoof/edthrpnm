@@ -589,7 +589,7 @@ obj_Income_Cont <- function(x,isDebug=TRUE,isGenoud=TRUE){
   theta_addwht<-1.5
   cost5<- -sum((posEvalTbl$DeltaEffect+posEvalTbl$GammaEffect+
                   posEvalTbl$VegaEffect+theta_addwht*posEvalTbl$ThetaEffect)*weight)
-  if(isDebug){cat(" tef:",posEvalTbl$ThetaEffect);cat(" c5",cost5)}
+  if(isDebug){cat(" tef:",sum(posEvalTbl$ThetaEffect));cat(" c5",cost5)}
   
   ##
   # total cost is weighted sum of each cost.
@@ -736,30 +736,26 @@ outgen <- genoud(fn=obj_Income_Cont,
                  Domains=domain)
 rm(domain)
 
-#hydroPSO Intermediate not sufficient  =======
+#hydroPSO ======
 result_file<-paste(".\\ResultData\\expresult-",format(Sys.time(),"%Y-%b-%d-%H%M%S"),".txt",sep="")
-best_result<-520
-outhdpso<-hydroPSO(par=as.numeric(evaPos),fn=obj_Income,#obj_Income_Cont
-         lower=rep(-6,length(evaPos)), upper=rep(6,length(evaPos)))
+best_result<-500
+outhdpso<-hydroPSO(par=as.numeric(evaPos),#rnorm(n=length(iniPos),mean=0,sd=2)
+                   fn=obj_Income_Cont,#obj_Income,
+                   lower=rep(-6,length(evaPos)), upper=rep(6,length(evaPos)))
 
-#dfoptim 最後の最適化に =======
+#dfoptim  =======
 result_file<-paste(".\\ResultData\\expresult-",format(Sys.time(),"%Y-%b-%d-%H%M%S"),".txt",sep="")
-best_result<-520
-outhjkb<-hjkb(par=evaPos, fn=obj_Income, lower = rep(-6,length(iniPos)), upper =rep(6,length(iniPos)))
-outnmkb<-nmkb(par=evaPos, fn=obj_Income, lower = rep(-6,length(iniPos)), upper =rep(6,length(iniPos)))
+best_result<-500
+outhjkb<-hjkb(par=evaPos, #par=rnorm(n=length(iniPos),mean=0,sd=2),
+              fn=obj_Income_Cont, lower = rep(-6,length(iniPos)), upper =rep(6,length(iniPos)))
+outnmkb<-nmkb(par=rnorm(n=length(iniPos),mean=0,sd=1),#par=evaPos,
+              fn=obj_Income_Cont, lower = rep(-6,length(iniPos)), upper =rep(6,length(iniPos)))
 
-#MCGA ========
+#nloptr sbplx ======= 
 result_file<-paste(".\\ResultData\\expresult-",format(Sys.time(),"%Y-%b-%d-%H%M%S"),".txt",sep="")
 best_result<-520
-#isMCGA=TRUE ;isGenoud=FALSE
-outm <- mcga( popsize=200,chsize=as.numeric(length(iniPos)),minval=-6,maxval=6,maxiter=300,
-              crossprob=1.0,mutateprob=0.01,evalFunc=obj_Income)
-
-#GenSA Intermediate not sufficient =======
-result_file<-paste(".\\ResultData\\expresult-",format(Sys.time(),"%Y-%b-%d-%H%M%S"),".txt",sep="")
-best_result<-520
-#isGenoud=FALSE ; isMCGA=FALSE
-outgensa<-GenSA(par=as.numeric(evaPos),fn=obj_Income,lower=rep(-6.1,length(iniPos)),upper=rep(6.1,length(iniPos)))
+outnloptr <-sbplx(rnorm(n=length(iniPos),mean=0,sd=2),#as.numeric(evaPos),
+                  
 
 #nloptr direct/directL ======= 
 result_file<-paste(".\\ResultData\\expresult-",format(Sys.time(),"%Y-%b-%d-%H%M%S"),".txt",sep="")
@@ -769,15 +765,13 @@ outnloptr <-directL(obj_Income_Cont,
                     #scaled=FALSE, #direct
                     randomized=TRUE, #directL
                     lower = rep(-6,length(iniPos)), upper = rep(6,length(iniPos)))
-
-#nloptr  ======= 
+#nloptr newuoa,auglag======= 
 result_file<-paste(".\\ResultData\\expresult-",format(Sys.time(),"%Y-%b-%d-%H%M%S"),".txt",sep="")
 best_result<-520
-outnloptr <-sbplx(rnorm(n=length(iniPos),mean=0,sd=2),#as.numeric(evaPos),
+outnloptr <-newuoa(as.numeric(evaPos),#rnorm(n=length(iniPos),mean=0,sd=2),#
                   obj_Income_Cont, lower = rep(-6,length(iniPos)), upper = rep(6,length(iniPos)))
-#crs2lm(m,) mlsl(x,) stogo nl.grad(x0, fn)() nl.jacobian() isres(x,) lbfgs mma(x,) neldermead(x,) newuoa 
-#nloptr sbplx(,o) slsqp() tnewton() varmetric() auglag()
-
+#newuoa(,oGrad Fast:need good x0) ,auglag(,oGrad Fast),crs2lm(m,x) mlsl(x,) stogo(,x) nl.grad()
+#nl.jacobian() isres(x,x) lbfgs(x,x) mma(x,) neldermead(x,),nloptr(,x) slsqp(,x) tnewton(,x) varmetric(,mGrad) 
 #malsch  ==============
 result_file<-paste(".\\ResultData\\expresult-",format(Sys.time(),"%Y-%b-%d-%H%M%S"),".txt",sep="")
 best_result<-520
@@ -786,18 +780,26 @@ outmalsch<-malschains(fn=obj_Income, lower=rep(-6,length(iniPos)), upper=rep(6,l
 #malschains(fn, lower, upper, dim,maxEvals = 10 * control$istep, verbosity = 2,
 #           initialpop = NULL, control = malschains.control(),seed = NULL, env)
 
-#DEOptim Intermediate not sufficient  =======
-outdeop <- DEoptim(fn=obj_Income,lower = rep(-6,length(iniPos)),upper = rep(6,length(iniPos)))
-
-#powell Intermediate not suffucient.  ======
-powell(par=evaPos,fn=obj_Income_mcga)
-
-#soma  ==============
+#MCGA ========
 result_file<-paste(".\\ResultData\\expresult-",format(Sys.time(),"%Y-%b-%d-%H%M%S"),".txt",sep="")
 best_result<-520
 #isMCGA=TRUE ;isGenoud=FALSE
-outsoma <- soma(obj_Income, list(min=rep(-6,length(iniPos)),max=rep(6,length(iniPos))))
-
+outm <- mcga( popsize=200,chsize=as.numeric(length(iniPos)),minval=-6,maxval=6,maxiter=300,
+              crossprob=1.0,mutateprob=0.01,evalFunc=obj_Income)
+#GenSA Intermediate not sufficient =======
+result_file<-paste(".\\ResultData\\expresult-",format(Sys.time(),"%Y-%b-%d-%H%M%S"),".txt",sep="")
+best_result<-500
+#isGenoud=FALSE ; isMCGA=FALSE
+outgensa<-GenSA(par=as.numeric(evaPos),fn=obj_Income,lower=rep(-6.1,length(iniPos)),upper=rep(6.1,length(iniPos)))
+#DEOptim Intermediate not sufficient  =======
+outdeop <- DEoptim(fn=obj_Income,lower = rep(-6,length(iniPos)),upper = rep(6,length(iniPos)))
+#powell Intermediate not suffucient.  ======
+powell(par=evaPos,fn=obj_Income_mcga)
+#soma(m,x)  ==============
+result_file<-paste(".\\ResultData\\expresult-",format(Sys.time(),"%Y-%b-%d-%H%M%S"),".txt",sep="")
+best_result<-520
+#isMCGA=TRUE ;isGenoud=FALSE
+outsoma <- soma(obj_Income_Cont, list(min=rep(-6,length(iniPos)),max=rep(6,length(iniPos))))
 #NMOF(DeOpt) =========
 result_file<-paste(".\\ResultData\\expresult-",format(Sys.time(),"%Y-%b-%d-%H%M%S"),".txt",sep="")
 best_result<-520
@@ -829,10 +831,8 @@ outsolnp<-solnp(pars=evaPos,fun=obj_Income,
 
 rm(solnpIneqfn,solnpIneqLB,solnpIneqUB,solnpLB,solnpUB)
 rm(amlzd_sd)
-
 #nleqslv doesn't work =======
 #nleqslv(x=evaPos,fn=obj_Income_mcga)
-
 #optim XXX not sufficient  ========
 optim(par=evaPos, f=obj_Income,
       #method ="SANN",
