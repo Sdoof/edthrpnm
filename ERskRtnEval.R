@@ -773,9 +773,10 @@ outnloptr <-directL(obj_Income_Cont,
 #nloptr  ======= 
 result_file<-paste(".\\ResultData\\expresult-",format(Sys.time(),"%Y-%b-%d-%H%M%S"),".txt",sep="")
 best_result<-520
-outnloptr <-isres(as.numeric(evaPos),obj_Income, lower = rep(-6,length(iniPos)), upper = rep(6,length(iniPos)))
-#crs2lm(m) mlsl(x) stogo nl.grad(x0, fn) nl.jacobian isres lbfgs mma(x) neldermead(x) newuoa 
-#nloptr sbplx slsqp tnewton varmetric auglag(最後調整)
+outnloptr <-sbplx(rnorm(n=length(iniPos),mean=0,sd=2),#as.numeric(evaPos),
+                  obj_Income_Cont, lower = rep(-6,length(iniPos)), upper = rep(6,length(iniPos)))
+#crs2lm(m,) mlsl(x,) stogo nl.grad(x0, fn)() nl.jacobian() isres(x,) lbfgs mma(x,) neldermead(x,) newuoa 
+#nloptr sbplx(,o) slsqp() tnewton() varmetric() auglag()
 
 #malsch  ==============
 result_file<-paste(".\\ResultData\\expresult-",format(Sys.time(),"%Y-%b-%d-%H%M%S"),".txt",sep="")
