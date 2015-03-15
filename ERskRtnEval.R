@@ -586,10 +586,10 @@ obj_Income_Cont <- function(x,isDebug=TRUE,isGenoud=TRUE){
   weight<-dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd / sum(dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd)
   #if(isDebug){cat(" :wht2",weight)}
  
-  theta_gamma_addwht<-1.2
-  cost5<- -sum((posEvalTbl$DeltaEffect+theta_gamma_addwht*posEvalTbl$GammaEffect+
-                  posEvalTbl$VegaEffect+theta_gamma_addwht*posEvalTbl$ThetaEffect)*weight)
-  if(isDebug){cat(" c5",cost5)}
+  theta_addwht<-1.5
+  cost5<- -sum((posEvalTbl$DeltaEffect+posEvalTbl$GammaEffect+
+                  posEvalTbl$VegaEffect+theta_addwht*posEvalTbl$ThetaEffect)*weight)
+  if(isDebug){cat(" tef:",posEvalTbl$ThetaEffect);cat(" c5",cost5)}
   
   ##
   # total cost is weighted sum of each cost.
@@ -761,12 +761,21 @@ best_result<-520
 #isGenoud=FALSE ; isMCGA=FALSE
 outgensa<-GenSA(par=as.numeric(evaPos),fn=obj_Income,lower=rep(-6.1,length(iniPos)),upper=rep(6.1,length(iniPos)))
 
+#nloptr direct/directL ======= 
+result_file<-paste(".\\ResultData\\expresult-",format(Sys.time(),"%Y-%b-%d-%H%M%S"),".txt",sep="")
+best_result<-520
+nl.opts(list(xtol_rel = 1e-8, maxeval = 3000,check_derivatives = FALSE)) 
+outnloptr <-directL(obj_Income_Cont,
+                    #scaled=FALSE, #direct
+                    randomized=TRUE, #directL
+                    lower = rep(-6,length(iniPos)), upper = rep(6,length(iniPos)))
+
 #nloptr  ======= 
 result_file<-paste(".\\ResultData\\expresult-",format(Sys.time(),"%Y-%b-%d-%H%M%S"),".txt",sep="")
 best_result<-520
-outnloptr <- crs2lm(x0=as.numeric(evaPos),obj_Income, lower = rep(-6,length(iniPos)), upper = rep(6,length(iniPos)))
-#directL crs2lm mlsl stogo nl.grad(x0, fn) nl.jacobian isres lbfgs
-# mma neldermead newuoa nloptr sbplx slsqp tnewton varmetric auglag
+outnloptr <-isres(as.numeric(evaPos),obj_Income, lower = rep(-6,length(iniPos)), upper = rep(6,length(iniPos)))
+#crs2lm(m) mlsl(x) stogo nl.grad(x0, fn) nl.jacobian isres lbfgs mma(x) neldermead(x) newuoa 
+#nloptr sbplx slsqp tnewton varmetric auglag(最後調整)
 
 #malsch  ==============
 result_file<-paste(".\\ResultData\\expresult-",format(Sys.time(),"%Y-%b-%d-%H%M%S"),".txt",sep="")
