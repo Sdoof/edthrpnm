@@ -756,6 +756,7 @@ obj_Income_genoud_lex_int <- function(x,isDebug=TRUE){
 
 # Optimize Engine  
 #EDoptimR  =======
+deoptR_inipop_vec<-create_initial_polulation(popnum=length(evaPos),thresh=1000)
 result_file<-paste(".\\ResultData\\expresult-",format(Sys.time(),"%Y-%b-%d-%H%M%S"),".txt",sep="")
 best_result<-520
 #isGenoud=FALSE ; isMCGA=FALSE
@@ -765,9 +766,11 @@ edoprCon=function(x){
   c(pos_change)
 }
 outjdopr<-JDEoptim(lower=rep(-6,length(iniPos)),upper=rep(6,length(iniPos)), fn=obj_Income,
-                   tol=1e-10,NP=15*length(iniPos),maxiter=50*length(iniPos),#meq=0)
+                   tol=1e-10,NP=10*length(iniPos),maxiter=50*length(iniPos),#meq=0)
+                   add_to_init_pop=matrix(deoptR_inipop_vec,#rep(evaPos,times=10*length(evaPos)),
+                                          nrow=length(evaPos),ncol=length(evaPos),byrow=T),
                    constr=edoprCon, meq = 0)
-rm(edoprCon)
+rm(deoptR_inipop_vec,edoprCon)
 #JDEoptim(.., NP = 10*d, tol = 1e-15, maxiter = 200*d, trace = FALSE, triter = 1, details = FALSE, ...)
 
 #genoud ========
@@ -859,6 +862,8 @@ outdeop <- DEoptim(fn=obj_Income,lower = rep(-6,length(iniPos)),upper = rep(6,le
                    control=DEoptim.control(itermax = 200,strategy=2,
                                            initialpop=matrix(deopt_inipop_vec,#rep(evaPos,times=10*length(evaPos)),
                                                              nrow=10*length(evaPos),ncol=length(evaPos),byrow=T)))
+rm(deopt_inipop_vec)
+
 #powell Intermediate not suffucient.  ======
 powell(par=evaPos,fn=obj_Income_mcga)
 #soma(m,x)  ==============
