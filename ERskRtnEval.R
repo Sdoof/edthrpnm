@@ -385,12 +385,64 @@ getIntrisicValue<-function(udly_price,position,multip=PosMultip){
 }
 
 ## Optimization Test -------------------
-#Initial and evaluation vector
+
+# initial polulation functions --------
+test_initial_create<-function(){
+  for(k in 1:100){
+    val<-0
+    for(i in 1:100){
+     val<-val+sum(as.numeric(round(rnorm(n=length(iniPos),mean=0,sd=0.01*k)))!=0)
+   }
+   cat(" sd:",0.01*k);cat(" val:",val/100)
+  }
+}
+
+test_initial_polulation<-function(fname){
+  for(k in 1:10000){
+    x<-round(rnorm(n=length(iniPos),mean=0,sd=0.44))
+    x<-x*2
+    val<-obj_Income(x,isDebug=FALSE)
+    if(val<1000){
+      #wite.csv(x,init_cand_file,quote=FALSE,row.names=FALSE,append=T)
+      #write(x,init_cand_file, ncolumns=length(iniPos))
+      cat(x,file=fname,sep=",",append=TRUE);cat(",",file=fname,append=TRUE)
+      cat(val,file=fname,"\n",append=TRUE)
+    }
+  }
+}
+
+create_initial_polulation<-function(popnum,sd=0.44){
+  added_num<-0
+  while(TRUE){
+    x<-round(rnorm(n=length(iniPos),mean=0,sd=sd))
+    x<-x*2
+    val<-obj_Income(x,isDebug=TRUE)
+    if(val<1000){
+     if(added_num==0){
+       ret_val<-x
+     }else{
+       ret_val<-c(ret_val,x)
+     }
+    }
+    cat(" added num:",added_num,"\n")
+    if(added_num==popnum)
+      break
+  }
+  ret_val
+}
+
+#Initial and evaluation vector ----------
 iniPos<-opchain$Position
 iniPos<-rep(0,length(iniPos))
 evaPos<-opchain$Position
 
-#test
+#create initial populations 
+init_cand_file<-paste(".\\ResultData\\initcand",format(Sys.time(),"%Y-%b-%d-%H%M%S"),".csv",sep="")
+test_initial_polulation(fname=init_cand_file)
+
+rm(init_cand_file)
+
+#test sample value -----------
 evaPos<-rnorm(n=length(iniPos),mean=0,sd=1)
 obj_Income(x=evaPos,isDebug=TRUE)
 obj_Income_Cont(x=evaPos,isDebug=TRUE)
@@ -411,7 +463,7 @@ obj_Income <- function(x,isDebug=TRUE,isMCGA=FALSE,isGenoud=FALSE){
     x<-round(x)
   }
   exp_c<-0
-  cat(x," ")
+  
   position<-hollowNonZeroPosition(pos=x)
   
   udlStepNum<-4; udlStepPct<-0.02
@@ -426,7 +478,7 @@ obj_Income <- function(x,isDebug=TRUE,isMCGA=FALSE,isGenoud=FALSE){
   # penalty1: position total num
   pos_change<-sum(as.numeric((round(x)-iniPos)!=0))
   penalty1<-(1+as.numeric((pos_change-10)>0)*(pos_change-10))^5
-  cat("pos num",pos_change)
+  if(isDebug){cat(x," ");cat("pos num",pos_change)}
   if(isDebug){cat(" :p1",penalty1)}
   
   ##
@@ -531,6 +583,14 @@ obj_Income_Cont <- function(x,isDebug=TRUE,isGenoud=TRUE){
   #if(isDebug){print(posEvalTbl)}
   
   ##
+  # penalty1 cost1: position total num
+#   pos_change<-sum(as.numeric((round(x)-iniPos)!=0))
+#   penalty1<-(1+as.numeric((pos_change-10)>0)*(pos_change-10))
+#   cost1<-(penalty1-1)*3
+#   
+#   if(isDebug){cat(" :pos num",pos_change);cat(" :cost1",cost1)}
+
+  ##
   # penalty4. ThetaEffect. This should be soft constraint
   
   #   sd_multp<-holdDays;anlzd_sd<-0.2;sd_hd<-(anlzd_sd/sqrt(252/sd_multp))*2
@@ -614,7 +674,6 @@ obj_Income_Cont <- function(x,isDebug=TRUE,isGenoud=TRUE){
   }
   return(val)
 }
-
 
 obj_Income_genoud_lex_int <- function(x,isDebug=TRUE){
   #x<-round(x)
@@ -714,7 +773,7 @@ rm(edoprCon)
 result_file<-paste(".\\ResultData\\expresult-",format(Sys.time(),"%Y-%b-%d-%H%M%S"),".txt",sep="")
 best_result<-520
 #isGenoud=TRUE ; isMCGA=FALSE
-domain<-matrix(c(rep(-6.49,length(evaPos)),rep(6.49,length(iniPos))), nrow=length(iniPos), ncol=2)
+domain<-matrix(c(rep(-6,length(evaPos)),rep(6,length(iniPos))), nrow=length(iniPos), ncol=2)
 outgen <- genoud(#fn=obj_Income_genoud_lex_int,lexical=TRUE,
                  fn=obj_Income,
                  nvars=length(iniPos),pop.size=1000,max.generations=100,
@@ -730,7 +789,7 @@ domain<-matrix(c(rep(-6.49,length(evaPos)),rep(6.49,length(iniPos))), nrow=lengt
 #isGenoud=TRUE ; isMCGA=FALSE
 outgen <- genoud(fn=obj_Income_Cont,
                  nvars=length(iniPos),pop.size=1000,max.generations=150,
-                 wait.generations=20,gradient.check=TRUE,MemoryMatrix=TRUE,
+                 wait.generations=20,gradient.check=FALSE,MemoryMatrix=TRUE,
                  boundary.enforcement=2,
                  starting.values=rnorm(n=length(iniPos),mean=0,sd=2),
                  Domains=domain)
@@ -738,24 +797,24 @@ rm(domain)
 
 #hydroPSO ======
 result_file<-paste(".\\ResultData\\expresult-",format(Sys.time(),"%Y-%b-%d-%H%M%S"),".txt",sep="")
-best_result<-500
-outhdpso<-hydroPSO(par=as.numeric(evaPos),#rnorm(n=length(iniPos),mean=0,sd=2)
+best_result<-600
+outhdpso<-hydroPSO(par=rnorm(n=length(iniPos),mean=0,sd=2),#as.numeric(evaPos),
                    fn=obj_Income_Cont,#obj_Income,
                    lower=rep(-6,length(evaPos)), upper=rep(6,length(evaPos)))
 
 #dfoptim  =======
 result_file<-paste(".\\ResultData\\expresult-",format(Sys.time(),"%Y-%b-%d-%H%M%S"),".txt",sep="")
-best_result<-500
-outhjkb<-hjkb(par=evaPos, #par=rnorm(n=length(iniPos),mean=0,sd=2),
+best_result<-520
+outhjkb<-hjkb(par=evaPos, #rnorm(n=length(iniPos),mean=0,sd=2),
               fn=obj_Income_Cont, lower = rep(-6,length(iniPos)), upper =rep(6,length(iniPos)))
-outnmkb<-nmkb(par=rnorm(n=length(iniPos),mean=0,sd=1),#par=evaPos,
+outnmkb<-nmkb(par=rnorm(n=length(iniPos),mean=0,sd=1),#norm(n=length(iniPos),mean=0,sd=1)
               fn=obj_Income_Cont, lower = rep(-6,length(iniPos)), upper =rep(6,length(iniPos)))
 
 #nloptr sbplx ======= 
 result_file<-paste(".\\ResultData\\expresult-",format(Sys.time(),"%Y-%b-%d-%H%M%S"),".txt",sep="")
 best_result<-520
 outnloptr <-sbplx(rnorm(n=length(iniPos),mean=0,sd=2),#as.numeric(evaPos),
-                  
+                  obj_Income_Cont, lower = rep(-6,length(iniPos)), upper = rep(6,length(iniPos)))
 
 #nloptr direct/directL ======= 
 result_file<-paste(".\\ResultData\\expresult-",format(Sys.time(),"%Y-%b-%d-%H%M%S"),".txt",sep="")
@@ -792,7 +851,12 @@ best_result<-500
 #isGenoud=FALSE ; isMCGA=FALSE
 outgensa<-GenSA(par=as.numeric(evaPos),fn=obj_Income,lower=rep(-6.1,length(iniPos)),upper=rep(6.1,length(iniPos)))
 #DEOptim Intermediate not sufficient  =======
-outdeop <- DEoptim(fn=obj_Income,lower = rep(-6,length(iniPos)),upper = rep(6,length(iniPos)))
+result_file<-paste(".\\ResultData\\expresult-",format(Sys.time(),"%Y-%b-%d-%H%M%S"),".txt",sep="")
+best_result<-550
+outdeop <- DEoptim(fn=obj_Income,lower = rep(-6,length(iniPos)),upper = rep(6,length(iniPos)),
+                   control=DEoptim.control(itermax = 200,strategy=2,
+                                           initialpop=matrix(rep(evaPos,times=10*length(evaPos)),
+                                                             nrow=10*length(evaPos),ncol=length(evaPos),byrow=T)))
 #powell Intermediate not suffucient.  ======
 powell(par=evaPos,fn=obj_Income_mcga)
 #soma(m,x)  ==============
