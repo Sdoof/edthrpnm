@@ -411,18 +411,19 @@ test_initial_polulation<-function(fname){
   }
 }
 
-create_initial_polulation<-function(popnum,sd=0.44){
+create_initial_polulation<-function(popnum,thresh=1000,sd=0.44){
   added_num<-0
   while(TRUE){
     x<-round(rnorm(n=length(iniPos),mean=0,sd=sd))
     x<-x*2
     val<-obj_Income(x,isDebug=TRUE)
-    if(val<1000){
+    if(val<thresh){
      if(added_num==0){
        ret_val<-x
      }else{
        ret_val<-c(ret_val,x)
      }
+     added_num<-added_num+1
     }
     cat(" added num:",added_num,"\n")
     if(added_num==popnum)
@@ -851,11 +852,12 @@ best_result<-500
 #isGenoud=FALSE ; isMCGA=FALSE
 outgensa<-GenSA(par=as.numeric(evaPos),fn=obj_Income,lower=rep(-6.1,length(iniPos)),upper=rep(6.1,length(iniPos)))
 #DEOptim Intermediate not sufficient  =======
+deopt_inipop_vec<-create_initial_polulation(popnum=10*length(evaPos),thresh=10000)
 result_file<-paste(".\\ResultData\\expresult-",format(Sys.time(),"%Y-%b-%d-%H%M%S"),".txt",sep="")
 best_result<-550
 outdeop <- DEoptim(fn=obj_Income,lower = rep(-6,length(iniPos)),upper = rep(6,length(iniPos)),
                    control=DEoptim.control(itermax = 200,strategy=2,
-                                           initialpop=matrix(rep(evaPos,times=10*length(evaPos)),
+                                           initialpop=matrix(deopt_inipop_vec,#rep(evaPos,times=10*length(evaPos)),
                                                              nrow=10*length(evaPos),ncol=length(evaPos),byrow=T)))
 #powell Intermediate not suffucient.  ======
 powell(par=evaPos,fn=obj_Income_mcga)
