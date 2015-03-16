@@ -437,12 +437,6 @@ iniPos<-opchain$Position
 iniPos<-rep(0,length(iniPos))
 evaPos<-opchain$Position
 
-#create initial populations 
-init_cand_file<-paste(".\\ResultData\\initcand",format(Sys.time(),"%Y-%b-%d-%H%M%S"),".csv",sep="")
-test_initial_polulation(fname=init_cand_file)
-
-rm(init_cand_file)
-
 #test sample value -----------
 evaPos<-rnorm(n=length(iniPos),mean=0,sd=1)
 obj_Income(x=evaPos,isDebug=TRUE)
@@ -554,13 +548,13 @@ obj_Income <- function(x,isDebug=TRUE,isMCGA=FALSE,isGenoud=FALSE){
   if(isDebug){cat(" val:",val,"\n")}
   
   if(isDebug){
-    if(val<best_result || val<495){
-      write(x,result_file,append=T)
-      write(val,result_file,append=T)
+    if(val<best_result){
+      cat(x,file=result_file,sep=",",append=TRUE);cat(",",file=result_file,append=TRUE)
+      cat(val,file=result_file,"\n",append=TRUE)
+      #write(x,result_file,append=T)
+      #write(val,result_file,append=T)
       #ou use cat which gives further details on the format used
-      if(val<best_result){
-        best_result<<-val
-      }
+      best_result<<-val
       #assign(best_result,val,env=.GlobalEnv)
     }
   }
@@ -758,7 +752,7 @@ obj_Income_genoud_lex_int <- function(x,isDebug=TRUE){
 
 # Optimize Engine  
 #EDoptimR  =======
-deoptR_inipop_vec<-create_initial_polulation(popnum=length(evaPos)*5,thresh=1000)
+deoptR_inipop_vec<-create_initial_polulation(popnum=length(evaPos),thresh=1000)
 result_file<-paste(".\\ResultData\\expresult-",format(Sys.time(),"%Y-%b-%d-%H%M%S"),".txt",sep="")
 best_result<-520
 #isGenoud=FALSE ; isMCGA=FALSE
@@ -768,11 +762,11 @@ edoprCon=function(x){
   c(pos_change)
 }
 outjdopr<-JDEoptim(lower=rep(-6,length(iniPos)),upper=rep(6,length(iniPos)), fn=obj_Income,
-                   tol=1e-10,NP=0,#10*length(iniPos),
-                   maxiter=1*length(iniPos),#50*length(iniPos),
+                   tol=1e-10,NP=10*length(iniPos),
+                   maxiter=15*length(iniPos),#50*length(iniPos),
                    add_to_init_pop=matrix(deoptR_inipop_vec,#rep(evaPos,times=10*length(evaPos)),
-                                          nrow=length(iniPos),ncol=5*length(iniPos)),
-                   constr=edoprCon, meq = 0)
+                                          nrow=length(iniPos),ncol=length(iniPos)),
+                   constr=edoprCon, meq = 0,trace=TRUE,detail=TRUE)
 rm(deoptR_inipop_vec,edoprCon)
 #JDEoptim(.., NP = 10*d, tol = 1e-15, maxiter = 200*d, trace = FALSE, triter = 1, details = FALSE, ...)
 
