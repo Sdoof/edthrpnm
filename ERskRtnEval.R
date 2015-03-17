@@ -762,7 +762,7 @@ edoprCon=function(x){
   c(pos_change)
 }
 outjdopr<-JDEoptim(lower=rep(-6,length(iniPos)),upper=rep(6,length(iniPos)), fn=obj_Income,
-                   tol=1e-10,NP=10*length(iniPos),
+                   tol=1e-10,NP=9*length(iniPos),
                    maxiter=15*length(iniPos),#50*length(iniPos),
                    add_to_init_pop=matrix(deoptR_inipop_vec,#rep(evaPos,times=10*length(evaPos)),
                                           nrow=length(iniPos),ncol=length(iniPos)),
@@ -771,6 +771,7 @@ rm(deoptR_inipop_vec,edoprCon)
 #JDEoptim(.., NP = 10*d, tol = 1e-15, maxiter = 200*d, trace = FALSE, triter = 1, details = FALSE, ...)
 
 #genoud ========
+genoud_inipop_vec<-deopt_inipop_vec
 result_file<-paste(".\\ResultData\\expresult-",format(Sys.time(),"%Y-%b-%d-%H%M%S"),".txt",sep="")
 best_result<-520
 #isGenoud=TRUE ; isMCGA=FALSE
@@ -779,37 +780,38 @@ outgen <- genoud(#fn=obj_Income_genoud_lex_int,lexical=TRUE,
                  fn=obj_Income,
                  nvars=length(iniPos),pop.size=1000,max.generations=100,
                  data.type.int=TRUE,#FALSE
-                 wait.generations=20,gradient.check=FALSE,MemoryMatrix=TRUE,
+                 wait.generations=100,gradient.check=FALSE,MemoryMatrix=TRUE,
                  boundary.enforcement=2,
-                 starting.values=evaPos,#rnorm(n=length(iniPos),mean=0,sd=2),
+                 starting.values=matrix(genoud_inipop_vec,
+                                        nrow=10*length(evaPos),ncol=length(evaPos),byrow=T),
                  Domains=domain)
 
-result_file<-paste(".\\ResultData\\expresult-",format(Sys.time(),"%Y-%b-%d-%H%M%S"),".txt",sep="")
-best_result<-500
-domain<-matrix(c(rep(-6.49,length(evaPos)),rep(6.49,length(iniPos))), nrow=length(iniPos), ncol=2)
-#isGenoud=TRUE ; isMCGA=FALSE
-outgen <- genoud(fn=obj_Income_Cont,
-                 nvars=length(iniPos),pop.size=1000,max.generations=150,
-                 wait.generations=20,gradient.check=FALSE,MemoryMatrix=TRUE,
-                 boundary.enforcement=2,
-                 starting.values=rnorm(n=length(iniPos),mean=0,sd=2),
-                 Domains=domain)
+# result_file<-paste(".\\ResultData\\expresult-",format(Sys.time(),"%Y-%b-%d-%H%M%S"),".txt",sep="")
+# best_result<-500
+# domain<-matrix(c(rep(-6.49,length(evaPos)),rep(6.49,length(iniPos))), nrow=length(iniPos), ncol=2)
+# #isGenoud=TRUE ; isMCGA=FALSE
+# outgen <- genoud(fn=obj_Income_Cont,
+#                  nvars=length(iniPos),pop.size=1000,max.generations=150,
+#                  wait.generations=20,gradient.check=FALSE,MemoryMatrix=TRUE,
+#                  boundary.enforcement=2,
+#                  starting.values=rnorm(n=length(iniPos),mean=0,sd=2),
+#                  Domains=domain)
 rm(domain)
 
 #hydroPSO ======
 result_file<-paste(".\\ResultData\\expresult-",format(Sys.time(),"%Y-%b-%d-%H%M%S"),".txt",sep="")
-best_result<-600
-outhdpso<-hydroPSO(par=rnorm(n=length(iniPos),mean=0,sd=2),#as.numeric(evaPos),
-                   fn=obj_Income_Cont,#obj_Income,
+best_result<-500
+outhdpso<-hydroPSO(par=as.numeric(evaPos),#rnorm(n=length(iniPos),mean=0,sd=2)
+                   fn=obj_Income,#obj_Income_Cont,
                    lower=rep(-6,length(evaPos)), upper=rep(6,length(evaPos)))
 
 #dfoptim  =======
 result_file<-paste(".\\ResultData\\expresult-",format(Sys.time(),"%Y-%b-%d-%H%M%S"),".txt",sep="")
-best_result<-520
+best_result<-500
 outhjkb<-hjkb(par=evaPos, #rnorm(n=length(iniPos),mean=0,sd=2),
-              fn=obj_Income_Cont, lower = rep(-6,length(iniPos)), upper =rep(6,length(iniPos)))
-outnmkb<-nmkb(par=rnorm(n=length(iniPos),mean=0,sd=1),#norm(n=length(iniPos),mean=0,sd=1)
-              fn=obj_Income_Cont, lower = rep(-6,length(iniPos)), upper =rep(6,length(iniPos)))
+              fn=obj_Income, lower = rep(-6,length(iniPos)), upper =rep(6,length(iniPos)))
+outnmkb<-nmkb(par=evaPos,#norm(n=length(iniPos),mean=0,sd=1)
+              fn=obj_Income, lower = rep(-6,length(iniPos)), upper =rep(6,length(iniPos)))
 
 #nloptr sbplx ======= 
 result_file<-paste(".\\ResultData\\expresult-",format(Sys.time(),"%Y-%b-%d-%H%M%S"),".txt",sep="")
@@ -852,12 +854,12 @@ best_result<-500
 #isGenoud=FALSE ; isMCGA=FALSE
 outgensa<-GenSA(par=as.numeric(evaPos),fn=obj_Income,lower=rep(-6.1,length(iniPos)),upper=rep(6.1,length(iniPos)))
 #DEOptim Intermediate not sufficient  =======
-deopt_inipop_vec<-create_initial_polulation(popnum=10*length(evaPos),thresh=10000)
+deopt_inipop_vec<-create_initial_polulation(popnum=10*length(evaPos),thresh=1000)
 result_file<-paste(".\\ResultData\\expresult-",format(Sys.time(),"%Y-%b-%d-%H%M%S"),".txt",sep="")
-best_result<-550
+best_result<-500
 outdeop <- DEoptim(fn=obj_Income,lower = rep(-6,length(iniPos)),upper = rep(6,length(iniPos)),
-                   control=DEoptim.control(itermax = 200,strategy=2,
-                                           initialpop=matrix(deopt_inipop_vec,#rep(evaPos,times=10*length(evaPos)),
+                   control=DEoptim.control(itermax = 200,strategy=1,
+                                           initialpop=matrix(deopt_inipop_vec,
                                                              nrow=10*length(evaPos),ncol=length(evaPos),byrow=T)))
 rm(deopt_inipop_vec)
 
