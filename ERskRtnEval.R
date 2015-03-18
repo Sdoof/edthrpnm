@@ -397,25 +397,28 @@ test_initial_create<-function(){
   }
 }
 
-test_initial_polulation<-function(fname){
+test_initial_population<-function(fname,thresh=1000,sd=0.44){
   for(k in 1:10000){
-    x<-round(rnorm(n=length(iniPos),mean=0,sd=0.44))
+    x<-round(rnorm(n=length(iniPos),mean=0,sd=sd))
     x<-x*2
     val<-obj_Income(x,isDebug=FALSE)
-    if(val<1000){
-      #wite.csv(x,init_cand_file,quote=FALSE,row.names=FALSE,append=T)
-      #write(x,init_cand_file, ncolumns=length(iniPos))
+    if(val<thresh){
       cat(x,file=fname,sep=",",append=TRUE);cat(",",file=fname,append=TRUE)
       cat(val,file=fname,"\n",append=TRUE)
     }
   }
 }
 
-create_initial_polulation<-function(popnum,thresh=1000,sd=0.44){
+create_initial_polulation<-function(popnum,thresh=1000,sd=0.44,ml=2,fname,isFileout=FALSE) {
   added_num<-0
+  total_count<-0
   while(TRUE){
     x<-round(rnorm(n=length(iniPos),mean=0,sd=sd))
-    x<-x*2
+    x<-x*ml
+    if(sum(x)!=0){
+      total_count<-total_count+1
+      next
+    }
     val<-obj_Income(x,isDebug=TRUE)
     if(val<thresh){
      if(added_num==0){
@@ -424,8 +427,13 @@ create_initial_polulation<-function(popnum,thresh=1000,sd=0.44){
        ret_val<-c(ret_val,x)
      }
      added_num<-added_num+1
+     if(isFileout){
+       cat(x,file=fname,sep=",",append=TRUE);cat(",",file=fname,append=TRUE)
+       cat(val,file=fname,"\n",append=TRUE)
+     }
     }
-    cat(" added num:",added_num,"\n")
+    total_count<-total_count+1
+    cat(" added num:",added_num,"total count:",total_count,"\n")
     if(added_num==popnum)
       break
   }
@@ -443,9 +451,145 @@ obj_Income(x=evaPos,isDebug=TRUE)
 obj_Income_Cont(x=evaPos,isDebug=TRUE)
 obj_Income_genoud_lex_int(x=evaPos,isDebug=TRUE)
 
-#functions optimized  -------------
 
+#create initial population ---------
+for(tmp in 1:10){
+  create_initial_polulation(popnum=300,thresh=1000,sd=0.44,ml=2,
+                          fname=paste(".\\ResultData\\inipop-0.44-1000-",format(Sys.time(),"%Y-%b-%d"),".txt",sep=""),
+                          isFileout=TRUE)
+  create_initial_polulation(popnum=300,thresh=1000,sd=0.37,ml=2,
+                          fname=paste(".\\ResultData\\inipop-0.37-1000-",format(Sys.time(),"%Y-%b-%d"),".txt",sep=""),
+                          isFileout=TRUE)
+  create_initial_polulation(popnum=300,thresh=1000,sd=0.33,ml=2,
+                          fname=paste(".\\ResultData\\inipop-0.34-1000-",format(Sys.time(),"%Y-%b-%d"),".txt",sep=""),
+                          isFileout=TRUE)
+  create_initial_polulation(popnum=300,thresh=1000,sd=0.27,ml=2,
+                          fname=paste(".\\ResultData\\inipop-0.27-1000-",format(Sys.time(),"%Y-%b-%d"),".txt",sep=""),  
+                          # fname=paste(".\\ResultData\\inipop-0.27-1000-",format(Sys.time(),"%Y-%b-%d-%H%M%S"),".txt",sep=""),
+                          isFileout=TRUE)
+}
+
+#functions optimized  -------------
 obj_Income <- function(x,isDebug=TRUE,isMCGA=FALSE,isGenoud=FALSE){
+  if(isMCGA){
+    x<-as.numeric(x<(-6.5))*(-6)+as.numeric(x>(6.5))*6+as.numeric(x>=(-6.5)&x<=6.5)*x
+  }
+  if(!isGenoud){
+    x<-round(x)
+  }
+  if(sum(as.numeric(round(x)!=0))==0){
+    #x<-rep(1,length=length(x))
+    x<-rnorm(n=length(iniPos),mean=0,sd=1)
+    x<-round(x)
+  }
+  exp_c<-0
+  
+  position<-hollowNonZeroPosition(pos=x)
+  
+  udlStepNum<-4; udlStepPct<-0.02
+  udlChgPct<-seq(-udlStepPct*udlStepNum,udlStepPct*udlStepNum,length=(2*udlStepNum)+1)
+  posEvalTbl<-createPositinEvalTable(position=position,udlStepNum=udlStepNum,udlStepPct=udlStepPct)
+  
+  thePositionGrk<-getPositionGreeks(position,multi=PosMultip)
+  #if(isDebug){print(posEvalTbl$pos)}
+  #if(isDebug){print(posEvalTbl)}
+  
+  ##
+  # penalty1: position total num
+  pos_change<-sum(as.numeric((round(x)-iniPos)!=0))
+  penalty1<-(1+as.numeric((pos_change-10)>0)*(pos_change-10))^5
+  if(penalty1>2){
+    if(isDebug){cat("pos num",pos_change,"\n")}
+    return( (500+(pos_change-10))*penalty1 )
+  }
+  if(isDebug){cat(x," ");cat(" :p1",penalty1)}
+  
+  ##
+  # penalty4. ThetaEffect. This should be soft constraint
+  
+  sd_multp<-holdDays;anlzd_sd<-0.2;sd_hd<-(anlzd_sd/sqrt(252/sd_multp))*2
+  weight<-dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd / sum(dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd)
+  theta_ttl<-thePositionGrk$ThetaEffect+sum(posEvalTbl$ThetaEffect*weight)
+  
+  exp_c<-as.numeric((pos_change-10)>0)*0+as.numeric((pos_change-10)<=0)
+  penalty4<-(1+as.numeric(theta_ttl<0)*(abs(theta_ttl)))^exp_c
+  ##
+  #cost4 <- -1*theta_ttl;cost4<-0
+  if(isDebug){cat(" :thta_ttl",theta_ttl);cat(" :p4",penalty4)}
+  #cat(" :thta_ini",thePositionGrk$ThetaEffect);cat(" :thta_hld",sum(posEvalTbl$ThetaEffect*weight))
+  
+  ##
+  # penalty2 tail-risk
+  tail_rate<-0.4
+  tailPrice<-min(sum(getIntrisicValue(position$UDLY[1]*(1-tail_rate),position)),
+                 sum(getIntrisicValue(position$UDLY[1]*(1+tail_rate),position)))
+  #lossLimitPrice <- -1*position$UDLY[1]*PosMultip*(tail_rate+0.1)
+  lossLimitPrice <- -20000
+  
+  #exp_c<-as.numeric(exp_c>0)*(as.numeric((penalty4-2)>0)*0+as.numeric((penalty4-2)<0)*2)
+  #penalty2<-(1+as.numeric((tailPrice-lossLimitPrice)<0)*(abs(tailPrice)))^exp_c
+  penalty2<-(1+as.numeric((tailPrice-lossLimitPrice)<0)*(10))^exp_c
+  
+  ##
+  #cost2<-(1+as.numeric(penalty2>1)*10);cost2<-0
+  if(isDebug){cat(" :tlpr",tailPrice);cat(" :lslmt",lossLimitPrice);cat(" :p2",penalty2)}
+  
+  ##
+  # penalty3, cost1 profit must be positive. also must be a cost term.
+  #if(isDebug){cat(" :prc_hd",posEvalTbl$Price);cat(" :prc_ini:",getPositionGreeks(position,multi=PosMultip)$Price)}
+  #if(isDebug){cat(" :prft",posEvalTbl$Price-getPositionGreeks(position,multi=PosMultip)$Price)}
+  
+  sd_multp<-holdDays;anlzd_sd<-0.2;sd_hd<-(anlzd_sd/sqrt(252/sd_multp))
+  weight<-dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd / sum(dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd)
+  #if(isDebug){cat(" :wht",weight)}
+  
+  #exp_c<-as.numeric(exp_c>0)*(as.numeric((penalty3-2)>0)*0+as.numeric((penalty3-2)<0)*2)
+  profit_hdays<-sum((posEvalTbl$Price-thePositionGrk$Price)*weight)
+  if(isDebug){cat(" :prft_wt",profit_hdays)}
+  
+  penalty3<-(1+as.numeric(profit_hdays<0)*(abs(profit_hdays)))^exp_c
+  penalty3<-1
+  if(isDebug){cat(" :p3",penalty3)}
+  ##
+  # cost 3
+  cost3<- -1*profit_hdays
+  
+  ##
+  # cost5 Each Effects.
+  #weight is normalized
+  sd_multp<-holdDays;anlzd_sd<-0.2;sd_hd<-(anlzd_sd/sqrt(252/sd_multp))*3
+  weight<-dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd / sum(dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd)
+  #if(isDebug){cat(" :wht2",weight)}
+  cost5<- -sum((posEvalTbl$DeltaEffect+posEvalTbl$GammaEffect+
+                  posEvalTbl$VegaEffect+posEvalTbl$ThetaEffect)*weight)
+  if(isDebug){cat(" c5",cost5)}
+  
+  ##
+  # total cost is weighted sum of each cost.
+  cost<-(0.05*cost3+0.01*cost5+500)
+  if(isDebug){cat(" :cost",cost," ")}
+  
+  ##
+  # total cost and penalty
+  val<-cost*penalty1*penalty2*penalty3*penalty4
+  
+  if(isDebug){cat(" val:",val,"\n")}
+  
+  if(isDebug){
+    if(val<best_result){
+      cat(x,file=result_file,sep=",",append=TRUE);cat(",",file=result_file,append=TRUE)
+      cat(val,file=result_file,"\n",append=TRUE)
+      #write(x,result_file,append=T)
+      #write(val,result_file,append=T)
+      #ou use cat which gives further details on the format used
+      best_result<<-val
+      #assign(best_result,val,env=.GlobalEnv)
+    }
+  }
+  return(val)
+}
+
+obj_Income_orig <- function(x,isDebug=TRUE,isMCGA=FALSE,isGenoud=FALSE){
   if(isMCGA){
     x<-as.numeric(x<(-6.5))*(-6)+as.numeric(x>(6.5))*6+as.numeric(x>=(-6.5)&x<=6.5)*x
   }
@@ -752,7 +896,8 @@ obj_Income_genoud_lex_int <- function(x,isDebug=TRUE){
 
 # Optimize Engine  
 #EDoptimR  =======
-deoptR_inipop_vec<-create_initial_polulation(popnum=length(evaPos),thresh=1000)
+#deoptR_inipop_vec<-create_initial_polulation(popnum=length(evaPos),thresh=1000)
+#deoptR_inipop_vec<- read already created population
 result_file<-paste(".\\ResultData\\expresult-",format(Sys.time(),"%Y-%b-%d-%H%M%S"),".txt",sep="")
 best_result<-520
 #isGenoud=FALSE ; isMCGA=FALSE
@@ -762,10 +907,10 @@ edoprCon=function(x){
   c(pos_change)
 }
 outjdopr<-JDEoptim(lower=rep(-6,length(iniPos)),upper=rep(6,length(iniPos)), fn=obj_Income,
-                   tol=1e-10,NP=9*length(iniPos),
+                   tol=1e-10,NP=10*length(iniPos),
                    maxiter=15*length(iniPos),#50*length(iniPos),
-                   add_to_init_pop=matrix(deoptR_inipop_vec,#rep(evaPos,times=10*length(evaPos)),
-                                          nrow=length(iniPos),ncol=length(iniPos)),
+                   #add_to_init_pop=matrix(deoptR_inipop_vec,
+                   #                       nrow=length(iniPos),ncol=length(iniPos)),
                    constr=edoprCon, meq = 0,trace=TRUE,detail=TRUE)
 rm(deoptR_inipop_vec,edoprCon)
 #JDEoptim(.., NP = 10*d, tol = 1e-15, maxiter = 200*d, trace = FALSE, triter = 1, details = FALSE, ...)
