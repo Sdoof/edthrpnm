@@ -45,7 +45,6 @@ histIV %>% dplyr::transmute(Date=Date,IVIDX=Close/100) -> histIV
 histIV %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")<=max(as.Date(position$Date,format="%Y/%m/%d"))) %>%
   dplyr::arrange(desc(as.Date(Date,format="%Y/%m/%d"))) %>% head(n=dviv_caldays) -> histIV
 
-
 #Data Setup. Provisioning
 #Load Regression and Correlation Parameters ---------------
 load.PC2IV(PC="PC3dCtC",IVC="IVCF3dCtC")
@@ -388,12 +387,12 @@ getIntrisicValue<-function(udly_price,position,multip=PosMultip){
 
 # initial polulation functions --------
 test_initial_create<-function(){
-  for(k in 1:100){
+  for(k in 1:200){
     val<-0
-    for(i in 1:100){
-     val<-val+sum(as.numeric(round(rnorm(n=length(iniPos),mean=0,sd=0.01*k)))!=0)
+    for(i in 1:300){
+     val<-val+sum(as.numeric(round(rnorm(n=length(iniPos),mean=0,sd=0.005*k)))!=0)
    }
-   cat(" sd:",0.01*k);cat(" val:",val/100)
+   cat(" sd:",0.005*k);cat(" val:",val/300)
   }
 }
 
@@ -415,6 +414,10 @@ create_initial_polulation<-function(popnum,thresh=1000,sd=0.44,ml=2,fname,isFile
   while(TRUE){
     x<-round(rnorm(n=length(iniPos),mean=0,sd=sd))
     x<-x*ml
+    if(sum(as.numeric((round(x)-iniPos)!=0))>10){
+      total_count<-total_count+1
+      next
+    }
     if(sum(x)!=0){
       total_count<-total_count+1
       next
@@ -453,21 +456,24 @@ obj_Income_genoud_lex_int(x=evaPos,isDebug=TRUE)
 
 
 #create initial population ---------
-for(tmp in 1:10){
-  create_initial_polulation(popnum=300,thresh=1000,sd=0.44,ml=2,
-                          fname=paste(".\\ResultData\\inipop-0.44-1000-",format(Sys.time(),"%Y-%b-%d"),".txt",sep=""),
-                          isFileout=TRUE)
-  create_initial_polulation(popnum=300,thresh=1000,sd=0.37,ml=2,
-                          fname=paste(".\\ResultData\\inipop-0.37-1000-",format(Sys.time(),"%Y-%b-%d"),".txt",sep=""),
-                          isFileout=TRUE)
-  create_initial_polulation(popnum=300,thresh=1000,sd=0.33,ml=2,
-                          fname=paste(".\\ResultData\\inipop-0.34-1000-",format(Sys.time(),"%Y-%b-%d"),".txt",sep=""),
-                          isFileout=TRUE)
-  create_initial_polulation(popnum=300,thresh=1000,sd=0.27,ml=2,
-                          fname=paste(".\\ResultData\\inipop-0.27-1000-",format(Sys.time(),"%Y-%b-%d"),".txt",sep=""),  
-                          # fname=paste(".\\ResultData\\inipop-0.27-1000-",format(Sys.time(),"%Y-%b-%d-%H%M%S"),".txt",sep=""),
-                          isFileout=TRUE)
-}
+for(tmp in 1:15){
+  create_initial_polulation(popnum=300,thresh=1000,sd=0.48,ml=2,
+                                                    fname=paste(".\\ResultData\\inipop-0.48-1000-",format(Sys.time(),"%Y-%b-%d"),".txt",sep=""),
+                                                    isFileout=TRUE)
+#   create_initial_polulation(popnum=300,thresh=1000,sd=0.44,ml=2,
+#                           fname=paste(".\\ResultData\\inipop-0.44-1000-",format(Sys.time(),"%Y-%b-%d"),".txt",sep=""),
+#                           isFileout=TRUE)
+#   create_initial_polulation(popnum=300,thresh=1000,sd=0.37,ml=2,
+#                           fname=paste(".\\ResultData\\inipop-0.37-1000-",format(Sys.time(),"%Y-%b-%d"),".txt",sep=""),
+#                           isFileout=TRUE)
+#   create_initial_polulation(popnum=300,thresh=1000,sd=0.33,ml=2,
+#                           fname=paste(".\\ResultData\\inipop-0.34-1000-",format(Sys.time(),"%Y-%b-%d"),".txt",sep=""),
+#                           isFileout=TRUE)
+#   create_initial_polulation(popnum=300,thresh=1000,sd=0.27,ml=2,
+#                           fname=paste(".\\ResultData\\inipop-0.27-1000-",format(Sys.time(),"%Y-%b-%d"),".txt",sep=""),  
+#                           # fname=paste(".\\ResultData\\inipop-0.27-1000-",format(Sys.time(),"%Y-%b-%d-%H%M%S"),".txt",sep=""),
+#                           isFileout=TRUE)
+};rm(tmp)
 
 #functions optimized  -------------
 obj_Income <- function(x,isDebug=TRUE,isMCGA=FALSE,isGenoud=FALSE){
@@ -992,7 +998,7 @@ result_file<-paste(".\\ResultData\\expresult-",format(Sys.time(),"%Y-%b-%d-%H%M%
 best_result<-520
 #isMCGA=TRUE ;isGenoud=FALSE
 outm <- mcga( popsize=200,chsize=as.numeric(length(iniPos)),minval=-6,maxval=6,maxiter=300,
-              crossprob=1.0,mutateprob=0.01,evalFunc=obj_Income)
+              crossprob=1.0,mutateprob=0.01,evalFunc=obj_Income_Cont)
 #GenSA Intermediate not sufficient =======
 result_file<-paste(".\\ResultData\\expresult-",format(Sys.time(),"%Y-%b-%d-%H%M%S"),".txt",sep="")
 best_result<-500
