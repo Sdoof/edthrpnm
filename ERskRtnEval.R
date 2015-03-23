@@ -467,7 +467,8 @@ create_initial_polulation<-function(popnum,thresh=1000,sd=0.44,ml=2,fname,isFile
   ret_val
 }
 
-create_initial_PutCall_polulation<-function(popnum,type,thresh=1000,putsd=0.425,putn=6,callsd=0.405,calln=6,ml=2,fname,isFileout=FALSE){
+create_initial_PutCall_polulation<-function(popnum,type,thresh=1000,putsd=0.425,putn=6,callsd=0.405,calln=6,
+                                            ml=2,fname,isFileout=FALSE){
   added_num<-0
   total_count<-0
   while(TRUE){
@@ -521,6 +522,55 @@ create_initial_PutCall_polulation<-function(popnum,type,thresh=1000,putsd=0.425,
   ret_val
 }
 
+create_initial_exact_PutCall_polulation<-function(popnum,type,thresh=1000,putn=6,calln=6,ml=2,fname,isFileout=FALSE,isDebug=FALSE){
+  added_num<-0
+  total_count<-0
+  while(TRUE){
+    #Put   
+    idxy<-as.numeric(type==OpType_Put_G)*rep(1:length(iniPos),length=length(iniPos))
+    if(isDebug){ cat(" put pos:",idxy) }
+    idxy<-idxy[idxy!=0]
+    if(isDebug){ cat(" put pos cand :",idxy) }
+    idxy<-sample(idxy,size=putn,replace=FALSE,prob=NULL)
+    if(isDebug){ cat(" put idxy:",idxy) }
+    y<-rep(0,times=length(iniPos))
+    y[idxy[1:(putn/2)]]<-1
+    y[idxy[(putn/2+1):putn]]<-(-1)
+    #Call
+    idxy<-as.numeric(type==OpType_Call_G)*rep(1:length(iniPos),length=length(iniPos))
+    idxy<-idxy[idxy!=0]
+    idxy<-sample(idxy,size=calln,replace=FALSE,prob=NULL)
+    if(isDebug){ cat(" call idxy:",idxy) }
+    z<-rep(0,times=length(iniPos))
+    z[idxy[1:(calln/2)]]<-1
+    z[idxy[(calln/2+1):putn]]<-(-1)
+    if(isDebug){ cat(" (:y",y,")") }
+    if(isDebug){ cat(" (:z",z,") :x(y+z) ") }
+    x<-y+z
+    x<-x*ml
+    val<-obj_Income(x,isDebug=TRUE)
+    if(val<thresh){
+      if(added_num==0){
+        ret_val<-x
+      }else{
+        ret_val<-c(ret_val,x)
+      }
+      added_num<-added_num+1
+      if(isFileout){
+        cat(x,file=fname,sep=",",append=TRUE);cat(",",file=fname,append=TRUE)
+        cat(val,file=fname,"\n",append=TRUE)
+      }
+    }
+    total_count<-total_count+1
+    cat(" added num:",added_num,"total count:",total_count,"\n")
+    if(added_num==popnum)
+      break
+  }
+  ret_val
+}
+
+
+
 #create initial population ---------
 for(tmp in 1:10){
   create_initial_polulation(popnum=300,thresh=1000,sd=0.48,ml=2,
@@ -540,9 +590,16 @@ for(tmp in 1:10){
                             # fname=paste(".\\ResultData\\inipop-0.27-1000-",format(Sys.time(),"%Y-%b-%d-%H%M%S"),".txt",sep=""),
                             isFileout=TRUE)
 };rm(tmp)
-
 #Put Call Separate Test.
 for(tmp in 1:15){
+  #Put 8 Call 2
+  create_initial_PutCall_polulation(popnum=300,type=opchain$TYPE,thresh=1000,putsd=0.505,putn=8,callsd=0.405,calln=2,ml=2,
+                                    fname=paste(".\\ResultData\\inipop-",format(Sys.time(),"%Y-%b-%d-%Hh"),"-P8C2-1000.txt",sep=""),
+                                    isFileout=TRUE)
+  #Put 6 Call 4
+  create_initial_PutCall_polulation(popnum=300,type=opchain$TYPE,thresh=1000,putsd=0.425,putn=6,callsd=0.64,calln=4,ml=2,
+                                    fname=paste(".\\ResultData\\inipop-",format(Sys.time(),"%Y-%b-%d-%Hh"),"-P6C4-1000.txt",sep=""),
+                                    isFileout=TRUE)
   #Put 8 Call 0
   create_initial_PutCall_polulation(popnum=300,type=opchain$TYPE,thresh=1000,putsd=0.505,putn=8,callsd=0.005,calln=0,ml=2,
                                     fname=paste(".\\ResultData\\inipop-",format(Sys.time(),"%Y-%b-%d-%Hh"),"-P8C0-1000.txt",sep=""),
@@ -575,6 +632,36 @@ for(tmp in 1:15){
   create_initial_PutCall_polulation(popnum=100,type=opchain$TYPE,thresh=1000,putsd=0.29,putn=2,callsd=0.005,calln=0,ml=2,
                                     fname=paste(".\\ResultData\\inipop-",format(Sys.time(),"%Y-%b-%d-%Hh"),"-P2C0-1000.txt",sep=""),
                                     isFileout=TRUE)
+};rm(tmp)
+#Put Call Exact Separate Test
+for(tmp in 1:15){
+  create_initial_exact_PutCall_polulation(popnum=300,opchain$TYPE,thresh=1000,putn=8,calln=0,ml=2,
+                                          fname=paste(".\\ResultData\\inipop-Exc-1000-P8C0-",format(Sys.time(),"%Y-%b-%d-%Hh"),".txt",sep=""),
+                                          isFileout=TRUE,isDebug=FALSE)
+  create_initial_exact_PutCall_polulation(popnum=300,opchain$TYPE,thresh=1000,putn=6,calln=2,ml=2,
+                                          fname=paste(".\\ResultData\\inipop-Exc-1000-P6C2-",format(Sys.time(),"%Y-%b-%d-%Hh"),".txt",sep=""),
+                                          isFileout=TRUE,isDebug=FALSE)
+  create_initial_exact_PutCall_polulation(popnum=200,opchain$TYPE,thresh=1000,putn=6,calln=0,ml=2,
+                                          fname=paste(".\\ResultData\\inipop-Exc-1000-P6C0-",format(Sys.time(),"%Y-%b-%d-%Hh"),".txt",sep=""),
+                                          isFileout=TRUE,isDebug=FALSE)
+  create_initial_exact_PutCall_polulation(popnum=200,opchain$TYPE,thresh=1000,putn=4,calln=2,ml=2,
+                                          fname=paste(".\\ResultData\\inipop-Exc-1000-P4C2-",format(Sys.time(),"%Y-%b-%d-%Hh"),".txt",sep=""),
+                                          isFileout=TRUE,isDebug=FALSE)
+  create_initial_exact_PutCall_polulation(popnum=100,opchain$TYPE,thresh=1000,putn=4,calln=0,ml=2,
+                                          fname=paste(".\\ResultData\\inipop-Exc-1000-P4C0-",format(Sys.time(),"%Y-%b-%d-%Hh"),".txt",sep=""),
+                                          isFileout=TRUE,isDebug=FALSE)
+  create_initial_exact_PutCall_polulation(popnum=80,opchain$TYPE,thresh=1000,putn=2,calln=2,ml=2,
+                                          fname=paste(".\\ResultData\\inipop-Exc-1000-P2C2-",format(Sys.time(),"%Y-%b-%d-%Hh"),".txt",sep=""),
+                                          isFileout=TRUE,isDebug=FALSE)
+  create_initial_exact_PutCall_polulation(popnum=50,opchain$TYPE,thresh=1000,putn=2,calln=0,ml=2,
+                                          fname=paste(".\\ResultData\\inipop-Exc-1000-P2C0-",format(Sys.time(),"%Y-%b-%d-%Hh"),".txt",sep=""),
+                                          isFileout=TRUE,isDebug=FALSE)
+  create_initial_exact_PutCall_polulation(popnum=300,opchain$TYPE,thresh=1000,putn=8,calln=2,ml=2,
+                                          fname=paste(".\\ResultData\\inipop-Exc-1000-P8C2-",format(Sys.time(),"%Y-%b-%d-%Hh"),".txt",sep=""),
+                                          isFileout=TRUE,isDebug=FALSE)
+  create_initial_exact_PutCall_polulation(popnum=300,opchain$TYPE,thresh=1000,putn=6,calln=4,ml=2,
+                                          fname=paste(".\\ResultData\\inipop-Exc-1000-P6C4-",format(Sys.time(),"%Y-%b-%d-%Hh"),".txt",sep=""),
+                                          isFileout=TRUE,isDebug=FALSE)
 };rm(tmp)
 #read candidate populations
 tmp<-read.csv(paste(".\\ResultData\\inipop-0.48-1000-2015-3-20.txt",sep=""), header=FALSE, skip=0)
