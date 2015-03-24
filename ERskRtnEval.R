@@ -570,8 +570,6 @@ create_initial_exact_PutCall_polulation<-function(popnum,type,thresh=1000,putn=6
   ret_val
 }
 
-
-
 #create initial population ---------
 for(tmp in 1:10){
   create_initial_polulation(popnum=300,thresh=1000,sd=0.48,ml=2,
@@ -664,9 +662,42 @@ for(tmp in 1:15){
                                           fname=paste(".\\ResultData\\inipop-Exc-1000-10P6C4-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                           isFileout=TRUE,isDebug=FALSE)
 };rm(tmp)
-#read candidate populations
-tmp<-read.csv(paste(".\\ResultData\\inipop-0.48-1000-2015-3-20.txt",sep=""), header=FALSE, skip=0)
 
+
+#combine candidate populations
+#read one candidate pools
+
+createCombineCandidatePool<-function(fname,pnum=1000,nrows=-1,skip=0,method=1){
+  pool<-read.csv(fname, header=FALSE,nrows=nrows,skip=skip)
+  pool %>% dplyr::arrange(pool[,length(pool)]) %>% dplyr::distinct() -> pool
+
+  #select specific nums. some optional methods
+  #1.top n
+  if(method==1){
+    pool<-pool[1:pnum,]
+    return(pool)
+  }
+  #2. random sample
+  else if(method==2){
+    idx<-rep(1:nrow(pool),length=nrow(pool))
+    idx<-sort(sample(idx,size=pnum,replace=FALSE,prob=NULL))
+    pool<-pool[idx,]
+    rownames(pool) <- c(1:nrow(pool))
+    return(pool)
+  }
+  #3. bottom n
+  else if(method==3){
+    pool<-pool[(nrow(pool)-pnum+1):nrow(pool),]
+    rownames(pool) <- c(1:nrow(pool))
+    return(pool)
+  }  
+  return(pool)
+}
+
+tmp<-createCombineCandidatePool(fname=paste(".\\ResultData\\inipop-Exc-1000-10P8C2-2015-3-24.csv",sep=""),
+                                pnum=1000,nrows=-1,skip=0,method=3)
+
+rm(tmp)
 
 #Initial and evaluation vector ----------
 iniPos<-opchain$Position
