@@ -396,6 +396,7 @@ test_initial_create<-function(){
   }
 }
 
+
 test_initial_PutCall_create<-function(type,putPos=6,callPos=2){
   #Put
   put_length<-sum(as.numeric(type==OpType_Put_G))
@@ -419,6 +420,7 @@ test_initial_PutCall_create<-function(type,putPos=6,callPos=2){
     if(round(val/300)==callPos) { cat(" sd:",0.005*k);cat(" val:",val/300) }
   }
 }
+
 
 test_initial_population<-function(fname,thresh=1000,sd=0.44){
   for(k in 1:10000){
@@ -467,8 +469,7 @@ create_initial_polulation<-function(popnum,thresh=1000,sd=0.44,ml=2,fname,isFile
   ret_val
 }
 
-create_initial_PutCall_polulation<-function(popnum,type,thresh=1000,putsd=0.425,putn=6,callsd=0.405,calln=6,
-                                            ml=2,fname,isFileout=FALSE){
+create_initial_PutCall_polulation<-function(popnum,type,thresh=1000,putsd=0.425,putn=6,callsd=0.405,calln=6,ml=2,fname,isFileout=FALSE){
   added_num<-0
   total_count<-0
   while(TRUE){
@@ -571,6 +572,7 @@ create_initial_exact_PutCall_polulation<-function(popnum,type,thresh=1000,putn=6
 }
 
 #create initial population ---------
+
 for(tmp in 1:10){
   create_initial_polulation(popnum=300,thresh=1000,sd=0.48,ml=2,
                             fname=paste(".\\ResultData\\inipop-0.48-1000-",format(Sys.time(),"%Y-%b-%d-%H"),".txt",sep=""),
@@ -589,7 +591,9 @@ for(tmp in 1:10){
                             # fname=paste(".\\ResultData\\inipop-0.27-1000-",format(Sys.time(),"%Y-%b-%d-%H%M%S"),".txt",sep=""),
                             isFileout=TRUE)
 };rm(tmp)
+
 #Put Call Separate Test.
+
 for(tmp in 1:15){
   #Put 8 Call 2
   create_initial_PutCall_polulation(popnum=300,type=opchain$TYPE,thresh=1000,putsd=0.505,putn=8,callsd=0.405,calln=2,ml=2,
@@ -633,6 +637,7 @@ for(tmp in 1:15){
                                     isFileout=TRUE)
 };rm(tmp)
 #Put Call Exact Separate Test
+
 for(tmp in 1:15){
   create_initial_exact_PutCall_polulation(popnum=300,opchain$TYPE,thresh=1000,putn=8,calln=0,ml=2,
                                           fname=paste(".\\ResultData\\inipop-Exc-1000-08P8C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
@@ -663,10 +668,9 @@ for(tmp in 1:15){
                                           isFileout=TRUE,isDebug=FALSE)
 };rm(tmp)
 
+#combine candidate populations ---------------
 
-#combine candidate populations
-#read one candidate pools
-
+#create one candidate pools
 createCombineCandidatePool<-function(fname,pnum=1000,nrows=-1,skip=0,method=1){
   pool<-read.csv(fname, header=FALSE,nrows=nrows,skip=skip)
   pool %>% dplyr::arrange(pool[,length(pool)]) %>% dplyr::distinct() -> pool
@@ -695,9 +699,49 @@ createCombineCandidatePool<-function(fname,pnum=1000,nrows=-1,skip=0,method=1){
 }
 
 tmp<-createCombineCandidatePool(fname=paste(".\\ResultData\\inipop-Exc-1000-10P8C2-2015-3-24.csv",sep=""),
-                                pnum=1000,nrows=-1,skip=0,method=3)
+                                pnum=1000,nrows=-1,skip=0,method=2)
+tmp2<-createCombineCandidatePool(fname=paste(".\\ResultData\\inipop-Exc-1000-06P4C2-2015-3-24.csv",sep=""),
+                                pnum=1000,nrows=-1,skip=0,method=2)
+tmp3<-createCombineCandidatePool(fname=paste(".\\ResultData\\inipop-Exc-1000-04P2C2-2015-3-24.csv",sep=""),
+                                 pnum=1000,nrows=-1,skip=0,method=2)
+pools<-list(list(c(10,8,2),tmp),list(c(6,4,2),tmp2),list(c(4,2,2),tmp3)) ; length(pools) ; rm(tmp,tmp2,tmp3)
 
-rm(tmp)
+# two sample examples. one from pools[[2]], the other from pools[[3]]
+#ceiling(runif(1, min=1e-320, max=nrow(pools[[2]][[2]])))
+s1<-pools[[2]][[2]][ceiling(runif(1, min=1e-320, max=nrow(pools[[2]][[2]]))), ]
+s1_pos<-unlist(s1[-length(s1)]);s1_score<-as.numeric(s1[length(s1)])
+s2<-pools[[3]][[2]][ceiling(runif(1, min=1e-320, max=nrow(pools[[3]][[2]]))), ]
+s2_pos<-unlist(s2[-length(s1)]);s2_score<-as.numeric(s2[length(s2)])
+x_new<-rep(0,times=length(iniPos))
+x_new<-s1_pos+s2_pos
+x_new<-as.numeric((sum(x_new%%2)!=0))*x_new+as.numeric((sum(x_new%%2)==0))*x_new/2
+x_new<-as.numeric((sum(x_new%%3)!=0))*x_new+as.numeric((sum(x_new%%3)==0))*x_new/3
+x_new<-as.numeric((sum(x_new%%4)!=0))*x_new+as.numeric((sum(x_new%%4)==0))*x_new/4
+x_new<-as.numeric((sum(x_new%%5)!=0))*x_new+as.numeric((sum(x_new%%5)==0))*x_new/5
+x_new<-as.numeric((sum(x_new%%6)!=0))*x_new+as.numeric((sum(x_new%%6)==0))*x_new/6
+x_new<-as.numeric((max(abs(x_new))==1))*x_new*2+as.numeric((max(abs(x_new))!=1))*x_new
+
+#evaluate
+val<-obj_Income(x_new,isDebug=TRUE)
+if(val<1000){
+#   if(added_num==0){
+#     ret_val<-x
+#   }else{
+#     ret_val<-c(ret_val,x)
+#   }
+#  added_num<-added_num+1
+  #if(isFileout){
+    fname=paste(".\\ResultData\\combile-Result-2015-3-25.csv",sep="")
+    cat(x_new,file=fname,sep=",",append=TRUE);cat(",",file=fname,append=TRUE)
+    cat(val,file=fname,sep=",",append=TRUE);cat(",",file=fname,append=TRUE);
+    cat(pools[[2]][[1]][2:3],file=fname,sep=",",append=TRUE);cat(",",file=fname,append=TRUE);cat(s1_score,file=fname,append=TRUE);cat(",",file=fname,append=TRUE);
+    cat(pools[[3]][[1]][2:3],file=fname,sep=",",append=TRUE);cat(",",file=fname,append=TRUE);cat(s2_score,file=fname,"\n",append=TRUE)
+  #}
+}
+rm(s1,s1_pos,s1_score,s2,s2_pos,s2_score,x_new,fname,val,pools)
+
+
+rm(pools)
 
 #Initial and evaluation vector ----------
 iniPos<-opchain$Position
@@ -1150,7 +1194,6 @@ outjdopr<-JDEoptim(lower=rep(-6,length(iniPos)),upper=rep(6,length(iniPos)), fn=
                    constr=edoprCon, meq = 0,trace=TRUE,detail=TRUE)
 rm(deoptR_inipop_vec,edoprCon)
 #JDEoptim(.., NP = 10*d, tol = 1e-15, maxiter = 200*d, trace = FALSE, triter = 1, details = FALSE, ...)
-
 #genoud ========
 genoud_inipop_vec<-deopt_inipop_vec
 result_file<-paste(".\\ResultData\\expresult-",format(Sys.time(),"%Y-%b-%d-%H%M%S"),".txt",sep="")
@@ -1178,14 +1221,12 @@ outgen <- genoud(#fn=obj_Income_genoud_lex_int,lexical=TRUE,
 #                  starting.values=rnorm(n=length(iniPos),mean=0,sd=2),
 #                  Domains=domain)
 rm(domain)
-
 #hydroPSO ======
 result_file<-paste(".\\ResultData\\expresult-",format(Sys.time(),"%Y-%b-%d-%H%M%S"),".txt",sep="")
 best_result<-500
 outhdpso<-hydroPSO(par=as.numeric(evaPos),#rnorm(n=length(iniPos),mean=0,sd=2)
                    fn=obj_Income,#obj_Income_Cont,
                    lower=rep(-6,length(evaPos)), upper=rep(6,length(evaPos)))
-
 #dfoptim  =======
 result_file<-paste(".\\ResultData\\expresult-",format(Sys.time(),"%Y-%b-%d-%H%M%S"),".txt",sep="")
 best_result<-500
@@ -1193,13 +1234,11 @@ outhjkb<-hjkb(par=evaPos, #rnorm(n=length(iniPos),mean=0,sd=2),
               fn=obj_Income, lower = rep(-6,length(iniPos)), upper =rep(6,length(iniPos)))
 outnmkb<-nmkb(par=evaPos,#norm(n=length(iniPos),mean=0,sd=1)
               fn=obj_Income, lower = rep(-6,length(iniPos)), upper =rep(6,length(iniPos)))
-
 #nloptr sbplx ======= 
 result_file<-paste(".\\ResultData\\expresult-",format(Sys.time(),"%Y-%b-%d-%H%M%S"),".txt",sep="")
 best_result<-520
 outnloptr <-sbplx(rnorm(n=length(iniPos),mean=0,sd=2),#as.numeric(evaPos),
                   obj_Income_Cont, lower = rep(-6,length(iniPos)), upper = rep(6,length(iniPos)))
-
 #nloptr direct/directL ======= 
 result_file<-paste(".\\ResultData\\expresult-",format(Sys.time(),"%Y-%b-%d-%H%M%S"),".txt",sep="")
 best_result<-520
@@ -1222,7 +1261,6 @@ best_result<-520
 outmalsch<-malschains(fn=obj_Income, lower=rep(-6,length(iniPos)), upper=rep(6,length(iniPos)))
 #malschains(fn, lower, upper, dim,maxEvals = 10 * control$istep, verbosity = 2,
 #           initialpop = NULL, control = malschains.control(),seed = NULL, env)
-
 #MCGA ========
 result_file<-paste(".\\ResultData\\expresult-",format(Sys.time(),"%Y-%b-%d-%H%M%S"),".txt",sep="")
 best_result<-520
@@ -1243,7 +1281,6 @@ outdeop <- DEoptim(fn=obj_Income,lower = rep(-6,length(iniPos)),upper = rep(6,le
                                            initialpop=matrix(deopt_inipop_vec,
                                                              nrow=10*length(evaPos),ncol=length(evaPos),byrow=T)))
 rm(deopt_inipop_vec)
-
 #powell Intermediate not suffucient.  ======
 powell(par=evaPos,fn=obj_Income_mcga)
 #soma(m,x)  ==============
