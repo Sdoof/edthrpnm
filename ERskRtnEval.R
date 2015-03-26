@@ -699,11 +699,11 @@ createCombineCandidatePool<-function(fname,pnum=1000,nrows=-1,skip=0,method=1){
 }
 
 tmp<-createCombineCandidatePool(fname=paste(".\\ResultData\\inipop-Exc-1000-10P8C2-2015-3-24.csv",sep=""),
-                                pnum=1000,nrows=-1,skip=0,method=2)
+                                pnum=700,nrows=-1,skip=0,method=1)
 tmp2<-createCombineCandidatePool(fname=paste(".\\ResultData\\inipop-Exc-1000-06P4C2-2015-3-24.csv",sep=""),
-                                pnum=1000,nrows=-1,skip=0,method=2)
+                                pnum=700,nrows=-1,skip=0,method=1)
 tmp3<-createCombineCandidatePool(fname=paste(".\\ResultData\\inipop-Exc-1000-04P2C2-2015-3-24.csv",sep=""),
-                                 pnum=1000,nrows=-1,skip=0,method=2)
+                                 pnum=700,nrows=-1,skip=0,method=1)
 pools<-list(list(c(10,8,2),tmp),list(c(6,4,2),tmp2),list(c(4,2,2),tmp3)) ; rm(tmp,tmp2,tmp3)
 
 # two sample examples. one from pools[[2]], the other from pools[[3]]
@@ -738,7 +738,7 @@ create_combined_population<-function(popnum,thresh=1000,plelem=c(2,3),fname,isFi
     }
     
     #evaluate
-    val<-obj_Income(x_new,isDebug=TRUE)
+    val<-obj_Income(x_new,isDebug=isDebug)
     if(val<thresh){
       if(added_num==0){
         ret_val<-x_new
@@ -759,7 +759,7 @@ create_combined_population<-function(popnum,thresh=1000,plelem=c(2,3),fname,isFi
   }
 }
 
-create_combined_population(popnum=3000,thresh=1000,plelem=c(2,3),fname=paste(".\\ResultData\\combile-Result-2015-3-25.csv",sep=""),
+create_combined_population(popnum=3000,thresh=1000,plelem=c(2,3),fname=paste(".\\ResultData\\combile-Result-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                            isFileout=TRUE,isDebug=FALSE,maxposn=10)
 
 rm(s1,s1_pos,s1_score,s2,s2_pos,s2_score,x_new,fname,val,pools)
