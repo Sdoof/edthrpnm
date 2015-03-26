@@ -571,6 +571,34 @@ create_initial_exact_PutCall_polulation<-function(popnum,type,thresh=1000,putn=6
   ret_val
 }
 
+#create one candidate pools
+createCombineCandidatePool<-function(fname,pnum=1000,nrows=-1,skip=0,method=1){
+  pool<-read.csv(fname, header=FALSE,nrows=nrows,skip=skip)
+  pool %>% dplyr::arrange(pool[,length(pool)]) %>% dplyr::distinct() -> pool
+  
+  #select specific nums. some optional methods
+  #1.top n
+  if(method==1){
+    pool<-pool[1:pnum,]
+    return(pool)
+  }
+  #2. random sample
+  else if(method==2){
+    idx<-rep(1:nrow(pool),length=nrow(pool))
+    idx<-sort(sample(idx,size=pnum,replace=FALSE,prob=NULL))
+    pool<-pool[idx,]
+    rownames(pool) <- c(1:nrow(pool))
+    return(pool)
+  }
+  #3. bottom n
+  else if(method==3){
+    pool<-pool[(nrow(pool)-pnum+1):nrow(pool),]
+    rownames(pool) <- c(1:nrow(pool))
+    return(pool)
+  }  
+  return(pool)
+}
+
 #create initial population ---------
 
 for(tmp in 1:10){
@@ -668,48 +696,36 @@ for(tmp in 1:15){
                                           isFileout=TRUE,isDebug=FALSE)
 };rm(tmp)
 
-#combine candidate populations ---------------
+#create combined candidate populations
 
-#create one candidate pools
-createCombineCandidatePool<-function(fname,pnum=1000,nrows=-1,skip=0,method=1){
-  pool<-read.csv(fname, header=FALSE,nrows=nrows,skip=skip)
-  pool %>% dplyr::arrange(pool[,length(pool)]) %>% dplyr::distinct() -> pool
-
-  #select specific nums. some optional methods
-  #1.top n
-  if(method==1){
-    pool<-pool[1:pnum,]
-    return(pool)
-  }
-  #2. random sample
-  else if(method==2){
-    idx<-rep(1:nrow(pool),length=nrow(pool))
-    idx<-sort(sample(idx,size=pnum,replace=FALSE,prob=NULL))
-    pool<-pool[idx,]
-    rownames(pool) <- c(1:nrow(pool))
-    return(pool)
-  }
-  #3. bottom n
-  else if(method==3){
-    pool<-pool[(nrow(pool)-pnum+1):nrow(pool),]
-    rownames(pool) <- c(1:nrow(pool))
-    return(pool)
-  }  
-  return(pool)
-}
-
+#create initial pools for combined search ----------------------
 tmp<-createCombineCandidatePool(fname=paste(".\\ResultData\\inipop-Exc-1000-10P8C2-2015-3-24.csv",sep=""),
                                 pnum=700,nrows=-1,skip=0,method=1)
-tmp2<-createCombineCandidatePool(fname=paste(".\\ResultData\\inipop-Exc-1000-06P4C2-2015-3-24.csv",sep=""),
+pools<-list(list(c(10,8,2),tmp)) #No.[[1]]
+poolidx<-2
+tmp<-createCombineCandidatePool(fname=paste(".\\ResultData\\inipop-Exc-1000-10P6C4-2015-3-24.csv",sep=""),
                                 pnum=700,nrows=-1,skip=0,method=1)
-tmp3<-createCombineCandidatePool(fname=paste(".\\ResultData\\inipop-Exc-1000-04P2C2-2015-3-24.csv",sep=""),
-                                 pnum=700,nrows=-1,skip=0,method=1)
-pools<-list(list(c(10,8,2),tmp),list(c(6,4,2),tmp2),list(c(4,2,2),tmp3)) ; rm(tmp,tmp2,tmp3)
+pools[poolidx]<-list(list(c(10,6,4),tmp)) ; poolidx<-poolidx+1 #No.[[2]]
 
+tmp<-createCombineCandidatePool(fname=paste(".\\ResultData\\inipop-Exc-1000-08P6C2-2015-3-24.csv",sep=""),
+                                pnum=700,nrows=-1,skip=0,method=1)
+pools[poolidx]<-list(list(c(8,6,2),tmp)) ; poolidx<-poolidx+1 #No.[[3]]
+
+tmp<-createCombineCandidatePool(fname=paste(".\\ResultData\\inipop-Exc-1000-06P4C2-2015-3-24.csv",sep=""),
+                                pnum=700,nrows=-1,skip=0,method=1)
+pools[poolidx]<-list(list(c(6,4,2),tmp)) ; poolidx<-poolidx+1 #No.[[4]]
+
+tmp<-createCombineCandidatePool(fname=paste(".\\ResultData\\inipop-Exc-1000-04P2C2-2015-3-24.csv",sep=""),
+                                 pnum=350,nrows=-1,skip=0,method=1)
+pools[poolidx]<-list(list(c(4,2,2),tmp)) ; poolidx<-poolidx+1 #No.[[5]]
+
+rm(poolidx,tmp)
+#pools<-list(list(c(10,8,2),tmp),list(c(6,4,2),tmp2),list(c(4,2,2),tmp3)) ; rm(tmp,tmp2,tmp3)
+#rm(pools)
+
+# functions for combined population serach ------------
 # two sample examples. one from pools[[2]], the other from pools[[3]]
 #ceiling(runif(1, min=1e-320, max=nrow(pools[[2]][[2]])))
-
-#
 create_combined_population<-function(popnum,thresh=1000,plelem=c(2,3),fname,isFileout=FALSE,isDebug=FALSE,maxposn=10){
   added_num<-0
   total_count<-0
@@ -759,10 +775,10 @@ create_combined_population<-function(popnum,thresh=1000,plelem=c(2,3),fname,isFi
   }
 }
 
-create_combined_population(popnum=3000,thresh=1000,plelem=c(2,3),fname=paste(".\\ResultData\\combile-Result-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+# combined population serach --------------
+create_combined_population(popnum=10,thresh=1000,plelem=c(2,3),fname=paste(".\\ResultData\\combile-Result-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                            isFileout=TRUE,isDebug=FALSE,maxposn=10)
 
-rm(s1,s1_pos,s1_score,s2,s2_pos,s2_score,x_new,fname,val,pools)
 rm(pools)
 
 #Initial and evaluation vector ----------
