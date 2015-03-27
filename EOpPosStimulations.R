@@ -33,18 +33,6 @@ get.busdays.between <- function(start,end){
   bus_day
 }
 
-#Wrapper for horizental.volatility.skew
-volatility.cone.skew <- function(xTb,xTa){
-  maturity_b<-businessDaysBetween("UnitedStates/NYSE",
-                                  as.Date(xTb$Date,format="%Y/%m/%d"),
-                                  as.Date(xTb$ExpDate,format="%Y/%m/%d"))
-  maturity_a<-businessDaysBetween("UnitedStates/NYSE",
-                                  as.Date(xTa$Date,format="%Y/%m/%d"),
-                                  as.Date(xTa$ExpDate,format="%Y/%m/%d"))
-  vol_ret_<-horizental.volatility.skew(vol_b=xTb$OrigIV,maturity_b=maturity_b,maturity_a=maturity_a)
-  vol_ret_
-}
-
 #set.ValueGreeks(xt) should be loaded before.
 # Option Value and Greek Change
 set.EuropeanOptionValueGreeks <- function(xt){
