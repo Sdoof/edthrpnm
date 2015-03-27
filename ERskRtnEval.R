@@ -612,8 +612,15 @@ create_combined_population<-function(popnum,thresh=1000,plelem=c(4,5),fname,isFi
     s2_pos<-unlist(s2[-length(s2)]);s2_score<-as.numeric(s2[length(s2)])
     if(isDebug){cat(" s2 :",s2_pos," sc:",s2_score)   }
     
+    s3_pos<-rep(0,times=length(iniPos))
+    if(length(plelem)==3){
+      s3<-pools[[ plelem[3] ]][[2]][ceiling(runif(1, min=1e-320, max=nrow(pools[[  plelem[3] ]][[2]]))), ]
+      s3_pos<-unlist(s3[-length(s3)]);s3_score<-as.numeric(s3[length(s3)])
+      if(isDebug){cat(" s3 :",s3_pos," sc:",s3_score)   }
+    }
+    
     x_new<-rep(0,times=length(iniPos))
-    x_new<-s1_pos+s2_pos
+    x_new<-s1_pos+s2_pos+s3_pos
     x_new<-as.numeric((sum(x_new%%7)!=0))*x_new+as.numeric((sum(x_new%%7)==0))*x_new/7
     x_new<-as.numeric((sum(x_new%%5)!=0))*x_new+as.numeric((sum(x_new%%5)==0))*x_new/5
     x_new<-as.numeric((sum(x_new%%4)!=0))*x_new+as.numeric((sum(x_new%%4)==0))*x_new/4
@@ -639,8 +646,13 @@ create_combined_population<-function(popnum,thresh=1000,plelem=c(4,5),fname,isFi
       if(isFileout){  
         cat(x_new,file=fname,sep=",",append=TRUE);cat(",",file=fname,append=TRUE)
         cat(val,file=fname,sep=",",append=TRUE);cat(",",file=fname,append=TRUE);
-        cat(pools[[ plelem[1] ]][[1]][2:3],file=fname,sep=",",append=TRUE);cat(",",file=fname,append=TRUE);cat(s1_score,file=fname,append=TRUE);cat(",",file=fname,append=TRUE);
-        cat(pools[[ plelem[2] ]][[1]][2:3],file=fname,sep=",",append=TRUE);cat(",",file=fname,append=TRUE);cat(s2_score,file=fname,"\n",append=TRUE)
+        cat(pools[[ plelem[1] ]][[1]][2:3],file=fname,sep=",",append=TRUE);cat(",",file=fname,append=TRUE);cat(s1_score,file=fname,append=TRUE);cat(",",file=fname,append=TRUE)
+        cat(pools[[ plelem[2] ]][[1]][2:3],file=fname,sep=",",append=TRUE);cat(",",file=fname,append=TRUE);cat(s2_score,file=fname,append=TRUE)
+        if(length(plelem)==3){
+          cat(",",file=fname,append=TRUE)
+          cat(pools[[ plelem[3] ]][[1]][2:3],file=fname,sep=",",append=TRUE);cat(",",file=fname,append=TRUE);cat(s3_score,file=fname,append=TRUE)
+        }
+        cat("\n",file=fname,append=TRUE)
       }
     }
     if(((added_num%%30)==0)){cat(" added num:",added_num,"total count:",total_count,"\n")}
@@ -775,32 +787,56 @@ rm(poolidx,tmp)
 
 #combined population serach --------------
 #6P4C2+4P2C2
-create_combined_population(popnum=300,thresh=1000,plelem=c(4,5),fname=paste(".\\ResultData\\combile-Result-",format(Sys.time(),"%Y-%b-%d"),"-0642+0422.csv",sep=""),
+create_combined_population(popnum=5000,thresh=1000,plelem=c(4,5),fname=paste(".\\ResultData\\combile-Result-",format(Sys.time(),"%Y-%b-%d"),"-0642+0422.csv",sep=""),
                            isFileout=TRUE,isDebug=FALSE,maxposn=10)
 #8P6C2+4P2C2
-create_combined_population(popnum=300,thresh=1000,plelem=c(3,5),fname=paste(".\\ResultData\\combile-Result-",format(Sys.time(),"%Y-%b-%d"),"-0862+0422.csv",sep=""),
+create_combined_population(popnum=3000,thresh=1000,plelem=c(3,5),fname=paste(".\\ResultData\\combile-Result-",format(Sys.time(),"%Y-%b-%d"),"-0862+0422.csv",sep=""),
                            isFileout=TRUE,isDebug=FALSE,maxposn=10)
 #8P6C2+6P4C2
-create_combined_population(popnum=300,thresh=1000,plelem=c(3,4),fname=paste(".\\ResultData\\combile-Result-",format(Sys.time(),"%Y-%b-%d"),"-0862+0642.csv",sep=""),
+create_combined_population(popnum=3000,thresh=1000,plelem=c(3,4),fname=paste(".\\ResultData\\combile-Result-",format(Sys.time(),"%Y-%b-%d"),"-0862+0642.csv",sep=""),
                            isFileout=TRUE,isDebug=FALSE,maxposn=10)
 #10P6C4+4P2C2
-create_combined_population(popnum=300,thresh=1000,plelem=c(2,5),fname=paste(".\\ResultData\\combile-Result-",format(Sys.time(),"%Y-%b-%d"),"-1064+0422.csv",sep=""),
+create_combined_population(popnum=1000,thresh=1000,plelem=c(2,5),fname=paste(".\\ResultData\\combile-Result-",format(Sys.time(),"%Y-%b-%d"),"-1064+0422.csv",sep=""),
                            isFileout=TRUE,isDebug=FALSE,maxposn=10)
 #10P6C4+6P4C2
-create_combined_population(popnum=300,thresh=1000,plelem=c(2,4),fname=paste(".\\ResultData\\combile-Result-",format(Sys.time(),"%Y-%b-%d"),"-1064+0642.csv",sep=""),
+create_combined_population(popnum=1000,thresh=1000,plelem=c(2,4),fname=paste(".\\ResultData\\combile-Result-",format(Sys.time(),"%Y-%b-%d"),"-1064+0642.csv",sep=""),
                            isFileout=TRUE,isDebug=FALSE,maxposn=10)
 #10P6C4+8P6C2
-create_combined_population(popnum=300,thresh=1000,plelem=c(2,3),fname=paste(".\\ResultData\\combile-Result-",format(Sys.time(),"%Y-%b-%d"),"-1064+0862.csv",sep=""),
+create_combined_population(popnum=600,thresh=1000,plelem=c(2,3),fname=paste(".\\ResultData\\combile-Result-",format(Sys.time(),"%Y-%b-%d"),"-1064+0862.csv",sep=""),
                            isFileout=TRUE,isDebug=FALSE,maxposn=10)
 #10P8C2+4P2C2
-create_combined_population(popnum=300,thresh=1000,plelem=c(1,5),fname=paste(".\\ResultData\\combile-Result-",format(Sys.time(),"%Y-%b-%d"),"-1082+0422.csv",sep=""),
+create_combined_population(popnum=600,thresh=1000,plelem=c(1,5),fname=paste(".\\ResultData\\combile-Result-",format(Sys.time(),"%Y-%b-%d"),"-1082+0422.csv",sep=""),
                            isFileout=TRUE,isDebug=FALSE,maxposn=10)
 #10P8C2+6P4C2
-create_combined_population(popnum=300,thresh=1000,plelem=c(1,4),fname=paste(".\\ResultData\\combile-Result-",format(Sys.time(),"%Y-%b-%d"),"-1082+0642.csv",sep=""),
+create_combined_population(popnum=600,thresh=1000,plelem=c(1,4),fname=paste(".\\ResultData\\combile-Result-",format(Sys.time(),"%Y-%b-%d"),"-1082+0642.csv",sep=""),
                            isFileout=TRUE,isDebug=FALSE,maxposn=10)
 #10P8C2+8P6C2
-create_combined_population(popnum=300,thresh=1000,plelem=c(1,3),fname=paste(".\\ResultData\\combile-Result-",format(Sys.time(),"%Y-%b-%d"),"-1082+0862.csv",sep=""),
+create_combined_population(popnum=600,thresh=1000,plelem=c(1,3),fname=paste(".\\ResultData\\combile-Result-",format(Sys.time(),"%Y-%b-%d"),"-1082+0862.csv",sep=""),
                            isFileout=TRUE,isDebug=FALSE,maxposn=10)
+
+#3 Combinations
+#8P6C2+6P4C2+4P2C2
+create_combined_population(popnum=100,thresh=1000,plelem=c(3,4,5),fname=paste(".\\ResultData\\combile-Result-0862+0642+0422-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                           isFileout=TRUE,isDebug=FALSE,maxposn=10)
+#10P6C4+6P4C2+4P2C2
+create_combined_population(popnum=100,thresh=1000,plelem=c(2,4,5),fname=paste(".\\ResultData\\combile-Result-1064+0642+0422-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                           isFileout=TRUE,isDebug=FALSE,maxposn=10)
+#10P6C4+8P6C2+4P2C2
+create_combined_population(popnum=100,thresh=1000,plelem=c(2,3,5),fname=paste(".\\ResultData\\combile-Result-1064+0862+0422-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                           isFileout=TRUE,isDebug=FALSE,maxposn=10)
+#10P6C4+8P6C2+6P4C2
+create_combined_population(popnum=100,thresh=1000,plelem=c(2,3,4),fname=paste(".\\ResultData\\combile-Result-1064+0862+0642-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                           isFileout=TRUE,isDebug=FALSE,maxposn=10)
+#10P8C2+6P4C2+4P2C2
+create_combined_population(popnum=100,thresh=1000,plelem=c(1,4,5),fname=paste(".\\ResultData\\combile-Result-1082+0642+0422-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                           isFileout=TRUE,isDebug=FALSE,maxposn=10)
+#10P8C2+8P6C2+4P2C2
+create_combined_population(popnum=100,thresh=1000,plelem=c(1,3,5),fname=paste(".\\ResultData\\combile-Result-1082+0862+0422-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                           isFileout=TRUE,isDebug=FALSE,maxposn=10)
+#10P8C2+8P6C2+6P4C2
+create_combined_population(popnum=100,thresh=1000,plelem=c(1,3,4),fname=paste(".\\ResultData\\combile-Result-1082+0862+0642-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                           isFileout=TRUE,isDebug=FALSE,maxposn=10)
+
 rm(pools)
 
 #Initial and evaluation vector ----------
