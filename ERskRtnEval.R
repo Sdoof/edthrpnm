@@ -726,7 +726,7 @@ rm(poolidx,tmp)
 # functions for combined population serach ------------
 # two sample examples. one from pools[[2]], the other from pools[[3]]
 #ceiling(runif(1, min=1e-320, max=nrow(pools[[2]][[2]])))
-create_combined_population<-function(popnum,thresh=1000,plelem=c(2,3),fname,isFileout=FALSE,isDebug=FALSE,maxposn=10){
+create_combined_population<-function(popnum,thresh=1000,plelem=c(4,5),fname,isFileout=FALSE,isDebug=FALSE,maxposn=10){
   added_num<-0
   total_count<-0
   while(TRUE) {
@@ -734,8 +734,8 @@ create_combined_population<-function(popnum,thresh=1000,plelem=c(2,3),fname,isFi
     s1_pos<-unlist(s1[-length(s1)]);s1_score<-as.numeric(s1[length(s1)])
     if(isDebug){cat("s1 :",s1_pos," sc:",s1_score)   }
     
-    s2<-pools[[ plelem[2] ]][[2]][ceiling(runif(1, min=1e-320, max=nrow(pools[[  plelem[1] ]][[2]]))), ]
-    s2_pos<-unlist(s2[-length(s1)]);s2_score<-as.numeric(s2[length(s2)])
+    s2<-pools[[ plelem[2] ]][[2]][ceiling(runif(1, min=1e-320, max=nrow(pools[[  plelem[2] ]][[2]]))), ]
+    s2_pos<-unlist(s2[-length(s2)]);s2_score<-as.numeric(s2[length(s2)])
     if(isDebug){cat(" s2 :",s2_pos," sc:",s2_score)   }
     
     x_new<-rep(0,times=length(iniPos))
@@ -769,16 +769,40 @@ create_combined_population<-function(popnum,thresh=1000,plelem=c(2,3),fname,isFi
         cat(pools[[ plelem[2] ]][[1]][2:3],file=fname,sep=",",append=TRUE);cat(",",file=fname,append=TRUE);cat(s2_score,file=fname,"\n",append=TRUE)
       }
     }
-    if(isDebug){cat(" added num:",added_num,"total count:",total_count,"\n")}
+    if(((added_num%%30)==0)){cat(" added num:",added_num,"total count:",total_count,"\n")}
     if(added_num==popnum)
       break
   }
 }
 
 # combined population serach --------------
-create_combined_population(popnum=10,thresh=1000,plelem=c(2,3),fname=paste(".\\ResultData\\combile-Result-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+#6P4C2+4P2C2
+create_combined_population(popnum=300,thresh=1000,plelem=c(4,5),fname=paste(".\\ResultData\\combile-Result-",format(Sys.time(),"%Y-%b-%d"),"-42+22.csv",sep=""),
                            isFileout=TRUE,isDebug=FALSE,maxposn=10)
-
+#8P6C2+4P2C2
+create_combined_population(popnum=300,thresh=1000,plelem=c(3,5),fname=paste(".\\ResultData\\combile-Result-",format(Sys.time(),"%Y-%b-%d"),"-62+22.csv",sep=""),
+                           isFileout=TRUE,isDebug=FALSE,maxposn=10)
+#8P6C2+6P4C2
+create_combined_population(popnum=300,thresh=1000,plelem=c(3,4),fname=paste(".\\ResultData\\combile-Result-",format(Sys.time(),"%Y-%b-%d"),"-62+42.csv",sep=""),
+                           isFileout=TRUE,isDebug=FALSE,maxposn=10)
+#10P6C4+4P2C2
+create_combined_population(popnum=300,thresh=1000,plelem=c(2,5),fname=paste(".\\ResultData\\combile-Result-",format(Sys.time(),"%Y-%b-%d"),"-64+22.csv",sep=""),
+                           isFileout=TRUE,isDebug=FALSE,maxposn=10)
+#10P6C4+6P4C2
+create_combined_population(popnum=300,thresh=1000,plelem=c(2,4),fname=paste(".\\ResultData\\combile-Result-",format(Sys.time(),"%Y-%b-%d"),"-64+42.csv",sep=""),
+                           isFileout=TRUE,isDebug=FALSE,maxposn=10)
+#10P6C4+8P6C2
+create_combined_population(popnum=300,thresh=1000,plelem=c(2,3),fname=paste(".\\ResultData\\combile-Result-",format(Sys.time(),"%Y-%b-%d"),"-64+62.csv",sep=""),
+                           isFileout=TRUE,isDebug=FALSE,maxposn=10)
+#10P8C2+4P2C2
+create_combined_population(popnum=300,thresh=1000,plelem=c(1,5),fname=paste(".\\ResultData\\combile-Result-",format(Sys.time(),"%Y-%b-%d"),"-82+22.csv",sep=""),
+                           isFileout=TRUE,isDebug=FALSE,maxposn=10)
+#10P8C2+6P4C2
+create_combined_population(popnum=300,thresh=1000,plelem=c(1,4),fname=paste(".\\ResultData\\combile-Result-",format(Sys.time(),"%Y-%b-%d"),"-82+42.csv",sep=""),
+                           isFileout=TRUE,isDebug=FALSE,maxposn=10)
+#10P8C2+8P6C2
+create_combined_population(popnum=300,thresh=1000,plelem=c(1,3),fname=paste(".\\ResultData\\combile-Result-",format(Sys.time(),"%Y-%b-%d"),"-82+62.csv",sep=""),
+                           isFileout=TRUE,isDebug=FALSE,maxposn=10)
 rm(pools)
 
 #Initial and evaluation vector ----------
