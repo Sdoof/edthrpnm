@@ -396,7 +396,6 @@ test_initial_create<-function(){
   }
 }
 
-
 test_initial_PutCall_create<-function(type,putPos=6,callPos=2){
   #Put
   put_length<-sum(as.numeric(type==OpType_Put_G))
@@ -421,12 +420,11 @@ test_initial_PutCall_create<-function(type,putPos=6,callPos=2){
   }
 }
 
-
 test_initial_population<-function(fname,thresh=1000,sd=0.44){
   for(k in 1:10000){
     x<-round(rnorm(n=length(iniPos),mean=0,sd=sd))
     x<-x*2
-    val<-obj_Income(x,isDebug=FALSE)
+    val<-obj_Income(x)
     if(val<thresh){
       cat(x,file=fname,sep=",",append=TRUE);cat(",",file=fname,append=TRUE)
       cat(val,file=fname,"\n",append=TRUE)
@@ -448,7 +446,7 @@ create_initial_polulation<-function(popnum,thresh=1000,sd=0.44,ml=2,fname,isFile
       total_count<-total_count+1
       next
     }
-    val<-obj_Income(x,isDebug=TRUE)
+    val<-obj_Income(x)
     if(val<thresh){
      if(added_num==0){
        ret_val<-x
@@ -462,7 +460,7 @@ create_initial_polulation<-function(popnum,thresh=1000,sd=0.44,ml=2,fname,isFile
      }
     }
     total_count<-total_count+1
-    cat(" added num:",added_num,"total count:",total_count,"\n")
+    if(((added_num%%30)==0)){cat(" added num:",added_num,"total count:",total_count,"\n")}
     if(added_num==popnum)
       break
   }
@@ -502,7 +500,7 @@ create_initial_PutCall_polulation<-function(popnum,type,thresh=1000,putsd=0.425,
     x<-y+z
     x<-x*ml
     #cat(" :x",x)
-    val<-obj_Income(x,isDebug=TRUE)
+    val<-obj_Income(x)
     if(val<thresh){
       if(added_num==0){
         ret_val<-x
@@ -516,7 +514,7 @@ create_initial_PutCall_polulation<-function(popnum,type,thresh=1000,putsd=0.425,
       }
     }
     total_count<-total_count+1
-    cat(" added num:",added_num,"total count:",total_count,"\n")
+    if(((added_num%%30)==0)){cat(" added num:",added_num,"total count:",total_count,"\n")}
     if(added_num==popnum)
       break
   }
@@ -549,7 +547,7 @@ create_initial_exact_PutCall_polulation<-function(popnum,type,thresh=1000,putn=6
     if(isDebug){ cat(" (:z",z,") :x(y+z) ") }
     x<-y+z
     x<-x*ml
-    val<-obj_Income(x,isDebug=TRUE)
+    val<-obj_Income(x,isDebug=isDebug)
     if(val<thresh){
       if(added_num==0){
         ret_val<-x
@@ -563,7 +561,7 @@ create_initial_exact_PutCall_polulation<-function(popnum,type,thresh=1000,putn=6
       }
     }
     total_count<-total_count+1
-    if(isDebug){cat(" added num:",added_num,"total count:",total_count,"\n")}
+    if(((added_num%%30)==0)){cat(" added num:",added_num,"total count:",total_count,"\n")}
     if(added_num==popnum)
       break
   }
@@ -571,7 +569,7 @@ create_initial_exact_PutCall_polulation<-function(popnum,type,thresh=1000,putn=6
   ret_val
 }
 
-#create one candidate pools
+#function of creating one candidate pools
 createCombineCandidatePool<-function(fname,pnum=1000,nrows=-1,skip=0,method=1){
   pool<-read.csv(fname, header=FALSE,nrows=nrows,skip=skip)
   pool %>% dplyr::arrange(pool[,length(pool)]) %>% dplyr::distinct() -> pool
@@ -597,6 +595,58 @@ createCombineCandidatePool<-function(fname,pnum=1000,nrows=-1,skip=0,method=1){
     return(pool)
   }  
   return(pool)
+}
+
+# functions for combined population serach ------------
+# two sample examples. one from pools[[2]], the other from pools[[3]]
+#ceiling(runif(1, min=1e-320, max=nrow(pools[[2]][[2]])))
+create_combined_population<-function(popnum,thresh=1000,plelem=c(4,5),fname,isFileout=FALSE,isDebug=FALSE,maxposn=10){
+  added_num<-0
+  total_count<-0
+  while(TRUE) {
+    s1<-pools[[ plelem[1] ]][[2]][ceiling(runif(1, min=1e-320, max=nrow(pools[[ plelem[1] ]][[2]]))), ]
+    s1_pos<-unlist(s1[-length(s1)]);s1_score<-as.numeric(s1[length(s1)])
+    if(isDebug){cat("s1 :",s1_pos," sc:",s1_score)   }
+    
+    s2<-pools[[ plelem[2] ]][[2]][ceiling(runif(1, min=1e-320, max=nrow(pools[[  plelem[2] ]][[2]]))), ]
+    s2_pos<-unlist(s2[-length(s2)]);s2_score<-as.numeric(s2[length(s2)])
+    if(isDebug){cat(" s2 :",s2_pos," sc:",s2_score)   }
+    
+    x_new<-rep(0,times=length(iniPos))
+    x_new<-s1_pos+s2_pos
+    x_new<-as.numeric((sum(x_new%%7)!=0))*x_new+as.numeric((sum(x_new%%7)==0))*x_new/7
+    x_new<-as.numeric((sum(x_new%%5)!=0))*x_new+as.numeric((sum(x_new%%5)==0))*x_new/5
+    x_new<-as.numeric((sum(x_new%%4)!=0))*x_new+as.numeric((sum(x_new%%4)==0))*x_new/4
+    x_new<-as.numeric((sum(x_new%%3)!=0))*x_new+as.numeric((sum(x_new%%3)==0))*x_new/3
+    x_new<-as.numeric((sum(x_new%%2)!=0))*x_new+as.numeric((sum(x_new%%2)==0))*x_new/2
+    x_new<-as.numeric((max(abs(x_new))==1))*x_new*2+as.numeric((max(abs(x_new))!=1))*x_new
+    if(isDebug){ cat(" x_new :",x_new,"\n") }
+    total_count<-total_count+1
+    
+    if(sum(as.numeric((x_new-iniPos)!=0))>maxposn){
+      next
+    }
+    
+    #evaluate
+    val<-obj_Income(x_new,isDebug=isDebug)
+    if(val<thresh){
+      if(added_num==0){
+        ret_val<-x_new
+      }else{
+        ret_val<-c(ret_val,x_new)
+      }
+      added_num<-added_num+1
+      if(isFileout){  
+        cat(x_new,file=fname,sep=",",append=TRUE);cat(",",file=fname,append=TRUE)
+        cat(val,file=fname,sep=",",append=TRUE);cat(",",file=fname,append=TRUE);
+        cat(pools[[ plelem[1] ]][[1]][2:3],file=fname,sep=",",append=TRUE);cat(",",file=fname,append=TRUE);cat(s1_score,file=fname,append=TRUE);cat(",",file=fname,append=TRUE);
+        cat(pools[[ plelem[2] ]][[1]][2:3],file=fname,sep=",",append=TRUE);cat(",",file=fname,append=TRUE);cat(s2_score,file=fname,"\n",append=TRUE)
+      }
+    }
+    if(((added_num%%30)==0)){cat(" added num:",added_num,"total count:",total_count,"\n")}
+    if(added_num==popnum)
+      break
+  }
 }
 
 #create initial population ---------
@@ -723,85 +773,33 @@ rm(poolidx,tmp)
 #pools<-list(list(c(10,8,2),tmp),list(c(6,4,2),tmp2),list(c(4,2,2),tmp3)) ; rm(tmp,tmp2,tmp3)
 #rm(pools)
 
-# functions for combined population serach ------------
-# two sample examples. one from pools[[2]], the other from pools[[3]]
-#ceiling(runif(1, min=1e-320, max=nrow(pools[[2]][[2]])))
-create_combined_population<-function(popnum,thresh=1000,plelem=c(4,5),fname,isFileout=FALSE,isDebug=FALSE,maxposn=10){
-  added_num<-0
-  total_count<-0
-  while(TRUE) {
-    s1<-pools[[ plelem[1] ]][[2]][ceiling(runif(1, min=1e-320, max=nrow(pools[[ plelem[1] ]][[2]]))), ]
-    s1_pos<-unlist(s1[-length(s1)]);s1_score<-as.numeric(s1[length(s1)])
-    if(isDebug){cat("s1 :",s1_pos," sc:",s1_score)   }
-    
-    s2<-pools[[ plelem[2] ]][[2]][ceiling(runif(1, min=1e-320, max=nrow(pools[[  plelem[2] ]][[2]]))), ]
-    s2_pos<-unlist(s2[-length(s2)]);s2_score<-as.numeric(s2[length(s2)])
-    if(isDebug){cat(" s2 :",s2_pos," sc:",s2_score)   }
-    
-    x_new<-rep(0,times=length(iniPos))
-    x_new<-s1_pos+s2_pos
-    x_new<-as.numeric((sum(x_new%%7)!=0))*x_new+as.numeric((sum(x_new%%7)==0))*x_new/7
-    x_new<-as.numeric((sum(x_new%%5)!=0))*x_new+as.numeric((sum(x_new%%5)==0))*x_new/5
-    x_new<-as.numeric((sum(x_new%%4)!=0))*x_new+as.numeric((sum(x_new%%4)==0))*x_new/4
-    x_new<-as.numeric((sum(x_new%%3)!=0))*x_new+as.numeric((sum(x_new%%3)==0))*x_new/3
-    x_new<-as.numeric((sum(x_new%%2)!=0))*x_new+as.numeric((sum(x_new%%2)==0))*x_new/2
-    x_new<-as.numeric((max(abs(x_new))==1))*x_new*2+as.numeric((max(abs(x_new))!=1))*x_new
-    if(isDebug){ cat(" x_new :",x_new,"\n") }
-    total_count<-total_count+1
-    
-    if(sum(as.numeric((x_new-iniPos)!=0))>maxposn){
-      next
-    }
-    
-    #evaluate
-    val<-obj_Income(x_new,isDebug=isDebug)
-    if(val<thresh){
-      if(added_num==0){
-        ret_val<-x_new
-      }else{
-        ret_val<-c(ret_val,x_new)
-      }
-      added_num<-added_num+1
-      if(isFileout){  
-        cat(x_new,file=fname,sep=",",append=TRUE);cat(",",file=fname,append=TRUE)
-        cat(val,file=fname,sep=",",append=TRUE);cat(",",file=fname,append=TRUE);
-        cat(pools[[ plelem[1] ]][[1]][2:3],file=fname,sep=",",append=TRUE);cat(",",file=fname,append=TRUE);cat(s1_score,file=fname,append=TRUE);cat(",",file=fname,append=TRUE);
-        cat(pools[[ plelem[2] ]][[1]][2:3],file=fname,sep=",",append=TRUE);cat(",",file=fname,append=TRUE);cat(s2_score,file=fname,"\n",append=TRUE)
-      }
-    }
-    if(((added_num%%30)==0)){cat(" added num:",added_num,"total count:",total_count,"\n")}
-    if(added_num==popnum)
-      break
-  }
-}
-
-# combined population serach --------------
+#combined population serach --------------
 #6P4C2+4P2C2
-create_combined_population(popnum=300,thresh=1000,plelem=c(4,5),fname=paste(".\\ResultData\\combile-Result-",format(Sys.time(),"%Y-%b-%d"),"-42+22.csv",sep=""),
+create_combined_population(popnum=300,thresh=1000,plelem=c(4,5),fname=paste(".\\ResultData\\combile-Result-",format(Sys.time(),"%Y-%b-%d"),"-0642+0422.csv",sep=""),
                            isFileout=TRUE,isDebug=FALSE,maxposn=10)
 #8P6C2+4P2C2
-create_combined_population(popnum=300,thresh=1000,plelem=c(3,5),fname=paste(".\\ResultData\\combile-Result-",format(Sys.time(),"%Y-%b-%d"),"-62+22.csv",sep=""),
+create_combined_population(popnum=300,thresh=1000,plelem=c(3,5),fname=paste(".\\ResultData\\combile-Result-",format(Sys.time(),"%Y-%b-%d"),"-0862+0422.csv",sep=""),
                            isFileout=TRUE,isDebug=FALSE,maxposn=10)
 #8P6C2+6P4C2
-create_combined_population(popnum=300,thresh=1000,plelem=c(3,4),fname=paste(".\\ResultData\\combile-Result-",format(Sys.time(),"%Y-%b-%d"),"-62+42.csv",sep=""),
+create_combined_population(popnum=300,thresh=1000,plelem=c(3,4),fname=paste(".\\ResultData\\combile-Result-",format(Sys.time(),"%Y-%b-%d"),"-0862+0642.csv",sep=""),
                            isFileout=TRUE,isDebug=FALSE,maxposn=10)
 #10P6C4+4P2C2
-create_combined_population(popnum=300,thresh=1000,plelem=c(2,5),fname=paste(".\\ResultData\\combile-Result-",format(Sys.time(),"%Y-%b-%d"),"-64+22.csv",sep=""),
+create_combined_population(popnum=300,thresh=1000,plelem=c(2,5),fname=paste(".\\ResultData\\combile-Result-",format(Sys.time(),"%Y-%b-%d"),"-1064+0422.csv",sep=""),
                            isFileout=TRUE,isDebug=FALSE,maxposn=10)
 #10P6C4+6P4C2
-create_combined_population(popnum=300,thresh=1000,plelem=c(2,4),fname=paste(".\\ResultData\\combile-Result-",format(Sys.time(),"%Y-%b-%d"),"-64+42.csv",sep=""),
+create_combined_population(popnum=300,thresh=1000,plelem=c(2,4),fname=paste(".\\ResultData\\combile-Result-",format(Sys.time(),"%Y-%b-%d"),"-1064+0642.csv",sep=""),
                            isFileout=TRUE,isDebug=FALSE,maxposn=10)
 #10P6C4+8P6C2
-create_combined_population(popnum=300,thresh=1000,plelem=c(2,3),fname=paste(".\\ResultData\\combile-Result-",format(Sys.time(),"%Y-%b-%d"),"-64+62.csv",sep=""),
+create_combined_population(popnum=300,thresh=1000,plelem=c(2,3),fname=paste(".\\ResultData\\combile-Result-",format(Sys.time(),"%Y-%b-%d"),"-1064+0862.csv",sep=""),
                            isFileout=TRUE,isDebug=FALSE,maxposn=10)
 #10P8C2+4P2C2
-create_combined_population(popnum=300,thresh=1000,plelem=c(1,5),fname=paste(".\\ResultData\\combile-Result-",format(Sys.time(),"%Y-%b-%d"),"-82+22.csv",sep=""),
+create_combined_population(popnum=300,thresh=1000,plelem=c(1,5),fname=paste(".\\ResultData\\combile-Result-",format(Sys.time(),"%Y-%b-%d"),"-1082+0422.csv",sep=""),
                            isFileout=TRUE,isDebug=FALSE,maxposn=10)
 #10P8C2+6P4C2
-create_combined_population(popnum=300,thresh=1000,plelem=c(1,4),fname=paste(".\\ResultData\\combile-Result-",format(Sys.time(),"%Y-%b-%d"),"-82+42.csv",sep=""),
+create_combined_population(popnum=300,thresh=1000,plelem=c(1,4),fname=paste(".\\ResultData\\combile-Result-",format(Sys.time(),"%Y-%b-%d"),"-1082+0642.csv",sep=""),
                            isFileout=TRUE,isDebug=FALSE,maxposn=10)
 #10P8C2+8P6C2
-create_combined_population(popnum=300,thresh=1000,plelem=c(1,3),fname=paste(".\\ResultData\\combile-Result-",format(Sys.time(),"%Y-%b-%d"),"-82+62.csv",sep=""),
+create_combined_population(popnum=300,thresh=1000,plelem=c(1,3),fname=paste(".\\ResultData\\combile-Result-",format(Sys.time(),"%Y-%b-%d"),"-1082+0862.csv",sep=""),
                            isFileout=TRUE,isDebug=FALSE,maxposn=10)
 rm(pools)
 
