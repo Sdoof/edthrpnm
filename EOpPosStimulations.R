@@ -1,121 +1,6 @@
 library(RQuantLib)
 
-#1. Simple Payoff
-# x-lay:UDLY, y-lay: Price
-#When T advances like T+7, T+14,T+21,T+28、
-# IF volatility remains constant(adjust horizental volatility skew only)
-#  At T+X, get the position's price assuming UDLY target the price without 
-#  probability consideration, only payoff.
-#Namely for example, at T+7
-# sum(T7$Position*T7$Price) at UDLY at original price. Likewise,
-# sum(T7Mns[[i]]$Position*T7Mns[[i]]$Price) at lower than original price.
-# sum(T7Pls[[i]]$Position*T7Pls[[i]]$Price) at higher than original price.
-
-#Set Global Variable also set in another file.
-file_prefix_simple_G<-"OptionVariablesT"
-
-#XT read
-#XT[[1:TimechgNum]]
-# XT[[1]],XT[[2]]...
-for(i in 1:(NumOfTimeChange_G+1)){
-  f_name=paste("OptionVariablesT",as.character((i-1)*ChangTimeUnit_G),".csv",sep="")
-  (xt_tmp<-read.table(f_name,header=T,sep=","))
-  # Date>ExpDate となっている行は削除
-  xt_tmp<-subset(xt_tmp,as.Date(Date,format="%Y/%m/%d")<=as.Date(ExpDate,format="%Y/%m/%d"))
-  # Position 0となっている行は削除
-  xt_tmp<-subset(xt_tmp,Position!=0)
-  if(i==1){
-    XT<-list(xt_tmp)
-  } else {
-    XT<-c(XT,list(xt_tmp))
-  }
-}
-
-#XTMns,XTPlus read
-#  XTMns[[1:TimechgNum]][[1:PriceChgNum]]
-#   XTMns[[1]]
-#     XTMns[[1]][[1]],XTMns[[1]][[2]],...
-#   XTMns[[2]]
-#     XTMns[[2]][[1]],XTMns[[2]][[2]],...
-#  XTPls[[TimechgNum]][[PriceChgNum]] likewise
-
-for(i in 1:(NumOfTimeChange_G+1)){
-  for(j in 1:(NumOfOnesideStrkPrice_G)){
-    #XTMns
-    f_name=paste("OptionVariablesT",as.character((i-1)*ChangTimeUnit_G),"StrMns",as.character(j),".csv",sep="")
-    (xt_tmp<-read.table(f_name,header=T,sep=","))
-    # Date>ExpDate となっている要素は削除する
-    xt_tmp<-subset(xt_tmp,as.Date(Date,format="%Y/%m/%d")<=as.Date(ExpDate,format="%Y/%m/%d"))
-    # Position 0となっている行は削除
-    xt_tmp<-subset(xt_tmp,Position!=0)
-    # Position 0となっている行は削除
-    xt_tmp<-subset(xt_tmp,Position!=0)
-    
-    #XTPls
-    f_name=paste("OptionVariablesT",as.character((i-1)*ChangTimeUnit_G),"StrPlus",as.character(j),".csv",sep="")
-    (xt_tmp_pls<-read.table(f_name,header=T,sep=","))
-    # Date>ExpDate となっている要素は削除する
-    xt_tmp_pls<-subset(xt_tmp_pls,as.Date(Date,format="%Y/%m/%d")<=as.Date(ExpDate,format="%Y/%m/%d"))
-    # Position 0となっている行は削除
-    xt_tmp<-subset(xt_tmp,Position!=0)
-    
-    if(j==1){
-      xtmns_elem<-list(xt_tmp)
-      xtmns_elem_pls<-list(xt_tmp_pls)
-    } else {
-      xtmns_elem<-c(xtmns_elem,list(xt_tmp))
-      xtmns_elem_pls<-c(xtmns_elem_pls,list(xt_tmp_pls))
-    }
-  }
-  if(i==1){
-    XTMns<-list(xtmns_elem)
-    XTPls<-list(xtmns_elem_pls)
-  } else{
-    XTMns<-c(XTMns,list(xtmns_elem))
-    XTPls<-c(XTPls,list(xtmns_elem_pls))
-  }
-}
-
-#-sum($Price*$Position)
-#  Positionを取った時のCash credit(debtは-)
-#sum($Price*$Position) 
-#  Positionの反対売買した（closed out)時のcash credit(debtは-)
-
-x_axis_<-vector()
-y_axis_<-vector()
-#compute actual NumOfTimeChange_G because of Date > ExpDate
-for( time_chg in 1:3){
-  #from left to center
-  for(prce_chg in 1:(NumOfOnesideStrkPrice_G)){
-    x_axis_<-c(x_axis_,XTMns[[time_chg]][[NumOfOnesideStrkPrice_G-prce_chg+1]]$UDLY[1])
-    y_axis_<-c(y_axis_,sum((XTMns[[time_chg]][[NumOfOnesideStrkPrice_G+1-prce_chg]]$Price - XT[[1]]$Price)*XT[[1]]$Position))
-  }
-  #center
-  x_axis_<-c(x_axis_,XT[[time_chg]]$UDLY[1])
-  y_axis_<-c(y_axis_,sum(XT[[time_chg]]$Position*XT[[time_chg]]$Price - XT[[1]]$Position*XT[[1]]$Price))
-  #center to right
-  for(prce_chg in 1:NumOfOnesideStrkPrice_G){
-    x_axis_<-c(x_axis_,XTPls[[time_chg]][[prce_chg]]$UDLY[1])
-    y_axis_<-c(y_axis_,sum((XTPls[[time_chg]][[prce_chg]]$Price - XT[[1]]$Price)*XT[[1]]$Position))
-  }
-}
-
-x_<-NumOfOnesideStrkPrice_G*6+3
-y_<-x_-NumOfOnesideStrkPrice_G*2
-plot(x_axis_[x_:y_],y_axis_[x_:y_],col="black",pch = 3)
-#plot(x_axis_[91:135],y_axis_[91:135],col="black",pch = 3)
-x_<-NumOfOnesideStrkPrice_G*4+2
-y_<-x_-NumOfOnesideStrkPrice_G*2
-points(x_axis_[x_:y_],y_axis_[x_:y_],col="red",pch = 3)
-#points(x_axis_[46:90],y_axis_[46:90],col="red",pch = 3)
-x_<-NumOfOnesideStrkPrice_G*2+1
-y_<-x_-NumOfOnesideStrkPrice_G*2
-points(x_axis_[x_:y_],y_axis_[x_:y_],col="orange",pch = 3)
-#points(x_axis_[1:45],y_axis_[1:45],col="orange",pch = 3)
-
-
-
-#2. Expected Return Scenario Stimulation
+## Expected Return Scenario Stimulation -------------
 #Advance T 1 by 1. Get Payoff Dist. Calc Expected Payoff.
 #The most basic price movement is Geometric Random Walk.
 #
@@ -138,7 +23,7 @@ points(x_axis_[x_:y_],y_axis_[x_:y_],col="orange",pch = 3)
 # Import various volatility skew functions included in other files.
 # Import Geometric Brown Motion Stimulation function
 
-#Functions Defined
+#Functions Defined ---------
 
 #get business days between the days expressed as character
 get.busdays.between <- function(start,end){
@@ -183,14 +68,12 @@ set.EuropeanOptionValueGreeks <- function(xt){
 ##set.AmericanOptionValueGreeks(xt)
 # to be defined
 
-
-
 ###
 # Start Stimulation
 ##
 ####
 
-###Scenario 1.
+###Scenario 1. --------------
 ###
 #volatility never changes throught the stimulation.
 #could pertubate IV based on stiumulation condition
@@ -242,12 +125,8 @@ for(ith_stim in 1:StimultaionNum){
     #Underlying Price change
     XTStim$UDLY <- rep(udly_prices[day_chg],times=length(XTStim$UDLY))
     
-    #Volatiliy Vertical Skew adjustment
-    XTStim$OrigIV <- XTStim$OrigIV+vertical.volatility.skew(xTb=XTStim_b,xTa=XTStim)
-    #Underlying Price change volatility skew
-    XTStim$OrigIV <- XTStim$OrigIV+Underlying.PriceChange.volatility.skew(xTb=XTStim_b,xTa=XTStim)
-    #Horizental Volatility SKew adjustment
-    XTStim$OrigIV <- XTStim$OrigIV+volatility.cone.skew(xTb=XTStim_b,xTa=XTStim)
+    #Volatiliy Skew change 
+    # To be defined.
     
     #Set new Price and Greeks
     #Case of European Option
