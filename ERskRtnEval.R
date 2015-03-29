@@ -631,6 +631,7 @@ create_combined_population<-function(popnum,thresh=1000,plelem=c(4,5),fname,isFi
     total_count<-total_count+1
     
     if(sum(as.numeric((x_new-iniPos)!=0))>maxposn){
+      if(isDebug){ cat("\n") }
       next
     }
     
