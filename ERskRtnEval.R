@@ -196,7 +196,7 @@ get.UDLY.Changed.Price<-function(udly,chg_pct){
   change
 }
 
-#Functions for gruped or rowwise operations. -------------
+#functions for gruped or rowwise operations. -------------
 #evalPosRskRtnXXX is just wrappers for Rsk/Rtn greek related functions.
 evalPosRskRtnDTRRR<- function(pos_eval){
   pos_DTRRR<-pos_eval$pos
@@ -385,141 +385,7 @@ getIntrisicValue<-function(udly_price,position,multip=PosMultip){
 
 ## Optimization Test 
 
-# initial polulation functions --------
-test_initial_create<-function(){
-  for(k in 1:200){
-    val<-0
-    for(i in 1:300){
-     val<-val+sum(as.numeric(round(rnorm(n=length(iniPos),mean=0,sd=0.005*k)))!=0)
-   }
-   cat(" sd:",0.005*k);cat(" val:",val/300)
-  }
-}
-
-test_initial_PutCall_create<-function(type,putPos=6,callPos=2){
-  #Put
-  put_length<-sum(as.numeric(type==OpType_Put_G))
-  cat(" Put***** l:",put_length)
-  for(k in 1:200){
-    val<-0
-    for(i in 1:300){
-      val<-val+sum(as.numeric(round(rnorm(n=put_length,mean=0,sd=0.005*k)))!=0)
-    }
-    if(round(val/300)==putPos){ cat(" sd:",0.005*k);cat(" val:",val/300) }
-  }
-  cat("\n")
-  #Call
-  call_length<-sum(as.numeric(type==OpType_Call_G))
-  cat(" Call***** l:",call_length)
-  for(k in 1:200){
-    val<-0
-    for(i in 1:300){
-      val<-val+sum(as.numeric(round(rnorm(n=call_length,mean=0,sd=0.005*k)))!=0)
-    }
-    if(round(val/300)==callPos) { cat(" sd:",0.005*k);cat(" val:",val/300) }
-  }
-}
-
-test_initial_population<-function(fname,thresh=1000,sd=0.44){
-  for(k in 1:10000){
-    x<-round(rnorm(n=length(iniPos),mean=0,sd=sd))
-    x<-x*2
-    val<-obj_Income(x)
-    if(val<thresh){
-      cat(x,file=fname,sep=",",append=TRUE);cat(",",file=fname,append=TRUE)
-      cat(val,file=fname,"\n",append=TRUE)
-    }
-  }
-}
-
-create_initial_polulation<-function(popnum,thresh=1000,sd=0.44,ml=2,fname,isFileout=FALSE) {
-  added_num<-0
-  total_count<-0
-  while(TRUE){
-    x<-round(rnorm(n=length(iniPos),mean=0,sd=sd))
-    x<-x*ml
-    if(sum(as.numeric((round(x)-iniPos)!=0))>10){
-      total_count<-total_count+1
-      next
-    }
-    if(sum(x)!=0){
-      total_count<-total_count+1
-      next
-    }
-    val<-obj_Income(x)
-    if(val<thresh){
-     if(added_num==0){
-       ret_val<-x
-     }else{
-       ret_val<-c(ret_val,x)
-     }
-     added_num<-added_num+1
-     if(isFileout){
-       cat(x,file=fname,sep=",",append=TRUE);cat(",",file=fname,append=TRUE)
-       cat(val,file=fname,"\n",append=TRUE)
-     }
-    }
-    total_count<-total_count+1
-    if(((added_num%%30)==0)){cat(" added num:",added_num,"total count:",total_count,"\n")}
-    if(added_num==popnum)
-      break
-  }
-  ret_val
-}
-
-create_initial_PutCall_polulation<-function(popnum,type,thresh=1000,putsd=0.425,putn=6,callsd=0.405,calln=6,ml=2,fname,isFileout=FALSE){
-  added_num<-0
-  total_count<-0
-  while(TRUE){
-    x<-rep(0,times=length(iniPos))
-    #Put
-    y<-as.numeric(type==OpType_Put_G)*round(rnorm(n=length(iniPos),mean=0,sd=putsd))
-    if(sum(as.numeric((y-iniPos)!=0))>putn){
-      total_count<-total_count+1
-      next
-    }
-    if(sum(y)!=0){
-      total_count<-total_count+1
-      next
-    }
-    cat(" (:y",y,")")
-    #Call
-    while(TRUE) {
-      z<-as.numeric(type==OpType_Call_G)*round(rnorm(n=length(iniPos),mean=0,sd=callsd))
-      if(sum(as.numeric((z-iniPos)!=0))>calln){
-        total_count<-total_count+1
-        next
-      }
-      if(sum(z)!=0){
-        total_count<-total_count+1
-        next
-      }
-      break
-    }
-    cat(" (:z",z,") :x(y+z) ")
-    x<-y+z
-    x<-x*ml
-    #cat(" :x",x)
-    val<-obj_Income(x)
-    if(val<thresh){
-      if(added_num==0){
-        ret_val<-x
-      }else{
-        ret_val<-c(ret_val,x)
-      }
-      added_num<-added_num+1
-      if(isFileout){
-        cat(x,file=fname,sep=",",append=TRUE);cat(",",file=fname,append=TRUE)
-        cat(val,file=fname,"\n",append=TRUE)
-      }
-    }
-    total_count<-total_count+1
-    if(((added_num%%30)==0)){cat(" added num:",added_num,"total count:",total_count,"\n")}
-    if(added_num==popnum)
-      break
-  }
-  ret_val
-}
+#functions for initial polulation creating  --------
 
 create_initial_exact_PutCall_polulation<-function(popnum,type,thresh=1000,putn=6,calln=6,ml=2,fname,isFileout=FALSE,isDebug=FALSE){
   added_num<-0
@@ -542,7 +408,7 @@ create_initial_exact_PutCall_polulation<-function(popnum,type,thresh=1000,putn=6
     if(isDebug){ cat(" call idxy:",idxy) }
     z<-rep(0,times=length(iniPos))
     z[idxy[1:(calln/2)]]<-1
-    z[idxy[(calln/2+1):putn]]<-(-1)
+    z[idxy[(calln/2+1):calln]]<-(-1)
     if(isDebug){ cat(" (:y",y,")") }
     if(isDebug){ cat(" (:z",z,") :x(y+z) ") }
     x<-y+z
@@ -569,7 +435,7 @@ create_initial_exact_PutCall_polulation<-function(popnum,type,thresh=1000,putn=6
   ret_val
 }
 
-#function of creating one candidate pools
+#function for creating one candidate pool --------------
 # nrows are rows to be read from a file, skip indicates how many rows should be skipped.
 # if pnum==0, then max nrows are sampled.
 createCombineCandidatePool<-function(fname,pnum=1000,nrows=-1,skip=0,method=1){
@@ -600,7 +466,7 @@ createCombineCandidatePool<-function(fname,pnum=1000,nrows=-1,skip=0,method=1){
   return(pool)
 }
 
-# functions for combined population serach ------------
+#function for seraching candidate by combination ------------
 # two sample examples. one from pools[[2]], the other from pools[[3]]
 #ceiling(runif(1, min=1e-320, max=nrow(pools[[2]][[2]])))
 create_combined_population<-function(popnum,thresh=1000,plelem=c(4,5),fname,isFileout=FALSE,isDebug=FALSE,maxposn=10){
@@ -665,73 +531,7 @@ create_combined_population<-function(popnum,thresh=1000,plelem=c(4,5),fname,isFi
   }
 }
 
-#create initial population ---------
-
-for(tmp in 1:10){
-  create_initial_polulation(popnum=300,thresh=1000,sd=0.48,ml=2,
-                            fname=paste(".\\ResultData\\inipop-0.48-1000-",format(Sys.time(),"%Y-%b-%d-%H"),".txt",sep=""),
-                            isFileout=TRUE)
-    create_initial_polulation(popnum=300,thresh=1000,sd=0.44,ml=2,
-                            fname=paste(".\\ResultData\\inipop-0.44-1000-",format(Sys.time(),"%Y-%b-%d-%H"),".txt",sep=""),
-                            isFileout=TRUE)
-    create_initial_polulation(popnum=300,thresh=800,sd=0.37,ml=2,
-                            fname=paste(".\\ResultData\\inipop-0.37-1000-",format(Sys.time(),"%Y-%b-%d-%H"),".txt",sep=""),
-                            isFileout=TRUE)
-    create_initial_polulation(popnum=300,thresh=700,sd=0.33,ml=2,
-                            fname=paste(".\\ResultData\\inipop-0.34-1000-",format(Sys.time(),"%Y-%b-%d-%H"),".txt",sep=""),
-                            isFileout=TRUE)
-    create_initial_polulation(popnum=300,thresh=400,sd=0.27,ml=2,
-                            fname=paste(".\\ResultData\\inipop-0.27-1000-",format(Sys.time(),"%Y-%b-%d"),".txt",sep=""),  
-                            # fname=paste(".\\ResultData\\inipop-0.27-1000-",format(Sys.time(),"%Y-%b-%d-%H%M%S"),".txt",sep=""),
-                            isFileout=TRUE)
-};rm(tmp)
-
-#Put Call Separate Test.
-
-for(tmp in 1:15){
-  #Put 8 Call 2
-  create_initial_PutCall_polulation(popnum=300,type=opchain$TYPE,thresh=1000,putsd=0.505,putn=8,callsd=0.405,calln=2,ml=2,
-                                    fname=paste(".\\ResultData\\inipop-",format(Sys.time(),"%Y-%b-%d-%Hh"),"-P8C2-1000.txt",sep=""),
-                                    isFileout=TRUE)
-  #Put 6 Call 4
-  create_initial_PutCall_polulation(popnum=300,type=opchain$TYPE,thresh=1000,putsd=0.425,putn=6,callsd=0.64,calln=4,ml=2,
-                                    fname=paste(".\\ResultData\\inipop-",format(Sys.time(),"%Y-%b-%d-%Hh"),"-P6C4-1000.txt",sep=""),
-                                    isFileout=TRUE)
-  #Put 8 Call 0
-  create_initial_PutCall_polulation(popnum=300,type=opchain$TYPE,thresh=1000,putsd=0.505,putn=8,callsd=0.005,calln=0,ml=2,
-                                    fname=paste(".\\ResultData\\inipop-",format(Sys.time(),"%Y-%b-%d-%Hh"),"-P8C0-1000.txt",sep=""),
-                                    isFileout=TRUE)
-  #Put 6 Call 2
-  create_initial_PutCall_polulation(popnum=300,type=opchain$TYPE,thresh=1000,putsd=0.425,putn=6,callsd=0.405,calln=2,ml=2,
-                                    fname=paste(".\\ResultData\\inipop-",format(Sys.time(),"%Y-%b-%d-%Hh"),"-P6C2-1000.txt",sep=""),
-                                    isFileout=TRUE)
-  #Put 4 Call 4
-  create_initial_PutCall_polulation(popnum=300,type=opchain$TYPE,thresh=1000,putsd=0.355,putn=4,callsd=0.64,calln=4,ml=2,
-                                    fname=paste(".\\ResultData\\inipop-",format(Sys.time(),"%Y-%b-%d-%Hh"),"-P4C4-1000.txt",sep=""),
-                                    isFileout=TRUE)
-  #Put 6 Call 0
-  create_initial_PutCall_polulation(popnum=300,type=opchain$TYPE,thresh=1000,putsd=0.425,putn=6,callsd=0.005,calln=0,ml=2,
-                                    fname=paste(".\\ResultData\\inipop-",format(Sys.time(),"%Y-%b-%d-%Hh"),"-P6C0-1000.txt",sep=""),
-                                    isFileout=TRUE)
-  #Put 4 Call 2
-  create_initial_PutCall_polulation(popnum=300,type=opchain$TYPE,thresh=1000,putsd=0.355,putn=4,callsd=0.405,calln=2,ml=2,
-                                    fname=paste(".\\ResultData\\inipop-",format(Sys.time(),"%Y-%b-%d-%Hh"),"-P4C2-1000.txt",sep=""),
-                                    isFileout=TRUE)
-  #Put 4 Call 0
-  create_initial_PutCall_polulation(popnum=200,type=opchain$TYPE,thresh=1000,putsd=0.355,putn=4,callsd=0.005,calln=0,ml=2,
-                                    fname=paste(".\\ResultData\\inipop-",format(Sys.time(),"%Y-%b-%d-%Hh"),"-P4C0-1000.txt",sep=""),
-                                    isFileout=TRUE)
-  #Put 2 Call 2
-  create_initial_PutCall_polulation(popnum=200,type=opchain$TYPE,thresh=1000,putsd=0.29,putn=2,callsd=0.405,calln=2,ml=2,
-                                    fname=paste(".\\ResultData\\inipop-",format(Sys.time(),"%Y-%b-%d-%Hh"),"-P2C2-1000.txt",sep=""),
-                                    isFileout=TRUE)
-  #Put 2 Call 0
-  create_initial_PutCall_polulation(popnum=100,type=opchain$TYPE,thresh=1000,putsd=0.29,putn=2,callsd=0.005,calln=0,ml=2,
-                                    fname=paste(".\\ResultData\\inipop-",format(Sys.time(),"%Y-%b-%d-%Hh"),"-P2C0-1000.txt",sep=""),
-                                    isFileout=TRUE)
-};rm(tmp)
-#Put Call Exact Separate Test
-
+#creating initial population ------
 for(tmp in 1:15){
   create_initial_exact_PutCall_polulation(popnum=300,opchain$TYPE,thresh=1000,putn=8,calln=0,ml=2,
                                           fname=paste(".\\ResultData\\inipop-Exc-1000-08P8C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
@@ -760,11 +560,19 @@ for(tmp in 1:15){
   create_initial_exact_PutCall_polulation(popnum=300,opchain$TYPE,thresh=1000,putn=6,calln=4,ml=2,
                                           fname=paste(".\\ResultData\\inipop-Exc-1000-10P6C4-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                           isFileout=TRUE,isDebug=FALSE)
+  create_initial_exact_PutCall_polulation(popnum=300,opchain$TYPE,thresh=1000,putn=4,calln=4,ml=2,
+                                             fname=paste(".\\ResultData\\inipop-Exc-1000-08P4C4-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                                             isFileout=TRUE,isDebug=FALSE)
+  create_initial_exact_PutCall_polulation(popnum=200,opchain$TYPE,thresh=1000,putn=2,calln=4,ml=2,
+                                          fname=paste(".\\ResultData\\inipop-Exc-1000-06P2C4-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                                          isFileout=TRUE,isDebug=FALSE)
+  create_initial_exact_PutCall_polulation(popnum=100,opchain$TYPE,thresh=1000,putn=4,calln=6,ml=2,
+                                          fname=paste(".\\ResultData\\inipop-Exc-1000-10P4C6-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                                          isFileout=TRUE,isDebug=FALSE)
+  
 };rm(tmp)
 
-#create combined candidate populations
-
-#create initial pools for combined search ----------------------
+#creating candidate pool for combined search ----------------------
 tmp<-createCombineCandidatePool(fname=paste(".\\ResultData\\inipop-Exc-1000-10P8C2-2015-3-24.csv",sep=""),
                                 pnum=700,nrows=-1,skip=0,method=1)
 pools<-list(list(c(10,8,2),tmp)) #No.[[1]]
