@@ -570,8 +570,11 @@ create_initial_exact_PutCall_polulation<-function(popnum,type,thresh=1000,putn=6
 }
 
 #function of creating one candidate pools
+# nrows are rows to be read from a file, skip indicates how many rows should be skipped.
+# if pnum==0, then max nrows are sampled.
 createCombineCandidatePool<-function(fname,pnum=1000,nrows=-1,skip=0,method=1){
   pool<-read.csv(fname, header=FALSE,nrows=nrows,skip=skip)
+  pnum<-as.numeric((pnum==0))*nrow(pool)+as.numeric((pnum!=0))*pnum
   pool %>% dplyr::arrange(pool[,(length(iniPos)+1)]) %>% dplyr::distinct() -> pool
   
   #select specific nums. some optional methods
@@ -845,8 +848,8 @@ create_combined_population(popnum=1000,thresh=1000,plelem=c(1,3,4),fname=paste("
                            isFileout=TRUE,isDebug=FALSE,maxposn=10)
 
 #3 3+3 Combinations
-create_combined_population(popnum=1000,thresh=1000,plelem=c(6,6),fname=paste(".\\ResultData\\combine-Result-3Cb3Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                           isFileout=TRUE,isDebug=FALSE,maxposn=10)
+create_combined_population(popnum=3000,thresh=1000,plelem=c(6,6),fname=paste(".\\ResultData\\combine-Result-3Cb3Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                           isFileout=TRUE,isDebug=FALSE,maxposn=10) #combined cand 1500, popnum=3000+1000 で約2000の重複
 rm(pools)
 
 #Initial and evaluation vector ----------

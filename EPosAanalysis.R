@@ -52,7 +52,7 @@ drawtbl<-createdAgrregatedPriceTbl(posStepDays,thePosition,udlStepNum=udlStepNum
 drawtbl_vc<-createdAgrregatedPriceTbl(posStepDays_vc,thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,multi=PosMultip,iniCredit=iniCredit)
 drawGrktbl<-createdAgrregatedGreekTbl(posStepDays,thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,multi=PosMultip)
 
-##Delta Headge Effect
+##Delta Hedge Effect
 if(FALSE){
   #initial Delta
   iniDelta<-getPosGreeks(pos=thePosition$Position,greek=thePosition$Delta,multi=PosMultip)
