@@ -198,6 +198,7 @@ get.UDLY.Changed.Price<-function(udly,chg_pct){
 }
 
 #functions for gruped or rowwise operations. -------------
+
 #evalPosRskRtnXXX is just wrappers for Rsk/Rtn greek related functions.
 evalPosRskRtnDTRRR<- function(pos_eval){
   pos_DTRRR<-pos_eval$pos
@@ -388,7 +389,7 @@ getIntrisicValue<-function(udly_price,position,multip=PosMultip){
 
 #functions for initial polulation creating  --------
 
-create_initial_exact_PutCall_polulation<-function(popnum,type,thresh=1000,putn=6,calln=6,ml=2,fname,isFileout=FALSE,isDebug=FALSE){
+create_initial_exact_PutCall_polulation<-function(popnum,type,thresh=1.8,putn=6,calln=6,ml=2,fname,isFileout=FALSE,isDebug=FALSE){
   added_num<-0
   total_count<-0
   while(TRUE){
@@ -438,18 +439,18 @@ create_initial_exact_PutCall_polulation<-function(popnum,type,thresh=1000,putn=6
 }
 
 #function for creating one candidate pool --------------
-# nrows are rows to be read from a file, skip indicates how many rows should be skipped.
-# if pnum==0, then max nrows are sampled.
+  # nrows are rows to be read from a file, skip indicates how many rows should be skipped.
+  # if pnum==0, then max nrows are sampled.
 createCombineCandidatePool<-function(fname,pnum=1000,nrows=-1,skip=0,method=1){
   pool<-read.csv(fname, header=FALSE,nrows=nrows,skip=skip)
   pnum<-as.numeric((pnum==0))*nrow(pool)+as.numeric((pnum!=0))*pnum
   pool %>% dplyr::arrange(pool[,(length(iniPos)+1)]) %>% dplyr::distinct() -> pool
+ 
   
   #select specific nums. some optional methods
   #1.top n
   if(method==1){
     pool<-pool[1:pnum,]
-    return(pool)
   }
   #2. random sample
   else if(method==2){
@@ -457,21 +458,20 @@ createCombineCandidatePool<-function(fname,pnum=1000,nrows=-1,skip=0,method=1){
     idx<-sort(sample(idx,size=pnum,replace=FALSE,prob=NULL))
     pool<-pool[idx,]
     rownames(pool) <- c(1:nrow(pool))
-    return(pool)
   }
   #3. bottom n
   else if(method==3){
     pool<-pool[(nrow(pool)-pnum+1):nrow(pool),]
     rownames(pool) <- c(1:nrow(pool))
-    return(pool)
-  }  
+  }
+  pool[complete.cases(pool),] -> pool
   return(pool)
 }
 
 #function for seraching candidate by combination ------------
-# two sample examples. one from pools[[2]], the other from pools[[3]]
-#ceiling(runif(1, min=1e-320, max=nrow(pools[[2]][[2]])))
-create_combined_population<-function(popnum,thresh=1000,plelem=c(4,5),fname,isFileout=FALSE,isDebug=FALSE,maxposn=10){
+  # two sample examples. one from pools[[2]], the other from pools[[3]]
+  #ceiling(runif(1, min=1e-320, max=nrow(pools[[2]][[2]])))
+create_combined_population<-function(popnum,thresh=1000,plelem=c(4,5),fname,isFileout=FALSE,isDebug=FALSE,maxposn=8){
   added_num<-0
   total_count<-0
   while(TRUE) {
@@ -507,7 +507,8 @@ create_combined_population<-function(popnum,thresh=1000,plelem=c(4,5),fname,isFi
     }
     
     #evaluate
-    val<-obj_Income(x_new,isDebug=isDebug)
+    #val<-obj_Income(x_new,isDebug=isDebug)
+    val<-obj_Income_sgmd(x_new,isDebug=isDebug,isDetail=isDebug)
     if(val<thresh){
       if(added_num==0){
         ret_val<-x_new
@@ -534,6 +535,8 @@ create_combined_population<-function(popnum,thresh=1000,plelem=c(4,5),fname,isFi
 }
 
 #creating initial population ------
+
+#not sigmoid function
 # for(tmp in 1:8){
 #   create_initial_exact_PutCall_polulation(popnum=300,opchain$TYPE,thresh=1000,putn=8,calln=0,ml=2,
 #                                           fname=paste(".\\ResultData\\inipop-Exc-1000-08P8C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
@@ -574,6 +577,7 @@ create_combined_population<-function(popnum,thresh=1000,plelem=c(4,5),fname,isFi
 #   
 # };rm(tmp)
 
+#sigmoid function
 for(tmp in 1:8){
    create_initial_exact_PutCall_polulation(popnum=300,opchain$TYPE,thresh=1.8,putn=6,calln=2,ml=2,
                                            fname=paste(".\\ResultData\\inipop-Exc-1000-08P6C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
@@ -602,92 +606,83 @@ for(tmp in 1:8){
 };rm(tmp)
 
 #creating candidate pool for combined search ----------------------
-tmp<-createCombineCandidatePool(fname=paste(".\\ResultData\\inipop-Exc-1000-10P8C2-2015-3-24.csv",sep=""),
-                                pnum=700,nrows=-1,skip=0,method=1)
-pools<-list(list(c(10,8,2),tmp)) #No.[[1]]
+
+tmp<-createCombineCandidatePool(fname=paste(".\\ResultData\\inipop-Exc-1000-08P6C2-2015-4-01.csv",sep=""),
+                                pnum=0,nrows=-1,skip=0,method=1)
+pools<-list(list(c(8,6,2),tmp)) #No.[[1]]
 poolidx<-2
-tmp<-createCombineCandidatePool(fname=paste(".\\ResultData\\inipop-Exc-1000-10P6C4-2015-3-24.csv",sep=""),
-                                pnum=700,nrows=-1,skip=0,method=1)
-pools[poolidx]<-list(list(c(10,6,4),tmp)) ; poolidx<-poolidx+1 #No.[[2]]
 
-tmp<-createCombineCandidatePool(fname=paste(".\\ResultData\\inipop-Exc-1000-08P6C2-2015-3-24.csv",sep=""),
-                                pnum=700,nrows=-1,skip=0,method=1)
-pools[poolidx]<-list(list(c(8,6,2),tmp)) ; poolidx<-poolidx+1 #No.[[3]]
+tmp<-createCombineCandidatePool(fname=paste(".\\ResultData\\inipop-Exc-1000-06P4C2-2015-4-01.csv",sep=""),
+                                pnum=0,nrows=-1,skip=0,method=1)
+pools[poolidx]<-list(list(c(6,4,2),tmp)) ; poolidx<-poolidx+1 #No.[[2]]
 
-tmp<-createCombineCandidatePool(fname=paste(".\\ResultData\\inipop-Exc-1000-06P4C2-2015-3-24.csv",sep=""),
-                                pnum=700,nrows=-1,skip=0,method=1)
-pools[poolidx]<-list(list(c(6,4,2),tmp)) ; poolidx<-poolidx+1 #No.[[4]]
+tmp<-createCombineCandidatePool(fname=paste(".\\ResultData\\inipop-Exc-1000-04P2C2-2015-4-01.csv",sep=""),
+                                 pnum=0,nrows=-1,skip=0,method=1)
+pools[poolidx]<-list(list(c(4,2,2),tmp)) ; poolidx<-poolidx+1 #No.[[3]]
 
-tmp<-createCombineCandidatePool(fname=paste(".\\ResultData\\inipop-Exc-1000-04P2C2-2015-3-24.csv",sep=""),
-                                 pnum=350,nrows=-1,skip=0,method=1)
-pools[poolidx]<-list(list(c(4,2,2),tmp)) ; poolidx<-poolidx+1 #No.[[5]]
 rm(poolidx,tmp)
 
 #create nested combine candidate pool 
 poolidx<-length(pools)+1
 tmp<-createCombineCandidatePool(fname=paste(".\\ResultData\\combine-Result-3Cb-2015-3-28.csv",sep=""),
                                 pnum=1500,nrows=-1,skip=0,method=1)
-pools[poolidx]<-list(list(c(0,0,0),tmp)) ; poolidx<-poolidx+1 #No.[[6]]
+pools[poolidx]<-list(list(c(0,0,0),tmp)) ; poolidx<-poolidx+1 #No.[[4]]
 rm(poolidx,tmp)
 
 #rm(pools)
 
 #combined population serach --------------
-#6P4C2+4P2C2
-create_combined_population(popnum=5000,thresh=1000,plelem=c(4,5),fname=paste(".\\ResultData\\combine-Result-0642+0422-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                           isFileout=TRUE,isDebug=FALSE,maxposn=10)
-#8P6C2+4P2C2
-create_combined_population(popnum=3000,thresh=1000,plelem=c(3,5),fname=paste(".\\ResultData\\combine-Result-0862+0422-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                           isFileout=TRUE,isDebug=FALSE,maxposn=10)
+
+#sigmoid evaluation
 #8P6C2+6P4C2
-create_combined_population(popnum=3000,thresh=1000,plelem=c(3,4),fname=paste(".\\ResultData\\combine-Result-0862+0642-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                           isFileout=TRUE,isDebug=FALSE,maxposn=10)
-#10P6C4+4P2C2
-create_combined_population(popnum=1000,thresh=1000,plelem=c(2,5),fname=paste(".\\ResultData\\combine-Result-1064+0422-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                           isFileout=TRUE,isDebug=FALSE,maxposn=10)
-#10P6C4+6P4C2
-create_combined_population(popnum=1000,thresh=1000,plelem=c(2,4),fname=paste(".\\ResultData\\combine-Result-1064+0642-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                           isFileout=TRUE,isDebug=FALSE,maxposn=10)
-#10P6C4+8P6C2
-create_combined_population(popnum=600,thresh=1000,plelem=c(2,3),fname=paste(".\\ResultData\\combine-Result-1064+0862-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                           isFileout=TRUE,isDebug=FALSE,maxposn=10)
-#10P8C2+4P2C2
-create_combined_population(popnum=600,thresh=1000,plelem=c(1,5),fname=paste(".\\ResultData\\combine-Result-1082+0422-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                           isFileout=TRUE,isDebug=FALSE,maxposn=10)
-#10P8C2+6P4C2
-create_combined_population(popnum=600,thresh=1000,plelem=c(1,4),fname=paste(".\\ResultData\\combine-Result-1082+0642-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                           isFileout=TRUE,isDebug=FALSE,maxposn=10)
-#10P8C2+8P6C2
-create_combined_population(popnum=600,thresh=1000,plelem=c(1,3),fname=paste(".\\ResultData\\combine-Result-1082+0862-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                           isFileout=TRUE,isDebug=FALSE,maxposn=10)
+create_combined_population(popnum=3000,thresh=1.8,plelem=c(1,2),fname=paste(".\\ResultData\\combine-Result-0862+0642-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                           isFileout=TRUE,isDebug=FALSE,maxposn=8)
+
+#8P6C2+4P2C2
+create_combined_population(popnum=3000,thresh=1.8,plelem=c(1,3),fname=paste(".\\ResultData\\combine-Result-0862+0422-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                           isFileout=TRUE,isDebug=FALSE,maxposn=8)
+
+#6P4C2+4P2C2
+create_combined_population(popnum=5000,thresh=1.8,plelem=c(2,3),fname=paste(".\\ResultData\\combine-Result-0642+0422-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                           isFileout=TRUE,isDebug=FALSE,maxposn=8)
 
 #3 Combinations
 #8P6C2+6P4C2+4P2C2
-create_combined_population(popnum=1000,thresh=1000,plelem=c(3,4,5),fname=paste(".\\ResultData\\combine-Result-0862+0642+0422-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                           isFileout=TRUE,isDebug=FALSE,maxposn=10)
-#10P6C4+6P4C2+4P2C2
-create_combined_population(popnum=1000,thresh=1000,plelem=c(2,4,5),fname=paste(".\\ResultData\\combine-Result-1064+0642+0422-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                           isFileout=TRUE,isDebug=FALSE,maxposn=10)
-#10P6C4+8P6C2+4P2C2
-create_combined_population(popnum=1000,thresh=1000,plelem=c(2,3,5),fname=paste(".\\ResultData\\combine-Result-1064+0862+0422-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                           isFileout=TRUE,isDebug=FALSE,maxposn=10)
-#10P6C4+8P6C2+6P4C2
-create_combined_population(popnum=1000,thresh=1000,plelem=c(2,3,4),fname=paste(".\\ResultData\\combine-Result-1064+0862+0642-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                           isFileout=TRUE,isDebug=FALSE,maxposn=10)
-#10P8C2+6P4C2+4P2C2
-create_combined_population(popnum=1000,thresh=1000,plelem=c(1,4,5),fname=paste(".\\ResultData\\combine-Result-1082+0642+0422-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                           isFileout=TRUE,isDebug=FALSE,maxposn=10)
-#10P8C2+8P6C2+4P2C2
-create_combined_population(popnum=1000,thresh=1000,plelem=c(1,3,5),fname=paste(".\\ResultData\\combine-Result-1082+0862+0422-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                           isFileout=TRUE,isDebug=FALSE,maxposn=10)
-#10P8C2+8P6C2+6P4C2
-create_combined_population(popnum=1000,thresh=1000,plelem=c(1,3,4),fname=paste(".\\ResultData\\combine-Result-1082+0862+0642-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                           isFileout=TRUE,isDebug=FALSE,maxposn=10)
+create_combined_population(popnum=1000,thresh=1.8,plelem=c(1,2,3),fname=paste(".\\ResultData\\combine-Result-0862+0642+0422-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                           isFileout=TRUE,isDebug=FALSE,maxposn=8)
 
 #3 3+3 Combinations
-create_combined_population(popnum=3000,thresh=1000,plelem=c(6,6),fname=paste(".\\ResultData\\combine-Result-3Cb3Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                           isFileout=TRUE,isDebug=FALSE,maxposn=10) #combined cand 1500, popnum=3000+1000 で約2000の重複
+create_combined_population(popnum=3000,thresh=1.8,plelem=c(4,4),fname=paste(".\\ResultData\\combine-Result-3Cb3Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                           isFileout=TRUE,isDebug=FALSE,maxposn=8) 
 rm(pools)
+
+# #6P4C2+4P2C2
+# create_combined_population(popnum=5000,thresh=1000,plelem=c(4,5),fname=paste(".\\ResultData\\combine-Result-0642+0422-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+#                            isFileout=TRUE,isDebug=FALSE,maxposn=10)
+# #8P6C2+4P2C2
+# create_combined_population(popnum=3000,thresh=1000,plelem=c(3,5),fname=paste(".\\ResultData\\combine-Result-0862+0422-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+#                            isFileout=TRUE,isDebug=FALSE,maxposn=10)
+# #8P6C2+6P4C2
+# create_combined_population(popnum=3000,thresh=1000,plelem=c(3,4),fname=paste(".\\ResultData\\combine-Result-0862+0642-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+#                            isFileout=TRUE,isDebug=FALSE,maxposn=10)
+# #10P6C4+4P2C2
+# create_combined_population(popnum=1000,thresh=1000,plelem=c(2,5),fname=paste(".\\ResultData\\combine-Result-1064+0422-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+#                            isFileout=TRUE,isDebug=FALSE,maxposn=10)
+# #10P6C4+6P4C2
+# create_combined_population(popnum=1000,thresh=1000,plelem=c(2,4),fname=paste(".\\ResultData\\combine-Result-1064+0642-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+#                            isFileout=TRUE,isDebug=FALSE,maxposn=10)
+# #10P6C4+8P6C2
+# create_combined_population(popnum=600,thresh=1000,plelem=c(2,3),fname=paste(".\\ResultData\\combine-Result-1064+0862-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+#                            isFileout=TRUE,isDebug=FALSE,maxposn=10)
+# #10P8C2+4P2C2
+# create_combined_population(popnum=600,thresh=1000,plelem=c(1,5),fname=paste(".\\ResultData\\combine-Result-1082+0422-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+#                            isFileout=TRUE,isDebug=FALSE,maxposn=10)
+# #10P8C2+6P4C2
+# create_combined_population(popnum=600,thresh=1000,plelem=c(1,4),fname=paste(".\\ResultData\\combine-Result-1082+0642-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+#                            isFileout=TRUE,isDebug=FALSE,maxposn=10)
+# #10P8C2+8P6C2
+# create_combined_population(popnum=600,thresh=1000,plelem=c(1,3),fname=paste(".\\ResultData\\combine-Result-1082+0862-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+#                            isFileout=TRUE,isDebug=FALSE,maxposn=10)
 
 #Initial and evaluation vector ----------
 iniPos<-opchain$Position
