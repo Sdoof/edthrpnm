@@ -15,6 +15,7 @@ library(Rmalschains)
 library(soma)
 library(nloptr)
 library(NMOF)
+library(pracma)
 
 #Variables -----------
 #Holding Period
@@ -413,7 +414,8 @@ create_initial_exact_PutCall_polulation<-function(popnum,type,thresh=1000,putn=6
     if(isDebug){ cat(" (:z",z,") :x(y+z) ") }
     x<-y+z
     x<-x*ml
-    val<-obj_Income(x,isDebug=isDebug)
+    #val<-obj_Income(x,isDebug=isDebug)
+    val<-obj_Income_sgmd(x,isDebug=isDebug,isDetail=isDebug)
     if(val<thresh){
       if(added_num==0){
         ret_val<-x
@@ -532,44 +534,71 @@ create_combined_population<-function(popnum,thresh=1000,plelem=c(4,5),fname,isFi
 }
 
 #creating initial population ------
-for(tmp in 1:15){
-  create_initial_exact_PutCall_polulation(popnum=300,opchain$TYPE,thresh=1000,putn=8,calln=0,ml=2,
-                                          fname=paste(".\\ResultData\\inipop-Exc-1000-08P8C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                                          isFileout=TRUE,isDebug=FALSE)
-  create_initial_exact_PutCall_polulation(popnum=300,opchain$TYPE,thresh=1000,putn=6,calln=2,ml=2,
-                                          fname=paste(".\\ResultData\\inipop-Exc-1000-08P6C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                                          isFileout=TRUE,isDebug=FALSE)
-  create_initial_exact_PutCall_polulation(popnum=200,opchain$TYPE,thresh=1000,putn=6,calln=0,ml=2,
-                                          fname=paste(".\\ResultData\\inipop-Exc-1000-06P6C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                                          isFileout=TRUE,isDebug=FALSE)
-  create_initial_exact_PutCall_polulation(popnum=200,opchain$TYPE,thresh=1000,putn=4,calln=2,ml=2,
-                                          fname=paste(".\\ResultData\\inipop-Exc-1000-06P4C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                                          isFileout=TRUE,isDebug=FALSE)
-  create_initial_exact_PutCall_polulation(popnum=100,opchain$TYPE,thresh=1000,putn=4,calln=0,ml=2,
-                                          fname=paste(".\\ResultData\\inipop-Exc-1000-04P4C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                                          isFileout=TRUE,isDebug=FALSE)
-  create_initial_exact_PutCall_polulation(popnum=80,opchain$TYPE,thresh=1000,putn=2,calln=2,ml=2,
-                                          fname=paste(".\\ResultData\\inipop-Exc-1000-04P2C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                                          isFileout=TRUE,isDebug=FALSE)
-  create_initial_exact_PutCall_polulation(popnum=50,opchain$TYPE,thresh=1000,putn=2,calln=0,ml=2,
-                                          fname=paste(".\\ResultData\\inipop-Exc-1000-02P2C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                                          isFileout=TRUE,isDebug=FALSE)
-  create_initial_exact_PutCall_polulation(popnum=300,opchain$TYPE,thresh=1000,putn=8,calln=2,ml=2,
-                                          fname=paste(".\\ResultData\\inipop-Exc-1000-10P8C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                                          isFileout=TRUE,isDebug=FALSE)
-  create_initial_exact_PutCall_polulation(popnum=300,opchain$TYPE,thresh=1000,putn=6,calln=4,ml=2,
-                                          fname=paste(".\\ResultData\\inipop-Exc-1000-10P6C4-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                                          isFileout=TRUE,isDebug=FALSE)
-  create_initial_exact_PutCall_polulation(popnum=300,opchain$TYPE,thresh=1000,putn=4,calln=4,ml=2,
-                                             fname=paste(".\\ResultData\\inipop-Exc-1000-08P4C4-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                                             isFileout=TRUE,isDebug=FALSE)
-  create_initial_exact_PutCall_polulation(popnum=200,opchain$TYPE,thresh=1000,putn=2,calln=4,ml=2,
-                                          fname=paste(".\\ResultData\\inipop-Exc-1000-06P2C4-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                                          isFileout=TRUE,isDebug=FALSE)
-  create_initial_exact_PutCall_polulation(popnum=100,opchain$TYPE,thresh=1000,putn=4,calln=6,ml=2,
-                                          fname=paste(".\\ResultData\\inipop-Exc-1000-10P4C6-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                                          isFileout=TRUE,isDebug=FALSE)
-  
+# for(tmp in 1:8){
+#   create_initial_exact_PutCall_polulation(popnum=300,opchain$TYPE,thresh=1000,putn=8,calln=0,ml=2,
+#                                           fname=paste(".\\ResultData\\inipop-Exc-1000-08P8C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+#                                           isFileout=TRUE,isDebug=FALSE)
+#   create_initial_exact_PutCall_polulation(popnum=300,opchain$TYPE,thresh=1000,putn=6,calln=2,ml=2,
+#                                           fname=paste(".\\ResultData\\inipop-Exc-1000-08P6C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+#                                           isFileout=TRUE,isDebug=TRUE)
+#   create_initial_exact_PutCall_polulation(popnum=200,opchain$TYPE,thresh=1000,putn=6,calln=0,ml=2,
+#                                           fname=paste(".\\ResultData\\inipop-Exc-1000-06P6C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+#                                           isFileout=TRUE,isDebug=FALSE)
+#   create_initial_exact_PutCall_polulation(popnum=200,opchain$TYPE,thresh=1000,putn=4,calln=2,ml=2,
+#                                           fname=paste(".\\ResultData\\inipop-Exc-1000-06P4C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+#                                           isFileout=TRUE,isDebug=FALSE)
+#   create_initial_exact_PutCall_polulation(popnum=100,opchain$TYPE,thresh=1000,putn=4,calln=0,ml=2,
+#                                           fname=paste(".\\ResultData\\inipop-Exc-1000-04P4C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+#                                           isFileout=TRUE,isDebug=FALSE)
+#   create_initial_exact_PutCall_polulation(popnum=80,opchain$TYPE,thresh=1000,putn=2,calln=2,ml=2,
+#                                           fname=paste(".\\ResultData\\inipop-Exc-1000-04P2C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+#                                           isFileout=TRUE,isDebug=FALSE)
+#   create_initial_exact_PutCall_polulation(popnum=50,opchain$TYPE,thresh=1000,putn=2,calln=0,ml=2,
+#                                           fname=paste(".\\ResultData\\inipop-Exc-1000-02P2C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+#                                           isFileout=TRUE,isDebug=FALSE)
+#   create_initial_exact_PutCall_polulation(popnum=300,opchain$TYPE,thresh=1000,putn=8,calln=2,ml=2,
+#                                           fname=paste(".\\ResultData\\inipop-Exc-1000-10P8C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+#                                           isFileout=TRUE,isDebug=FALSE)
+#   create_initial_exact_PutCall_polulation(popnum=300,opchain$TYPE,thresh=1000,putn=6,calln=4,ml=2,
+#                                           fname=paste(".\\ResultData\\inipop-Exc-1000-10P6C4-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+#                                           isFileout=TRUE,isDebug=FALSE)
+#   create_initial_exact_PutCall_polulation(popnum=300,opchain$TYPE,thresh=1000,putn=4,calln=4,ml=2,
+#                                              fname=paste(".\\ResultData\\inipop-Exc-1000-08P4C4-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+#                                              isFileout=TRUE,isDebug=FALSE)
+#   create_initial_exact_PutCall_polulation(popnum=200,opchain$TYPE,thresh=1000,putn=2,calln=4,ml=2,
+#                                           fname=paste(".\\ResultData\\inipop-Exc-1000-06P2C4-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+#                                           isFileout=TRUE,isDebug=FALSE)
+#   create_initial_exact_PutCall_polulation(popnum=100,opchain$TYPE,thresh=1000,putn=4,calln=6,ml=2,
+#                                           fname=paste(".\\ResultData\\inipop-Exc-1000-10P4C6-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+#                                           isFileout=TRUE,isDebug=FALSE)
+#   
+# };rm(tmp)
+
+for(tmp in 1:8){
+   create_initial_exact_PutCall_polulation(popnum=300,opchain$TYPE,thresh=1.8,putn=6,calln=2,ml=2,
+                                           fname=paste(".\\ResultData\\inipop-Exc-1000-08P6C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                                           isFileout=TRUE,isDebug=FALSE)
+   create_initial_exact_PutCall_polulation(popnum=300,opchain$TYPE,thresh=1.8,putn=4,calln=4,ml=2,
+                                           fname=paste(".\\ResultData\\inipop-Exc-1000-08P4C4-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                                           isFileout=TRUE,isDebug=FALSE)
+   create_initial_exact_PutCall_polulation(popnum=300,opchain$TYPE,thresh=1.8,putn=4,calln=2,ml=2,
+                                           fname=paste(".\\ResultData\\inipop-Exc-1000-06P4C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                                           isFileout=TRUE,isDebug=FALSE)
+   create_initial_exact_PutCall_polulation(popnum=300,opchain$TYPE,thresh=1.8,putn=6,calln=0,ml=2,
+                                           fname=paste(".\\ResultData\\inipop-Exc-1000-06P6C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                                           isFileout=TRUE,isDebug=FALSE)
+   create_initial_exact_PutCall_polulation(popnum=100,opchain$TYPE,thresh=1.8,putn=4,calln=0,ml=2,
+                                           fname=paste(".\\ResultData\\inipop-Exc-1000-04P4C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                                           isFileout=TRUE,isDebug=FALSE)
+   create_initial_exact_PutCall_polulation(popnum=80,opchain$TYPE,thresh=1.8,putn=2,calln=2,ml=2,
+                                           fname=paste(".\\ResultData\\inipop-Exc-1000-04P2C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                                           isFileout=TRUE,isDebug=FALSE)
+   create_initial_exact_PutCall_polulation(popnum=50,opchain$TYPE,thresh=1.8,putn=2,calln=0,ml=2,
+                                           fname=paste(".\\ResultData\\inipop-Exc-1000-02P2C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                                           isFileout=TRUE,isDebug=FALSE)
+   create_initial_exact_PutCall_polulation(popnum=10,opchain$TYPE,thresh=1.8,putn=0,calln=2,ml=2,
+                                           fname=paste(".\\ResultData\\inipop-Exc-1000-02P0C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                                           isFileout=TRUE,isDebug=FALSE)
 };rm(tmp)
 
 #creating candidate pool for combined search ----------------------
@@ -666,6 +695,7 @@ iniPos<-rep(0,length(iniPos))
 evaPos<-opchain$Position
 
 #test sample value -----------
+obj_Income_sgmd(x=evaPos,isDebug=TRUE,isDetail=TRUE)
 obj_Income(x=evaPos,isDebug=TRUE)
 #obj_Income_Cont(x=evaPos,isDebug=TRUE)
 #obj_Income_genoud_lex_int(x=evaPos,isDebug=TRUE)
@@ -692,8 +722,8 @@ obj_Income <- function(x,isDebug=FALSE,isMCGA=FALSE,isGenoud=FALSE){
   posEvalTbl<-createPositinEvalTable(position=position,udlStepNum=udlStepNum,udlStepPct=udlStepPct)
   
   thePositionGrk<-getPositionGreeks(position,multi=PosMultip)
-  #if(isDebug){print(posEvalTbl$pos)}
-  #if(isDebug){print(posEvalTbl)}
+  if(isDebug){print(posEvalTbl$pos)}
+  if(isDebug){print(posEvalTbl)}
   
   ##
   # penalty1: position total num
@@ -737,12 +767,12 @@ obj_Income <- function(x,isDebug=FALSE,isMCGA=FALSE,isGenoud=FALSE){
   
   ##
   # penalty3, cost1 profit must be positive. also must be a cost term.
-  #if(isDebug){cat(" :prc_hd",posEvalTbl$Price);cat(" :prc_ini:",getPositionGreeks(position,multi=PosMultip)$Price)}
-  #if(isDebug){cat(" :prft",posEvalTbl$Price-getPositionGreeks(position,multi=PosMultip)$Price)}
+  if(isDebug){cat(" :prc_hd",posEvalTbl$Price);cat(" :prc_ini:",getPositionGreeks(position,multi=PosMultip)$Price)}
+  if(isDebug){cat(" :prft",posEvalTbl$Price-getPositionGreeks(position,multi=PosMultip)$Price)}
   
   sd_multp<-holdDays;anlzd_sd<-0.2;sd_hd<-(anlzd_sd/sqrt(252/sd_multp))
   weight<-dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd / sum(dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd)
-  #if(isDebug){cat(" :wht",weight)}
+  if(isDebug){cat(" :wht",weight)}
   
   #exp_c<-as.numeric(exp_c>0)*(as.numeric((penalty3-2)>0)*0+as.numeric((penalty3-2)<0)*2)
   profit_hdays<-sum((posEvalTbl$Price-thePositionGrk$Price)*weight)
@@ -760,7 +790,7 @@ obj_Income <- function(x,isDebug=FALSE,isMCGA=FALSE,isGenoud=FALSE){
   #weight is normalized
   sd_multp<-holdDays;anlzd_sd<-0.2;sd_hd<-(anlzd_sd/sqrt(252/sd_multp))*3
   weight<-dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd / sum(dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd)
-  #if(isDebug){cat(" :wht2",weight)}
+  if(isDebug){cat(" :wht2",weight)}
   cost5<- -sum((posEvalTbl$DeltaEffect+posEvalTbl$GammaEffect+
                   posEvalTbl$VegaEffect+posEvalTbl$ThetaEffect)*weight)
   if(isDebug){cat(" c5",cost5)}
@@ -789,6 +819,114 @@ obj_Income <- function(x,isDebug=FALSE,isMCGA=FALSE,isGenoud=FALSE){
   }
   return(val)
 }
+
+obj_Income_sgmd <- function(x,isDebug=FALSE,isDetail=FALSE,isMCGA=FALSE,isGenoud=FALSE,
+                            udlStepNum=4,udlStepPct=0.02,maxposnum=8,
+                            tail_rate=0.4,lossLimitPrice=30000){
+  if(isMCGA){
+    x<-as.numeric(x<(-6.5))*(-6)+as.numeric(x>(6.5))*6+as.numeric(x>=(-6.5)&x<=6.5)*x
+  }
+  if(!isGenoud){
+    x<-round(x)
+  }
+  if(sum(as.numeric(round(x)!=0))==0){
+    x<-rnorm(n=length(iniPos),mean=0,sd=1)
+    x<-round(x)
+  }
+  #gradually change constraint
+  exp_c<-0
+  #position where pos$Position != 0
+  position<-hollowNonZeroPosition(pos=x)
+  #position evaluated after holdDays later
+  udlStepNum<-udlStepNum; udlStepPct<-udlStepPct
+  udlChgPct<-seq(-udlStepPct*udlStepNum,udlStepPct*udlStepNum,length=(2*udlStepNum)+1)
+  posEvalTbl<-createPositinEvalTable(position=position,udlStepNum=udlStepNum,udlStepPct=udlStepPct)
+  #At day 0 position price and Greeks.
+  thePositionGrk<-getPositionGreeks(position,multi=PosMultip)
+  if(isDetail){print(posEvalTbl$pos)}
+  if(isDetail){print(posEvalTbl)}  
+
+  ##
+  # penalty1: position total num
+  pos_change<-sum(as.numeric((round(x)-iniPos)!=0))
+  penalty1<-(1+as.numeric((pos_change-maxposnum)>0)*(pos_change-maxposnum))^5
+  if(penalty1>2){
+    if(isDebug){cat("pos num",pos_change,"\n")}
+    return( (500+(pos_change-maxposnum))*penalty1 )
+  }
+  if(isDebug){cat(x," ");cat(" :p1",penalty1)}
+  
+  ##
+  # penalty4. ThetaEffect. This should be soft constraint  
+  sd_multp<-holdDays;anlzd_sd<-getIV_td(histIV$IVIDX[1]);sd_hd<-(anlzd_sd/sqrt(252/sd_multp))
+  weight<-dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd / sum(dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd)
+  theta_ttl<-thePositionGrk$ThetaEffect+sum(posEvalTbl$ThetaEffect*weight)
+  
+  exp_c<-as.numeric((pos_change-maxposnum)>0)*0+as.numeric((pos_change-maxposnum)<=0)
+  penalty4<-(1+as.numeric(theta_ttl<0)*(abs(theta_ttl)))^exp_c
+  
+  if(isDetail){cat(" :thta_ttl",theta_ttl);cat(" :p4",penalty4)}
+  if(isDetail){cat(" :thta_ini",thePositionGrk$ThetaEffect);cat(" :thta_hld",sum(posEvalTbl$ThetaEffect*weight))}
+  
+  ##
+  # penalty2 tail-risk
+  tailPrice<-min(sum(getIntrisicValue(position$UDLY[1]*(1-tail_rate),position)),
+                 sum(getIntrisicValue(position$UDLY[1]*(1+tail_rate),position)))
+  lossLimitPrice <- (-1)*lossLimitPrice
+  penalty2<-(1+as.numeric((tailPrice-lossLimitPrice)<0)*(10))^exp_c
+  if(isDebug){cat(" :tlpr",tailPrice);cat(" :lslmt",lossLimitPrice);cat(" :p2",penalty2)}
+  
+  ##
+  # penalty3, cost3: profit must be positive. also must be a cost term.
+  if(isDetail){cat(" :prc_hd",posEvalTbl$Price);cat(" :prc_ini:",getPositionGreeks(position,multi=PosMultip)$Price)}
+  if(isDetail){cat(" :prft",posEvalTbl$Price-getPositionGreeks(position,multi=PosMultip)$Price)}
+  
+  sd_multp<-holdDays;anlzd_sd<-getIV_td(histIV$IVIDX[1]);sd_hd<-(anlzd_sd/sqrt(252/sd_multp))
+  weight<-dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd / sum(dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd)
+  if(isDebug){cat(" :wht",weight)} 
+  profit_hdays<-sum((posEvalTbl$Price-thePositionGrk$Price)*weight)
+  if(isDebug){cat(" :prft_wt",profit_hdays)}
+  #exp_c<-as.numeric(exp_c>0)*(as.numeric((penalty3-2)>0)*0+as.numeric((penalty3-2)<0)*2)
+  #penalty3<-(1+as.numeric(profit_hdays<0)*(abs(profit_hdays)))^exp_c
+  penalty3<-1
+  if(isDebug){cat(" :p3",penalty3)}
+  # cost 3
+  cost3<- sigmoid(-1*profit_hdays*0.001,a=1,b=0)
+  if(isDebug){cat(" :cost3",cost3)}
+  ##
+  # cost5 Each Effects.
+  #weight is normalized
+  sd_multp<-holdDays;anlzd_sd<-getIV_td(histIV$IVIDX[1]);sd_hd<-(anlzd_sd/sqrt(252/sd_multp))
+  weight<-dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd / sum(dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd)
+  if(isDebug){cat(" :wht2",weight)}
+  c5<- -sum((posEvalTbl$DeltaEffect+posEvalTbl$GammaEffect+
+                  posEvalTbl$VegaEffect+posEvalTbl$ThetaEffect)*weight)
+  cost5<-sigmoid(c5*0.001,a=1,b=0)
+  if(isDebug){cat(" c5:",c5," :cost5",cost5)}
+  
+  ##
+  # total cost is weighted sum of each cost.
+  cost<-(cost3+cost5)
+  if(isDebug){cat(" :cost",cost," ")}
+  
+  ##
+  # total cost and penalty
+  val<-cost*penalty1*penalty2*penalty3*penalty4
+  
+  if(isDebug){cat(" val:",val,"\n")}
+  
+  if(isDebug){
+    if(val<best_result){
+      cat(x,file=result_file,sep=",",append=TRUE);cat(",",file=result_file,append=TRUE)
+      cat(val,file=result_file,"\n",append=TRUE)
+      best_result<<-val
+      #assign(best_result,val,env=.GlobalEnv)
+    }
+  }
+  return(val)
+}
+
+
 obj_Income_orig <- function(x,isDebug=FALSE,isMCGA=FALSE,isGenoud=FALSE){
   if(isMCGA){
     x<-as.numeric(x<(-6.5))*(-6)+as.numeric(x>(6.5))*6+as.numeric(x>=(-6.5)&x<=6.5)*x
@@ -959,8 +1097,8 @@ obj_Income_Cont <- function(x,isDebug=FALSE,isGenoud=TRUE){
   ##
   # penalty3, cost1 profit must be positive. also must be a cost term.
   
-  #if(isDebug){cat(" :prc_hd",posEvalTbl$Price);cat(" :prc_ini:",getPositionGreeks(position,multi=PosMultip)$Price)}
-  #if(isDebug){cat(" :prft",posEvalTbl$Price-getPositionGreeks(position,multi=PosMultip)$Price)}
+  if(isDebug){cat(" :prc_hd",posEvalTbl$Price);cat(" :prc_ini:",getPositionGreeks(position,multi=PosMultip)$Price)}
+  if(isDebug){cat(" :prft",posEvalTbl$Price-getPositionGreeks(position,multi=PosMultip)$Price)}
   
   sd_multp<-holdDays;anlzd_sd<-0.2;sd_hd<-(anlzd_sd/sqrt(252/sd_multp))
   weight<-dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd / sum(dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd)
@@ -1098,18 +1236,13 @@ obj_Income_genoud_lex_int <- function(x,isDebug=FALSE){
 result_file<-paste(".\\ResultData\\expresult-",format(Sys.time(),"%Y-%b-%d-%H%M%S"),".txt",sep="")
 best_result<-520
 #isGenoud=FALSE ; isMCGA=FALSE
-edoprCon=function(x){
-  x<-round(x)
-  pos_change<-(sum(as.numeric((x-iniPos)!=0))-10)
-  c(pos_change)
-}
 outjdopr<-JDEoptim(lower=rep(-6,length(iniPos)),upper=rep(6,length(iniPos)), fn=obj_Income,
                    tol=1e-10,NP=10*length(iniPos),
                    maxiter=15*length(iniPos),#50*length(iniPos),
                    #add_to_init_pop=matrix(deoptR_inipop_vec,
                    #                       nrow=length(iniPos),ncol=length(iniPos)),
-                   constr=edoprCon, meq = 0,trace=TRUE,detail=TRUE)
-rm(deoptR_inipop_vec,edoprCon)
+                   trace=TRUE,detail=TRUE)
+rm(deoptR_inipop_vec)
 #JDEoptim(.., NP = 10*d, tol = 1e-15, maxiter = 200*d, trace = FALSE, triter = 1, details = FALSE, ...)
 #genoud ========
 genoud_inipop_vec<-deopt_inipop_vec
@@ -1238,8 +1371,3 @@ rm(solnpIneqfn,solnpIneqLB,solnpIneqUB,solnpLB,solnpUB)
 rm(amlzd_sd)
 #nleqslv doesn't work =======
 #nleqslv(x=evaPos,fn=obj_Income_mcga)
-#optim XXX not sufficient  ========
-optim(par=evaPos, f=obj_Income,
-      #method ="SANN",
-      lower = rep(-6,length(iniPos)), upper =rep(6,length(iniPos)))
-     # control = list(), hessian = FALSE, ...)

@@ -84,6 +84,6 @@ cat(unlist(tmp_fil[15,]),sep=",")
 mean(tmp_fil[,length(iniPos)+1])
 mean(total_res[,length(iniPos)+1])
 
-rm(tmp,tmp_fil)
+rm(tmp,tmp_fil,res1,res2)
 rm(total_res)
 
