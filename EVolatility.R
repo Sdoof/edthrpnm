@@ -199,7 +199,7 @@ rm(norns.lm,start_day_,num_day_)
 rm(P2IV1d,P2IV3d,P2IV5d,P2IV7d)
 
 ###
-# Volatility Skew analyzation --------
+# Volatility Analyzation --------
 
 # Creating Option Chain(opch) and ATM IV(atmiv) data frames 
 
@@ -358,13 +358,15 @@ rm(i,atmiv.vcone.eachDF,atmiv.vcone.bind)
 #   dplyr::filter(TimeToExpDate>0.3) -> vplot
 # (ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV),size=TimeToExpDate/2,colour=TYPE))+geom_point(alpha=0.2))
 
-# Nmlzd Skew Analysis and Regression ----------------------------
+##
+# Volatility Skew Regression  -----------
+
+# Nmlzd Skew
 #Complete Opchain. Using OOM options. By Call-Put parity, ITM IV is supposed to be the same as OOM IV.
 opch %>% dplyr::filter(OrigIV/ATMIV<5.0) %>% dplyr::filter(OrigIV/ATMIV>0.1) %>%
   dplyr::filter(HowfarOOM>=0) %>% dplyr::filter(TimeToExpDate>TimeToExp_Limit_Closeness_G) -> vplot
 (ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV),size=TimeToExpDate/2,colour=Date))+geom_point(alpha=0.2))
 
-## Regression
 
 #1. Poly
 # models <- (get.skew.regression.Models(vplot))
@@ -389,7 +391,7 @@ rm(SkewModel)
 rm(models,vplot,vplot_exp,predict.c)
 
 ##
-# Vcone Analysis ------------------------
+# Vcone Regression ------------------------
 
 # All Type Vcone *Just for Info -----
 #Plotting all type. IV is normalized
@@ -421,7 +423,7 @@ predict.c <- vcone_regression(vcone=vcone,regtype=3,ret=2)
    geom_line(data=data.frame(Month=predict.c$x,IV2IDX.nm=predict.c$y),aes(Month,IV2IDX.nm)))
 rm(gg_,vcone,predict.c)
 
-#  Put Vcone IV is normalized -----------
+#  Put Vcone IV is normalized 
 #Creating vcone.
 vcone<-make.vcone.df(atmiv=atmiv,type=1)
 (ggplot(vcone,aes(x=Month,y=IV2IDX.nm,colour=TYPE))+geom_point())
@@ -445,7 +447,8 @@ model.ss<-smooth.spline(vcone$Month,vcone$IV2IDX.nm,df=3)
 save.VCone(model=model.ss,optype=OpType_Put_G)
 
 rm(vcone,predict.c,model.ss)
-#  Call VCone IV is normalized --------
+
+#  Call VCone IV is normalized 
 #Creating vcone.
 vcone<-make.vcone.df(atmiv=atmiv,type=-1)
 (ggplot(vcone,aes(x=Month,y=IV2IDX.nm,colour=TYPE))+geom_point())
@@ -476,7 +479,7 @@ rm(PutVCone,CallVCone)
 rm(vcone,predict.c,model.ss)
 
 ##
-#  ATM IV Volatility Change to IVIDX as to Time -------
+#  Regression of ATM IV Volatility Change to IVIDX as to Time -------
 
 #  All Type *Just for Info ----
 vchg<-make.vchg.df(vcone=atmiv.vcone.anal,type=0)
@@ -484,7 +487,7 @@ vchg<-make.vchg.df(vcone=atmiv.vcone.anal,type=0)
 #(gg_<-ggplot(vchg,aes(x=TimeToExpDate,y=VC.f.AbSdf,colour=TYPE))+geom_point())
 rm(gg_,vchg)
 
-#  Put IV Change to IVIDX Up and Down ------------------------------
+#  Put IV Change to IVIDX Up and Down
 #Up and Down change
 vchg<-make.vchg.df(vcone=atmiv.vcone.anal,type=1)
 (ggplot(vchg,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point())
@@ -541,7 +544,8 @@ rm(vchg_t)
 save.IVChg(model.ss,OpType_Put_G,-10)
 
 rm(vchg,vchg_mns,vchg_plus,model.ss,predict.c)
-#  Call IV Change to IVIDX Up and Down --------------
+
+#  Call IV Change to IVIDX Up and Down 
 #Up and Down Changes
 vchg<-make.vchg.df(vcone=atmiv.vcone.anal,type=-1)
 (ggplot(vchg,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point())
@@ -602,7 +606,8 @@ rm(PutIVChgUp,PutIVChgDown,CallIVChgUp,CallIVChgDown)
 
 rm(vchg,vchg_mns,vchg_plus,model.ss,predict.c)
 
-# Post Process ----------------------------------
+##
+# Post Process ------
 
 #Writing to a file
 wf_<-paste(DataFiles_Path_G,Underying_Symbol_G,"_OPChain_Skew.csv",sep="")
