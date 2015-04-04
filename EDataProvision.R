@@ -2,12 +2,6 @@
 # Data preproceccing, preparing, bridge between Excel and R
 ##
 
-## Utility functions ---------------
-#get variable name utility.
-getvarname <- function(v) {
-  deparse(substitute(v))
-}
-
 ##_OPChain_Pre.csv to _OPChain_Pos.csv calculating Price and Greeks. -----------
 #Read Excel CSV file and reformat as "OptionVariables format", saves as a CSV file.
 #OptionVariables format is 
@@ -104,3 +98,11 @@ rm(tmp)
 wf_<-paste(DataFiles_Path_G,Underying_Synbol_G,"_OPChain_Pos.csv",sep="")
 write.table(opch_pr_,wf_,quote=T,row.names=F,sep=",")
 rm(wf_)
+
+
+## Utility functions ---------------
+#get variable name utility.
+getvarname <- function(v) {
+  deparse(substitute(v))
+}
+

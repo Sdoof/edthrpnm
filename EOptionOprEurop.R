@@ -1,18 +1,6 @@
 ###Start
 library(RQuantLib)
 
-## Tx later data stored.
-#Here Simple stimulation
-#Only taking Horizental Volatility Skew into accounted.
-#No taking into account of GENERAL Volatility TREND.
-#Change x$Date and recalucate related values.
-#More elabolated stimulation should be done somewhere.
-#xT7
-#xT14
-#xT21
-#xT28
-#xT35
-
 ###Global 変数及び定数.
 # Possibly read from File
 riskFreeRate_G=0.01
@@ -63,118 +51,6 @@ DataFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\MarketData\\data\\"
 #     if(intr_t<0) intr_t<-0
 #   TIME Value
 #      xT0$Price-intr_t
-
-#  Greekの計算と設定
-
-#0. IV (Original IV)
-
-set.IVOrig <- function(xT){
-  for(i in 1:length(xT$TYPE)){
-    ##  Business days
-    busdays_betwn<-businessDaysBetween("UnitedStates/NYSE",
-                                       as.Date(xT$Date[i],format="%Y/%m/%d"),
-                                       as.Date(xT$ExpDate[i],format="%Y/%m/%d"))
-    if(xT$TYPE[i] == 1){
-      xT$OrigIV[i]=EuropeanOptionImpliedVolatility(type="put", value=xT$Price[i],underlying=xT$UDLY[i],
-                                                   strike=xT$Strike[i],dividendYield=divYld_G,riskFreeRate=riskFreeRate_G,
-                                                   maturity=busdays_betwn/365,volatility=0.2)
-    }else if(xT$TYPE[i] == -1){
-      xT$OrigIV[i]=EuropeanOptionImpliedVolatility(type="call", value=xT$Price[i],underlying=xT$UDLY[i],
-                                                   strike=xT$Strike[i],dividendYield=divYld_G,riskFreeRate=riskFreeRate_G,
-                                                   maturity=busdays_betwn/365,volatility=0.2)
-    }
-  }
-  xT$OrigIV
-}
-
-
-# Set Value Greeks
-set.ValueGreeks <- function(xT){
-  value<-rep(0,length(xT$TYPE))
-  delta<-rep(0,length(xT$TYPE))
-  gamma<-rep(0,length(xT$TYPE))
-  vega<-rep(0,length(xT$TYPE))
-  theta<-rep(0,length(xT$TYPE))
-  rho<-rep(0,length(xT$TYPE))
-  for(i in 1:length(xT$TYPE)){
-    ##  Business days
-    busdays_betwn<-businessDaysBetween("UnitedStates/NYSE",
-                                       as.Date(xT$Date[i],format="%Y/%m/%d"),
-                                       as.Date(xT$ExpDate[i],format="%Y/%m/%d"))
-    if(xT$TYPE[i] == 1){
-      C0_tmp<-EuropeanOption(type="put", underlying=xT$UDLY[i], strike=xT$Strike[i],
-                             dividendYield=divYld_G, riskFreeRate=riskFreeRate_G, maturity=busdays_betwn/365, volatility=xT$OrigIV[i])
-                             
-    }else if(xT$TYPE[i] == -1){
-      C0_tmp<-EuropeanOption(type="call", underlying=xT$UDLY[i], strike=xT$Strike[i],
-                             dividendYield=divYld_G, riskFreeRate=riskFreeRate_G, maturity=busdays_betwn/365, volatility=xT$OrigIV[i])
-    }
-    value[i]<-C0_tmp$value
-    delta[i]<- C0_tmp$delta
-    gamma[i]<- C0_tmp$gamma
-    vega[i]<- C0_tmp$vega
-    theta[i]<- C0_tmp$theta
-    rho[i]<- C0_tmp$rho
-  }
-  tmp_ret<-list(value)
-  tmp_ret<-c(tmp_ret,list(delta))
-  tmp_ret<-c(tmp_ret,list(gamma))
-  tmp_ret<-c(tmp_ret,list(vega))
-  tmp_ret<-c(tmp_ret,list(theta))
-  tmp_ret<-c(tmp_ret,list(rho))
-  tmp_ret
-}
-
-
-##OOM to OOM
-#(vol_dif_rate <-vol_dif_rate+((abs(oom_mgn_after)/xT0_t$UDLY)*K1-(abs(oom_mgn_before)/xT0$UDLY)*K1)*as.numeric(oom_mgn_before>=0)*as.numeric(oom_mgn_after>=0))
-##OOM to ITM
-#vol_dif_rate <- vol_dif_rate+((abs(oom_mgn_after)/xT0_t$UDLY)*K2-(abs(oom_mgn_before)/xT0$UDLY)*K1)*as.numeric(oom_mgn_after<0)
-##ITM to OTM
-#vol_dif_rate <-vol_dif_rate+((abs(oom_mgn_after)/xT0_t$UDLY)*K1-(abs(oom_mgn_before)/xT0$UDLY)*K2)*as.numeric(oom_mgn_before<0)*as.numeric(oom_mgn_after>=0)
-##ITM ot ITM
-#(vol_dif_rate <-vol_dif_rate+((abs(oom_mgn_after)/xT0_t$UDLY)*K2-(abs(oom_mgn_before)/xT0$UDLY)*K2)*as.numeric(oom_mgn_before<0)*as.numeric(oom_mgn_after<0))
-
-##Volatility Modelingに関しては後できちんとする。
-##ここでは簡易版
-#Underlyingの価格の変化によるVolatilityの変化
-vertical.volatility.skew <- function(xTb,xTa){
-  ## OOMにどれだけ離れているか。UDLYとの比率。正の数はOOM。負の数はITM
-  oom_mgn_before <- xTb$TYPE*(xTb$UDLY-xTb$Strike)
-  oom_mgn_after <- xTa$TYPE*(xTa$UDLY-xTa$Strike)
-  
-  #ここでは、UDLY値との比に比例して簡単な直線(linier)で
-  #VOlatilityの変化率が決定するとする。
-  #K1 OOMの係数。K2 ITMの係数
-  K1<-0.9
-  K2<-0.9
-  
-  (vol_dif_rate<-rep(0,length(xTb$TYPE)))  
-  ##OOM to OOM
-  (vol_dif_rate <-vol_dif_rate+((abs(oom_mgn_after)/xTa$UDLY)*K1-(abs(oom_mgn_before)/xTb$UDLY)*K1)*as.numeric(oom_mgn_before>=0)*as.numeric(oom_mgn_after>=0))
-  ##OOM to ITM
-  vol_dif_rate <- vol_dif_rate+((abs(oom_mgn_after)/xTa$UDLY)*K2-(abs(oom_mgn_before)/xTb$UDLY)*K1)*as.numeric(oom_mgn_after<0)
-  ##ITM to OTM
-  vol_dif_rate <-vol_dif_rate+((abs(oom_mgn_after)/xTa$UDLY)*K1-(abs(oom_mgn_before)/xTb$UDLY)*K2)*as.numeric(oom_mgn_before<0)*as.numeric(oom_mgn_after>=0)
-  ##ITM ot ITM
-  (vol_dif_rate <-vol_dif_rate+((abs(oom_mgn_after)/xTa$UDLY)*K2-(abs(oom_mgn_before)/xTb$UDLY)*K2)*as.numeric(oom_mgn_before<0)*as.numeric(oom_mgn_after<0))
-  vol_dif_rate
-}
-
-#Horizental Volatility Skiew
-#To be defined
-horizental.volatility.skew <- function(vol_b,maturity_b,maturity_a){
-  diff_<-maturity_a-maturity_b
-  vol_dif_rate<-rep(0,length(vol_b))
-  #vol_dif_rate f(vol_b,diff_)
-  vol_dif_rate
-}
-
-#To be defined
-Underlying.PriceChange.volatility.skew <- function(xTb,xTa){
-  vol_dif_rate<-rep(0,length(xTb$TYPE))
-  vol_dif_rate
-}
 
 
 ##
@@ -720,40 +596,66 @@ for(i in 1:NumOfOnesideStrkPrice_G){
   wfilename_<-paste("OptionVariablesT0StrPlus",as.character(i),".csv",sep="")
   write.table(xT0StrPlus[[i]],wfilename_,row.names = FALSE,col.names=T,sep=",",append=F)
 }
-write.table(xT7,"OptionVariablesT7.csv",row.names = FALSE,col.names=T,sep=",",append=F)
-for(i in 1:NumOfOnesideStrkPrice_G){
-  wfilename_<-paste("OptionVariablesT7StrMns",as.character(i),".csv",sep="")
-  write.table(xT7StrMns[[i]],wfilename_,row.names = FALSE,col.names=T,sep=",",append=F)
-  wfilename_<-paste("OptionVariablesT7StrPlus",as.character(i),".csv",sep="")
-  write.table(xT7StrPlus[[i]],wfilename_,row.names = FALSE,col.names=T,sep=",",append=F)
-}
-write.table(xT14,"OptionVariablesT14.csv",row.names = FALSE,col.names=T,sep=",",append=F)
-for(i in 1:NumOfOnesideStrkPrice_G){
-  wfilename_<-paste("OptionVariablesT14StrMns",as.character(i),".csv",sep="")
-  write.table(xT14StrMns[[i]],wfilename_,row.names = FALSE,col.names=T,sep=",",append=F)
-  wfilename_<-paste("OptionVariablesT14StrPlus",as.character(i),".csv",sep="")
-  write.table(xT14StrPlus[[i]],wfilename_,row.names = FALSE,col.names=T,sep=",",append=F)
-}
-write.table(xT21,"OptionVariablesT21.csv",row.names = FALSE,col.names=T,sep=",",append=F)
-for(i in 1:NumOfOnesideStrkPrice_G){
-  wfilename_<-paste("OptionVariablesT21StrMns",as.character(i),".csv",sep="")
-  write.table(xT21StrMns[[i]],wfilename_,row.names = FALSE,col.names=T,sep=",",append=F)
-  wfilename_<-paste("OptionVariablesT21StrPlus",as.character(i),".csv",sep="")
-  write.table(xT21StrPlus[[i]],wfilename_,row.names = FALSE,col.names=T,sep=",",append=F)
-}
-write.table(xT28,"OptionVariablesT28.csv",row.names = FALSE,col.names=T,sep=",",append=F)
-for(i in 1:NumOfOnesideStrkPrice_G){
-  wfilename_<-paste("OptionVariablesT28StrMns",as.character(i),".csv",sep="")
-  write.table(xT28StrMns[[i]],wfilename_,row.names = FALSE,col.names=T,sep=",",append=F)
-  wfilename_<-paste("OptionVariablesT28StrPlus",as.character(i),".csv",sep="")
-  write.table(xT28StrPlus[[i]],wfilename_,row.names = FALSE,col.names=T,sep=",",append=F)
-}
-write.table(xT35,"OptionVariablesT35.csv",row.names = FALSE,col.names=T,sep=",",append=F)
-for(i in 1:NumOfOnesideStrkPrice_G){
-  wfilename_<-paste("OptionVariablesT35StrMns",as.character(i),".csv",sep="")
-  write.table(xT35StrMns[[i]],wfilename_,row.names = FALSE,col.names=T,sep=",",append=F)
-  wfilename_<-paste("OptionVariablesT35StrPlus",as.character(i),".csv",sep="")
-  write.table(xT35StrPlus[[i]],wfilename_,row.names = FALSE,col.names=T,sep=",",append=F)
+
+##
+# Functions to be loaded -------------------------
+
+#  Greekの計算と設定
+
+#IV (Original IV)
+set.IVOrig <- function(xT){
+  for(i in 1:length(xT$TYPE)){
+    ##  Business days
+    busdays_betwn<-businessDaysBetween("UnitedStates/NYSE",
+                                       as.Date(xT$Date[i],format="%Y/%m/%d"),
+                                       as.Date(xT$ExpDate[i],format="%Y/%m/%d"))
+    if(xT$TYPE[i] == 1){
+      xT$OrigIV[i]=EuropeanOptionImpliedVolatility(type="put", value=xT$Price[i],underlying=xT$UDLY[i],
+                                                   strike=xT$Strike[i],dividendYield=divYld_G,riskFreeRate=riskFreeRate_G,
+                                                   maturity=busdays_betwn/365,volatility=0.2)
+    }else if(xT$TYPE[i] == -1){
+      xT$OrigIV[i]=EuropeanOptionImpliedVolatility(type="call", value=xT$Price[i],underlying=xT$UDLY[i],
+                                                   strike=xT$Strike[i],dividendYield=divYld_G,riskFreeRate=riskFreeRate_G,
+                                                   maturity=busdays_betwn/365,volatility=0.2)
+    }
+  }
+  xT$OrigIV
 }
 
 
+#Set Value Greeks
+set.ValueGreeks <- function(xT){
+  value<-rep(0,length(xT$TYPE))
+  delta<-rep(0,length(xT$TYPE))
+  gamma<-rep(0,length(xT$TYPE))
+  vega<-rep(0,length(xT$TYPE))
+  theta<-rep(0,length(xT$TYPE))
+  rho<-rep(0,length(xT$TYPE))
+  for(i in 1:length(xT$TYPE)){
+    ##  Business days
+    busdays_betwn<-businessDaysBetween("UnitedStates/NYSE",
+                                       as.Date(xT$Date[i],format="%Y/%m/%d"),
+                                       as.Date(xT$ExpDate[i],format="%Y/%m/%d"))
+    if(xT$TYPE[i] == 1){
+      C0_tmp<-EuropeanOption(type="put", underlying=xT$UDLY[i], strike=xT$Strike[i],
+                             dividendYield=divYld_G, riskFreeRate=riskFreeRate_G, maturity=busdays_betwn/365, volatility=xT$OrigIV[i])
+      
+    }else if(xT$TYPE[i] == -1){
+      C0_tmp<-EuropeanOption(type="call", underlying=xT$UDLY[i], strike=xT$Strike[i],
+                             dividendYield=divYld_G, riskFreeRate=riskFreeRate_G, maturity=busdays_betwn/365, volatility=xT$OrigIV[i])
+    }
+    value[i]<-C0_tmp$value
+    delta[i]<- C0_tmp$delta
+    gamma[i]<- C0_tmp$gamma
+    vega[i]<- C0_tmp$vega
+    theta[i]<- C0_tmp$theta
+    rho[i]<- C0_tmp$rho
+  }
+  tmp_ret<-list(value)
+  tmp_ret<-c(tmp_ret,list(delta))
+  tmp_ret<-c(tmp_ret,list(gamma))
+  tmp_ret<-c(tmp_ret,list(vega))
+  tmp_ret<-c(tmp_ret,list(theta))
+  tmp_ret<-c(tmp_ret,list(rho))
+  tmp_ret
+}

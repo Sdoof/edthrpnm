@@ -23,39 +23,6 @@ library(RQuantLib)
 # Import various volatility skew functions included in other files.
 # Import Geometric Brown Motion Stimulation function
 
-#Functions Defined ---------
-
-#get business days between the days expressed as character
-get.busdays.between <- function(start,end){
-  bus_day<-businessDaysBetween("UnitedStates/NYSE",
-                               as.Date(start,format="%Y/%m/%d"),
-                               as.Date(end,format="%Y/%m/%d"))
-  bus_day
-}
-
-#set.ValueGreeks(xt) should be loaded before.
-# Option Value and Greek Change
-set.EuropeanOptionValueGreeks <- function(xt){
-  tmp_<-(set.ValueGreeks(xt))
-  #Price
-  ret_<-list(tmp_[[1]])
-  #Delta
-  ret_<-c(ret_,list(tmp_[[2]]))
-  #Gamma
-  ret_<-c(ret_,list(tmp_[[3]]))
-  #Vega
-  ret_<-c(ret_,list(tmp_[[4]]/100))
-  #Theta
-  ret_<-c(ret_,list(tmp_[[5]]/365))
-  #Rho
-  ret_<-c(ret_,list(tmp_[[6]]/365))
-  names(ret_)<-c("Price","Delta","Gamma","Vega","Theta","Rho")  
-  ret_
-}
-
-##set.AmericanOptionValueGreeks(xt)
-# to be defined
-
 ###
 # Start Stimulation
 ##
@@ -246,3 +213,37 @@ points(mean((subset(res_dtf_,UDLY>mean(XT[[1]]$UDLY)))$Profit)
 
 #Back Test Functions.
 #To Be Designed Later.
+
+
+#Functions to be loaded ---------
+
+#get business days between the days expressed as character
+get.busdays.between <- function(start,end){
+  bus_day<-businessDaysBetween("UnitedStates/NYSE",
+                               as.Date(start,format="%Y/%m/%d"),
+                               as.Date(end,format="%Y/%m/%d"))
+  bus_day
+}
+
+#set.ValueGreeks(xt) should be loaded before.
+# Option Value and Greek Change
+set.EuropeanOptionValueGreeks <- function(xt){
+  tmp_<-(set.ValueGreeks(xt))
+  #Price
+  ret_<-list(tmp_[[1]])
+  #Delta
+  ret_<-c(ret_,list(tmp_[[2]]))
+  #Gamma
+  ret_<-c(ret_,list(tmp_[[3]]))
+  #Vega
+  ret_<-c(ret_,list(tmp_[[4]]/100))
+  #Theta
+  ret_<-c(ret_,list(tmp_[[5]]/365))
+  #Rho
+  ret_<-c(ret_,list(tmp_[[6]]/365))
+  names(ret_)<-c("Price","Delta","Gamma","Vega","Theta","Rho")  
+  ret_
+}
+
+##set.AmericanOptionValueGreeks(xt)
+# to be defined

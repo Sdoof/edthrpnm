@@ -3,7 +3,7 @@ library(RQuantLib)
 library(ggplot2)
 
 # set days interval between which the position is analyzed step by step.
-stepdays<-2
+stepdays<-3
 udlStepNum<-80
 udlStepPct=0.005
 
