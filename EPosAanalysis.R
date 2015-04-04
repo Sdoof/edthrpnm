@@ -212,35 +212,6 @@ createAgrregatedGreekTbl<-function(posStepDays,thePosition,udlStepNum=udlStepNum
   agr_tbl
 }
 
-getThePositionDrawtable <- function (posStepDays, thePosition, udlStepNum=udlStepNum, udlStepPct=udlStepPct, PosMultip=PosMultip) {
-  udly_<-posStepDays$scene[[1]]$UDLY
-  day_<-min(get.busdays.between(thePosition$Date,thePosition$ExpDate))
-  day_<-rep(day_,times=length(udly_))
-  
-  tmp<-createPositinEvalTable(position=thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,days=c(0))  
-  
-  for(i in 1:length(day_)){ 
-    if(i==1){
-      profit_<- c(
-        sum (
-          as.numeric(((tmp$pos[[i]]$UDLY-tmp$pos[[i]]$Strike)*(-tmp$pos[[i]]$TYPE)>0))*
-            (tmp$pos[[i]]$UDLY-tmp$pos[[i]]$Strike)*(-tmp$pos[[i]]$TYPE)*PosMultip*tmp$pos[[i]]$Position
-        )
-      )
-    }else{
-      profit_<-c(profit_,
-                 sum(
-                   as.numeric(((tmp$pos[[i]]$UDLY-tmp$pos[[i]]$Strike)*(-tmp$pos[[i]]$TYPE)>0))*
-                     (tmp$pos[[i]]$UDLY-tmp$pos[[i]]$Strike)*(-tmp$pos[[i]]$TYPE)*PosMultip*tmp$pos[[i]]$Position
-                 )
-      )
-    }
-  }
-  profit_<-profit_+iniCredit
-  intr_val<-data.frame(day=day_,UDLY=udly_,profit=profit_)
-  intr_val
-}
-
 createPriceTbl<-function(days,pos_smry,credit){
   pos_smry$UDLY
   pos_smry$Price+credit
