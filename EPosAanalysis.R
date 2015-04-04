@@ -11,11 +11,19 @@ udlStepPct=0.005
 opchain$Date<-as.character(opchain$Date);
 opchain$ExpDate<-as.character(opchain$ExpDate)
 max_days<-min(get.busdays.between(opchain$Date,opchain$ExpDate))
-totalstep=max_days%/%stepdays ; rm(max_days)
-
+totalstep=max_days%/%stepdays 
 evaldays<-rep(stepdays,times=totalstep)
 evaldays<- cumsum(evaldays)
-
+#if the lastday is ExpDate, we set the lastday as (lastday-1), 
+# because the ExpDate option price is unstable.
+if(evaldays[length(evaldays)]==max_days){
+  if(stepdays==1){
+    evaldays<-evaldays[-length(evaldays)]
+  }else{
+    evaldays[length(evaldays)]<-evaldays[length(evaldays)]-1
+  }
+}
+rm(max_days)
 #read analyzed positon. here we give by copy and paste
 pos_anlys<-evaPos
  
@@ -30,6 +38,7 @@ iniCredit <- -1*iniPrice
 
 #total data frame
 posStepDays<-data.frame(days=evaldays)
+
 #Set data frames as a row value of another data frame.
 posStepDays %>% group_by(days) %>%
   do(scene=createPositinEvalTable(position=thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,days=stepdays)) -> posStepDays
@@ -37,15 +46,13 @@ posStepDays_vc<-posStepDays
 #We must adjust each position values
 posStepDays %>% group_by(days) %>% rowwise() %>% do(days=.$days,scene2=adjustPosChg(.$scene,.$days-stepdays,base_vol_chg=0)) -> tmp
 unlist(tmp$days) -> posStepDays$days ; tmp$scene2 -> posStepDays$scene ;rm(tmp)
-####volatility change scenario
-# set the percent by which volatility index (IVIDX) changes. Up(%)>0 Down(%)<0
-vol_chg<-0.2
-posStepDays_vc %>% group_by(days) %>% rowwise() %>% do(days=.$days,scene2=adjustPosChg(.$scene,.$days-stepdays,base_vol_chg=vol_chg)) -> tmp
-unlist(tmp$days) -> posStepDays_vc$days ; tmp$scene2 -> posStepDays_vc$scene ;rm(tmp)
 #We've got the complete posStepDays.
-#show for a test.
-#posStepDays$scene[[2]];
-#posStepDays$scene[[2]]$pos
+
+####volatility change scenario if needed
+# set the percent by which volatility index (IVIDX) changes. Up(%)>0 Down(%)<0
+#vol_chg<-0.2
+#posStepDays_vc %>% group_by(days) %>% rowwise() %>% do(days=.$days,scene2=adjustPosChg(.$scene,.$days-stepdays,base_vol_chg=vol_chg)) -> tmp
+#unlist(tmp$days) -> posStepDays_vc$days ; tmp$scene2 -> posStepDays_vc$scene ;rm(tmp)
 
 #Now drawing
 drawtbl<-createdAgrregatedPriceTbl(posStepDays,thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,multi=PosMultip,iniCredit=iniCredit)
