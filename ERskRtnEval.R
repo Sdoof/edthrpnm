@@ -52,7 +52,7 @@ iniPos<-rep(0,length(iniPos))
 evaPos<-opchain$Position
 
 #test sample value -----------
-best_result<-0.9
+best_result<-1.0
 obj_Income_sgmd(x=evaPos,isDebug=TRUE,isDetail=TRUE,isFileout=FALSE)
 obj_Income(x=evaPos,isDebug=TRUE)
 #obj_Income_Cont(x=evaPos,isDebug=TRUE)
@@ -256,11 +256,11 @@ outjdopr<-JDEoptim(lower=rep(-6,length(iniPos)),upper=rep(6,length(iniPos)), fn=
 rm(deoptR_inipop_vec)
 
 #genoud ========
-#genoud_inipop_vec <- create by calling from file
+#genoud_inipop_vec <- create somewhere
 result_file<-paste(".\\ResultData\\expresult-",format(Sys.time(),"%Y-%b-%d-%H%M%S"),".txt",sep="")
 domain<-matrix(c(rep(-6,length(evaPos)),rep(6,length(iniPos))), nrow=length(iniPos), ncol=2)
 outgen <- genoud(#fn=obj_Income_genoud_lex_int,lexical=TRUE,
-                 fn=obj_Income,
+                 fn=obj_Income_sgmd,
                  nvars=length(iniPos),pop.size=1000,max.generations=100,
                  data.type.int=TRUE,#FALSE
                  wait.generations=100,gradient.check=FALSE,MemoryMatrix=TRUE,
@@ -387,7 +387,7 @@ rm(amlzd_sd)
 ##
 # functions optimized  -------------
 
-obj_Income_sgmd <- function(x,isDebug=FALSE,isDetail=FALSE,isFileout=TRUE,isMCGA=FALSE,isGenoud=FALSE,
+obj_Income_sgmd <- function(x,isDebug=TRUE,isDetail=FALSE,isFileout=TRUE,isMCGA=FALSE,isGenoud=TRUE,
                             udlStepNum=4,udlStepPct=0.02,maxposnum=8,
                             tail_rate=0.4,lossLimitPrice=30000){
   if(isMCGA){
@@ -487,7 +487,7 @@ obj_Income_sgmd <- function(x,isDebug=FALSE,isDetail=FALSE,isFileout=TRUE,isMCGA
     if(val<best_result){
       cat(x,file=result_file,sep=",",append=TRUE);cat(",",file=result_file,append=TRUE)
       cat(val,file=result_file,"\n",append=TRUE)
-      best_result<<-val
+      best_result<<-val+0.1
       #assign(best_result,val,env=.GlobalEnv)
     }
   }
