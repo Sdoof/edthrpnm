@@ -70,8 +70,24 @@ full_join(total_res,res1) %>% arrange(.[,length(iniPos)+1])  %>% distinct() -> t
 
 ##
 # 条件指定
-total_res %>%  filter(posnum<=8) %>% filter(.[,length(iniPos)+1]<1.2) ->tmp_fil #; total_res <- tmp_fil
-total_res %>% filter(.[,length(iniPos)+1]<495) -> total_res
+total_res %>%  filter(posnum<=8) %>% filter(.[,length(iniPos)+1]<1.2) ->tmp_fil; total_res <- tmp_fil
+#total_res %>% filter(.[,length(iniPos)+1]<495) -> total_res
+
+total_res$profit<-NULL
+total_res[,1:length(iniPos)] %>% rowwise() %>% do(profit=getProfit(unlist(.),isDebug=FALSE,udlStepNum=4,udlStepPct=0.02)) -> tmp
+as.vector(unlist(tmp))
+total_res$profit<-as.vector(unlist(tmp)) ; rm(tmp)
+
+# res_df<-total_res
+# price_vec<-rep(0,times=0)
+# for(i in 1:nrow(res_df)){
+#   cat(unlist(res_df[i,1:length(iniPos)]),sep=",")
+#   x<-unlist(res_df[i,1:length(iniPos)])
+#   price<-getProfit(x,isDebug=FALSE,udlStepNum=4,udlStepPct=0.02)
+#   cat(",",price,",",i,"\n")
+#   price_vec<-as.numeric((i==1))*price+as.numeric((i!=1))*c(price_vec,price)
+# }
+# rm(i,x,res_df,x,price,price_vec)
 
 ##
 # , 形式での表示
@@ -88,7 +104,7 @@ mean(total_res[,length(iniPos)+1])
 #genoud
 genoud_inipop_vec<-createInitialPopulationVecForOptimizer(res_df=total_res, cand_num=10*length(iniPos))
 genoud_inipop_vec<-as.vector(genoud_inipop_vec)
-#dfoptiom, 39th element selected.
+#dfoptiom, 38th element selected.
 unlist(total_res[38,1:length(iniPos)]) -> dfoptim_inipop_vec
 dfoptim_inipop_vec<-as.vector(dfoptim_inipop_vec)
 

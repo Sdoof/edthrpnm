@@ -5,12 +5,7 @@ library(RQuantLib)
 # Possibly read from File
 riskFreeRate_G=0.01
 divYld_G=0.0
-#UDLY price range
-NumOfOnesideStrkPrice_G=22
-ChangStrkPrUnit_G=10
-#Time range
-NumOfTimeChange_G=5
-ChangTimeUnit_G=7
+
 #Definition
 OpType_Put_G=1
 OpType_Call_G=-1
