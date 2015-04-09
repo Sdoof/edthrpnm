@@ -1,0 +1,4 @@
+Get-ChildItem .  | Where-Object {$_.Name  -match "^*inipop*"} | cat >> 1Cb-2015-4-09.csv
+Get-Content 1Cb-2015-4-09.csv | Out-File -Filepath 1Cb-2015-4-09.csv -Encoding default
+copy .\combine-Result-1Cb+1Cb-2015-4-09.csv 2Cb-2015-4-09.csv
+copy .\combine-Result-1Cb+1Cb+1Cb-2015-4-09.csv 3Cb-2015-4-09.csv
