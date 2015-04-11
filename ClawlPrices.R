@@ -16,6 +16,13 @@ tbl_[[2]]["ExpDate"]<-expdate
 write.table(tbl_[[2]],wfilename_,row.names=F,append=T,sep=",")
 tbl_[[3]]["ExpDate"]<-expdate
 write.table(tbl_[[3]],wfilename_,row.names=F,append=T,sep=",")
+#2015/05/15
+tbl_<-readHTMLTable("http://finance.yahoo.com/q/op?s=^RUT&date=1431648000")
+expdate<-"2015/05/15"
+tbl_[[2]]["ExpDate"]<-expdate
+write.table(tbl_[[2]],wfilename_,row.names=F,append=T,sep=",")
+tbl_[[3]]["ExpDate"]<-expdate
+write.table(tbl_[[3]],wfilename_,row.names=F,append=T,sep=",")
 #2015/06/19
 tbl_<-readHTMLTable("http://finance.yahoo.com/q/op?s=^RUT&date=1434672000")
 expdate<-"2015/06/19"
@@ -51,6 +58,13 @@ write.table(quart,wfilename_,quote=T,row.names=F,append=T,sep=",")
 #2015/04/20
 tbl_<-readHTMLTable("http://finance.yahoo.com/q/op?s=^SPXPM&date=1429228800")
 expdate<-"2015/04/20"
+tbl_[[2]]["ExpDate"]<-expdate
+write.table(tbl_[[2]],wfilename_,row.names=F,append=T,sep=",")
+tbl_[[3]]["ExpDate"]<-expdate
+write.table(tbl_[[3]],wfilename_,row.names=F,append=T,sep=",")
+#2015/05/15
+tbl_<-readHTMLTable("http://finance.yahoo.com/q/op?s=^SPXPM&date=1431648000")
+expdate<-"2015/05/15"
 tbl_[[2]]["ExpDate"]<-expdate
 write.table(tbl_[[2]],wfilename_,row.names=F,append=T,sep=",")
 tbl_[[3]]["ExpDate"]<-expdate
