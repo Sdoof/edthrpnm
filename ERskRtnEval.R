@@ -93,50 +93,50 @@ CallIVChgDown
 #creating initial population
 
 #sigmoid function  ------
-for(tmp in 1:3){
-   create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,thresh=4.0,putn=6,calln=2,ml=2,
+for(tmp in 1:8){
+   create_initial_exact_PutCall_polulation(popnum=4000,opchain$TYPE,thresh=2.0,putn=6,calln=2,ml=2,
                                            fname=paste(".\\ResultData\\inipop-08P6C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                            isFileout=TRUE,isDebug=FALSE)
-   create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,thresh=4.0,putn=5,calln=3,ml=2,
+   create_initial_exact_PutCall_polulation(popnum=4000,opchain$TYPE,thresh=2.0,putn=5,calln=3,ml=2,
                                            fname=paste(".\\ResultData\\inipop-08P5C3-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                            isFileout=TRUE,isDebug=FALSE)
-   create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,thresh=4.0,putn=4,calln=4,ml=2,
+   create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,thresh=2.0,putn=4,calln=4,ml=2,
                                            fname=paste(".\\ResultData\\inipop-08P4C4-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                            isFileout=TRUE,isDebug=FALSE)
-   create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,thresh=4.0,putn=5,calln=2,ml=2,
+   create_initial_exact_PutCall_polulation(popnum=4000,opchain$TYPE,thresh=2.0,putn=5,calln=2,ml=2,
                                            fname=paste(".\\ResultData\\inipop-07P5C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                            isFileout=TRUE,isDebug=FALSE)
-   create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,thresh=4.0,putn=4,calln=3,ml=2,
+   create_initial_exact_PutCall_polulation(popnum=4000,opchain$TYPE,thresh=2.0,putn=4,calln=3,ml=2,
                                            fname=paste(".\\ResultData\\inipop-07P4C3-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                            isFileout=TRUE,isDebug=FALSE)
-   create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,thresh=4.0,putn=4,calln=2,ml=2,
+   create_initial_exact_PutCall_polulation(popnum=4000,opchain$TYPE,thresh=2.0,putn=4,calln=2,ml=2,
                                            fname=paste(".\\ResultData\\inipop-06P4C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                            isFileout=TRUE,isDebug=FALSE)
-   create_initial_exact_PutCall_polulation(popnum=2000,opchain$TYPE,thresh=4.0,putn=3,calln=3,ml=2,
+   create_initial_exact_PutCall_polulation(popnum=2000,opchain$TYPE,thresh=2.0,putn=3,calln=3,ml=2,
                                            fname=paste(".\\ResultData\\inipop-06P3C3-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                            isFileout=TRUE,isDebug=FALSE)
-   create_initial_exact_PutCall_polulation(popnum=2000,opchain$TYPE,thresh=4.0,putn=6,calln=0,ml=2,
+   create_initial_exact_PutCall_polulation(popnum=2000,opchain$TYPE,thresh=2.0,putn=6,calln=0,ml=2,
                                            fname=paste(".\\ResultData\\inipop-06P6C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                            isFileout=TRUE,isDebug=FALSE)
-   create_initial_exact_PutCall_polulation(popnum=1500,opchain$TYPE,thresh=4.0,putn=3,calln=2,ml=2,
+   create_initial_exact_PutCall_polulation(popnum=1500,opchain$TYPE,thresh=2.0,putn=3,calln=2,ml=2,
                                            fname=paste(".\\ResultData\\inipop-05P3C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                            isFileout=TRUE,isDebug=FALSE)
-   create_initial_exact_PutCall_polulation(popnum=1500,opchain$TYPE,thresh=4.0,putn=5,calln=0,ml=2,
+   create_initial_exact_PutCall_polulation(popnum=1500,opchain$TYPE,thresh=2.0,putn=5,calln=0,ml=2,
                                            fname=paste(".\\ResultData\\inipop-05P5C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                            isFileout=TRUE,isDebug=FALSE)
-   create_initial_exact_PutCall_polulation(popnum=1000,opchain$TYPE,thresh=4.0,putn=4,calln=0,ml=2,
+   create_initial_exact_PutCall_polulation(popnum=1000,opchain$TYPE,thresh=2.0,putn=4,calln=0,ml=2,
                                            fname=paste(".\\ResultData\\inipop-04P4C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                            isFileout=TRUE,isDebug=FALSE)
-   create_initial_exact_PutCall_polulation(popnum=800,opchain$TYPE,thresh=4.0,putn=2,calln=2,ml=2,
+   create_initial_exact_PutCall_polulation(popnum=800,opchain$TYPE,thresh=2.0,putn=2,calln=2,ml=2,
                                            fname=paste(".\\ResultData\\inipop-04P2C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                            isFileout=TRUE,isDebug=FALSE)
-   create_initial_exact_PutCall_polulation(popnum=500,opchain$TYPE,thresh=4.0,putn=3,calln=0,ml=2,
+   create_initial_exact_PutCall_polulation(popnum=500,opchain$TYPE,thresh=2.0,putn=3,calln=0,ml=2,
                                            fname=paste(".\\ResultData\\inipop-03P3C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                            isFileout=TRUE,isDebug=FALSE)
-   create_initial_exact_PutCall_polulation(popnum=500,opchain$TYPE,thresh=4.0,putn=2,calln=0,ml=2,
+   create_initial_exact_PutCall_polulation(popnum=500,opchain$TYPE,thresh=2.0,putn=2,calln=0,ml=2,
                                            fname=paste(".\\ResultData\\inipop-02P2C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                            isFileout=TRUE,isDebug=FALSE)
-   create_initial_exact_PutCall_polulation(popnum=100,opchain$TYPE,thresh=4.0,putn=0,calln=2,ml=2,
+   create_initial_exact_PutCall_polulation(popnum=100,opchain$TYPE,thresh=2.0,putn=0,calln=2,ml=2,
                                            fname=paste(".\\ResultData\\inipop-02P0C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                            isFileout=TRUE,isDebug=FALSE)
 };rm(tmp)
@@ -145,23 +145,11 @@ for(tmp in 1:3){
 
 # tmp<-createCombineCandidatePool(fname=paste(".\\ResultData\\inipop-Exc-1000-08P6C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
 #                                 pnum=0,nrows=-1,skip=0,method=1)
-tmp<-createCombineCandidatePool(fname=paste(".\\ResultData\\1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+tmp<-createCombineCandidatePool(fname=paste(".\\ResultData\\1Cb.csv",sep=""),
                                 pnum=0,nrows=-1,skip=0,method=1)
-tmp %>% filter(.[,length(iniPos)+1]<1.3) -> tmp
+tmp %>% filter(.[,length(iniPos)+1]<1.15) -> tmp
+tmp %>% arrange(.[,length(iniPos)+1]) %>% head(3000) -> tmp
 pools<-list(list(c(1,0,0),tmp)) #No.[[1]]
-#poolidx<-2
-#when the candidate's Putn and Calln is speicified, pools[[1]] should be set as c(total posnum{Putn+Calln},Putn{!=0},Calln{!=0})
-#pools<-list(list(c(8,6,2),tmp)) #No.[[1]]   
-
-# tmp<-createCombineCandidatePool(fname=paste(".\\ResultData\\inipop-Exc-1000-06P4C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-#                                 pnum=0,nrows=-1,skip=0,method=1)
-# tmp<-tmp[1:1000,]
-# pools[poolidx]<-list(list(c(6,4,2),tmp)) ; poolidx<-poolidx+1 #No.[[2]]
-# 
-# tmp<-createCombineCandidatePool(fname=paste(".\\ResultData\\inipop-Exc-1000-04P2C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-#                                  pnum=0,nrows=-1,skip=0,method=1)
-# tmp<-tmp[1:300,]
-# pools[poolidx]<-list(list(c(4,2,2),tmp)) ; poolidx<-poolidx+1 #No.[[3]]
 
 # or when all results are mixed together regardress of the number of Putn and Calln, pools[[1]] should be set as
 # c(1,0,0) <- c(1Cb{=exact}, Putn not spicified, Calln not spicified)
@@ -170,76 +158,51 @@ rm(poolidx,tmp)
 
 #combined population serach --------------
 
-#sigmoid evaluation
-#2(exact x exact) Combinations (2Cb)
+### 2(exact x exact) Combinations (2Cb)
 #
-create_combined_population(popnum=30000,thresh=3.0,plelem=c(1,1),fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+create_combined_population(popnum=30000,thresh=2.0,plelem=c(1,1),fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                            isFileout=TRUE,isDebug=FALSE,maxposn=8)
 
-#8P6C2+6P4C2
-# create_combined_population(popnum=3000,thresh=6.0,plelem=c(1,2),fname=paste(".\\ResultData\\combine-Result-0862+0642-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-#                            isFileout=TRUE,isDebug=FALSE,maxposn=8)
+### 3(exact x exact x exact) Combinations (3Cb)
 
-#8P6C2+4P2C2
-# create_combined_population(popnum=3000,thresh=6.0,plelem=c(1,3),fname=paste(".\\ResultData\\combine-Result-0862+0422-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-#                            isFileout=TRUE,isDebug=FALSE,maxposn=8)
+#adjust combined candidate population considering combinational explostion
+tmp<-createCombineCandidatePool(fname=paste(".\\ResultData\\1Cb.csv",sep=""),
+                                pnum=0,nrows=-1,skip=0,method=1)
+tmp %>% filter(.[,length(iniPos)+1]<1.08) -> tmp
+tmp %>% arrange(.[,length(iniPos)+1]) %>% head(600) -> tmp
+  
+pools<-list(list(c(1,0,0),tmp)) #No.[[1]] again
 
-#6P4C2+4P2C2
-# create_combined_population(popnum=3000,thresh=6.0,plelem=c(2,3),fname=paste(".\\ResultData\\combine-Result-0642+0422-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-#                            isFileout=TRUE,isDebug=FALSE,maxposn=8)
-
-#6P4C2+6P4C2
-# create_combined_population(popnum=3000,thresh=6.0,plelem=c(2,2),fname=paste(".\\ResultData\\combine-Result-0642+0642-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-#                            isFileout=TRUE,isDebug=FALSE,maxposn=8)
-
-#8P6C2+8P6C2
-# create_combined_population(popnum=3000,thresh=6.0,plelem=c(1,1),fname=paste(".\\ResultData\\combine-Result-0862+0862-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-#                            isFileout=TRUE,isDebug=FALSE,maxposn=8)
-
-
-#3(exact x exact x exact) Combinations (3Cb)
-
-create_combined_population(popnum=10000,thresh=3.0,plelem=c(1,1,1),fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+create_combined_population(popnum=30000,thresh=2.0,plelem=c(1,1,1),fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                            isFileout=TRUE,isDebug=FALSE,maxposn=8)
 
-#8P6C2+6P4C2+4P2C2
-# create_combined_population(popnum=1000,thresh=6.0,plelem=c(1,2,3),fname=paste(".\\ResultData\\combine-Result-0862+0642+0422-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-#                            isFileout=TRUE,isDebug=FALSE,maxposn=8)
-
-#6P4C2+6P4C2+4P2C2
-# create_combined_population(popnum=1000,thresh=6.0,plelem=c(2,2,3),fname=paste(".\\ResultData\\combine-Result-0642+0642+0422-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-#                            isFileout=TRUE,isDebug=FALSE,maxposn=8)
-
-#6P4C2+4P2C2+4P2C2
-# create_combined_population(popnum=1000,thresh=6.0,plelem=c(2,3,3),fname=paste(".\\ResultData\\combine-Result-0642+0422+0422-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-#                            isFileout=TRUE,isDebug=FALSE,maxposn=8)
-#8P6C2+8P6C2+6P4C2
-# create_combined_population(popnum=1000,thresh=6.0,plelem=c(1,1,2),fname=paste(".\\ResultData\\combine-Result-0862+0862+0642-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-#                            isFileout=TRUE,isDebug=FALSE,maxposn=8)
-
-#3x3(3Cbx3cb) Combinations
-
-#create nested combine candidate pool 
+### 2x2(2Cbx2Cb) and 3x3(3Cbx3cb) Combinations
+##create nested combine candidate pool 
 poolidx<-length(pools)+1
 
-tmp<-createCombineCandidatePool(fname=paste(".\\ResultData\\2Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+tmp<-createCombineCandidatePool(fname=paste(".\\ResultData\\2Cb.csv",sep=""),
                                             pnum=0,nrows=-1,skip=0,method=1)
-tmp %>% filter(.[,length(iniPos)+1]<1.3) -> tmp
+tmp %>% filter(.[,length(iniPos)+1]<1.2) -> tmp
+tmp %>% arrange(.[,length(iniPos)+1]) %>% head(3000) -> tmp
+
 #c(2Cb, Putn not spicified, Calln not spicified)
 pools[poolidx]<-list(list(c(2,0,0),tmp)) ; poolidx<-poolidx+1 #No.[[4]] or No.[[2]]
 
 
-tmp<-createCombineCandidatePool(fname=paste(".\\ResultData\\3Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+tmp<-createCombineCandidatePool(fname=paste(".\\ResultData\\3Cb.csv",sep=""),
                                 pnum=0,nrows=-1,skip=0,method=1)
-tmp %>% filter(.[,length(iniPos)+1]<1.3) -> tmp
+tmp %>% filter(.[,length(iniPos)+1]<1.2) -> tmp
+tmp %>% arrange(.[,length(iniPos)+1]) %>% head(3000) -> tmp
 #c(3Cb, Putn not spicified, Calln not spicified)
 pools[poolidx]<-list(list(c(3,0,0),tmp)) ; poolidx<-poolidx+1 #No.[[5]] or No.[[3]]
 rm(poolidx,tmp)
 
 #Creating Population again
-create_combined_population(popnum=3000,thresh=6.0,plelem=c(2,2),fname=paste(".\\ResultData\\combine-Result-2Cb(+1Cb+1Cb)2Cb(+1Cb+1Cb)-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+# 2Cbx2cb Combination search
+create_combined_population(popnum=20000,thresh=2.0,plelem=c(2,2),fname=paste(".\\ResultData\\combine-Result-2Cb(+1Cb+1Cb)2Cb(+1Cb+1Cb)-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                            isFileout=TRUE,isDebug=FALSE,maxposn=8) 
-create_combined_population(popnum=3000,thresh=6.0,plelem=c(3,3),fname=paste(".\\ResultData\\combine-Result-3Cb(+1Cb+1Cb+1Cb)3Cb(+1Cb+1Cb+1Cb)-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+# 3Cbx3Cb Combination search
+create_combined_population(popnum=20000,thresh=2.0,plelem=c(3,3),fname=paste(".\\ResultData\\combine-Result-3Cb(+1Cb+1Cb+1Cb)3Cb(+1Cb+1Cb+1Cb)-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                            isFileout=TRUE,isDebug=FALSE,maxposn=8) 
 
 rm(pools)
@@ -397,19 +360,9 @@ rm(result_file,best_result,outsolnp)
 ##
 # functions optimized  -------------
 
-obj_Income_sgmd <- function(x,isDebug=FALSE,isDetail=FALSE,isFileout=TRUE,isMCGA=FALSE,isGenoud=FALSE,
+obj_Income_sgmd <- function(x,isDebug=FALSE,isDetail=FALSE,isFileout=FALSE,
                             udlStepNum=4,udlStepPct=0.02,maxposnum=8,
                             tail_rate=0.4,lossLimitPrice=30000){
-  if(isMCGA){
-    x<-as.numeric(x<(-6.5))*(-6)+as.numeric(x>(6.5))*6+as.numeric(x>=(-6.5)&x<=6.5)*x
-  }
-  if(!isGenoud){
-    x<-round(x)
-  }
-  if(sum(as.numeric(round(x)!=0))==0){
-    x<-rnorm(n=length(iniPos),mean=0,sd=1)
-    x<-round(x)
-  }
   #gradually change constraint
   exp_c<-0
   #position where pos$Position != 0
@@ -425,26 +378,28 @@ obj_Income_sgmd <- function(x,isDebug=FALSE,isDetail=FALSE,isFileout=TRUE,isMCGA
   
   ##
   # penalty1: position total num
-  pos_change<-sum(as.numeric((round(x)-iniPos)!=0))
-  penalty1<-(1+as.numeric((pos_change-maxposnum)>0)*(pos_change-maxposnum))^5
-  if(penalty1>2){
-    if(isDebug){cat("pos num",pos_change,"\n")}
-    return((pos_change-maxposnum)*penalty1 )
-  }
-  if(isDebug){cat(x," ");cat(" :p1",penalty1)}
+#   pos_change<-sum(as.numeric((round(x)-iniPos)!=0))
+#   penalty1<-(1+as.numeric((pos_change-maxposnum)>0)*(pos_change-maxposnum))^5
+  penalty1<-1
+#   if(penalty1>2){
+#     if(isDebug){cat("pos num",pos_change,"\n")}
+#     return((pos_change-maxposnum)*penalty1 )
+#   }
+#   if(isDebug){cat(x," ");cat(" :p1",penalty1)}
   
   ##
   # penalty4. ThetaEffect. This should be soft constraint  
-  sd_multp<-holdDays;anlzd_sd<-getIV_td(histIV$IVIDX[1]);sd_hd<-(anlzd_sd/sqrt(252/sd_multp))
-  weight<-dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd / sum(dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd)
-  theta_ttl<-thePositionGrk$ThetaEffect+sum(posEvalTbl$ThetaEffect*weight)
-  
-  exp_c<-as.numeric((pos_change-maxposnum)>0)*0+as.numeric((pos_change-maxposnum)<=0)
-  penalty4<-(1+as.numeric(theta_ttl<0)*(abs(theta_ttl)))^exp_c
-  
-  if(isDetail){cat(" :thta_ttl",theta_ttl);cat(" :p4",penalty4)}
-  if(isDetail){cat(" :thta_ini",thePositionGrk$ThetaEffect);cat(" :thta_hld",sum(posEvalTbl$ThetaEffect*weight))}
-  
+#   sd_multp<-holdDays;anlzd_sd<-getIV_td(histIV$IVIDX[1]);sd_hd<-(anlzd_sd/sqrt(252/sd_multp))
+#   weight<-dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd / sum(dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd)
+#   theta_ttl<-thePositionGrk$ThetaEffect+sum(posEvalTbl$ThetaEffect*weight)
+#   
+#   exp_c<-as.numeric((pos_change-maxposnum)>0)*0+as.numeric((pos_change-maxposnum)<=0)
+  penalty4<-1
+#   penalty4<-(1+as.numeric(theta_ttl<0)*(abs(theta_ttl)))^exp_c
+#   
+#   if(isDetail){cat(" :thta_ttl",theta_ttl);cat(" :p4",penalty4)}
+#   if(isDetail){cat(" :thta_ini",thePositionGrk$ThetaEffect);cat(" :thta_hld",sum(posEvalTbl$ThetaEffect*weight))}
+#   
   ##
   # penalty2 tail-risk
   tailPrice<-min(sum(getIntrisicValue(position$UDLY[1]*(1-tail_rate),position)),
@@ -463,7 +418,8 @@ obj_Income_sgmd <- function(x,isDebug=FALSE,isDetail=FALSE,isFileout=TRUE,isMCGA
   if(isDebug){cat(" :wht",weight)} 
   profit_hdays<-sum((posEvalTbl$Price-thePositionGrk$Price)*weight)
   if(isDebug){cat(" :prft_wt",profit_hdays)}  
-  exp_c<-as.numeric((pos_change-maxposnum)>0)*0+as.numeric((pos_change-maxposnum)<=0)
+  #exp_c<-as.numeric((pos_change-maxposnum)>0)*0+as.numeric((pos_change-maxposnum)<=0)
+  exp_c<-0
   #penalty3<-(1+as.numeric(profit_hdays<0)*(abs(profit_hdays)))^exp_c
   penalty3<-1
   if(isDebug){cat(" :p3",penalty3)}
@@ -489,7 +445,7 @@ obj_Income_sgmd <- function(x,isDebug=FALSE,isDetail=FALSE,isFileout=TRUE,isMCGA
   
   ##
   # total cost and penalty
-  val<-cost*penalty1*penalty2*penalty3*penalty4
+  val<-cost*penalty2 #*penalty1*penalty3*penalty4
   
   if(isDebug){cat(" val:",val,"\n")}
   
@@ -659,6 +615,7 @@ obj_Income_Cont <- function(x,isDebug=FALSE,isGenoud=TRUE){
   #   
   #   exp_c<-as.numeric((pos_change-10)>0)*0+as.numeric((pos_change-10)<=0)
   #   penalty4<-(1+as.numeric(theta_ttl<0)*(abs(theta_ttl)))^exp_c
+  #
   #   
   #   if(isDebug){cat(" :thta_ttl",theta_ttl);cat(" :p4",penalty4)}
   
