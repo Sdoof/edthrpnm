@@ -3,35 +3,35 @@
   
 1. Creating Initial Population and make 1Cb-* for combinational search
 1.1
-Get-ChildItem .  | Where-Object {$_.Name  -match "^*inipop*"} | cat >> 1Cb-2015-4-09.csv
+Get-ChildItem .  | Where-Object {$_.Name  -match "^*inipop*"} | cat >> 1Cb-.csv
 1.2
-Get-Content 1Cb-2015-4-09.csv | Out-File -Filepath 1Cb-2015-4-09.csv -Encoding default
+Get-Content 1Cb-.csv | Out-File -Filepath 1Cb.csv -Encoding default
 
-  inipop-*.csv -> 1Cb-*.csv
+  inipop-*.csv -> 1Cb-.csv
 
 (Serach 2 and 3 combinational Serch
   Result *-1Cb+1Cb*-*.csv, *-1Cb+1Cb+1Cb*-*.csv)
 
 2. 2 Combinational search results should be copied as 2Cb-* for further combination searches
 2.1
-copy .\combine-Result-1Cb+1Cb-2015-4-09.csv 2Cb-2015-4-09.csv
+copy .\combine-Result-1Cb+1Cb-2015-4-09.csv 2Cb.csv
   or
-Get-ChildItem .  | Where-Object {$_.Name  -match "^*-\dCb*\+.\d*Cb-"}　| cat >> 2Cb-2015-4-09.csv
-Get-ChildItem .  | Where-Object {$_.Name  -match "^*-\dCb\+\dCb-"} | cat >> 2Cb-2015-4-09.csv
+Get-ChildItem .  | Where-Object {$_.Name  -match "^*-\dCb*\+.\d*Cb-"}　| cat >> 2Cb-.csv
+Get-ChildItem .  | Where-Object {$_.Name  -match "^*-\dCb\+\dCb-"} | cat >> 2Cb-.csv
 2.2
-Get-Content 2Cb-2015-4-09.csv | Out-File -Filepath 2Cb-2015-4-09.csv -Encoding default
+Get-Content 2Cb-.csv | Out-File -Filepath 2Cb.csv -Encoding default
   
-  *-1Cb+1Cb*-*.csv -> 2Cb*.csv
+  *-1Cb+1Cb*-*.csv -> 2Cb-.csv
   
 3. 3 Combinational search results should be copied as 3Cb-* for further combination searches
 3.1
-copy .\combine-Result-1Cb+1Cb+1Cb-2015-4-09.csv 3Cb-2015-4-09.csv
+copy .\combine-Result-1Cb+1Cb+1Cb-2015-4-09.csv 3Cb.csv
   or
-Get-ChildItem .  | Where-Object {$_.Name  -match "^*-\dCb\+\dCb\+\dCb-"}　| cat >> 3Cb-2015-4-09.csv
+Get-ChildItem .  | Where-Object {$_.Name  -match "^*-\dCb\+\dCb\+\dCb-"}　| cat >> 3Cb-.csv
 3.2
-Get-Content 3Cb-2015-4-09.csv | Out-File -Filepath 3Cb-2015-4-09.csv -Encoding default
+Get-Content 3Cb-.csv | Out-File -Filepath 3Cb.csv -Encoding default
 
-   *-1Cb+1Cb+1Cb*-*.csv -> 3Cb*.csv
+   *-1Cb+1Cb+1Cb*-*.csv -> 3Cb-.csv
 
  (Last Results
   combine-Result-2Cb(+1Cb+1Cb)2Cb(+1Cb+1Cb)-*.csv
