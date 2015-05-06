@@ -9,7 +9,7 @@ Get-ChildItem .  | Where-Object {$_.Name  -match "^*inipop*"} | cat >> 1Cb-.csv
 1.2
 Get-Content 1Cb-.csv | Out-File -Filepath 1Cb.csv -Encoding default
 
-  inipop-*.csv -> 1Cb-.csv
+  inipop-*.csv -> 1Cb.csv
 
 (Serach 2 and 3 combinational Serch
   Result *-1Cb+1Cb*-*.csv, *-1Cb+1Cb+1Cb*-*.csv)
@@ -25,7 +25,7 @@ Get-ChildItem .  | Where-Object {$_.Name  -match "^*-\dCb\+\dCb-"} | cat >> 2Cb-
 2.2
 Get-Content 2Cb-.csv | Out-File -Filepath 2Cb.csv -Encoding default
   
-  *-1Cb+1Cb*-*.csv -> 2Cb-.csv
+  *-1Cb+1Cb*-*.csv -> 2Cb.csv
   
 3. 3 Combinational search results should be copied as 3Cb-* for further combination searches
 3.1
@@ -36,9 +36,23 @@ Get-ChildItem .  | Where-Object {$_.Name  -match "^*-\dCb\+\dCb\+\dCb-"}　| cat
 3.2
 Get-Content 3Cb-.csv | Out-File -Filepath 3Cb.csv -Encoding default
 
-   *-1Cb+1Cb+1Cb*-*.csv -> 3Cb-.csv
+   *-1Cb+1Cb+1Cb*-*.csv -> 3Cb.csv
 
  (Last Results
   combine-Result-2Cb(+1Cb+1Cb)2Cb(+1Cb+1Cb)-*.csv
   combine-Result-3Cb(+1Cb+1Cb+1Cb)3Cb(+1Cb+1Cb+1Cb)-*.csv)
 
+4 Combinational search results should be copied as 4Cb*(and 6Cb) to aggregate the results
+4.1.a
+Get-ChildItem .  | Where-Object {$_.Name  -match "^*-2Cb.*2Cb.*-"} | cat >> 4Cb-.csv
+* Get-ChildItem '..\..\edthrpnm2\ResultData\' | Where-Object {$_.Name  -match "^*-2Cb.*2Cb.*-"} | cat >> 4Cb-.csv
+4.2.a
+Get-Content 4Cb-.csv | Out-File -Filepath 4Cb.csv -Encoding default
+4.1.b
+Get-ChildItem . | Where-Object {$_.Name  -match "^*-3Cb.*3Cb.*-"} | cat >> 6Cb-.csv
+*Get-ChildItem '..\..\edthrpnm2\ResultData\' | Where-Object {$_.Name  -match "^*-3Cb.*3Cb.*-"} | cat >> 6Cb-.csv
+4.2.b
+Get-Content 6Cb-.csv | Out-File -Filepath 6Cb.csv -Encoding default
+
+  *-2Cb(+1Cb+1Cb)2Cb(+1Cb+1Cb)-* -> 4Cb.csv
+  *-3Cb(+1Cb+1Cb+1Cb)3Cb(+1Cb+1Cb+1Cb)-* -> 6Cb.csv
