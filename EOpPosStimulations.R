@@ -1,48 +1,19 @@
 library(RQuantLib)
 
-## Expected Return Scenario Stimulation -------------
-#Advance T 1 by 1. Get Payoff Dist. Calc Expected Payoff.
-#The most basic price movement is Geometric Random Walk.
-#
-#  If.  1. Price moves with Geometric Random Walk
-#       2. volatility remains constant
-#       3. There is no vertical/horizontal/price movement
-#          volatility skews
-#  Expected Payoff should be the Price position values at T+x day.
-# 
-#  But We should investigate: 
-#    1. The Effect of volatility Skewness and Call/Put IV Differnces
-#    2. The Effect of volatility Trend
-#    3. The Effect of Underlying Price Trend
-#    4. The Effect of Mechanical Position Adjust(Liquidation)
-#       when Forward Risk/Return Ration becomes unfavorable.
-#
-#  We use only T0. then Monte-Carlo based on various scenario.
-#
-
-# Import various volatility skew functions included in other files.
-# Import Geometric Brown Motion Stimulation function
-
 ###
 # Start Stimulation
 ##
 ####
 
-###Scenario 1. --------------
-###
-#volatility never changes throught the stimulation.
-#could pertubate IV based on stiumulation condition
-
 #Total Stimulation Num
-StimultaionNum=1000
+StimultaionNum=1
 #List of Every Result
 StimRslts<-NULL
 
 for(ith_stim in 1:StimultaionNum){
   #Stimulation processed on this data frame
-  XTStim<-XT[[1]]
-  XTOrig<-XT[[1]]
-  
+  XTStim<-position
+  XTOrig<-position
   #Stimulation day
   #returned as a vector. So get the first element.
   stim_days_num<-min(get.busdays.between(XTOrig$Date,XTOrig$ExpDate))-1
@@ -69,36 +40,60 @@ for(ith_stim in 1:StimultaionNum){
   StimulationParameters<-c(StimulationParameters,list(sigma_udly))
   names(StimulationParameters)<-c("StimDays","Mu","Sigma")
   
+  #First calculate original Position Grks
+  orgPositionGrk<-getPositionGreeks(XTOrig,multi=PosMultip)
+  
   for(day_chg in 1:stim_days_num){
     
     #Just for comparison later.
     XTStim_b<-XTStim
     
     #Advance day_chg day
-    XTStim$Date<-format(advance("UnitedStates/NYSE",dates=as.Date(XTOrig$Date,format="%Y/%m/%d"),day_chg,0),"%Y/%m/%d")
-    
+    #XTStim$Date<-format(advance("UnitedStates/NYSE",dates=as.Date(XTOrig$Date,format="%Y/%m/%d"),day_chg,0),"%Y/%m/%d")
+    #print(XTStim$Date)
     #Underlying Price change
     XTStim$UDLY <- rep(udly_prices[day_chg],times=length(XTStim$UDLY))
     
     #Volatiliy Skew change 
-    # To be defined.
+    #case 1.
+    tmp<-seq( ((XTStim$UDLY[1]-XTStim_b$UDLY[1])/XTStim_b$UDLY[1]),length=1)
+    tmp2<-data.frame(udlChgPct=tmp)
+    tmp2 %>% group_by(udlChgPct) %>% do(pos=XTStim) -> tmp2
+    #days=1 means just 1 day will have passed. 
+    tmp2 %>% group_by(udlChgPct) %>% do(pos=reflectPosChg(.,days=1)) -> tmp2
+    XTStim<-tmp2$pos[[1]]
+    rm(tmp,tmp2)
+    print(XTStim)
     
+    #print(thePositionGrk)
+    
+    #case 2. volatility r.v i.i.d
+    # To be defined.
+   
     #Set new Price and Greeks
     #Case of European Option
-    tmp_<-set.EuropeanOptionValueGreeks(XTStim)
-    XTStim$Price<-tmp_$Price
-    XTStim$Delta<-tmp_$Delta
-    XTStim$Gamma<-tmp_$Gamma
-    XTStim$Vega<-tmp_$Vega
-    XTStim$Theta<-tmp_$Theta
-    XTStim$Rho<-tmp_$Rho
-    
+#     tmp_<-set.EuropeanOptionValueGreeks(XTStim)
+#     XTStim$Price<-tmp_$Price
+#     XTStim$Delta<-tmp_$Delta
+#     XTStim$Gamma<-tmp_$Gamma
+#     XTStim$Vega<-tmp_$Vega
+#     XTStim$Theta<-tmp_$Theta
+#     XTStim$Rho<-tmp_$Rho
+#     (tmp_)
+
+    # greekEffects are calculated supposing this position held for "holdDays"
+    # 
+    newPositionGrk<-getPositionGreeks(XTStim,multi=PosMultip)
+    print(newPositionGrk)
+
     #Case of American Option
     #TBD
     
     #Position Profit
-    positionProfit[day_chg]<-(sum(XTStim$Position*XTStim$Price) - sum(XTOrig$Position*XTOrig$Price))
-    
+    #positionProfit[day_chg]<-(sum(XTStim$Position*XTStim$Price) - sum(XTOrig$Position*XTOrig$Price))*posMultip
+    # or
+    positionProfit[day_chg]<-newPositionGrk$Price-orgPositionGrk$Price
+
     #Evaluation Function to be used for position adjustment(liqudation)
     #Suchs as DTRRR, VTRRR, RTRRR. TBD
     #positionProfit[day_chg] may be used.
@@ -130,7 +125,7 @@ for(ith_stim in 1:StimultaionNum){
   content_<-list(StimulationParameters)
   content_<-c(content_,list(day_chg))
   content_<-c(content_,list(positionProfit))
-  content_<-c(content_,list(PositionEvalScores))
+  content_<-c(content_,list(positionEvalScores))
   content_<-c(content_,list(PositionDataframe))
   names(content_)<-c("Parameter","AdjustDay","Profit","EvalScore","ValueGreek")
   if(ith_stim==1){
@@ -141,7 +136,8 @@ for(ith_stim in 1:StimultaionNum){
   }
 }
 
-#Result analysis
+##
+# Result analysis ---------------------------
 profit_each_itr_ <- rep(0,StimultaionNum)
 udly_price_at_liquidation_  <- rep(0,StimultaionNum)
 liq_days_<- rep(0,StimultaionNum)

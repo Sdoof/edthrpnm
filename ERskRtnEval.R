@@ -968,8 +968,14 @@ evalPosRskRtnVegaEffect<- function(pos_eval){
 }
 
 # operate to each position data frame based on scenaro changes
+# process_df is a data frame like this.
+#       udlChgPct    pos
+#   1     -0.12   <S3:data.frame>
+#   2      0.00   <S3:data.frame>
+#   3      0.12   <S3:data.frame>
+# <S3:data.frame> is original data frame which only UDLY are modified.
+# This function reflects Date,IV,etc after udlChg% change for the UDLYs in "days" days.
 reflectPosChg<- function(process_df,days=holdDays){
-  
   pos<-as.data.frame(process_df$pos[1])
   chg<-as.numeric(process_df$udlChgPct[1])
   # print(chg)
