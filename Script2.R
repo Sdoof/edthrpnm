@@ -51,9 +51,6 @@ histIV %>% dplyr::transmute(Date=Date,IVIDX=Close/100) -> histIV
 histIV %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")<=max(as.Date(position$Date,format="%Y/%m/%d"))) %>%
   dplyr::arrange(desc(as.Date(Date,format="%Y/%m/%d"))) %>% head(n=dviv_caldays) -> histIV
 
-#Initial and evaluation vector -
-iniPos<-position$Position
-
 rm(opchain)
 
 ##
@@ -61,3 +58,5 @@ rm(opchain)
 
 XTStim<-position
 XTOrig<-position
+
+#Call EOpPosStimulations

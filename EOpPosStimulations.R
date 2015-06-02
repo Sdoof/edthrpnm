@@ -1,5 +1,3 @@
-library(RQuantLib)
-
 ###
 # Start Stimulation
 ##
@@ -23,6 +21,7 @@ for(ith_stim in 1:StimultaionNum){
   #underlying initial daily volatility.
   #HV should be used? or IV should be used?
   sigma_udly<-0.25/sqrt(252)
+  #sigma_udly<-getIV_td(histIV[1,]$IVIDX)/sqrt(252)
   
   #Prepare the stored values
   StimulationParameters <- NULL
@@ -31,8 +30,8 @@ for(ith_stim in 1:StimultaionNum){
   PositionDataframe <- NULL
   
   #get the underlying changed of all days.
-  s0<-XTStim$UDLY[[1]]
-  udly_prices <- geombrmtn.stimulate(s0=s0,mu=mu_udly,sigma=sigma_udly,length=stim_days_num)
+  
+  udly_prices <- geombrmtn.stimulate(s0=XTStim$UDLY[[1]],mu=mu_udly,sigma=sigma_udly,length=stim_days_num)
   udly_prices <- udly_prices[-1]
   
   StimulationParameters<-list(stim_days_num)
@@ -42,7 +41,7 @@ for(ith_stim in 1:StimultaionNum){
   
   #First calculate original Position Grks
   orgPositionGrk<-getPositionGreeks(XTOrig,multi=PosMultip)
-  
+  print(orgPositionGrk)
   for(day_chg in 1:stim_days_num){
     
     #Just for comparison later.
@@ -68,10 +67,13 @@ for(ith_stim in 1:StimultaionNum){
     #print(thePositionGrk)
     
     #case 2. volatility r.v i.i.d
-    # To be defined.
-   
-    #Set new Price and Greeks
-    #Case of European Option
+    #         UDLYとIVの間に相関が無く、独立変数として扱う
+    #XTStim$IVIDX<-... 設定後
+    #                  1. XTStim$IVIDXで変更される値を先読みし、reflectPosChgで元に戻るように設定
+    #                  2. reflectPosChg()の後、XTStim$IVIDX<-XTStim_b$IVIDX起点のランダムウォーク
+    #                     シミュレーション開始時に計算済
+    #Price and Greeks に関しては再計算（そのたのTime,Moneynessは再計算不要）
+    #Case of European Option　再計算
 #     tmp_<-set.EuropeanOptionValueGreeks(XTStim)
 #     XTStim$Price<-tmp_$Price
 #     XTStim$Delta<-tmp_$Delta
@@ -134,7 +136,13 @@ for(ith_stim in 1:StimultaionNum){
   } else{
     StimRslts<-c(StimRslts,list(content_))
   }
+  rm(day_chg,positionProfit,positionEvalScores,PositionDataframe,content_)
+  rm(XTOrig,XTStim,XTStim_b,newPositionGrk,orgPositionGrk,udly_prices,StimulationParameters)
+  rm(mu_udly,sigma_udly,stim_days_num)
 }
+
+#cleanings for the stimulation
+rm(ith_stim)
 
 ##
 # Result analysis ---------------------------
@@ -202,14 +210,9 @@ points(mean((subset(res_dtf_,UDLY>mean(XT[[1]]$UDLY)))$Profit)
        -sd((subset(res_dtf_,UDLY>mean(XT[[1]]$UDLY)))$Profit),
        0,col = "darkgrey", pch = 2)
 
-###Scenario 2.
-###
-#volatility changes based on market condition.
-#also should pertubate IV based on stiumulation condition
-
-#Back Test Functions.
-#To Be Designed Later.
-
+#all cleanings. result file should've been saved. 
+rm(histIV,position,StimultaionNum)
+rm(StimRslts)
 
 #Functions to be loaded ---------
 
