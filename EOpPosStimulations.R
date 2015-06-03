@@ -7,6 +7,8 @@
 StimultaionNum=1
 #List of Every Result
 StimRslts<-NULL
+#Max Stimulation day.
+MaxStimDay<-14
 
 for(ith_stim in 1:StimultaionNum){
   #Stimulation processed on this data frame
@@ -15,13 +17,19 @@ for(ith_stim in 1:StimultaionNum){
   #Stimulation day
   #returned as a vector. So get the first element.
   stim_days_num<-min(get.busdays.between(XTOrig$Date,XTOrig$ExpDate))-1
+  #if MaxStimDay<stim_days_num, stim_days_num<-MaxStimDay.
+  stim_days_num<-as.numeric(MaxStimDay<stim_days_num)*(MaxStimDay-stim_days_num)+stim_days_num
   
   #underlying daily return for geometic brown motion
   mu_udly<-(0.92)^(1/252)-1
   #underlying initial daily volatility.
-  #HV should be used? or IV should be used?
   sigma_udly<-0.25/sqrt(252)
   #sigma_udly<-getIV_td(histIV[1,]$IVIDX)/sqrt(252)
+  
+  #volatility drift 
+  #mu_iv<-(1.0)^(1/252)-1
+  #vov
+  #sigma_iv<-0.8/sqrt(252)
   
   #Prepare the stored values
   StimulationParameters <- NULL
@@ -37,7 +45,7 @@ for(ith_stim in 1:StimultaionNum){
   StimulationParameters<-list(stim_days_num)
   StimulationParameters<-c(StimulationParameters,list(mu_udly))
   StimulationParameters<-c(StimulationParameters,list(sigma_udly))
-  names(StimulationParameters)<-c("StimDays","Mu","Sigma")
+  names(StimulationParameters)<-c("StimDays","Mu_udl","Sigma_udl")
   
   #First calculate original Position Grks
   orgPositionGrk<-getPositionGreeks(XTOrig,multi=PosMultip)
@@ -63,8 +71,6 @@ for(ith_stim in 1:StimultaionNum){
     XTStim<-tmp2$pos[[1]]
     rm(tmp,tmp2)
     print(XTStim)
-    
-    #print(thePositionGrk)
     
     #case 2. volatility r.v i.i.d
     #         UDLYとIVの間に相関が無く、独立変数として扱う
@@ -101,13 +107,13 @@ for(ith_stim in 1:StimultaionNum){
     #positionProfit[day_chg] may be used.
     
     if(day_chg==1){
-      positionEvalScores<-list(day_chg)
+      positionEvalScores<-list(newPositionGrk)
     }else{
-      positionEvalScores<-c(PositionDataframe,list(day_chg))
+      positionEvalScores<-c(positionEvalScores,list(newPositionGrk))
     }
     
-    #Current XTStim appened to a list
-    #Data frame to be stored. Greeks and Everything
+    #Current XTStim appended to a list
+    #Data frame to be stored.
     if(day_chg==1){
       PositionDataframe<-list(XTStim)
     }else{
@@ -125,11 +131,13 @@ for(ith_stim in 1:StimultaionNum){
   
   #the ith_stim iteration finished
   content_<-list(StimulationParameters)
+  content_<-c(content_,list(XTOrig))
+  content_<-c(content_,list(orgPositionGrk))
   content_<-c(content_,list(day_chg))
   content_<-c(content_,list(positionProfit))
   content_<-c(content_,list(positionEvalScores))
   content_<-c(content_,list(PositionDataframe))
-  names(content_)<-c("Parameter","AdjustDay","Profit","EvalScore","ValueGreek")
+  names(content_)<-c("Parameter","IniValueGreek","IniEvalScore","AdjustDay","Profit","EvalScore","ValueGreek")
   if(ith_stim==1){
     StimRslts<-list(content_)
     names(StimulationParameters)<-c("Result")
