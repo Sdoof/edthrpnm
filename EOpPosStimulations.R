@@ -4,7 +4,7 @@
 ####
 
 #Total Stimulation Num
-StimultaionNum=1
+StimultaionNum=100
 #List of Every Result
 StimRslts<-NULL
 #Max Stimulation day.
@@ -49,7 +49,7 @@ for(ith_stim in 1:StimultaionNum){
   
   #First calculate original Position Grks
   orgPositionGrk<-getPositionGreeks(XTOrig,multi=PosMultip)
-  print(orgPositionGrk)
+  #print(orgPositionGrk)
   for(day_chg in 1:stim_days_num){
     
     #Just for comparison later.
@@ -70,7 +70,7 @@ for(ith_stim in 1:StimultaionNum){
     tmp2 %>% group_by(udlChgPct) %>% do(pos=reflectPosChg(.,days=1)) -> tmp2
     XTStim<-tmp2$pos[[1]]
     rm(tmp,tmp2)
-    print(XTStim)
+    #print(XTStim)
     
     #case 2. volatility r.v i.i.d
     #         UDLYとIVの間に相関が無く、独立変数として扱う
@@ -92,7 +92,7 @@ for(ith_stim in 1:StimultaionNum){
     # greekEffects are calculated supposing this position held for "holdDays"
     # 
     newPositionGrk<-getPositionGreeks(XTStim,multi=PosMultip)
-    print(newPositionGrk)
+    #print(newPositionGrk)
 
     #Case of American Option
     #TBD
@@ -161,7 +161,8 @@ for(j in 1:StimultaionNum){
   profit_each_itr_[j]<-StimRslts[[j]]$Profit[StimRslts[[j]]$AdjustDay]
   udly_price_at_liquidation_[j]<-mean(StimRslts[[j]]$ValueGreek[[StimRslts[[j]]$AdjustDay]]$UDLY)
   liq_days_[j]<-StimRslts[[j]]$AdjustDay
-}
+};rm(j)
+
 # max profit and corresponding Underlying Price
 max(profit_each_itr_);udly_price_at_liquidation_[order(profit_each_itr_)[length(profit_each_itr_)]]
 # min profit and corresponding Underlying Price
@@ -173,15 +174,36 @@ sd(profit_each_itr_)
 # median profit
 median(profit_each_itr_)
 
-hist(udly_price_at_liquidation_,breaks="Scott",main="UDLY Liq Prices")
-points(mean(XT[[1]]$UDLY),0, col = "red", pch = 3)
+#udly price histgram
+gg <- ggplot(data.frame(udly=udly_price_at_liquidation_),aes(x=udly))+geom_histogram(alpha=0.9,aes(y=..density..))+geom_density(size=1.0,colour="blue")
+(gg+geom_point(x=mean(position$UDLY),y=0,size=6.0,colour="red",pch=3)
+ +geom_point(x=mean(udly_price_at_liquidation_),y=0,size=6.0,colour="red",pch=1)
+ +geom_point(x=median(udly_price_at_liquidation_),y=0,size=6.0,colour="orange",pch=1)
+ +geom_point(x=mean(udly_price_at_liquidation_)+sd(udly_price_at_liquidation_),y=0,size=6.0,colour="darkgrey",pch=2)
+ +geom_point(x=mean(udly_price_at_liquidation_)-sd(udly_price_at_liquidation_),y=0,size=6.0,colour="darkgrey",pch=2)
+ )
+rm(gg)
 
-hist(profit_each_itr_,breaks="Scott",main="Profit/Loss")
-points(mean(profit_each_itr_), 0, col = "red", pch = 3)
-points(median(profit_each_itr_), 0, col = "orange", pch = 1)
-points(mean(profit_each_itr_)+sd(profit_each_itr_), 0, col = "darkgrey", pch = 2)
-points(mean(profit_each_itr_)-sd(profit_each_itr_), 0, col = "darkgrey", pch = 2)
+#payoff function
+gg <- ggplot(data.frame(udly=udly_price_at_liquidation_,profit=profit_each_itr_),aes(x=udly,y=profit))
+(gg+geom_point()
+ +geom_point(x=mean(position$UDLY),y=0,size=6.0,colour="red",pch=3)
+ +geom_point(x=mean(udly_price_at_liquidation_),y=0,size=6.0,colour="red",pch=1)
+ +geom_point(x=median(udly_price_at_liquidation_),y=0,size=6.0,colour="orange",pch=1)
+ +geom_point(x=mean(udly_price_at_liquidation_)+sd(udly_price_at_liquidation_),y=0,size=6.0,colour="darkgrey",pch=2)
+ +geom_point(x=mean(udly_price_at_liquidation_)-sd(udly_price_at_liquidation_),y=0,size=6.0,colour="darkgrey",pch=2)
+ )
+rm(gg)
 
+#profit histgram
+gg <- ggplot(data.frame(profit=profit_each_itr_),aes(x=profit))+geom_histogram(alpha=0.9,aes(y=..density..))+geom_density(size=1.0,colour="blue")
+(gg+geom_point(x=mean(profit_each_itr_),y=0,size=5.0,colour="red",pch=3)
+ +geom_point(x=median(profit_each_itr_),y=0,size=5.0,colour="orange",pch=1)
+ +geom_point(x=mean(profit_each_itr_)+sd(profit_each_itr_),y=0,size=5.0,colour="darkgrey",pch=2)
+ +geom_point(x=mean(profit_each_itr_)-sd(profit_each_itr_),y=0,size=5.0,colour="darkgrey",pch=2)
+ +geom_density()
+ ) 
+rm(gg)
 
 ##
 ##New Data Flame made to faciliate futher analying
@@ -190,35 +212,40 @@ res_dtf_ <- data.frame(UDLY=udly_price_at_liquidation_,
                        Profit=profit_each_itr_,
                        LIQDAY=liq_days_)
 
-#Condition
-subset(res_dtf_,Profit<=-15)
+#Condition 特定の条件で切り出したデータの（条件付き）分布
+#subset(res_dtf_,Profit<=-15)
 
 #Condition 
 #Underlying > Inital Underlying
-max((subset(res_dtf_,UDLY>mean(XT[[1]]$UDLY)))$Profit)
-min((subset(res_dtf_,UDLY>mean(XT[[1]]$UDLY)))$Profit)
-mean((subset(res_dtf_,UDLY>mean(XT[[1]]$UDLY)))$Profit)
-sd((subset(res_dtf_,UDLY>mean(XT[[1]]$UDLY)))$Profit)
-median((subset(res_dtf_,UDLY>mean(XT[[1]]$UDLY)))$Profit)
+#max((subset(res_dtf_,UDLY>mean(position$UDLY)))$Profit)
+#min((subset(res_dtf_,UDLY>mean(position$UDLY)))$Profit)
+#mean((subset(res_dtf_,UDLY>mean(position$UDLY)))$Profit)
+#sd((subset(res_dtf_,UDLY>mean(position$UDLY)))$Profit)
+#median((subset(res_dtf_,UDLY>mean(position$UDLY)))$Profit)
+
 #UDLY histgram
-hist((subset(res_dtf_,UDLY>mean(XT[[1]]$UDLY)))$UDLY,
-     breaks="Scott",main="UDLY Liq Prices over Initial UDL Prc")
-points(mean(XT[[1]]$UDLY),0, col = "red", pch = 3)
+# Here UDLYが平均より大きい結果の条件の下でのUDLYの頻度分布
+#hist((subset(res_dtf_,UDLY>mean(position$UDLY)))$UDLY,
+#     breaks="Scott",main="UDLY Liq Prices over Initial UDL Prc")
+#points(mean(position$UDLY),0, col = "red", pch = 3)
+
 #Profit/Loss histgram
-hist((subset(res_dtf_,UDLY>mean(XT[[1]]$UDLY)))$Profit,
-     breaks="Scott",main="Profit/Loss over initial Underlying Prices")
-points(mean((subset(res_dtf_,UDLY>mean(XT[[1]]$UDLY)))$Profit),
-       0, col = "red", pch = 3)
-points(median((subset(res_dtf_,UDLY>mean(XT[[1]]$UDLY)))$Profit), 
-       0, col = "orange", pch = 1)
-points(mean((subset(res_dtf_,UDLY>mean(XT[[1]]$UDLY)))$Profit)
-       +sd((subset(res_dtf_,UDLY>mean(XT[[1]]$UDLY)))$Profit),
-       0,col = "darkgrey", pch = 2)
-points(mean((subset(res_dtf_,UDLY>mean(XT[[1]]$UDLY)))$Profit)
-       -sd((subset(res_dtf_,UDLY>mean(XT[[1]]$UDLY)))$Profit),
-       0,col = "darkgrey", pch = 2)
+# Here UDLYが平均より大きい結果の条件の下でのpayoffの頻度分布
+# hist((subset(res_dtf_,UDLY>mean(position$UDLY)))$Profit,
+#      breaks="Scott",main="Profit/Loss over initial Underlying Prices")
+# points(mean((subset(res_dtf_,UDLY>mean(position$UDLY)))$Profit),
+#        0, col = "red", pch = 3)
+# points(median((subset(res_dtf_,UDLY>mean(position$UDLY)))$Profit), 
+#        0, col = "orange", pch = 1)
+# points(mean((subset(res_dtf_,UDLY>mean(position$UDLY)))$Profit)
+#        +sd((subset(res_dtf_,UDLY>mean(position$UDLY)))$Profit),
+#        0,col = "darkgrey", pch = 2)
+# points(mean((subset(res_dtf_,UDLY>mean(position$UDLY)))$Profit)
+#        -sd((subset(res_dtf_,UDLY>mean(position$UDLY)))$Profit),
+#        0,col = "darkgrey", pch = 2)
 
 #all cleanings. result file should've been saved. 
+rm(profit_each_itr_,udly_price_at_liquidation_,liq_days_,res_dtf_)
 rm(histIV,position,StimultaionNum)
 rm(StimRslts)
 
