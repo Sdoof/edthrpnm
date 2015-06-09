@@ -4,7 +4,7 @@
 ####
 
 #Total Stimulation Num
-StimultaionNum=100
+StimultaionNum=1
 #List of Every Result
 StimRslts<-NULL
 #Max Stimulation day.
@@ -27,9 +27,11 @@ for(ith_stim in 1:StimultaionNum){
   #sigma_udly<-getIV_td(histIV[1,]$IVIDX)/sqrt(252)
   
   #volatility drift 
-  #mu_iv<-(1.0)^(1/252)-1
+  mu_iv<-(1.0)^(1/252)-1
   #vov
   #sigma_iv<-0.8/sqrt(252)
+  #(market_vov - cor(udly,ivid)) heuristic etc. sigma_iv<-(0.8-co)/sqrt(252)
+  sigma_iv<-0.1/sqrt(252)
   
   #Prepare the stored values
   StimulationParameters <- NULL
@@ -38,9 +40,15 @@ for(ith_stim in 1:StimultaionNum){
   PositionDataframe <- NULL
   
   #get the underlying changed of all days.
-  
   udly_prices <- geombrmtn.stimulate(s0=XTStim$UDLY[[1]],mu=mu_udly,sigma=sigma_udly,length=stim_days_num)
   udly_prices <- udly_prices[-1]
+  
+  #get and create the IV change percent to base IV
+  iv_chgPercnt <- geombrmtn.stimulate(s0=1.0,mu=mu_iv,sigma=sigma_iv,length=stim_days_num)
+  iv_chgPercnt <- iv_chgPercnt[-1]
+  tmp<-replace(iv_chgPercnt,rep(2:length(iv_chgPercnt)),iv_chgPercnt[1:length(iv_chgPercnt)-1])
+  tmp[1]<-1
+  iv_chgPercnt<-iv_chgPercnt/tmp
   
   StimulationParameters<-list(stim_days_num)
   StimulationParameters<-c(StimulationParameters,list(mu_udly))
@@ -61,6 +69,9 @@ for(ith_stim in 1:StimultaionNum){
     #Underlying Price change
     XTStim$UDLY <- rep(udly_prices[day_chg],times=length(XTStim$UDLY))
     
+    #Base IVIDX Swings
+    XTStim$IVIDX<-XTStim$IVIDX*iv_chgPercnt[day_chg]
+    
     #Volatiliy Skew change 
     #case 1.
     tmp<-seq( ((XTStim$UDLY[1]-XTStim_b$UDLY[1])/XTStim_b$UDLY[1]),length=1)
@@ -72,22 +83,21 @@ for(ith_stim in 1:StimultaionNum){
     rm(tmp,tmp2)
     #print(XTStim)
     
-    #case 2. volatility r.v i.i.d
-    #         UDLYとIVの間に相関が無く、独立変数として扱う
+    #case 2.
     #XTStim$IVIDX<-... 設定後
     #                  1. XTStim$IVIDXで変更される値を先読みし、reflectPosChgで元に戻るように設定
     #                  2. reflectPosChg()の後、XTStim$IVIDX<-XTStim_b$IVIDX起点のランダムウォーク
     #                     シミュレーション開始時に計算済
     #Price and Greeks に関しては再計算（そのたのTime,Moneynessは再計算不要）
-    #Case of European Option　再計算
-#     tmp_<-set.EuropeanOptionValueGreeks(XTStim)
+    # UDLYとIVの間に相関が無く、独立変数として扱う
+#     XTStim$IVIDX<-iv_no_cor
+#     tmp<-set.EuropeanOptionValueGreeks(XTStim)
 #     XTStim$Price<-tmp_$Price
 #     XTStim$Delta<-tmp_$Delta
 #     XTStim$Gamma<-tmp_$Gamma
 #     XTStim$Vega<-tmp_$Vega
 #     XTStim$Theta<-tmp_$Theta
 #     XTStim$Rho<-tmp_$Rho
-#     (tmp_)
 
     # greekEffects are calculated supposing this position held for "holdDays"
     # 
@@ -145,8 +155,8 @@ for(ith_stim in 1:StimultaionNum){
     StimRslts<-c(StimRslts,list(content_))
   }
   rm(day_chg,positionProfit,positionEvalScores,PositionDataframe,content_)
-  rm(XTOrig,XTStim,XTStim_b,newPositionGrk,orgPositionGrk,udly_prices,StimulationParameters)
-  rm(mu_udly,sigma_udly,stim_days_num)
+  rm(XTOrig,XTStim,XTStim_b,newPositionGrk,orgPositionGrk,udly_prices,iv_chgPercnt,StimulationParameters)
+  rm(mu_udly,sigma_udly,mu_iv,sigma_iv,stim_days_num)
 }
 
 #cleanings for the stimulation
