@@ -35,6 +35,16 @@ set.EuropeanOptionValueGreeks <- function(xt){
 }
 
 ##
+# insert a row at r line to the existing Data Frame.
+# return new inserted Data Frame
+
+insertRow <- function(existingDF, newrow, r) {
+  existingDF[seq(r+1,nrow(existingDF)+1),] <- existingDF[seq(r,nrow(existingDF)),]
+  existingDF[r,] <- newrow
+  existingDF
+}
+
+##
 # Stimulate main function. returns StimRslts
 
 Stimulate <- function (position,
@@ -90,6 +100,9 @@ Stimulate <- function (position,
     #First calculate original Position Grks
     orgPositionGrk<-getPositionGreeks(XTOrig,multi=PosMultip)
     #print(orgPositionGrk)
+    
+    histIVOrig<-histIV
+    
     for(day_chg in 1:stim_days_num){
       
       #Just for comparison later.
@@ -105,7 +118,6 @@ Stimulate <- function (position,
       XTStim$IVIDX<-XTStim$IVIDX*iv_chgPercnt[day_chg]
       
       #Volatiliy Skew change 
-      #case 1.
       tmp<-seq( ((XTStim$UDLY[1]-XTStim_b$UDLY[1])/XTStim_b$UDLY[1]),length=1)
       tmp2<-data.frame(udlChgPct=tmp)
       tmp2 %>% group_by(udlChgPct) %>% do(pos=XTStim) -> tmp2
@@ -113,7 +125,13 @@ Stimulate <- function (position,
       tmp2 %>% group_by(udlChgPct) %>% do(pos=reflectPosChg(.,days=1)) -> tmp2
       XTStim<-tmp2$pos[[1]]
       rm(tmp,tmp2)
-      #print(XTStim)
+      
+      #Latest (Date,IVIDX) inserted on top of histIV 
+      XTStim  %>% select(Date,IVIDX) %>% .[1,] -> tmp
+      histIV<-insertRow(histIV,tmp,r=1)
+      #Oldest row should be removed
+      histIV %>% slice(-nrow(histIV))->histIV
+      rm(tmp)
       
       # greekEffects are calculated supposing this position held for "holdDays"
       # 
@@ -155,6 +173,7 @@ Stimulate <- function (position,
       #otherwise advance a day. loop.
     }
     
+    histIV<-histIVOrig
     #the ith_stim iteration finished
     content_<-list(StimulationParameters)
     content_<-c(content_,list(XTOrig))

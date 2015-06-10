@@ -13,8 +13,8 @@ OpType_Call_G=-1
 TimeToExp_Limit_Closeness_G=0.3
 #File
 Underying_Symbol_G="RUT"
-#DataFiles_Path_G="C:\\Users\\kuby\\RProject\\MarketData\\data\\"
 DataFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\MarketData\\data\\"
+ResultFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\ResultData\\"
 
 ## Read a txt file(csv file)
 (xT0<-read.table("OptionVariables.csv",header=T,sep=","))

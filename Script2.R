@@ -34,7 +34,7 @@ PosMultip<-100
 
 #Option Chain and Position Data. Here we use UDL_Positions_Pre ---------------
 rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep="")
-opchain<-read.table(rf,header=T,sep=",")
+opchain<-read.table(rf,header=T,sep=",",stringsAsFactors=FALSE)
 #filtering. deleting unnecessary column
 opchain %>% dplyr::select(-(contains('Frac',ignore.case=TRUE)),
                           -(IV)) %>% as.data.frame() -> opchain
@@ -70,7 +70,7 @@ CallIVChgDown
 
 ##Historical Implied Volatility Data ---------------
 rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_IV.csv",sep="") 
-histIV<-read.table(rf,header=T,sep=",",nrows=1999);rm(rf)
+histIV<-read.table(rf,header=T,sep=",",stringsAsFactors=FALSE,nrows=1999);rm(rf)
 #filtering
 histIV %>% dplyr::transmute(Date=Date,IVIDX=Close/100) -> histIV
 histIV %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")<=max(as.Date(position$Date,format="%Y/%m/%d"))) %>%
@@ -87,14 +87,13 @@ if(length(evalPositions)>length(opchain$Position)){
 
 evalPositions[1,1:length(opchain$Position)]
 
-
 ##
 # Stimulation
 
 #parameter provisions
 
 # Num of each Stimulation
-StimultaionNum<-1000
+StimultaionNum<-1
 
 #Max duration (days) of the Stimulation
 MaxStimDay<-14
