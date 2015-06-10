@@ -256,7 +256,7 @@ res_dtf_ <- data.frame(UDLY=udly_price_at_liquidation_,
 
 #all cleanings. result file should've been saved. 
 rm(profit_each_itr_,udly_price_at_liquidation_,liq_days_,res_dtf_)
-rm(histIV,position,StimultaionNum)
+rm(histIV,position,MaxStimDay,StimultaionNum)
 rm(StimRslts)
 
 #Functions to be loaded ---------
