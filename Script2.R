@@ -19,6 +19,7 @@ TimeToExp_Limit_Closeness_G=0.3
 #File
 Underying_Symbol_G="RUT"
 DataFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\MarketData\\data\\"
+ResultFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\ResultData\\"
 
 ##
 #  ERskRtnEval -------------
@@ -75,7 +76,17 @@ histIV %>% dplyr::transmute(Date=Date,IVIDX=Close/100) -> histIV
 histIV %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")<=max(as.Date(position$Date,format="%Y/%m/%d"))) %>%
   dplyr::arrange(desc(as.Date(Date,format="%Y/%m/%d"))) %>% head(n=dviv_caldays) -> histIV
 
-rm(opchain)
+#Stimulated Result File
+
+rf<-paste(ResultFiles_Path_G,Underying_Symbol_G,"_EvalPosition.csv",sep="")
+evalPositions<-read.table(rf,header=F,sep=",")
+length(opchain$Position)
+if(length(evalPositions)>length(opchain$Position)){
+  evalPositions %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% distinct() -> evalPositions 
+};rm(rf)
+
+evalPositions[1,1:length(opchain$Position)]
+
 
 ##
 # Stimulation
@@ -149,11 +160,12 @@ rm(gg)
 #all cleanings.
 rm(stimRslt1,resdf)
 rm(histIV,position,mu_udly,sigma_udly,mu_iv,sigma_iv,MaxStimDay,StimultaionNum)
+rm(evalPositions,opchain)
 
 #Parameters Cleaning
 rm(CallIVChgDown,CallIVChgUp,CallVCone,PutIVChgDown,PutIVChgUp,PutVCone)
 rm(PC1dCtC_IVCF1dCtC,PC3dCtC_IVCF3dCtC,PC5dCtC_IVCF5dCtC,PC7dCtC_IVCF7dCtC)
 rm(PCIVndCtC,PCndCtC,SkewModel)
 rm(riskFreeRate_G,divYld_G,OpType_Put_G,OpType_Call_G,TimeToExp_Limit_Closeness_G)
-rm(Underying_Symbol_G,DataFiles_Path_G,holdDays,dviv_caldays,PosMultip)
+rm(Underying_Symbol_G,DataFiles_Path_G,ResultFiles_Path_G,holdDays,dviv_caldays,PosMultip)
 
