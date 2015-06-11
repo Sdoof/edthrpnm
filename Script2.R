@@ -167,36 +167,38 @@ unlist(tmp)->modelScenario$median_profit;rm(tmp)
 modelScenario %>% rowwise() %>% do(profit_sd=sd(.$resdf$profit)) -> tmp
 unlist(tmp)->modelScenario$profit_sd;rm(tmp)
 
+for(i in 1:nrow(modelScenario) ){
+  pdf(file=paste(ResultFiles_Path_G,Underying_Symbol_G,"_report","1","_",i,".pdf",sep=""))
+  resdf<-modelScenario$resdf[[i]]
+  #udly price histgram
+  gg <- ggplot(resdf,aes(x=udly))+geom_histogram(alpha=0.9,aes(y=..density..))+geom_density(size=1.0,adjust=0.8,colour="cyan2")+
+    geom_point(x=mean(position$UDLY),y=0,size=6.0,width=3.0,colour="red",pch=3)+
+    geom_point(x=mean(resdf$udly),y=0,size=6.0,colour="red",pch=1)+
+    geom_point(x=median(resdf$udly),y=0,size=6.0,colour="orange",pch=1)+
+    geom_point(x=mean(resdf$udly)+sd(resdf$udly),y=0,size=6.0,colour="darkgrey",pch=2)+
+    geom_point(x=mean(resdf$udly)-sd(resdf$udly),y=0,size=6.0,colour="darkgrey",pch=2)
+  print(gg)
+  
+  #payoff function
+  gg <- ggplot(resdf,aes(x=udly,y=profit,colour=liqDay))+
+    geom_point()+
+   geom_point(x=mean(position$UDLY),y=0,size=6.0,colour="red",pch=3)+
+   geom_point(x=mean(resdf$udly),y=0,size=6.0,colour="red",pch=1)+
+   geom_point(x=median(resdf$udly),y=0,size=6.0,colour="orange",pch=1)+
+   geom_point(x=mean(resdf$udly)+sd(resdf$udly),y=0,size=6.0,colour="darkgrey",pch=2)+
+   geom_point(x=mean(resdf$udly)-sd(resdf$udly),y=0,size=6.0,colour="darkgrey",pch=2)
+  print(gg)
+  
+  #profit histgram
+  gg <- ggplot(resdf,aes(x=profit))+geom_histogram(alpha=0.9,aes(y=..density..))+geom_density(size=1.0,adjust=0.3,colour="cyan2")+
+    geom_point(x=mean(resdf$profit),y=0,size=5.0,colour="red",pch=3)+
+   geom_point(x=median(resdf$profit),y=0,size=5.0,colour="orange",pch=1)+
+   geom_point(x=mean(resdf$profit)+sd(resdf$profit),y=0,size=5.0,colour="darkgrey",pch=2)+
+   geom_point(x=mean(resdf$profit)-sd(resdf$profit),y=0,size=5.0,colour="darkgrey",pch=2)
+  print(gg)
+  dev.off()
+};rm(i);rm(gg)
 
-#udly price histgram
-gg <- ggplot(resdf,aes(x=udly))+geom_histogram(alpha=0.9,aes(y=..density..))+geom_density(size=1.0,adjust=0.8,colour="cyan2")
-(gg+geom_point(x=mean(position$UDLY),y=0,size=6.0,width=3.0,colour="red",pch=3)
- +geom_point(x=mean(resdf$udly),y=0,size=6.0,colour="red",pch=1)
- +geom_point(x=median(resdf$udly),y=0,size=6.0,colour="orange",pch=1)
- +geom_point(x=mean(resdf$udly)+sd(resdf$udly),y=0,size=6.0,colour="darkgrey",pch=2)
- +geom_point(x=mean(resdf$udly)-sd(resdf$udly),y=0,size=6.0,colour="darkgrey",pch=2)
-)
-rm(gg)
-
-#payoff function
-gg <- ggplot(resdf,aes(x=udly,y=profit,colour=liqDay))
-(gg+geom_point()
- +geom_point(x=mean(position$UDLY),y=0,size=6.0,colour="red",pch=3)
- +geom_point(x=mean(resdf$udly),y=0,size=6.0,colour="red",pch=1)
- +geom_point(x=median(resdf$udly),y=0,size=6.0,colour="orange",pch=1)
- +geom_point(x=mean(resdf$udly)+sd(resdf$udly),y=0,size=6.0,colour="darkgrey",pch=2)
- +geom_point(x=mean(resdf$udly)-sd(resdf$udly),y=0,size=6.0,colour="darkgrey",pch=2)
-)
-rm(gg)
-
-#profit histgram
-gg <- ggplot(resdf,aes(x=profit))+geom_histogram(alpha=0.9,aes(y=..density..))+geom_density(size=1.0,adjust=0.3,colour="cyan2")
-(gg+geom_point(x=mean(resdf$profit),y=0,size=5.0,colour="red",pch=3)
- +geom_point(x=median(resdf$profit),y=0,size=5.0,colour="orange",pch=1)
- +geom_point(x=mean(resdf$profit)+sd(resdf$profit),y=0,size=5.0,colour="darkgrey",pch=2)
- +geom_point(x=mean(resdf$profit)-sd(resdf$profit),y=0,size=5.0,colour="darkgrey",pch=2)
-) 
-rm(gg)
 
 #all cleanings.
 rm(stimRslt1,resdf)
