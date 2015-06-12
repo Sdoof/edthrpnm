@@ -1,0 +1,120 @@
+
+
+```{r setup, echo = TRUE}
+library(knitr)
+library(ggplot2)
+library(RQuantLib)
+library(ggplot2)
+library(plyr)
+library(dplyr)
+
+##
+#  EOptionOprEurop -------------
+
+###Global 変数及び定数.
+# Possibly read from File
+riskFreeRate_G=0.01
+divYld_G=0.0
+
+#Definition
+OpType_Put_G=1
+OpType_Call_G=-1
+#Skewness Calculation
+TimeToExp_Limit_Closeness_G=0.3
+#File
+Underying_Symbol_G="RUT"
+DataFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\MarketData\\data\\"
+ResultFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\ResultData\\"
+
+##
+#  ERskRtnEval -------------
+#holdDays Trading Days. This should be correct.
+holdDays<-3
+
+#Number of Days for calculating Annualized Daily Volatility of Implied Volatility (DVIV)
+dviv_caldays<-20
+
+#Multipler of Position
+PosMultip<-100
+
+#load saved result files
+fn<-paste(ResultFiles_Path_G,"model_rawlist_1",sep="")
+#modelStimRawlist1
+load(file=fn)
+
+fn<-paste(ResultFiles_Path_G,"model_scenario_1",sep="")
+#modelScenario1
+load(file=fn)
+
+# mu_udly sigma_udly mu_iv sigma_iv weight
+#    →(Ntrl)  →(Ntrl)  →     auto     w1
+#                      ↑     auto     w2
+#                      ↓     auto     w3
+#    →        ↓        →     auto     w4
+#                      ↑     auto     w5
+#                      ↓     auto     w6
+#    ↓        ↑        →     auto     w7
+#                      ↑     auto     w8
+#                      ↓     auto     w9
+#    ↑        →        →     auto     w10
+#                      ↑     auto     w11
+#                      ↓     auto     w12
+
+modelScenario1 %>% dplyr::select(-(resdf)) %>% print()
+
+#Option Chain and Position Data. Here we use UDL_Positions_Pre ---------------
+rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep="")
+opchain<-read.table(rf,header=T,sep=",",stringsAsFactors=FALSE)
+#filtering. deleting unnecessary column
+opchain %>% dplyr::select(-(contains('Frac',ignore.case=TRUE)),
+                          -(IV)) %>% as.data.frame() -> opchain
+
+(opchain)
+
+#Eval Position Option Chain
+modelStimRawlist1[1,][[1]][[1]]$IniValueGreek %>% print()
+
+```
+
+---
+title: "StimResults"
+output: html_document
+---
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r echo=FALSE}
+#only OOM targeted
+opchain %>% dplyr::filter(HowfarOOM>=0) -> opchain
+(opchain)
+summary(cars)
+```
+
+You can also embed plots, for example:
+
+```{r, echo=FALSE}
+plot(cars)
+```
+
+
+```{r, echo=FALSE}
+
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+# これは h1 要素
+## これは h2 要素
+### これは h3 要素
+*これはイタリック体です*
+
+_これもイタリック体です_
+
+**これは太字です**
+
+__これも太字です__
+
+
+
