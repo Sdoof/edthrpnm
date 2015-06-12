@@ -83,7 +83,7 @@ if(length(evalPositions)>length(opchain$Position)){
   evalPositions %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% distinct() -> evalPositions 
 };rm(rf)
 # Top n Spreads
-evalPositions %>% arrange(.[,length(opchain$Position)+1]) %>% head(10) -> evalPositions
+evalPositions %>% arrange(.[,length(opchain$Position)+1]) %>% slice(1:10) -> evalPositions
 
 #First spread
 
