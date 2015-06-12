@@ -71,9 +71,6 @@ opchain %>% dplyr::select(-(contains('Frac',ignore.case=TRUE)),
 
 (opchain)
 
-#Eval Position Option Chain
-modelStimRawlist1[1,][[1]][[1]]$IniValueGreek %>% print()
-
 ```
 
 ---

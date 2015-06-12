@@ -14,7 +14,7 @@ divYld_G=0.0
 #Definition
 OpType_Put_G=1
 OpType_Call_G=-1
-#Skewness Calculation\
+#Skewness Calculation
 
 TimeToExp_Limit_Closeness_G=0.3
 #File
@@ -83,105 +83,114 @@ if(length(evalPositions)>length(opchain$Position)){
   evalPositions %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% distinct() -> evalPositions 
 };rm(rf)
 # Top n Spreads
-evalPositions %>% arrange(.[,length(opchain$Position)+1]) %>% head(100) -> evalPositions
+evalPositions %>% arrange(.[,length(opchain$Position)+1]) %>% head(3) -> evalPositions
 
 #First spread
-opchain$Position<-unlist(evalPositions[1,1:length(opchain$Position)])
-
-#Get the position where opchain$Position!=0
-opchain %>% dplyr::filter(Position!=0) -> position
-
-## Stimulation
-
-#parameter provisions
 
 # Num of each Stimulation
-StimultaionNum<-1000
+StimultaionNum<-10
 
 #Max duration (days) of the Stimulation
 MaxStimDay<-14
 
-#geometric brwon motion parameters
-
-#create pertubation combinations of these parameters
-# Parameter Tables--
-# mu_udly sigma_udly mu_iv sigma_iv weight
-#    →(Ntrl)  →(Ntrl)  →     auto     w1
-#                      ↑     auto     w2
-#                      ↓     auto     w3
-#    →        ↓        →     auto     w4
-#                      ↑     auto     w5
-#                      ↓     auto     w6
-#    ↓        ↑        →     auto     w7
-#                      ↑     auto     w8
-#                      ↓     auto     w9
-#    ↑        →        →     auto     w10
-#                      ↑     auto     w11
-#                      ↓     auto     w12
-
+#Text file 
+out_text_file<-paste(ResultFiles_Path_G,Underying_Symbol_G,"_result.csv",sep="")
 #
-# mu_udly(Ntrl)     : (1.0)^(1/252)-1
-# sigma_udly(Ntrl)  : getIV_td(histIV[1,]$IVIDX)/sqrt(252)*0.95 0.95:HVとIVの調整項目。
-# mu_iv(Ntrl)       : (1.0)^(1/252)-1
-# sigma_iv(auto cal): max{VoV-abs(cor(IV,UDL)),0}
-# 
-# w1-w12の重みを対象となるUDLYやマーケットの見通しに基づき定める
-#
-# wx(!=0)の重みを与えられたシナリオについてstimulationを行い、weightで重み付けられた結果
-# を最終評価値とする
-mu_udly<-c(rep(((1.0)^(1/252)-1),times=6),rep(((0.85)^(1/252)-1),times=3),rep(((1.15)^(1/252)-1),times=3))
-sigma_udly<-c(rep(getIV_td(histIV[1,]$IVIDX)/sqrt(252)*0.95,times=3),rep(getIV_td(histIV[1,]$IVIDX)/sqrt(252)*0.8*0.95,times=3),
-  rep(getIV_td(histIV[1,]$IVIDX)/sqrt(252)*1.3*0.95,times=3),rep(getIV_td(histIV[1,]$IVIDX)/sqrt(252)*0.95,times=3))
-mu_iv<-c(rep(((1.0)^(1/252)-1),times=1),rep(((1.25)^(1/252)-1),times=1),rep(((0.75)^(1/252)-1),times=1))
-mu_iv<-rep(mu_iv,times=4)
-#(annuual.daily.volatility(getIV_td(histIV$IVIDX))$anlzd-abs(PC1dCtC_IVCF1dCtC$cor))/sqrt(252)
-sigma_iv<-rep(max(c(
-  (annuual.daily.volatility(getIV_td(histIV$IVIDX))$anlzd-abs(PC1dCtC_IVCF1dCtC$cor))/sqrt(252),
-  0)),times=12)
-weight<-c(c(1.0,0.8,0.8),c(0.6,0.4,0.6),c(0.7,1.0,0.2),c(0.4,0.4,0.4))
-weight<-weight/sum(weight)
+for(Counter in 1:nrow(evalPositions)){
+  evaPos<-evalPositions[Counter,1:length(opchain$Position)]
+  evaPos<-unlist(evaPos)
+  print(evaPos)
+  write(Counter,out_text_file,append=T)
+  cat(evaPos,"\n",file=out_text_file,sep=",",append=TRUE)
 
-modelScenario<-data.frame(mu_udly=mu_udly,sigma_udly=sigma_udly,mu_iv=mu_iv,sigma_iv=sigma_iv,weight=weight)
-rm(mu_udly,sigma_udly,mu_iv,sigma_iv,weight)
-
-#start stimulation
-modelScenario %>% rowwise() %>% do(stimrslt=Stimulate(position=position,StimultaionNum=StimultaionNum,MaxStimDay=MaxStimDay,PosMultip=PosMultip,
-                                                      mu_udly=.$mu_udly,sigma_udly=.$sigma_udly,
-                                                      mu_iv=.$mu_iv,sigma_iv=.$sigma_iv)) -> modelStimRawlist
-
-modelStimRawlist %>% rowwise() %>% do(resdf=getStimResultDataFrame(.$stimrslt,StimultaionNum)) -> tmp
-modelScenario$resdf<-tmp$resdf ; rm(tmp)
-
-#sorting
-modelScenario %>% rowwise() %>% do(resdf=.$resdf %>% dplyr::arrange(profit)) -> tmp
-tmp$resdf->modelScenario$resdf ; rm(tmp)
-
-#profit statistic
-modelScenario %>% rowwise() %>% do(min_profit=.$resdf[1,]$profit) -> tmp
-unlist(tmp)->modelScenario$min_profit;rm(tmp)
-modelScenario %>% rowwise() %>% do(min_profit=.$resdf[nrow(.$resdf),]$profit) -> tmp
-unlist(tmp)->modelScenario$max_profit;rm(tmp)
-modelScenario %>% rowwise() %>% do(mean_profit=mean(.$resdf$profit)) -> tmp
-unlist(tmp)->modelScenario$mean_profit;rm(tmp)
-modelScenario %>% rowwise() %>% do(median_profit=median(.$resdf$profit)) -> tmp
-unlist(tmp)->modelScenario$median_profit;rm(tmp)
-modelScenario %>% rowwise() %>% do(profit_sd=sd(.$resdf$profit)) -> tmp
-unlist(tmp)->modelScenario$profit_sd;rm(tmp)
-
-##
-# save object file.
-#
-
-assign("modelStimRawlist1",modelStimRawlist,env=.GlobalEnv)
-assign("modelScenario1",modelScenario,env=.GlobalEnv)
-
-save(modelScenario1,file=paste(ResultFiles_Path_G,"model_scenario_1",sep=""))
-save(modelStimRawlist1,file=paste(ResultFiles_Path_G,"model_rawlist_1",sep=""))
-
-#load(file="model_rawlist_1")
-
-rm(modelScenario1,modelStimRawlist1)
-
+  opchain$Position<-unlist(evaPos)
+  opchain %>% dplyr::filter(Position!=0) -> position
+  
+  
+  #create pertubation combinations of these parameters
+  # Parameter Tables--
+  # mu_udly sigma_udly mu_iv sigma_iv weight
+  #    →(Ntrl)  →(Ntrl)  →     auto     w1
+  #                      ↑     auto     w2
+  #                      ↓     auto     w3
+  #    →        ↓        →     auto     w4
+  #                      ↑     auto     w5
+  #                      ↓     auto     w6
+  #    ↓        ↑        →     auto     w7
+  #                      ↑     auto     w8
+  #                      ↓     auto     w9
+  #    ↑        →        →     auto     w10
+  #                      ↑     auto     w11
+  #                      ↓     auto     w12
+  
+  #
+  # mu_udly(Ntrl)     : (1.0)^(1/252)-1
+  # sigma_udly(Ntrl)  : getIV_td(histIV[1,]$IVIDX)/sqrt(252)*0.95 0.95:HVとIVの調整項目。
+  # mu_iv(Ntrl)       : (1.0)^(1/252)-1
+  # sigma_iv(auto cal): max{VoV-abs(cor(IV,UDL)),0}
+  # 
+  # w1-w12の重みを対象となるUDLYやマーケットの見通しに基づき定める
+  #
+  # wx(!=0)の重みを与えられたシナリオについてstimulationを行い、weightで重み付けられた結果
+  # を最終評価値とする
+  
+  mu_udly<-c(rep(((1.0)^(1/252)-1),times=6),rep(((0.85)^(1/252)-1),times=3),rep(((1.15)^(1/252)-1),times=3))
+  sigma_udly<-c(rep(getIV_td(histIV[1,]$IVIDX)/sqrt(252)*0.95,times=3),rep(getIV_td(histIV[1,]$IVIDX)/sqrt(252)*0.8*0.95,times=3),
+                rep(getIV_td(histIV[1,]$IVIDX)/sqrt(252)*1.3*0.95,times=3),rep(getIV_td(histIV[1,]$IVIDX)/sqrt(252)*0.95,times=3))
+  mu_iv<-c(rep(((1.0)^(1/252)-1),times=1),rep(((1.25)^(1/252)-1),times=1),rep(((0.75)^(1/252)-1),times=1))
+  mu_iv<-rep(mu_iv,times=4)
+  #(annuual.daily.volatility(getIV_td(histIV$IVIDX))$anlzd-abs(PC1dCtC_IVCF1dCtC$cor))/sqrt(252)
+  sigma_iv<-rep(max(c(
+    (annuual.daily.volatility(getIV_td(histIV$IVIDX))$anlzd-abs(PC1dCtC_IVCF1dCtC$cor))/sqrt(252),
+    0)),times=12)
+  weight<-c(c(1.0,0.8,0.8),c(0.6,0.4,0.6),c(0.7,1.0,0.2),c(0.4,0.4,0.4))
+  weight<-weight/sum(weight)
+  
+  modelScenario<-data.frame(mu_udly=mu_udly,sigma_udly=sigma_udly,mu_iv=mu_iv,sigma_iv=sigma_iv,weight=weight)
+  rm(mu_udly,sigma_udly,mu_iv,sigma_iv,weight)
+  
+  ## Stimulation
+  modelScenario %>% rowwise() %>% do(stimrslt=Stimulate(position=position,StimultaionNum=StimultaionNum,MaxStimDay=MaxStimDay,PosMultip=PosMultip,
+                                                        mu_udly=.$mu_udly,sigma_udly=.$sigma_udly,
+                                                        mu_iv=.$mu_iv,sigma_iv=.$sigma_iv)) -> modelStimRawlist
+  
+  modelStimRawlist %>% rowwise() %>% do(resdf=getStimResultDataFrame(.$stimrslt,StimultaionNum)) -> tmp
+  modelScenario$resdf<-tmp$resdf ; rm(tmp)
+  
+  fn<-paste(ResultFiles_Path_G,Underying_Symbol_G,"_modelStimRawlist_",Counter,sep="")
+  save(modelStimRawlist,file=fn)
+  
+  fn<-paste(ResultFiles_Path_G,Underying_Symbol_G,"_modelScenario_",Counter,sep="")
+  save(modelScenario,file=fn)
+  
+  #profit statistic
+  modelScenario %>% rowwise() %>% do(min_profit=min(.$resdf$profit)) -> tmp
+  unlist(tmp)->modelScenario$min_profit;rm(tmp)
+  
+  modelScenario %>% rowwise() %>% do(min_profit=max(.$resdf$profit)) -> tmp
+  unlist(tmp)->modelScenario$max_profit;rm(tmp)
+  
+  modelScenario %>% rowwise() %>% do(mean_profit=mean(.$resdf$profit)) -> tmp
+  unlist(tmp)->modelScenario$mean_profit;rm(tmp)
+  
+  modelScenario %>% rowwise() %>% do(median_profit=median(.$resdf$profit)) -> tmp
+  unlist(tmp)->modelScenario$median_profit;rm(tmp)
+  
+  modelScenario %>% rowwise() %>% do(profit_sd=sd(.$resdf$profit)) -> tmp
+  unlist(tmp)->modelScenario$profit_sd;rm(tmp)
+  
+  print(position)
+  
+  write.table(position,out_text_file,quote=T,row.names=F,append=T,sep=",")
+  
+  write.table(opchain,out_text_file,quote=T,row.names=F,append=T,sep=",")
+ 
+  modelScenario %>% dplyr::select(-(resdf)) -> tmp
+  print(tmp)
+  write.table(tmp,out_text_file,quote=T,row.names=F,append=T,sep=",")
+  rm(tmp)
+#  modelScenario %>% dplyr::select(-(resdf)) %>% write.table(out_text_file,quote=T,row.names=F,append=T,sep=",")
+};rm(Counter);rm(evaPos)
 
 ##
 # output as PDF files
@@ -218,12 +227,12 @@ for(i in 1:nrow(modelScenario) ){
   print(gg)
   dev.off()
 };rm(i);rm(gg)
-
+rm(modelScenario,modelStimRawlist)
 
 #all cleanings.
-rm(stimRslt1,resdf)
-rm(histIV,position,mu_udly,sigma_udly,mu_iv,sigma_iv,MaxStimDay,StimultaionNum)
+rm(histIV,position,MaxStimDay,StimultaionNum,out_text_file)
 rm(evalPositions,opchain)
+
 
 #Parameters Cleaning
 rm(CallIVChgDown,CallIVChgUp,CallVCone,PutIVChgDown,PutIVChgUp,PutVCone)
