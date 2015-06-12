@@ -93,7 +93,42 @@ StimultaionNum<-1000
 #Max duration (days) of the Stimulation
 MaxStimDay<-14
 
-#Text file 
+#create pertubation combinations of these parameters
+# Parameter Tables--
+# mu_udly sigma_udly mu_iv sigma_iv weight
+#    →(Ntrl)  →(Ntrl)  →     auto     w1
+#                      ↑     auto     w2
+#                      ↓     auto     w3
+#    →        ↓        →     auto     w4
+#                      ↑     auto     w5
+#                      ↓     auto     w6
+#    ↓        ↑        →     auto     w7
+#                      ↑     auto     w8
+#                      ↓     auto     w9
+#    ↑        →        →     auto     w10
+#                      ↑     auto     w11
+#                      ↓     auto     w12
+#
+# mu_udly(Ntrl)     : (1.0)^(1/252)-1
+# sigma_udly(Ntrl)  : getIV_td(histIV[1,]$IVIDX)/sqrt(252)*0.95 0.95:HVとIVの調整項目。
+# mu_iv(Ntrl)       : (1.0)^(1/252)-1
+# sigma_iv(auto cal): max{VoV-abs(cor(IV,UDL)),0}
+# 
+# w1-w12の重みを対象となるUDLYやマーケットの見通しに基づき定める
+#
+# wx(!=0)の重みを与えられたシナリオについてstimulationを行い、weightで重み付けられた結果
+# を最終評価値とする
+mu_udly_drift_up<-0.15
+mu_udly_drift_down<-0.15
+sigma_udly_drift_up<-0.30
+sigma_udly_drift_down<-0.20
+HV_IV_Adjust_Ratio<-0.95
+mu_iv_drift_up<-0.25
+mu_iv_drift_down<-0.25
+scenario_weight<-c(c(1.0,0.8,0.8),c(0.6,0.4,0.6),c(0.7,1.0,0.2),c(0.4,0.4,0.4))
+scenario_weight<-scenario_weight/sum(scenario_weight)
+
+#Result CSV file 
 out_text_file<-paste(ResultFiles_Path_G,Underying_Symbol_G,"_result.csv",sep="")
 
 for(Counter in 1:nrow(evalPositions)){
@@ -105,46 +140,19 @@ for(Counter in 1:nrow(evalPositions)){
   
   opchain$Position<-unlist(evaPos)
   opchain %>% dplyr::filter(Position!=0) -> position
-  
-  
-  #create pertubation combinations of these parameters
-  # Parameter Tables--
-  # mu_udly sigma_udly mu_iv sigma_iv weight
-  #    →(Ntrl)  →(Ntrl)  →     auto     w1
-  #                      ↑     auto     w2
-  #                      ↓     auto     w3
-  #    →        ↓        →     auto     w4
-  #                      ↑     auto     w5
-  #                      ↓     auto     w6
-  #    ↓        ↑        →     auto     w7
-  #                      ↑     auto     w8
-  #                      ↓     auto     w9
-  #    ↑        →        →     auto     w10
-  #                      ↑     auto     w11
-  #                      ↓     auto     w12
-  
-  #
-  # mu_udly(Ntrl)     : (1.0)^(1/252)-1
-  # sigma_udly(Ntrl)  : getIV_td(histIV[1,]$IVIDX)/sqrt(252)*0.95 0.95:HVとIVの調整項目。
-  # mu_iv(Ntrl)       : (1.0)^(1/252)-1
-  # sigma_iv(auto cal): max{VoV-abs(cor(IV,UDL)),0}
-  # 
-  # w1-w12の重みを対象となるUDLYやマーケットの見通しに基づき定める
-  #
-  # wx(!=0)の重みを与えられたシナリオについてstimulationを行い、weightで重み付けられた結果
-  # を最終評価値とする
-  
-  mu_udly<-c(rep(((1.0)^(1/252)-1),times=6),rep(((0.85)^(1/252)-1),times=3),rep(((1.15)^(1/252)-1),times=3))
-  sigma_udly<-c(rep(getIV_td(histIV[1,]$IVIDX)/sqrt(252)*0.95,times=3),rep(getIV_td(histIV[1,]$IVIDX)/sqrt(252)*0.8*0.95,times=3),
-                rep(getIV_td(histIV[1,]$IVIDX)/sqrt(252)*1.3*0.95,times=3),rep(getIV_td(histIV[1,]$IVIDX)/sqrt(252)*0.95,times=3))
-  mu_iv<-c(rep(((1.0)^(1/252)-1),times=1),rep(((1.25)^(1/252)-1),times=1),rep(((0.75)^(1/252)-1),times=1))
+ 
+  ##
+  # Creating Pertubation Combination Data Frame
+  mu_udly<-c(rep(((1.0)^(1/252)-1),times=6),rep(((1.0-mu_udly_drift_down)^(1/252)-1),times=3),rep(((1.0+mu_udly_drift_up)^(1/252)-1),times=3))
+  sigma_udly<-c(rep(getIV_td(histIV[1,]$IVIDX)/sqrt(252)*HV_IV_Adjust_Ratio,times=3),rep(getIV_td(histIV[1,]$IVIDX)/sqrt(252)*(1.0-sigma_udly_drift_down)*HV_IV_Adjust_Ratio,times=3),
+                rep(getIV_td(histIV[1,]$IVIDX)/sqrt(252)*(1.0+sigma_udly_drift_up)*HV_IV_Adjust_Ratio,times=3),rep(getIV_td(histIV[1,]$IVIDX)/sqrt(252)*HV_IV_Adjust_Ratio,times=3))
+  mu_iv<-c(rep(((1.0)^(1/252)-1),times=1),rep(((1.0+mu_iv_drift_up)^(1/252)-1),times=1),rep(((1.0-mu_iv_drift_down)^(1/252)-1),times=1))
   mu_iv<-rep(mu_iv,times=4)
   #(annuual.daily.volatility(getIV_td(histIV$IVIDX))$anlzd-abs(PC1dCtC_IVCF1dCtC$cor))/sqrt(252)
   sigma_iv<-rep(max(c(
     (annuual.daily.volatility(getIV_td(histIV$IVIDX))$anlzd-abs(PC1dCtC_IVCF1dCtC$cor))/sqrt(252),
     0)),times=12)
-  weight<-c(c(1.0,0.8,0.8),c(0.6,0.4,0.6),c(0.7,1.0,0.2),c(0.4,0.4,0.4))
-  weight<-weight/sum(weight)
+  weight<-scenario_weight
   
   modelScenario<-data.frame(mu_udly=mu_udly,sigma_udly=sigma_udly,mu_iv=mu_iv,sigma_iv=sigma_iv,weight=weight)
   rm(mu_udly,sigma_udly,mu_iv,sigma_iv,weight)
@@ -162,6 +170,7 @@ for(Counter in 1:nrow(evalPositions)){
   
   fn<-paste(ResultFiles_Path_G,Underying_Symbol_G,"_modelScenario_",Counter,sep="")
   save(modelScenario,file=fn)
+  rm(fn)
   
   #profit statistic
   modelScenario %>% rowwise() %>% do(min_profit=min(.$resdf$profit)) -> tmp
@@ -228,8 +237,9 @@ rm(modelScenario,modelStimRawlist)
 
 #all cleanings.
 rm(histIV,position,MaxStimDay,StimultaionNum,out_text_file)
+rm(mu_udly_drift_up,mu_udly_drift_down,sigma_udly_drift_up,sigma_udly_drift_down)
+rm(HV_IV_Adjust_Ratio,mu_iv_drift_up,mu_iv_drift_down,scenario_weight)
 rm(evalPositions,opchain)
-
 
 #Parameters Cleaning
 rm(CallIVChgDown,CallIVChgUp,CallVCone,PutIVChgDown,PutIVChgUp,PutVCone)
