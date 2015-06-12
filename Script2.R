@@ -14,7 +14,8 @@ divYld_G=0.0
 #Definition
 OpType_Put_G=1
 OpType_Call_G=-1
-#Skewness Calculation
+#Skewness Calculation\
+
 TimeToExp_Limit_Closeness_G=0.3
 #File
 Underying_Symbol_G="RUT"
@@ -95,7 +96,7 @@ opchain %>% dplyr::filter(Position!=0) -> position
 #parameter provisions
 
 # Num of each Stimulation
-StimultaionNum<-100
+StimultaionNum<-1000
 
 #Max duration (days) of the Stimulation
 MaxStimDay<-14
@@ -166,6 +167,25 @@ modelScenario %>% rowwise() %>% do(median_profit=median(.$resdf$profit)) -> tmp
 unlist(tmp)->modelScenario$median_profit;rm(tmp)
 modelScenario %>% rowwise() %>% do(profit_sd=sd(.$resdf$profit)) -> tmp
 unlist(tmp)->modelScenario$profit_sd;rm(tmp)
+
+##
+# save object file.
+#
+
+assign("modelStimRawlist1",modelStimRawlist,env=.GlobalEnv)
+assign("modelScenario1",modelScenario,env=.GlobalEnv)
+
+save(modelScenario1,file=paste(ResultFiles_Path_G,"model_scenario_1",sep=""))
+save(modelStimRawlist1,file=paste(ResultFiles_Path_G,"model_rawlist_1",sep=""))
+
+#load(file="model_rawlist_1")
+
+rm(modelScenario1,modelStimRawlist1)
+
+
+##
+# output as PDF files
+#
 
 for(i in 1:nrow(modelScenario) ){
   pdf(file=paste(ResultFiles_Path_G,Underying_Symbol_G,"_report","1","_",i,".pdf",sep=""))
