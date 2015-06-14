@@ -82,8 +82,18 @@ length(opchain$Position)
 if(length(evalPositions)>length(opchain$Position)){
   evalPositions %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% distinct() -> evalPositions 
 };rm(rf)
+
+#Evaluatin Table Position start
+evalPosStart<-1
+
+#Evaluatin Table Position end
+evalPosEnd<-10
+
 # Top n Spreads
-evalPositions %>% arrange(.[,length(opchain$Position)+1]) %>% slice(1:10) -> evalPositions
+evalPositions %>% arrange(.[,length(opchain$Position)+1]) %>% slice(evalPosStart:evalPosEnd) -> evalPositions
+
+if(nrow(evalPositions)<evalPosEnd) 
+  evalPosEnd<-nrow(evalPositions)
 
 #First spread
 
@@ -131,7 +141,9 @@ scenario_weight<-scenario_weight/sum(scenario_weight)
 #Result CSV file 
 out_text_file<-paste(ResultFiles_Path_G,Underying_Symbol_G,"_result.csv",sep="")
 
-for(Counter in 1:nrow(evalPositions)){
+#Evaluatin Table Position end
+
+for(Counter in evalPosStart:evalPosEnd){
   evaPos<-evalPositions[Counter,1:length(opchain$Position)]
   evaPos<-unlist(evaPos)
   print(evaPos)
@@ -165,12 +177,7 @@ for(Counter in 1:nrow(evalPositions)){
   modelStimRawlist %>% rowwise() %>% do(resdf=getStimResultDataFrame(.$stimrslt,StimultaionNum)) -> tmp
   modelScenario$resdf<-tmp$resdf ; rm(tmp)
   
-  fn<-paste(ResultFiles_Path_G,Underying_Symbol_G,"_modelStimRawlist_",Counter,sep="")
-  save(modelStimRawlist,file=fn)
   
-  fn<-paste(ResultFiles_Path_G,Underying_Symbol_G,"_modelScenario_",Counter,sep="")
-  save(modelScenario,file=fn)
-  rm(fn)
   
   #profit statistic
   modelScenario %>% rowwise() %>% do(min_profit=min(.$resdf$profit)) -> tmp
@@ -187,6 +194,13 @@ for(Counter in 1:nrow(evalPositions)){
   
   modelScenario %>% rowwise() %>% do(profit_sd=sd(.$resdf$profit)) -> tmp
   unlist(tmp)->modelScenario$profit_sd;rm(tmp)
+  
+  fn<-paste(ResultFiles_Path_G,Underying_Symbol_G,"_modelStimRawlist_",Counter,sep="")
+  save(modelStimRawlist,file=fn)
+  
+  fn<-paste(ResultFiles_Path_G,Underying_Symbol_G,"_modelScenario_",Counter,sep="")
+  save(modelScenario,file=fn)
+  rm(fn)
   
   print(position)
   
@@ -230,13 +244,14 @@ for(Counter in 1:nrow(evalPositions)){
       geom_point(x=mean(resdf$profit)-sd(resdf$profit),y=0,size=5.0,colour="darkgrey",pch=2)
     print(gg)
     dev.off()
-  };rm(i);rm(gg)
+  };rm(i);rm(gg);rm(resdf)
 }
 rm(evaPos,Counter)
 rm(modelScenario,modelStimRawlist)
 
 #all cleanings.
 rm(histIV,position,MaxStimDay,StimultaionNum,out_text_file)
+rm(evalPosStart,evalPosEnd)
 rm(mu_udly_drift_up,mu_udly_drift_down,sigma_udly_drift_up,sigma_udly_drift_down)
 rm(HV_IV_Adjust_Ratio,mu_iv_drift_up,mu_iv_drift_down,scenario_weight)
 rm(evalPositions,opchain)
