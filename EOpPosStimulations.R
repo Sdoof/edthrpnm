@@ -51,7 +51,7 @@ Stimulate <- function (position,
                        #Total Stimulation Num
                        StimultaionNum=1000,
                        #Max Stimulation day.
-                       MaxStimDay=14,PosMultip=PosMultip,
+                       MaxStimDay,PosMultip=PosMultip,
                        #underlying daily return for geometic brown motion
                        mu_udly,
                        #underlying initial daily volatility.
