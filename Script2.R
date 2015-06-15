@@ -87,7 +87,7 @@ if(length(evalPositions)>length(opchain$Position)){
 evalPosStart<-1
 
 #Evaluatin Table Position end
-evalPosEnd<-10
+evalPosEnd<-3
 
 # Top n Spreads
 evalPositions %>% arrange(.[,length(opchain$Position)+1]) %>% slice(evalPosStart:evalPosEnd) -> evalPositions
@@ -98,7 +98,7 @@ if(nrow(evalPositions)<evalPosEnd)
 #First spread
 
 # Num of each Stimulation
-StimultaionNum<-1000
+StimultaionNum<-100
 
 #Max duration (days) of the Stimulation
 MaxStimDay<-14
@@ -258,8 +258,7 @@ rm(evalPositions,opchain)
 
 #Parameters Cleaning
 rm(CallIVChgDown,CallIVChgUp,CallVCone,PutIVChgDown,PutIVChgUp,PutVCone)
-rm(PC1dCtC_IVCF1dCtC,PC3dCtC_IVCF3dCtC,PC5dCtC_IVCF5dCtC,PC7dCtC_IVCF7dCtC)
-rm(PCIVndCtC,PCndCtC,SkewModel)
+rm(PC1dCtC_IVCF1dCtC,PC3dCtC_IVCF3dCtC,PC5dCtC_IVCF5dCtC,PC7dCtC_IVCF7dCtC,SkewModel)
 rm(riskFreeRate_G,divYld_G,OpType_Put_G,OpType_Call_G,TimeToExp_Limit_Closeness_G)
 rm(Underying_Symbol_G,DataFiles_Path_G,ResultFiles_Path_G,holdDays,dviv_caldays,PosMultip)
 
