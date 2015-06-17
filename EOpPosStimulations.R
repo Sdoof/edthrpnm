@@ -81,7 +81,9 @@ Stimulate <- function (position,
     
     #get the underlying changed of all days.
     udly_prices <- geombrmtn.stimulate(s0=XTStim$UDLY[[1]],mu=mu_udly,sigma=sigma_udly,length=stim_days_num)
+    #cat(udly_prices,sep=",","\n")
     udly_prices <- udly_prices[-1]
+    #cat(udly_prices,sep=",","\n")
     
     #get and create the IV change percent to base IV
     iv_chgPercnt <- geombrmtn.stimulate(s0=1.0,mu=mu_iv,sigma=sigma_iv,length=stim_days_num)
@@ -108,22 +110,31 @@ Stimulate <- function (position,
       #Just for comparison later.
       XTStim_b<-XTStim
       
-      #Advance day_chg day
-      #XTStim$Date<-format(advance("UnitedStates/NYSE",dates=as.Date(XTOrig$Date,format="%Y/%m/%d"),day_chg,0),"%Y/%m/%d")
-      #print(XTStim$Date)
-      #Underlying Price change
-      XTStim$UDLY <- rep(udly_prices[day_chg],times=length(XTStim$UDLY))
-      
       #Base IVIDX Swings
-      XTStim$IVIDX<-XTStim$IVIDX*iv_chgPercnt[day_chg]
       
-      #Volatiliy Skew change 
-      tmp<-seq( ((XTStim$UDLY[1]-XTStim_b$UDLY[1])/XTStim_b$UDLY[1]),length=1)
+      #print(day_chg)
+      #cat("before IVIDX",XTStim$IVIDX,"\n")
+      #cat("iv_chgPercnt ",iv_chgPercnt[day_chg],"\n")
+      XTStim$IVIDX<-XTStim$IVIDX*iv_chgPercnt[day_chg]
+      #cat("after IVIDX",XTStim$IVIDX,"\n")
+    
+      ## Create this kind of data frame.
+      #       udlChgPct    pos
+      #   1     0.03   <S3:data.frame>
+      tmp<-seq( ((udly_prices[day_chg]-XTStim_b$UDLY[1])/XTStim_b$UDLY[1]),length=1)
       tmp2<-data.frame(udlChgPct=tmp)
       tmp2 %>% group_by(udlChgPct) %>% do(pos=XTStim) -> tmp2
+      
+      ## Reflect Position Change
+      #
       #days=1 means just 1 day will have passed. 
       tmp2 %>% group_by(udlChgPct) %>% do(pos=reflectPosChg(.,days=1)) -> tmp2
       XTStim<-tmp2$pos[[1]]
+      
+      #XTStim is the above_data_frame$pos which reflects the Date,UDLY,IVIDX,OrigIV,All Greeks
+      #cat("UDLY should become ",udly_prices[day_chg],"\n")
+      #cat("Actual UDLY ",XTStim$UDLY,"\n")
+      #print(XTStim)
       rm(tmp,tmp2)
       
       #Latest (Date,IVIDX) inserted on top of histIV 

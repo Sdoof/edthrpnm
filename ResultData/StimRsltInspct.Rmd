@@ -38,7 +38,7 @@ opchain$Position<-0
 
 ##
 #  Target idx to be evaluated
-evalTargetIdx<-data.frame(spread_idx=1,scenario_idx=1,stim_idx=21)
+evalTargetIdx<-data.frame(spread_idx=1,scenario_idx=1,stim_idx=10)
 
 ```
 ##Spread ID: 
@@ -140,7 +140,7 @@ iniGammaE<-modelStimRawlist$stimrslt[[evalTargetIdx$scenario_idx]][[evalTargetId
 cat(UDLY_path,sep=",","\n")
 cat("%chg",(replace(UDLY_path, rep(1:(length(UDLY_path)-1)), UDLY_path[2:length(UDLY_path)])/UDLY_path-1)[-length(UDLY_path)]*100,sep=",","\n")
 gg <- ggplot(data.frame(days=seq(1,Stimdays,by=1),udly=UDLY_path),aes(x=days,y=udly))+geom_point()+geom_line()+
-  geom_point(x=0,y=iniUDLY,size=3.0,pch=3)+xlim(0,Stimdays)
+  geom_point(x=0,y=iniUDLY,size=3.0,pch=3)+xlim(0,Stimdays)+ylim(min(UDLY_path,iniUDLY),max(UDLY_path,iniUDLY))
 print(gg)
 ```
 
@@ -148,7 +148,7 @@ print(gg)
 ```{r echo = FALSE}
 cat(IVIDX_path,sep=",","\n")
 gg <- ggplot(data.frame(days=seq(1,Stimdays,by=1),IVIDX=IVIDX_path),aes(x=days,y=IVIDX))+geom_point()+geom_line()+
-  geom_point(x=0,y=iniIVIDX,size=3.0,pch=3)+xlim(0,Stimdays)+ylim(min(IVIDX_path),max(IVIDX_path))
+  geom_point(x=0,y=iniIVIDX,size=3.0,pch=3)+xlim(0,Stimdays)+ylim(min(IVIDX_path,iniIVIDX),max(IVIDX_path,iniIVIDX))
 print(gg)
 ```
 
@@ -157,7 +157,7 @@ print(gg)
 print(Profit_path)
 
 gg <- ggplot(data.frame(days=seq(1,Stimdays,by=1),profit=Profit_path),aes(x=days,y=profit))+geom_point()+geom_line()+
-  geom_point(x=0,y=0,size=3.0,pch=3)+xlim(0,Stimdays)+ylim(min(Profit_path),max(Profit_path))
+  geom_point(x=0,y=0,size=3.0,pch=3)+xlim(0,Stimdays)+ylim(min(Profit_path,0),max(Profit_path,0))
 print(gg)
 ```
 
@@ -174,8 +174,8 @@ gg <- ggplot(data.frame(days=seq(1,Stimdays,by=1),profit=Profit_path),aes(x=days
   geom_point(x=seq(1,Stimdays,by=1),y=ThetaE_path,colour="orange")+geom_point(x=0,y=iniThetaE,size=3.0,colour="orange",pch=3)+
   geom_line(x=seq(1,Stimdays,by=1),y=GammaE_path,colour="red")+
   geom_point(x=seq(1,Stimdays,by=1),y=GammaE_path,colour="red")+geom_point(x=0,y=iniGammaE,size=3.0,colour="red",pch=3)+
-  xlim(0,Stimdays)+ylim(min(Profit_path,DeltaE_path,VegaE_path,ThetaE_path,GammaE_path),
-                        max(Profit_path,DeltaE_path,VegaE_path,ThetaE_path,GammaE_path))
+  xlim(0,Stimdays)+ylim(min(Profit_path,DeltaE_path,VegaE_path,ThetaE_path,GammaE_path,iniDeltaE,iniVegaE,iniThetaE,iniGammaE,0),
+                        max(Profit_path,DeltaE_path,VegaE_path,ThetaE_path,GammaE_path,iniDeltaE,iniVegaE,iniThetaE,iniGammaE,0))
 print(gg)
 ```
 
@@ -185,23 +185,23 @@ cat("DeltaE+VegaE",DeltaE_path+VegaE_path,"\n")
 cat("ThetaE+GammaE",ThetaE_path+GammaE_path,"\n")
 cat("AllE",DeltaE_path+VegaE_path+ThetaE_path+GammaE_path,"\n")
 ```
-###sigmoid sigmoid(DeltaE_path+VegaE_path)/sigmoid(ThetaE_path+GammaE_path)
+###sigmoid (1-sigmoid(DeltaE+VegaE))/sigmoid(ThetaE+GammaE)
 ```{r echo = FALSE}
 a<-0.0001
 print(a)
-sigmoid(DeltaE_path+VegaE_path,a=a,b=0)
+(1-sigmoid(DeltaE_path+VegaE_path,a=a,b=0))
 sigmoid(ThetaE_path+GammaE_path,a=a,b=0)
-sigmoid(DeltaE_path+VegaE_path,a=a,b=0)/sigmoid(ThetaE_path+GammaE_path,a=a,b=0)
+(1-sigmoid(DeltaE_path+VegaE_path,a=a,b=0))/sigmoid(ThetaE_path+GammaE_path,a=a,b=0)
 a<-0.001
 print(a)
-sigmoid(DeltaE_path+VegaE_path,a=a,b=0)
+(1-sigmoid(DeltaE_path+VegaE_path,a=a,b=0))
 sigmoid(ThetaE_path+GammaE_path,a=a,b=0)
-sigmoid(DeltaE_path+VegaE_path,a=a,b=0)/sigmoid(ThetaE_path+GammaE_path,a=a,b=0)
+(1-sigmoid(DeltaE_path+VegaE_path,a=a,b=0))/sigmoid(ThetaE_path+GammaE_path,a=a,b=0)
 a<-0.01
 print(a)
-sigmoid(DeltaE_path+VegaE_path,a=a,b=0)
+(1-sigmoid(DeltaE_path+VegaE_path,a=a,b=0))
 sigmoid(ThetaE_path+GammaE_path,a=a,b=0)
-sigmoid(DeltaE_path+VegaE_path,a=a,b=0)/sigmoid(ThetaE_path+GammaE_path,a=a,b=0)
+(1-sigmoid(DeltaE_path+VegaE_path,a=a,b=0))/sigmoid(ThetaE_path+GammaE_path,a=a,b=0)
 
 ```
 

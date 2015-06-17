@@ -87,7 +87,7 @@ if(length(evalPositions)>length(opchain$Position)){
 evalPosStart<-1
 
 #Evaluatin Table Position end
-evalPosEnd<-3
+evalPosEnd<-1
 
 # Top n Spreads
 evalPositions %>% arrange(.[,length(opchain$Position)+1]) %>% slice(evalPosStart:evalPosEnd) -> evalPositions
