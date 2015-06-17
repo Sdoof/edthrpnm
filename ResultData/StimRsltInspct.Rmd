@@ -1,0 +1,150 @@
+```{r setup, echo = FALSE}
+library(ggplot2)
+library(RQuantLib)
+library(plyr)
+library(dplyr)
+library(knitr)
+```
+
+---
+title: "StimRsltltnInspct"
+output: html_document
+---
+
+```{r echo = FALSE}
+##
+#  EOptionOprEurop -------------
+
+#File
+Underying_Symbol_G="RUT"
+DataFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\MarketData\\data\\"
+ResultFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\ResultData\\"
+
+####
+# from here is the meat
+
+##
+#  Target idx to be evaluated
+evalTargetIdx<-data.frame(spread_idx=1,scenario_idx=8,stim_idx=35)
+
+#Option Chain and Position Data. Here we use UDL_Positions_Pre ---------------
+rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep="")
+opchain<-read.table(rf,header=T,sep=",",stringsAsFactors=FALSE)
+#filtering. deleting unnecessary column
+opchain %>% dplyr::select(-(contains('Frac',ignore.case=TRUE)),
+                          -(IV)) %>% as.data.frame() -> opchain
+#only OOM targeted
+opchain %>% dplyr::filter(HowfarOOM>=0) -> opchain
+
+```
+##Spread Id: 
+```{r echo = FALSE }
+print(evalTargetIdx$spread_idx)
+```
+
+##Scenario ID:
+```{r echo = TRUE }
+# mu_udly sigma_udly mu_iv sigma_iv weight
+#    →(Ntrl)  →(Ntrl)  →     auto     w1
+#                      ↑     auto     w2
+#                      ↓     auto     w3
+#    →        ↓        →     auto     w4
+#                      ↑     auto     w5
+#                      ↓     auto     w6
+#    ↓        ↑        →     auto     w7
+#                      ↑     auto     w8
+#                      ↓     auto     w9
+#    ↑        →        →     auto     w10
+#                      ↑     auto     w11
+#                      ↓     auto     w12
+```
+
+```{r echo = FALSE }
+print(evalTargetIdx$scenario_idx)
+fn<-paste(ResultFiles_Path_G,Underying_Symbol_G,"_modelScenario_",evalTargetIdx$spread_idx,sep="")
+load(file=fn)
+modelScenario %>% dplyr::select(-(resdf)) %>% print()
+modelScenario$resdf[[evalTargetIdx$scenario_idx]] %>% print()
+
+```
+
+##Stimulation ID 
+```{r echo = FALSE}
+print(evalTargetIdx$stim_idx)
+fn<-paste(ResultFiles_Path_G,Underying_Symbol_G,"_modelStimRawlist_",evalTargetIdx$spread_idx,sep="")
+load(file=fn)
+modelStimRawlist$stimrslt[[evalTargetIdx$scenario_idx]][[evalTargetIdx$stim_idx]]
+```
+Greeek Effect
+```{r echo = FALSE}
+Stimdays<-length(modelStimRawlist$stimrslt[[evalTargetIdx$scenario_idx]][[evalTargetIdx$stim_idx]]$EvalScore)
+UDLY_path<-DeltaE_path<-VegaE_path<-ThetaE_path<-GammaE_path<-IVIDX_path<-rep(NA, times=Stimdays)
+ for(ithday in 1:Stimdays){
+   UDLY_path[ithday]<-modelStimRawlist$stimrslt[[evalTargetIdx$scenario_idx]][[evalTargetIdx$stim_idx]]$EvalScore[[ithday]]$UDLY
+   DeltaE_path[ithday]<-modelStimRawlist$stimrslt[[evalTargetIdx$scenario_idx]][[evalTargetIdx$stim_idx]]$EvalScore[[ithday]]$DeltaEffect
+   VegaE_path[ithday]<-modelStimRawlist$stimrslt[[evalTargetIdx$scenario_idx]][[evalTargetIdx$stim_idx]]$EvalScore[[ithday]]$VegaEffect
+   ThetaE_path[ithday]<-modelStimRawlist$stimrslt[[evalTargetIdx$scenario_idx]][[evalTargetIdx$stim_idx]]$EvalScore[[ithday]]$ThetaEffect
+   GammaE_path[ithday]<-modelStimRawlist$stimrslt[[evalTargetIdx$scenario_idx]][[evalTargetIdx$stim_idx]]$EvalScore[[ithday]]$GammaEffect
+   IVIDX_path[ithday]<-modelStimRawlist$stimrslt[[evalTargetIdx$scenario_idx]][[evalTargetIdx$stim_idx]]$ValueGreek[[ithday]]$IVIDX[1]
+   cat(ithday," Day: ","DeltaE ",DeltaE_path[ithday]," VegaE ",VegaE_path[ithday]," ThetaE ",ThetaE_path[ithday]," GammaE ",GammaE_path[ithday],"\n")
+   modelStimRawlist$stimrslt[[evalTargetIdx$scenario_idx]][[evalTargetIdx$stim_idx]]$Profit
+ }
+Profit_path<-modelStimRawlist$stimrslt[[evalTargetIdx$scenario_idx]][[evalTargetIdx$stim_idx]]$Profit
+
+```
+
+```{r echo = FALSE}
+iniPrice<-modelStimRawlist$stimrslt[[evalTargetIdx$scenario_idx]][[evalTargetIdx$stim_idx]]$IniEvalScore$Price
+iniUDLY<-modelStimRawlist$stimrslt[[evalTargetIdx$scenario_idx]][[evalTargetIdx$stim_idx]]$IniEvalScore$UDLY
+iniIVIDX<-modelStimRawlist$stimrslt[[evalTargetIdx$scenario_idx]][[evalTargetIdx$stim_idx]]$IniValueGreek$IVIDX[[1]]
+iniDeltaE<-modelStimRawlist$stimrslt[[evalTargetIdx$scenario_idx]][[evalTargetIdx$stim_idx]]$IniEvalScore$DeltaEffect
+iniVegaE<-modelStimRawlist$stimrslt[[evalTargetIdx$scenario_idx]][[evalTargetIdx$stim_idx]]$IniEvalScore$VegaEffect
+iniThetaE<-modelStimRawlist$stimrslt[[evalTargetIdx$scenario_idx]][[evalTargetIdx$stim_idx]]$IniEvalScore$ThetaEffect
+iniGammaE<-modelStimRawlist$stimrslt[[evalTargetIdx$scenario_idx]][[evalTargetIdx$stim_idx]]$IniEvalScore$GammaEffect
+```
+
+###UDLY Path
+```{r echo = FALSE}
+print(UDLY_path)
+
+gg <- ggplot(data.frame(days=seq(1,Stimdays,by=1),udly=UDLY_path),aes(x=days,y=udly))+geom_point()+geom_line()+
+  geom_point(x=0,y=iniUDLY,size=3.0,pch=3)+xlim(0,Stimdays)
+print(gg)
+```
+
+###IVIDX Path
+```{r echo = FALSE}
+print(IVIDX_path)
+gg <- ggplot(data.frame(days=seq(1,Stimdays,by=1),IVIDX=IVIDX_path),aes(x=days,y=IVIDX))+geom_point()+geom_line()+
+  geom_point(x=0,y=iniIVIDX,size=3.0,pch=3)+xlim(0,Stimdays)
+print(gg)
+```
+
+###Profit Path
+```{r echo = FALSE}
+print(Profit_path)
+
+gg <- ggplot(data.frame(days=seq(1,Stimdays,by=1),profit=Profit_path),aes(x=days,y=profit))+geom_point()+geom_line()+
+  geom_point(x=0,y=0,size=3.0,pch=3)+xlim(0,Stimdays)+ylim(0,max(Profit_path))
+print(gg)
+```
+
+###Greek Effect Path
+
+```{r echo = FALSE}
+gg <- ggplot(data.frame(days=seq(1,Stimdays,by=1),profit=Profit_path),aes(x=days,y=profit))+geom_point()+geom_line()+
+  geom_point(x=0,y=0,size=2.0,colour="black")+
+  geom_line(x=seq(1,Stimdays,by=1),y=DeltaE_path,colour="blue")+
+  geom_point(x=seq(1,Stimdays,by=1),y=DeltaE_path,colour="blue")+geom_point(x=0,y=iniDeltaE,size=3.0,colour="blue",pch=3)+
+  geom_line(x=seq(1,Stimdays,by=1),y=VegaE_path,colour="green")+
+  geom_point(x=seq(1,Stimdays,by=1),y=VegaE_path,colour="green")+geom_point(x=0,y=iniVegaE,size=3.0,colour="green",pch=3)+
+  geom_line(x=seq(1,Stimdays,by=1),y=ThetaE_path,colour="orange")+
+  geom_point(x=seq(1,Stimdays,by=1),y=ThetaE_path,colour="orange")+geom_point(x=0,y=iniThetaE,size=3.0,colour="orange",pch=3)+
+  geom_line(x=seq(1,Stimdays,by=1),y=GammaE_path,colour="red")+
+  geom_point(x=seq(1,Stimdays,by=1),y=GammaE_path,colour="red")+geom_point(x=0,y=iniGammaE,size=3.0,colour="red",pch=3)+
+  xlim(0,Stimdays)+ylim(min(0,DeltaE_path,VegaE_path,ThetaE_path,GammaE_path),
+                        max(Profit_path,DeltaE_path,VegaE_path,ThetaE_path,GammaE_path))
+print(gg)
+```
+
+
