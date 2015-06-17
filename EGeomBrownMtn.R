@@ -139,15 +139,15 @@ rnorm2cond <- function(mx, sx, my, sy, r,y0) {
 }
 
 #1. Vectorized Geometric Brownian Motion Code
-#GBM = function(N,sigma,u,S0){
-#  Wt = cumsum(rnorm(N,0,1));
-#  dt<-1 #dt<-255, dt<-365
-#  t = (1:N)/dt;
-#  p1 = (u-0.5*(sigma^2))*t;
-#  p2 = sigma*Wt;
-#  St = S0*exp(p1 + p2);
-#  return (St);
-#}
+GBM = function(N,sigma,u,S0){
+  Wt = cumsum(rnorm(N,0,1));
+  dt<-1 #dt<-255, dt<-365
+  t = (1:N)/dt;
+  p1 = (u-0.5*(sigma^2))*t;
+  p2 = sigma*Wt;
+  St = S0*exp(p1 + p2);
+  return (St);
+}
 # Geometric Brownian Motion Code with multiply plots
 #P = 5
 #GBMs = matrix(nrow = P, ncol = N)

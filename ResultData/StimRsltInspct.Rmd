@@ -3,6 +3,7 @@ library(ggplot2)
 library(RQuantLib)
 library(plyr)
 library(dplyr)
+library(pracma)
 library(knitr)
 ```
 
@@ -20,14 +21,8 @@ Underying_Symbol_G="RUT"
 DataFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\MarketData\\data\\"
 ResultFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\ResultData\\"
 
-####
-# from here is the meat
-
 ##
-#  Target idx to be evaluated
-evalTargetIdx<-data.frame(spread_idx=1,scenario_idx=8,stim_idx=35)
-
-#Option Chain and Position Data. Here we use UDL_Positions_Pre ---------------
+# Option Chain and Position Data. Here we use UDL_Positions_Pre
 rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep="")
 opchain<-read.table(rf,header=T,sep=",",stringsAsFactors=FALSE)
 #filtering. deleting unnecessary column
@@ -37,6 +32,14 @@ opchain %>% dplyr::select(-(contains('Frac',ignore.case=TRUE)),
 opchain %>% dplyr::filter(HowfarOOM>=0) -> opchain
 #Position reseted to 0
 opchain$Position<-0
+
+####
+# from here is the meat
+
+##
+#  Target idx to be evaluated
+evalTargetIdx<-data.frame(spread_idx=1,scenario_idx=1,stim_idx=21)
+
 ```
 ##Spread ID: 
 ```{r echo = FALSE }
@@ -134,8 +137,8 @@ iniGammaE<-modelStimRawlist$stimrslt[[evalTargetIdx$scenario_idx]][[evalTargetId
 
 ###UDLY Path
 ```{r echo = FALSE}
-print(UDLY_path)
-
+cat(UDLY_path,sep=",","\n")
+cat("%chg",(replace(UDLY_path, rep(1:(length(UDLY_path)-1)), UDLY_path[2:length(UDLY_path)])/UDLY_path-1)[-length(UDLY_path)]*100,sep=",","\n")
 gg <- ggplot(data.frame(days=seq(1,Stimdays,by=1),udly=UDLY_path),aes(x=days,y=udly))+geom_point()+geom_line()+
   geom_point(x=0,y=iniUDLY,size=3.0,pch=3)+xlim(0,Stimdays)
 print(gg)
@@ -143,9 +146,9 @@ print(gg)
 
 ###IVIDX Path
 ```{r echo = FALSE}
-print(IVIDX_path)
+cat(IVIDX_path,sep=",","\n")
 gg <- ggplot(data.frame(days=seq(1,Stimdays,by=1),IVIDX=IVIDX_path),aes(x=days,y=IVIDX))+geom_point()+geom_line()+
-  geom_point(x=0,y=iniIVIDX,size=3.0,pch=3)+xlim(0,Stimdays)
+  geom_point(x=0,y=iniIVIDX,size=3.0,pch=3)+xlim(0,Stimdays)+ylim(min(IVIDX_path),max(IVIDX_path))
 print(gg)
 ```
 
@@ -154,7 +157,7 @@ print(gg)
 print(Profit_path)
 
 gg <- ggplot(data.frame(days=seq(1,Stimdays,by=1),profit=Profit_path),aes(x=days,y=profit))+geom_point()+geom_line()+
-  geom_point(x=0,y=0,size=3.0,pch=3)+xlim(0,Stimdays)+ylim(0,max(Profit_path))
+  geom_point(x=0,y=0,size=3.0,pch=3)+xlim(0,Stimdays)+ylim(min(Profit_path),max(Profit_path))
 print(gg)
 ```
 
@@ -171,9 +174,34 @@ gg <- ggplot(data.frame(days=seq(1,Stimdays,by=1),profit=Profit_path),aes(x=days
   geom_point(x=seq(1,Stimdays,by=1),y=ThetaE_path,colour="orange")+geom_point(x=0,y=iniThetaE,size=3.0,colour="orange",pch=3)+
   geom_line(x=seq(1,Stimdays,by=1),y=GammaE_path,colour="red")+
   geom_point(x=seq(1,Stimdays,by=1),y=GammaE_path,colour="red")+geom_point(x=0,y=iniGammaE,size=3.0,colour="red",pch=3)+
-  xlim(0,Stimdays)+ylim(min(0,DeltaE_path,VegaE_path,ThetaE_path,GammaE_path),
+  xlim(0,Stimdays)+ylim(min(Profit_path,DeltaE_path,VegaE_path,ThetaE_path,GammaE_path),
                         max(Profit_path,DeltaE_path,VegaE_path,ThetaE_path,GammaE_path))
 print(gg)
 ```
 
+###Trade Index path
+```{r echo = FALSE}
+cat("DeltaE+VegaE",DeltaE_path+VegaE_path,"\n")
+cat("ThetaE+GammaE",ThetaE_path+GammaE_path,"\n")
+cat("AllE",DeltaE_path+VegaE_path+ThetaE_path+GammaE_path,"\n")
+```
+###sigmoid sigmoid(DeltaE_path+VegaE_path)/sigmoid(ThetaE_path+GammaE_path)
+```{r echo = FALSE}
+a<-0.0001
+print(a)
+sigmoid(DeltaE_path+VegaE_path,a=a,b=0)
+sigmoid(ThetaE_path+GammaE_path,a=a,b=0)
+sigmoid(DeltaE_path+VegaE_path,a=a,b=0)/sigmoid(ThetaE_path+GammaE_path,a=a,b=0)
+a<-0.001
+print(a)
+sigmoid(DeltaE_path+VegaE_path,a=a,b=0)
+sigmoid(ThetaE_path+GammaE_path,a=a,b=0)
+sigmoid(DeltaE_path+VegaE_path,a=a,b=0)/sigmoid(ThetaE_path+GammaE_path,a=a,b=0)
+a<-0.01
+print(a)
+sigmoid(DeltaE_path+VegaE_path,a=a,b=0)
+sigmoid(ThetaE_path+GammaE_path,a=a,b=0)
+sigmoid(DeltaE_path+VegaE_path,a=a,b=0)/sigmoid(ThetaE_path+GammaE_path,a=a,b=0)
+
+```
 
