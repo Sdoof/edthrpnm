@@ -35,14 +35,14 @@ opchain %>% dplyr::select(-(contains('Frac',ignore.case=TRUE)),
                           -(IV)) %>% as.data.frame() -> opchain
 #only OOM targeted
 opchain %>% dplyr::filter(HowfarOOM>=0) -> opchain
-
+#Position reseted to 0
+opchain$Position<-0
 ```
-##Spread Id: 
+##Spread ID: 
 ```{r echo = FALSE }
 print(evalTargetIdx$spread_idx)
 ```
-
-##Scenario ID:
+##Scenario Table:
 ```{r echo = TRUE }
 # mu_udly sigma_udly mu_iv sigma_iv weight
 #    →(Ntrl)  →(Ntrl)  →     auto     w1
@@ -57,25 +57,54 @@ print(evalTargetIdx$spread_idx)
 #    ↑        →        →     auto     w10
 #                      ↑     auto     w11
 #                      ↓     auto     w12
+
 ```
 
 ```{r echo = FALSE }
-print(evalTargetIdx$scenario_idx)
 fn<-paste(ResultFiles_Path_G,Underying_Symbol_G,"_modelScenario_",evalTargetIdx$spread_idx,sep="")
 load(file=fn)
 modelScenario %>% dplyr::select(-(resdf)) %>% print()
-modelScenario$resdf[[evalTargetIdx$scenario_idx]] %>% print()
-
 ```
-
+###summary
+```{r echo = FALSE }
+data.frame(min_profit=min(modelScenario$min_profit),max_profit=max(modelScenario$max_profit),expected_profit=sum(modelScenario$weight*modelScenario$mean_profit)) %>% print()
+```
+##Scenario Index:
+```{r echo = FALSE }
+print(evalTargetIdx$scenario_idx)
+modelScenario$resdf[[evalTargetIdx$scenario_idx]] %>% top_n(500) %>% print()
+```
+###summary
+```{r echo = FALSE }
+cat("Total Stimulation Num: ",nrow(modelScenario$resdf[[evalTargetIdx$scenario_idx]]))
+cat("Min profit@",which.min(modelScenario$resdf[[evalTargetIdx$scenario_idx]]$profit),"th: ",
+    min(modelScenario$resdf[[evalTargetIdx$scenario_idx]]$profit))
+cat("Max profit@",which.max(modelScenario$resdf[[evalTargetIdx$scenario_idx]]$profit),"th: ",
+    max(modelScenario$resdf[[evalTargetIdx$scenario_idx]]$profit))
+```
 ##Stimulation ID 
 ```{r echo = FALSE}
 print(evalTargetIdx$stim_idx)
+```
+###Option Chain
+```{r echo = FALSE}
 fn<-paste(ResultFiles_Path_G,Underying_Symbol_G,"_modelStimRawlist_",evalTargetIdx$spread_idx,sep="")
 load(file=fn)
+#opchainとIniValueGreekのmerge. opchainのPosition列を削除して、IniValueGreekのkey列(Date,ExpDate,TYPE,Strike,ContactName)
+#一致したもののPositionの値をopchainのPositionとして反映。
+opchain  %>% select(-Position) %>% merge(modelStimRawlist$stimrslt[[evalTargetIdx$scenario_idx]][[evalTargetIdx$stim_idx]]$IniValueGreek %>% select(Date,ExpDate,TYPE,Strike,ContactName,Position),all=T) -> tmp
+#ソートし直し
+tmp %>% arrange(ExpDate,desc(TYPE),Strike) %>% select(Date,ExpDate,TYPE,Strike,ContactName,Position) -> tmp
+#PositionのNAを0で置き換える。結果をまたopchain変数に格納
+tmp$Position<-ifelse(is.na(tmp$Position), 0, tmp$Position)
+opchain<-tmp
+print(opchain)
+```
+###Raw Log
+```{r echo = FALSE}
 modelStimRawlist$stimrslt[[evalTargetIdx$scenario_idx]][[evalTargetIdx$stim_idx]]
 ```
-Greeek Effect
+##Greeek Effect
 ```{r echo = FALSE}
 Stimdays<-length(modelStimRawlist$stimrslt[[evalTargetIdx$scenario_idx]][[evalTargetIdx$stim_idx]]$EvalScore)
 UDLY_path<-DeltaE_path<-VegaE_path<-ThetaE_path<-GammaE_path<-IVIDX_path<-rep(NA, times=Stimdays)
