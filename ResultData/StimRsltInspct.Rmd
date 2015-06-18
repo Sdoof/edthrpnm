@@ -21,6 +21,11 @@ Underying_Symbol_G="RUT"
 DataFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\MarketData\\data\\"
 ResultFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\ResultData\\"
 
+## from here is the meat
+
+#  Target idx to be evaluated
+evalTargetIdx<-data.frame(spread_idx=1,scenario_idx=1,stim_idx=2)
+
 ##
 # Option Chain and Position Data. Here we use UDL_Positions_Pre
 rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep="")
@@ -32,14 +37,6 @@ opchain %>% dplyr::select(-(contains('Frac',ignore.case=TRUE)),
 opchain %>% dplyr::filter(HowfarOOM>=0) -> opchain
 #Position reseted to 0
 opchain$Position<-0
-
-####
-# from here is the meat
-
-##
-#  Target idx to be evaluated
-evalTargetIdx<-data.frame(spread_idx=1,scenario_idx=1,stim_idx=10)
-
 ```
 ##Spread ID: 
 ```{r echo = FALSE }
@@ -97,7 +94,7 @@ load(file=fn)
 #一致したもののPositionの値をopchainのPositionとして反映。
 opchain  %>% select(-Position) %>% merge(modelStimRawlist$stimrslt[[evalTargetIdx$scenario_idx]][[evalTargetIdx$stim_idx]]$IniValueGreek %>% select(Date,ExpDate,TYPE,Strike,ContactName,Position),all=T) -> tmp
 #ソートし直し
-tmp %>% arrange(ExpDate,desc(TYPE),Strike) %>% select(Date,ExpDate,TYPE,Strike,ContactName,Position) -> tmp
+tmp %>% arrange(ExpDate,desc(TYPE),Strike) %>% select(Date,ExpDate,TYPE,Strike,ContactName,Position,UDLY) -> tmp
 #PositionのNAを0で置き換える。結果をまたopchain変数に格納
 tmp$Position<-ifelse(is.na(tmp$Position), 0, tmp$Position)
 opchain<-tmp
@@ -185,20 +182,25 @@ cat("DeltaE+VegaE",DeltaE_path+VegaE_path,"\n")
 cat("ThetaE+GammaE",ThetaE_path+GammaE_path,"\n")
 cat("AllE",DeltaE_path+VegaE_path+ThetaE_path+GammaE_path,"\n")
 ```
-###sigmoid (1-sigmoid(DeltaE+VegaE))/sigmoid(ThetaE+GammaE)
+###sigmoid (1-sigmoid(a,DeltaE+VegaE))/sigmoid(a,ThetaE+GammaE)
 ```{r echo = FALSE}
 a<-0.0001
-print(a)
+cat("a: ",a,"\n")
 (1-sigmoid(DeltaE_path+VegaE_path,a=a,b=0))
 sigmoid(ThetaE_path+GammaE_path,a=a,b=0)
 (1-sigmoid(DeltaE_path+VegaE_path,a=a,b=0))/sigmoid(ThetaE_path+GammaE_path,a=a,b=0)
 a<-0.001
-print(a)
+cat("a: ",a,"\n")
+(1-sigmoid(DeltaE_path+VegaE_path,a=a,b=0))
+sigmoid(ThetaE_path+GammaE_path,a=a,b=0)
+(1-sigmoid(DeltaE_path+VegaE_path,a=a,b=0))/sigmoid(ThetaE_path+GammaE_path,a=a,b=0)
+a<-0.005
+cat("a: ",a,"\n")
 (1-sigmoid(DeltaE_path+VegaE_path,a=a,b=0))
 sigmoid(ThetaE_path+GammaE_path,a=a,b=0)
 (1-sigmoid(DeltaE_path+VegaE_path,a=a,b=0))/sigmoid(ThetaE_path+GammaE_path,a=a,b=0)
 a<-0.01
-print(a)
+cat("a: ",a,"\n")
 (1-sigmoid(DeltaE_path+VegaE_path,a=a,b=0))
 sigmoid(ThetaE_path+GammaE_path,a=a,b=0)
 (1-sigmoid(DeltaE_path+VegaE_path,a=a,b=0))/sigmoid(ThetaE_path+GammaE_path,a=a,b=0)

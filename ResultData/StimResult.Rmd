@@ -5,36 +5,24 @@ library(plyr)
 library(dplyr)
 library(knitr)
 ```
-
+---
+title: "StimResults"
+output: html_document
+---
 ```{r echo = FALSE}
 ##
 #  EOptionOprEurop -------------
 
-###Global 変数及び定数.
-# Possibly read from File
-riskFreeRate_G=0.01
-divYld_G=0.0
-
-#Definition
-OpType_Put_G=1
-OpType_Call_G=-1
-#Skewness Calculation
-TimeToExp_Limit_Closeness_G=0.3
 #File
 Underying_Symbol_G="RUT"
 DataFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\MarketData\\data\\"
-ResultFiles_Path_G="C:\\Users\\kuby\\edthrpnm3\\ResultData\\"
+ResultFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\ResultData\\"
 
-##
-#  ERskRtnEval -------------
-#holdDays Trading Days. This should be correct.
-holdDays<-3
+#Evaluatin Table Position start
+evalPosStart<-1
 
-#Number of Days for calculating Annualized Daily Volatility of Implied Volatility (DVIV)
-dviv_caldays<-20
-
-#Multipler of Position
-PosMultip<-100
+#Evaluatin Table Position end
+evalPosEnd<-1
 
 #Option Chain and Position Data. Here we use UDL_Positions_Pre ---------------
 rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep="")
@@ -51,16 +39,12 @@ evalPositions<-read.table(rf,header=F,sep=",")
 if(length(evalPositions)>length(opchain$Position)){
   evalPositions %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% distinct() -> evalPositions 
 }
-
-#Evaluatin Table Position start
-evalPosStart<-1
-
-#Evaluatin Table Position end
-evalPosEnd<-30
-
 # Top n Spreads
 evalPositions %>% arrange(.[,length(opchain$Position)+1]) %>% slice(evalPosStart:evalPosEnd) -> evalPositions
 
+```
+##Scenario Table description
+```{r echo = TRUE}
 # mu_udly sigma_udly mu_iv sigma_iv weight
 #    →(Ntrl)  →(Ntrl)  →     auto     w1
 #                      ↑     auto     w2
@@ -74,59 +58,71 @@ evalPositions %>% arrange(.[,length(opchain$Position)+1]) %>% slice(evalPosStart
 #    ↑        →        →     auto     w10
 #                      ↑     auto     w11
 #                      ↓     auto     w12
-
+```
+##Position Vector and Option Chain
+```{r echo=FALSE,warning=FALSE,error=FALSE,fig.width=4.7,fig.height=4.2}
 for(Counter in evalPosStart:evalPosEnd){
+  
+  #drawing spread index (here Counter variable)
+  cat(Counter," Spread","\n")
+  
+  #drawing Position Vector
   evaPos<-evalPositions[Counter-evalPosStart+1,1:length(opchain$Position)]
-  
-  cat("\n")
-  cat(Counter," Option Chain","\n")
-  
   evaPos<-unlist(evaPos)
   cat(evaPos,sep=",","\n")
+  cat("\n")
   
+  #drawing Option Chain
   opchain$Position<-unlist(evaPos)
-  print(opchain)
+  opchain %>% select(Date,ExpDate,TYPE,Strike,Position,ContactName,UDLY) %>% print()
+  cat("\n")
   
+  #getting position by exluding Position==0 row
   opchain %>% dplyr::filter(Position!=0) -> position
   
+  #loading the model Scenario of Counter index
   fn<-paste(ResultFiles_Path_G,Underying_Symbol_G,"_modelScenario_",Counter,sep="")
   load(file=fn)
-  modelScenario %>% dplyr::select(-(resdf)) %>% print()
+  #drawing scenario table and its summary result
+  modelScenario %>% dplyr::select(-(resdf)) -> tmp
+  print(tmp);cat("\n")
+  data.frame(min_profit=min(tmp$min_profit),max_profit=max(tmp$max_profit),expected_profit=sum(tmp$weight*tmp$mean_profit)) %>%
+    print() ;cat("\n")
+  rm(tmp)
   
+  #drawing graph images for each scenario
   for(i in 1:nrow(modelScenario) ){
     resdf<-modelScenario$resdf[[i]]
+    cat("Spread: ",Counter,"Scenario ",i,"\n")
     #udly price histgram
-     gg <- ggplot(resdf,aes(x=udly))+geom_histogram(alpha=0.9,aes(y=..density..))+geom_density(size=1.0,adjust=0.8,colour="cyan2")+
-       geom_point(x=mean(position$UDLY),y=0,size=6.0,width=3.0,colour="red",pch=3)+
-       geom_point(x=mean(resdf$udly),y=0,size=6.0,colour="red",pch=1)+
-       geom_point(x=median(resdf$udly),y=0,size=6.0,colour="orange",pch=1)+
-       geom_point(x=mean(resdf$udly)+sd(resdf$udly),y=0,size=6.0,colour="darkgrey",pch=2)+
-       geom_point(x=mean(resdf$udly)-sd(resdf$udly),y=0,size=6.0,colour="darkgrey",pch=2)
+    gg <- ggplot(resdf,aes(x=udly))+geom_histogram(alpha=0.9,aes(y=..density..))+geom_density(size=1.0,adjust=0.8,colour="cyan2")+
+      geom_point(x=mean(position$UDLY),y=0,size=6.0,width=3.0,colour="lightgreen",pch=4)+
+      geom_point(x=mean(resdf$udly),y=0,size=6.0,colour="red",pch=3)+
+      geom_point(x=median(resdf$udly),y=0,size=6.0,colour="orange",pch=1)+
+      geom_point(x=mean(resdf$udly)+sd(resdf$udly),y=0,size=6.0,colour="darkgrey",pch=2)+
+      geom_point(x=mean(resdf$udly)-sd(resdf$udly),y=0,size=6.0,colour="darkgrey",pch=2)
     print(gg)
     
     #payoff function
-     gg <- ggplot(resdf,aes(x=udly,y=profit,colour=liqDay))+
-       geom_point()+
-       geom_point(x=mean(position$UDLY),y=0,size=6.0,colour="red",pch=3)+
-       geom_point(x=mean(resdf$udly),y=0,size=6.0,colour="red",pch=1)+
-       geom_point(x=median(resdf$udly),y=0,size=6.0,colour="orange",pch=1)+
-       geom_point(x=mean(resdf$udly)+sd(resdf$udly),y=0,size=6.0,colour="darkgrey",pch=2)+
-       geom_point(x=mean(resdf$udly)-sd(resdf$udly),y=0,size=6.0,colour="darkgrey",pch=2)
+    gg <- ggplot(resdf,aes(x=udly,y=profit,colour=liqDay))+
+      geom_point()+
+      geom_point(x=mean(position$UDLY),y=0,size=6.0,colour="lightgreen",pch=4)+
+      geom_point(x=mean(resdf$udly),y=0,size=6.0,colour="red",pch=3)+
+      geom_point(x=median(resdf$udly),y=0,size=6.0,colour="orange",pch=1)+
+      geom_point(x=mean(resdf$udly)+sd(resdf$udly),y=0,size=6.0,colour="darkgrey",pch=2)+
+      geom_point(x=mean(resdf$udly)-sd(resdf$udly),y=0,size=6.0,colour="darkgrey",pch=2)
     print(gg)
-     
-     #profit histgram
-     gg <- ggplot(resdf,aes(x=profit))+geom_histogram(alpha=0.9,aes(y=..density..))+geom_density(size=1.0,adjust=0.3,colour="cyan2")+
-       geom_point(x=mean(resdf$profit),y=0,size=5.0,colour="red",pch=3)+
-       geom_point(x=median(resdf$profit),y=0,size=5.0,colour="orange",pch=1)+
-       geom_point(x=mean(resdf$profit)+sd(resdf$profit),y=0,size=5.0,colour="darkgrey",pch=2)+
-       geom_point(x=mean(resdf$profit)-sd(resdf$profit),y=0,size=5.0,colour="darkgrey",pch=2)
-     print(gg)
-  }
+    
+    #profit histgram
+    gg <- ggplot(resdf,aes(x=profit))+geom_histogram(alpha=0.9,aes(y=..density..))+geom_density(size=1.0,adjust=0.3,colour="cyan2")+
+      geom_point(x=0,y=0,size=6.0,width=3.0,colour="lightgreen",pch=4)+
+      geom_point(x=mean(resdf$profit),y=0,size=5.0,colour="red",pch=3)+
+      geom_point(x=median(resdf$profit),y=0,size=5.0,colour="orange",pch=1)+
+      geom_point(x=mean(resdf$profit)+sd(resdf$profit),y=0,size=5.0,colour="darkgrey",pch=2)+
+      geom_point(x=mean(resdf$profit)-sd(resdf$profit),y=0,size=5.0,colour="darkgrey",pch=2)
+    print(gg)
+    }
   }
 
 ```
 
----
-title: "StimResults"
-output: html_document
----
