@@ -92,9 +92,6 @@ evalPosEnd<-1
 # Top n Spreads
 evalPositions %>% arrange(.[,length(opchain$Position)+1]) %>% slice(evalPosStart:evalPosEnd) -> evalPositions
 
-if(nrow(evalPositions)<evalPosEnd) 
-  evalPosEnd<-nrow(evalPositions)
-
 #First spread
 
 # Num of each Stimulation
@@ -144,7 +141,7 @@ out_text_file<-paste(ResultFiles_Path_G,Underying_Symbol_G,"_result.csv",sep="")
 #Evaluatin Table Position end
 
 for(Counter in evalPosStart:evalPosEnd){
-  evaPos<-evalPositions[Counter,1:length(opchain$Position)]
+  evaPos<-evalPositions[Counter-evalPosStart+1,1:length(opchain$Position)]
   evaPos<-unlist(evaPos)
   print(evaPos)
   write(Counter,out_text_file,append=T)
