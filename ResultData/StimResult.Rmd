@@ -23,7 +23,7 @@ TimeToExp_Limit_Closeness_G=0.3
 #File
 Underying_Symbol_G="RUT"
 DataFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\MarketData\\data\\"
-ResultFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\ResultData\\"
+ResultFiles_Path_G="C:\\Users\\kuby\\edthrpnm3\\ResultData\\"
 
 ##
 #  ERskRtnEval -------------
@@ -56,13 +56,10 @@ if(length(evalPositions)>length(opchain$Position)){
 evalPosStart<-1
 
 #Evaluatin Table Position end
-evalPosEnd<-4
+evalPosEnd<-30
 
 # Top n Spreads
 evalPositions %>% arrange(.[,length(opchain$Position)+1]) %>% slice(evalPosStart:evalPosEnd) -> evalPositions
-
-if(nrow(evalPositions)<evalPosEnd) 
-  evalPosEnd<-nrow(evalPositions)
 
 # mu_udly sigma_udly mu_iv sigma_iv weight
 #    →(Ntrl)  →(Ntrl)  →     auto     w1
@@ -79,7 +76,7 @@ if(nrow(evalPositions)<evalPosEnd)
 #                      ↓     auto     w12
 
 for(Counter in evalPosStart:evalPosEnd){
-  evaPos<-evalPositions[Counter,1:length(opchain$Position)]
+  evaPos<-evalPositions[Counter-evalPosStart+1,1:length(opchain$Position)]
   
   cat("\n")
   cat(Counter," Option Chain","\n")
