@@ -1000,7 +1000,7 @@ reflectPosChg<- function(process_df,days=holdDays){
   pos$TimeToExpDate<-TimeToExpDate_pos
   
   #Date advance
-  pos$Date <- format(advance("UnitedStates/NYSE",dates=as.Date(pos$Date,format="%Y/%m/%d"),
+  pos$Date <- format(advance(CALENDAR_G,dates=as.Date(pos$Date,format="%Y/%m/%d"),
                              days,0),"%Y/%m/%d")
   
   #set new value to UDLY

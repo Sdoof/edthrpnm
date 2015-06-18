@@ -22,7 +22,7 @@ ResultFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\ResultData\\"
 evalPosStart<-1
 
 #Evaluatin Table Position end
-evalPosEnd<-1
+evalPosEnd<-2
 
 #Option Chain and Position Data. Here we use UDL_Positions_Pre ---------------
 rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep="")

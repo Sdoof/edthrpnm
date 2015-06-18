@@ -8,7 +8,7 @@
 
 #get business days between the days expressed as character
 get.busdays.between <- function(start,end){
-  bus_day<-businessDaysBetween("UnitedStates/NYSE",
+  bus_day<-businessDaysBetween(CALENDAR_G,
                                as.Date(start,format="%Y/%m/%d"),
                                as.Date(end,format="%Y/%m/%d"))
   bus_day

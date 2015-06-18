@@ -6,12 +6,10 @@ library(dplyr)
 library(pracma)
 library(knitr)
 ```
-
 ---
 title: "StimRsltltnInspct"
 output: html_document
 ---
-
 ```{r echo = FALSE}
 ##
 #  EOptionOprEurop -------------
@@ -23,8 +21,8 @@ ResultFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\ResultData\\"
 
 ## from here is the meat
 
-#  Target idx to be evaluated
-evalTargetIdx<-data.frame(spread_idx=1,scenario_idx=1,stim_idx=2)
+#Target idx to be evaluated
+evalTargetIdx<-data.frame(spread_idx=1,scenario_idx=1,stim_idx=7)
 
 ##
 # Option Chain and Position Data. Here we use UDL_Positions_Pre
@@ -152,7 +150,6 @@ print(gg)
 ###Profit Path
 ```{r echo = FALSE}
 print(Profit_path)
-
 gg <- ggplot(data.frame(days=seq(1,Stimdays,by=1),profit=Profit_path),aes(x=days,y=profit))+geom_point()+geom_line()+
   geom_point(x=0,y=0,size=3.0,pch=3)+xlim(0,Stimdays)+ylim(min(Profit_path,0),max(Profit_path,0))
 print(gg)

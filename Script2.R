@@ -7,6 +7,9 @@ library(dplyr)
 #  EOptionOprEurop -------------
 
 ###Global 変数及び定数.
+#Calendar
+CALENDAR_G="UnitedStates/NYSE"
+
 # Possibly read from File
 riskFreeRate_G=0.01
 divYld_G=0.0
@@ -32,6 +35,12 @@ dviv_caldays<-20
 
 #Multipler of Position
 PosMultip<-100
+
+#Evaluatin Table Position start
+evalPosStart<-1
+
+#Evaluatin Table Position end
+evalPosEnd<-2
 
 #Option Chain and Position Data. Here we use UDL_Positions_Pre ---------------
 rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep="")
@@ -82,12 +91,6 @@ length(opchain$Position)
 if(length(evalPositions)>length(opchain$Position)){
   evalPositions %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% distinct() -> evalPositions 
 };rm(rf)
-
-#Evaluatin Table Position start
-evalPosStart<-1
-
-#Evaluatin Table Position end
-evalPosEnd<-1
 
 # Top n Spreads
 evalPositions %>% arrange(.[,length(opchain$Position)+1]) %>% slice(evalPosStart:evalPosEnd) -> evalPositions

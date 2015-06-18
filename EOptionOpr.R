@@ -32,7 +32,7 @@ for(i in 1:NumOfOnesideStrkPrice_G){
 set.AmericanIVOrig <- function(xT){
   for(i in 1:length(xT$TYPE)){
     ##  Business days
-    busdays_betwn<-businessDaysBetween("UnitedStates/NYSE",
+    busdays_betwn<-businessDaysBetween(CALENDAR_G,
                                        as.Date(xT$Date[i],format="%Y/%m/%d"),
                                        as.Date(xT$ExpDate[i],format="%Y/%m/%d"))
     if(xT$TYPE[i] == 1){
@@ -55,7 +55,7 @@ set.AmericanValueDeltaGamma <- function(xT){
   gamma<-rep(0,length(xT$TYPE))
   for(i in 1:length(xT$TYPE)){
     ##  Business days
-    busdays_betwn<-businessDaysBetween("UnitedStates/NYSE",
+    busdays_betwn<-businessDaysBetween(CALENDAR_G,
                                        as.Date(xT$Date[i],format="%Y/%m/%d"),
                                        as.Date(xT$ExpDate[i],format="%Y/%m/%d"))
     if(xT$TYPE[i] == 1){
@@ -80,7 +80,7 @@ set.AmericanDeltaGamma <- function(xT){
   gamma<-rep(0,length(xT$TYPE))
   for(i in 1:length(xT$TYPE)){
     ##  Business days
-    busdays_betwn<-businessDaysBetween("UnitedStates/NYSE",
+    busdays_betwn<-businessDaysBetween(CALENDAR_G,
                                        as.Date(xT$Date[i],format="%Y/%m/%d"),
                                        as.Date(xT$ExpDate[i],format="%Y/%m/%d"))
     if(xT$TYPE[i] == 1){
@@ -103,7 +103,7 @@ set.AmericanVega <- function(xT){
   h <- 10^(-2)
   for(i in 1:length(xT$TYPE)){
     ##  Business days
-    busdays_betwn<-businessDaysBetween("UnitedStates/NYSE",
+    busdays_betwn<-businessDaysBetween(CALENDAR_G,
                                        as.Date(xT$Date[i],format="%Y/%m/%d"),
                                        as.Date(xT$ExpDate[i],format="%Y/%m/%d"))
     if(xT$TYPE[i] == 1){
@@ -136,7 +136,7 @@ set.AmericanTheta <- function(xT){
   h <- 1
   for(i in 1:length(xT$TYPE)){
     ##  Business days
-    busdays_betwn<-businessDaysBetween("UnitedStates/NYSE",
+    busdays_betwn<-businessDaysBetween(CALENDAR_G,
                                        as.Date(xT$Date[i],format="%Y/%m/%d"),
                                        as.Date(xT$ExpDate[i],format="%Y/%m/%d"))
     if(xT$TYPE[i] == 1){
@@ -161,7 +161,7 @@ set.AmericanTheta <- function(xT){
 set.AmericanRho <- function(xT){
   for(i in 1:length(xT$TYPE)){
     ##  Business days
-    busdays_betwn<-businessDaysBetween("UnitedStates/NYSE",
+    busdays_betwn<-businessDaysBetween(CALENDAR_G,
                                        as.Date(xT$Date[i],format="%Y/%m/%d"),
                                        as.Date(xT$ExpDate[i],format="%Y/%m/%d"))
     if(xT$TYPE[i] == 1){

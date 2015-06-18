@@ -2,6 +2,9 @@
 library(RQuantLib)
 
 ###Global 変数及び定数.
+#Calendar
+CALENDAR_G="UnitedStates/NYSE"
+
 # Possibly read from File
 riskFreeRate_G=0.01
 divYld_G=0.0
@@ -48,7 +51,7 @@ for(i in 1:NumOfOnesideStrkPrice_G){
 set.IVOrig <- function(xT){
   for(i in 1:length(xT$TYPE)){
     ##  Business days
-    busdays_betwn<-businessDaysBetween("UnitedStates/NYSE",
+    busdays_betwn<-businessDaysBetween(CALENDAR_G,
                                        as.Date(xT$Date[i],format="%Y/%m/%d"),
                                        as.Date(xT$ExpDate[i],format="%Y/%m/%d"))
     if(xT$TYPE[i] == 1){
@@ -75,7 +78,7 @@ set.ValueGreeks <- function(xT){
   rho<-rep(0,length(xT$TYPE))
   for(i in 1:length(xT$TYPE)){
     ##  Business days
-    busdays_betwn<-businessDaysBetween("UnitedStates/NYSE",
+    busdays_betwn<-businessDaysBetween(CALENDAR_G,
                                        as.Date(xT$Date[i],format="%Y/%m/%d"),
                                        as.Date(xT$ExpDate[i],format="%Y/%m/%d"))
     if(xT$TYPE[i] == 1){

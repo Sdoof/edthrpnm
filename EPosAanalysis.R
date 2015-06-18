@@ -277,7 +277,7 @@ adjustPosChgInner<-function(process_df,time_advcd, base_vol_chg=0){
    pos$TimeToExpDate<-TimeToExpDate_pos
   
   #Date advance
-   pos$Date <- format(advance("UnitedStates/NYSE",dates=as.Date(pos$Date,format="%Y/%m/%d"),
+   pos$Date <- format(advance(CALENDAR_G,dates=as.Date(pos$Date,format="%Y/%m/%d"),
                               time_advcd,0),"%Y/%m/%d")
 
   #Moneyness.nm which reflects the value of TimetoExpDate
