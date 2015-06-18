@@ -203,3 +203,22 @@ GBM = function(N,sigma,u,S0){
 #N = 1000; t = 1:N; sigma = 0.005; u = 0.2; S0 = 100; delta = 0.01; lambda = 2;
 #G = GBMJ(N,sigma,u,delta,lambda,S0)
 #plot(t,G,type= "l",main = "GBM Model with Jumps", xlab = "Time Interval",ylab="Predicted Value")
+
+##
+#
+# MHmakeRandomString(n, length)
+# function generates a random string random string of the
+# length (length), made up of numbers, small and capital letters
+
+MHmakeRandomString <- function(n=1, length=12)
+{
+  randomString <- c(1:n)                  # initialize vector
+  for (i in 1:n)
+  {
+    randomString[i] <- paste(sample(c(0:9, letters, LETTERS),
+                                    length, replace=TRUE),
+                             collapse="")
+  }
+  return(randomString)
+}
+
