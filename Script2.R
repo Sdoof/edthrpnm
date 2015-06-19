@@ -122,7 +122,7 @@ MaxStimDay<-14
 # mu_udly(Ntrl)     : (1.0)^(1/252)-1
 # sigma_udly(Ntrl)  : getIV_td(histIV[1,]$IVIDX)/sqrt(252)*0.95 0.95:HVとIVの調整項目。
 # mu_iv(Ntrl)       : (1.0)^(1/252)-1
-# sigma_iv(auto cal): max{VoV-abs(cor(IV,UDL)),0}
+# sigma_iv(auto cal): VoV*sqrt(1-Co(UDLY,IV)^2)
 # 
 # w1-w12の重みを対象となるUDLYやマーケットの見通しに基づき定める
 #
@@ -160,10 +160,8 @@ for(Counter in evalPosStart:evalPosEnd){
                 rep(getIV_td(histIV[1,]$IVIDX)/sqrt(252)*(1.0+sigma_udly_drift_up)*HV_IV_Adjust_Ratio,times=3),rep(getIV_td(histIV[1,]$IVIDX)/sqrt(252)*HV_IV_Adjust_Ratio,times=3))
   mu_iv<-c(rep(((1.0)^(1/252)-1),times=1),rep(((1.0+mu_iv_drift_up)^(1/252)-1),times=1),rep(((1.0-mu_iv_drift_down)^(1/252)-1),times=1))
   mu_iv<-rep(mu_iv,times=4)
-  #(annuual.daily.volatility(getIV_td(histIV$IVIDX))$anlzd-abs(PC1dCtC_IVCF1dCtC$cor))/sqrt(252)
-  sigma_iv<-rep(max(c(
-    (annuual.daily.volatility(getIV_td(histIV$IVIDX))$anlzd-abs(PC1dCtC_IVCF1dCtC$cor))/sqrt(252),
-    0)),times=12)
+  sigma_iv<-rep(annuual.daily.volatility(getIV_td(histIV$IVIDX))$anlzd*sqrt(1-PC1dCtC_IVCF1dCtC$cor*PC1dCtC_IVCF1dCtC$cor)/sqrt(252),
+                times=12)
   weight<-scenario_weight
   
   modelScenario<-data.frame(mu_udly=mu_udly,sigma_udly=sigma_udly,mu_iv=mu_iv,sigma_iv=sigma_iv,weight=weight)
@@ -263,5 +261,5 @@ rm(evalPositions,opchain)
 rm(CallIVChgDown,CallIVChgUp,CallVCone,PutIVChgDown,PutIVChgUp,PutVCone)
 rm(PC1dCtC_IVCF1dCtC,PC3dCtC_IVCF3dCtC,PC5dCtC_IVCF5dCtC,PC7dCtC_IVCF7dCtC,SkewModel)
 rm(riskFreeRate_G,divYld_G,OpType_Put_G,OpType_Call_G,TimeToExp_Limit_Closeness_G)
-rm(Underying_Symbol_G,DataFiles_Path_G,ResultFiles_Path_G,holdDays,dviv_caldays,PosMultip)
+rm(CALENDAR_G,Underying_Symbol_G,DataFiles_Path_G,ResultFiles_Path_G,holdDays,dviv_caldays,PosMultip)
 
