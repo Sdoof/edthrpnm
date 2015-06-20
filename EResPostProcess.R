@@ -2,6 +2,30 @@ library(dplyr)
 library(RQuantLib)
 library(ggplot2)
 
+###Global 変数及び定数.
+
+#Definition
+OpType_Put_G=1
+OpType_Call_G=-1
+#Skewness Calculation
+TimeToExp_Limit_Closeness_G=0.3
+#File
+Underying_Symbol_G="RUT"
+DataFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\MarketData\\data\\"
+ResultFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\ResultData\\"
+
+#ophcain 
+rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep="")
+opchain<-read.table(rf,header=T,sep=",",stringsAsFactors=FALSE)
+#filtering. deleting unnecessary column
+opchain %>% dplyr::select(-(contains('Frac',ignore.case=TRUE)),
+                          -(IV)) %>% as.data.frame() -> opchain
+#only OOM targeted
+opchain %>% dplyr::filter(HowfarOOM>=0) -> opchain
+rm(rf)
+#iniPos
+iniPos<-opchain$Position
+
 #add posnum info to result data frmae. this case pools[[6]][[2]]
 #pools[[6]][[2]][,1:length(iniPos)] %>% rowwise() %>% do(s=sum( as.numeric(unlist(.)!=0) )) -> tmp
 #unlist(tmp)
@@ -11,32 +35,36 @@ library(ggplot2)
 
 ##
 # Exact (1Cb)
-res1<-createCombineCandidatePool(fname=paste(".\\ResultData\\1Cb-2015-4-09.csv",sep=""),
+res1<-createCombineCandidatePool(fname=paste(ResultFiles_Path_G,"1Cb.csv",sep=""),
                                 pnum=0,nrows=-1,skip=0,method=1)
 
 #above average score
 #res1 %>% filter(.[,length(iniPos)+1]<mean(res1[,length(iniPos)+1]))
 #over the specified socre
-res1 %>% filter(.[,length(iniPos)+1]<1.2) -> res1
+res1 %>% filter(.[,length(iniPos)+1]<1.012) -> res1
 #posnum put call
 res1[,1:length(iniPos)] %>% rowwise() %>% do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp
 tmp  %>% rowwise() %>% do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp2
 res1$putn<-unlist(tmp2$putn);res1$calln<-unlist(tmp2$calln);rm(tmp);rm(tmp2)
 
+#write.table(res1,paste(ResultFiles_Path_G,"1Cb-out.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
+
 ##
 #  2Cb
-res2<-createCombineCandidatePool(fname=paste(".\\ResultData\\2Cb-2015-4-09.csv",sep=""),
+res2<-createCombineCandidatePool(fname=paste(ResultFiles_Path_G,"2Cb.csv",sep=""),
                                  pnum=0,nrows=-1,skip=0,method=1)
 #必要のない列の削除
 res2 %>% select(1:(length(iniPos)+1)) -> res2
 
 #over the specified socre
-res2 %>% filter(.[,length(iniPos)+1]<1.2) -> res2
+res2 %>% filter(.[,length(iniPos)+1]<1.01) -> res2
 
 #posnum put call
 res2[,1:length(iniPos)] %>% rowwise() %>% do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp
 tmp  %>% rowwise() %>% do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp2
 res2$putn<-unlist(tmp2$putn);res2$calln<-unlist(tmp2$calln);rm(tmp);rm(tmp2)
+
+#write.table(res1,paste(ResultFiles_Path_G,"2Cb-out.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
 
 #
 #  total_res  一つにまとめたdata.frame. 
@@ -45,56 +73,64 @@ rm(res1,res2)
 
 ##
 #  3Cb
-res1<-createCombineCandidatePool(fname=paste(".\\ResultData\\3Cb-2015-4-09.csv",sep=""),
+res1<-createCombineCandidatePool(fname=paste(ResultFiles_Path_G,"2Cb.csv",sep=""),
                                  pnum=0,nrows=-1,skip=0,method=1)
 #必要のない列の削除
 res1 %>% select(1:(length(iniPos)+1)) -> res1
 #over the specified socre
-res1 %>% filter(.[,length(iniPos)+1]<1.2) -> res1
+res1 %>% filter(.[,length(iniPos)+1]<1.02) -> res1
 #posnum put call
 res1[,1:length(iniPos)] %>% rowwise() %>% do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp
 tmp  %>% rowwise() %>% do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp2
 res1$putn<-unlist(tmp2$putn);res1$calln<-unlist(tmp2$calln);rm(tmp);rm(tmp2)
+#write.table(res1,paste(ResultFiles_Path_G,"3Cb-out.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
 
 #full join
 full_join(total_res,res1) %>% arrange(.[,length(iniPos)+1])  %>% distinct() -> total_res
 
 ##
 #  2Cb+2Cb
-res1<-createCombineCandidatePool(fname=paste(".\\ResultData\\combine-Result-2Cb(+1Cb+1Cb)2Cb(+1Cb+1Cb)-2015-4-09.csv",sep=""),
+res1<-createCombineCandidatePool(fname=paste(ResultFiles_Path_G,"4Cb.csv",sep=""),
                                  pnum=0,nrows=-1,skip=0,method=1)
 #必要のない列の削除
 res1 %>% select(1:(length(iniPos)+1)) -> res1
 #over the specified socre
-res1 %>% filter(.[,length(iniPos)+1]<1.2) -> res1
+res1 %>% filter(.[,length(iniPos)+1]<1.02) -> res1
 #posnum put call
 res1[,1:length(iniPos)] %>% rowwise() %>% do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp
 tmp  %>% rowwise() %>% do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp2
 res1$putn<-unlist(tmp2$putn);res1$calln<-unlist(tmp2$calln);rm(tmp);rm(tmp2)
-
+#write.table(res1,paste(ResultFiles_Path_G,"4Cb-out.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
 #full join
 full_join(total_res,res1) %>% arrange(.[,length(iniPos)+1])  %>% distinct() -> total_res
 
 ##
 # 3Cb+3Cb
-res1<-createCombineCandidatePool(fname=paste(".\\ResultData\\combine-Result-3Cb(+1Cb+1Cb+1Cb)3Cb(+1Cb+1Cb+1Cb)-2015-4-09.csv",sep=""),
+res1<-createCombineCandidatePool(fname=paste(ResultFiles_Path_G,"6Cb.csv",sep=""),sep=""),
                                  pnum=0,nrows=-1,skip=0,method=1)
 #必要のない列の削除
 res1 %>% select(1:(length(iniPos)+1)) -> res1
 #over the specified socre
-res1 %>% filter(.[,length(iniPos)+1]<1.2) -> res1
+res1 %>% filter(.[,length(iniPos)+1]<1.01) -> res1
 #posnum put call
 res1[,1:length(iniPos)] %>% rowwise() %>% do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp
 tmp  %>% rowwise() %>% do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp2
 res1$putn<-unlist(tmp2$putn);res1$calln<-unlist(tmp2$calln);rm(tmp);rm(tmp2)
+#write.table(res1,paste(ResultFiles_Path_G,"6Cb-out.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
 
 #full join
 full_join(total_res,res1) %>% arrange(.[,length(iniPos)+1])  %>% distinct() -> total_res
 
 ##
 # 条件指定
+#option position total number
 total_res %>% mutate(posn=(putn+calln)) -> total_res
-total_res %>%  filter(posn<=8) %>% filter(.[,length(iniPos)+1]<1.1) ->tmp_fil; total_res <- tmp_fil
+total_res %>%  filter(posn<=6) %>% filter(.[,length(iniPos)+1]<1.1) ->tmp_fil 
+total_res %>%  filter(posn>=7) %>% filter(.[,length(iniPos)+1]<1.1) ->tmp_fil2
+
+write.table(tmp_fil,paste(ResultFiles_Path_G,"posEqOrLess6.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
+write.table(tmp_fil,paste(ResultFiles_Path_G,"posEqOrGrter7.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
+
 #profit impact
 total_res$profit<-NULL
 total_res[,1:length(iniPos)] %>% rowwise() %>% do(profit=getProfit(unlist(.),isDebug=FALSE,udlStepNum=4,udlStepPct=0.02)) -> tmp
@@ -127,8 +163,10 @@ unlist(total_res[38,1:length(iniPos)]) -> dfoptim_inipop_vec
 dfoptim_inipop_vec<-as.vector(dfoptim_inipop_vec)
 
 rm(genoud_inipop_vec,dfoptim_inipop_vec)
-rm(tmp,tmp_fil,res1,res2)
-rm(total_res)
+rm(tmp,tmp_fil,tmp_fil2,res1,res2)
+rm(total_res,opchain,iniPos)
+rm(DataFiles_Path_G,ResultFiles_Path_G,OpType_Call_G,OpType_Put_G)
+rm(Underying_Symbol_G,TimeToExp_Limit_Closeness_G)
 
 ##
 # Functions to be loaded -------------------------
