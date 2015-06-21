@@ -125,11 +125,13 @@ full_join(total_res,res1) %>% arrange(.[,length(iniPos)+1])  %>% distinct() -> t
 # 条件指定
 #option position total number
 total_res %>% mutate(posn=(putn+calln)) -> total_res
-total_res %>%  filter(posn<=6) %>% filter(.[,length(iniPos)+1]<1.1) ->tmp_fil 
-total_res %>%  filter(posn>=7) %>% filter(.[,length(iniPos)+1]<1.1) ->tmp_fil2
+total_res %>%  filter(posn<=6) %>% filter(.[,length(iniPos)+1]<1.0) ->tmp_fil 
+total_res %>%  filter(posn==7) %>% filter(.[,length(iniPos)+1]<1.0) ->tmp_fil2
+total_res %>%  filter(posn>=8) %>% filter(.[,length(iniPos)+1]<1.0) ->tmp_fil3
 
-write.table(tmp_fil,paste(ResultFiles_Path_G,"posEqOrLess6.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
-write.table(tmp_fil,paste(ResultFiles_Path_G,"posEqOrGrter7.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
+write.table(tmp_fil,paste(ResultFiles_Path_G,"posnLE6.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
+write.table(tmp_fil2,paste(ResultFiles_Path_G,"posnEQ7.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
+write.table(tmp_fil3,paste(ResultFiles_Path_G,"posnGT8.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
 
 #profit impact
 total_res$profit<-NULL
@@ -163,7 +165,7 @@ unlist(total_res[38,1:length(iniPos)]) -> dfoptim_inipop_vec
 dfoptim_inipop_vec<-as.vector(dfoptim_inipop_vec)
 
 rm(genoud_inipop_vec,dfoptim_inipop_vec)
-rm(tmp,tmp_fil,tmp_fil2,res1,res2)
+rm(tmp,tmp_fil,tmp_fil2,tmp_fil3,res1,res2)
 rm(total_res,opchain,iniPos)
 rm(DataFiles_Path_G,ResultFiles_Path_G,OpType_Call_G,OpType_Put_G)
 rm(Underying_Symbol_G,TimeToExp_Limit_Closeness_G)
