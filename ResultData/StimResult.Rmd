@@ -16,13 +16,13 @@ output: html_document
 #File
 Underying_Symbol_G="RUT"
 DataFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\MarketData\\data\\"
-ResultFiles_Path_G="C:\\Users\\kuby\\edthrpnm3\\ResultData\\"
+ResultFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\ResultData\\"
 
 #Evaluatin Table Position start
-evalPosStart<-151
+evalPosStart<-1
 
 #Evaluatin Table Position end
-evalPosEnd<-241
+evalPosEnd<-50
 
 #Option Chain and Position Data. Here we use UDL_Positions_Pre ---------------
 rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep="")
