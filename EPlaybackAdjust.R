@@ -3,7 +3,6 @@ library(RQuantLib)
 library(plyr)
 library(dplyr)
 
-
 #File
 Underying_Symbol_G="RUT"
 DataFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\MarketData\\data\\"
@@ -16,33 +15,73 @@ evalPosStart<-1
 evalPosEnd<-1
 
 exitDecision<-function(IniEvalScore,EvalScore){
-  AllEffect<-EvalScore$DeltaEffect+EvalScore$VegaEffect+EvalScore$DeltaEffect+EvalScore$ThetaEffect+EvalScore$GammaEffect
-  if(AllEffect<-100)
+  AllEffect<-EvalScore$DeltaEffect+EvalScore$VegaEffect+EvalScore$ThetaEffect+EvalScore$GammaEffect
+  if(AllEffect<(-500))
     return(TRUE)
   else
     return(FALSE)
   
 }
 
-for(Counter in evalPosStart:evalPosEnd){
-  fn<-paste(ResultFiles_Path_G,Underying_Symbol_G,"_modelStimRawlist_",Counter,sep="")
-  load(file=fn)
-  #modelStimRawlist corresponds to a specific Spread
-  ScenarioNum<-length(modelStimRawlist$stimrslt)
-  for(scenario_idx in 1:ScenarioNum){
-    SimuNum<-length(modelStimRawlist$stimrslt[[ScenarioNum]])
-    for(sim_idx in 1:SimuNum){
-      #theSimulation<-modelStimRawlist$stimrslt[[ScenarioNum]][[sim_idx]]
-      theIniEvalScore<-modelStimRawlist$stimrslt[[ScenarioNum]][[sim_idx]]$IniEvalScore
-      StimDays<-length(modelStimRawlist$stimrslt[[ScenarioNum]][[sim_idx]]$EvalScore)
-      for(ith_day in 1:StimDays){
-        theEvalScore<-modelStimRawlist$stimrslt[[ScenarioNum]][[sim_idx]]$EvalScore[[ith_day]]
-        ##print(theEvalScore)
-        exitDecision(theIniEvalScore,theEvalScore)
-      }    
+PlaybackAdjust<-function(){
+  for(Counter in evalPosStart:evalPosEnd){
+    #load modelStimRawlist and modelScenario.
+    #modelStimRawlist and modelScenario correspond to the specific Spread
+    fn<-paste(ResultFiles_Path_G,Underying_Symbol_G,"_modelStimRawlist_",Counter,sep="")
+    load(file=fn)
+    fn<-paste(ResultFiles_Path_G,Underying_Symbol_G,"_modelScenario_",Counter,sep="")
+    load(file=fn)
+    
+    #process each scenario
+    ScenarioNum<-length(modelStimRawlist$stimrslt)
+    for(scenario_idx in 1:ScenarioNum){
+      SimuNum<-length(modelStimRawlist$stimrslt[[scenario_idx]])
+      #process each simulation
+      for(sim_idx in 1:SimuNum){
+        theIniEvalScore<-modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$IniEvalScore
+        StimDays<-length(modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$EvalScore)
+        #process each day
+        for(ith_day in 1:StimDays){
+          theEvalScore<-modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$EvalScore[[ith_day]]
+          if(exitDecision(theIniEvalScore,theEvalScore)){
+            modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$AdjustDay<-ith_day
+            break
+          }    
+        }
+      }
     }
+    ##
+    # modefied modelStimRawlist$stimrslt is to be reflected
+    
+    #show the profit profiles before the reflection
+    modelScenario %>% select(min_profit,max_profit,mean_profit,median_profit,profit_sd) %>% print()
+    data.frame(min_profit=min(modelScenario$min_profit),max_profit=max(modelScenario$max_profit),
+               expected_profit=sum(modelScenario$weight*modelScenario$mean_profit)) %>% print()
+    
+    #reflection each-scenario-rowwise()
+    #first resdf
+    modelStimRawlist %>% rowwise() %>% do(resdf=getStimResultDataFrame(.$stimrslt,SimuNum)) -> tmp
+    modelScenario$resdf<-tmp$resdf ; rm(tmp)
+    #second profit profiles
+    modelScenario %>% rowwise() %>% do(min_profit=min(.$resdf$profit),max_profit=max(.$resdf$profit),
+                                       mean_profit=mean(.$resdf$profit),median_profit=median(.$resdf$profit),
+                                       profit_sd=sd(.$resdf$profit)) -> tmp
+    modelScenario$min_profit<-unlist(tmp$min_profit)
+    modelScenario$max_profit<-unlist(tmp$max_profit)
+    modelScenario$mean_profit<-unlist(tmp$mean_profit)
+    modelScenario$median_profit<-unlist(tmp$median_profit)
+    modelScenario$profit_sd<-unlist(tmp$profit_sd)
+  
+    #show the profit profiles after the reflection
+    #modelScenario %>% rowwise() %>% do(.$resdf %>% print()  )
+    modelScenario %>% select(min_profit,max_profit,mean_profit,median_profit,profit_sd) %>% print()
+    data.frame(min_profit=min(modelScenario$min_profit),max_profit=max(modelScenario$max_profit),
+               expected_profit=sum(modelScenario$weight*modelScenario$mean_profit)) %>% print()
     
   }
-  #print(modelStimRawlist$stimrslt)
-  #$AdjustDay
 }
+
+PlaybackAdjust()
+
+rm(DataFiles_Path_G,ResultFiles_Path_G,Underying_Symbol_G,evalPosStart,evalPosEnd)
+rm(exitDecision,PlaybackAdjust)
