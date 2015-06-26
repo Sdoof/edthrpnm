@@ -22,7 +22,11 @@ ResultFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\ResultData\\"
 evalPosStart<-1
 
 #Evaluatin Table Position end
-evalPosEnd<-50
+evalPosEnd<-2
+
+#Scenario Mode
+#ScenarioMode="_modelScenario_"
+ScenarioMode="_adjustedScenario_"
 
 #Option Chain and Position Data. Here we use UDL_Positions_Pre ---------------
 rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep="")
@@ -81,7 +85,7 @@ for(Counter in evalPosStart:evalPosEnd){
   opchain %>% dplyr::filter(Position!=0) -> position
   
   #loading the model Scenario of Counter index
-  fn<-paste(ResultFiles_Path_G,Underying_Symbol_G,"_modelScenario_",Counter,sep="")
+  fn<-paste(ResultFiles_Path_G,Underying_Symbol_G,ScenarioMode,Counter,sep="")
   load(file=fn)
   #drawing scenario table and its summary result
   modelScenario %>% dplyr::select(-(resdf)) -> tmp

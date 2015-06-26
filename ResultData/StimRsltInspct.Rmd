@@ -22,7 +22,11 @@ ResultFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\ResultData\\"
 ## from here is the meat
 
 #Target idx to be evaluated
-evalTargetIdx<-data.frame(spread_idx=1,scenario_idx=1,stim_idx=7)
+evalTargetIdx<-data.frame(spread_idx=1,scenario_idx=1,stim_idx=42)
+
+#Scenario Mode
+#ScenarioMode="_modelScenario_"
+ScenarioMode="_adjustedScenario_"
 
 ##
 # Option Chain and Position Data. Here we use UDL_Positions_Pre
@@ -59,7 +63,7 @@ print(evalTargetIdx$spread_idx)
 ```
 
 ```{r echo = FALSE }
-fn<-paste(ResultFiles_Path_G,Underying_Symbol_G,"_modelScenario_",evalTargetIdx$spread_idx,sep="")
+fn<-paste(ResultFiles_Path_G,Underying_Symbol_G,ScenarioMode,evalTargetIdx$spread_idx,sep="")
 load(file=fn)
 modelScenario %>% dplyr::select(-(resdf)) %>% print()
 ```
@@ -97,6 +101,12 @@ tmp %>% arrange(ExpDate,desc(TYPE),Strike) %>% select(Date,ExpDate,TYPE,Strike,C
 tmp$Position<-ifelse(is.na(tmp$Position), 0, tmp$Position)
 opchain<-tmp
 print(opchain)
+
+#overwrite RawResultList's Adjustday to Scenario's liqDay 
+modelStimRawlist$stimrslt[[evalTargetIdx$scenario_idx]][[evalTargetIdx$stim_idx]]$AdjustDay<-modelScenario$resdf[[evalTargetIdx$scenario_idx]]$liqDay[evalTargetIdx$stim_idx]
+#save to the parameter
+AdjustDay<-modelStimRawlist$stimrslt[[evalTargetIdx$scenario_idx]][[evalTargetIdx$stim_idx]]$AdjustDay
+
 ```
 ###Raw Log
 ```{r echo = FALSE}
@@ -135,7 +145,9 @@ iniGammaE<-modelStimRawlist$stimrslt[[evalTargetIdx$scenario_idx]][[evalTargetId
 cat(UDLY_path,sep=",","\n")
 cat("%chg",(replace(UDLY_path, rep(1:(length(UDLY_path)-1)), UDLY_path[2:length(UDLY_path)])/UDLY_path-1)[-length(UDLY_path)]*100,sep=",","\n")
 gg <- ggplot(data.frame(days=seq(1,Stimdays,by=1),udly=UDLY_path),aes(x=days,y=udly))+geom_point()+geom_line()+
-  geom_point(x=0,y=iniUDLY,size=3.0,pch=3)+xlim(0,Stimdays)+ylim(min(UDLY_path,iniUDLY),max(UDLY_path,iniUDLY))
+  geom_point(x=0,y=iniUDLY,size=3.0,pch=3)+
+  geom_point(x=AdjustDay,y=UDLY_path[AdjustDay],size=8.0,colour="lightcoral",pch=1)+
+  xlim(0,Stimdays)+ylim(min(UDLY_path,iniUDLY),max(UDLY_path,iniUDLY))
 print(gg)
 ```
 
@@ -143,15 +155,19 @@ print(gg)
 ```{r echo = FALSE}
 cat(IVIDX_path,sep=",","\n")
 gg <- ggplot(data.frame(days=seq(1,Stimdays,by=1),IVIDX=IVIDX_path),aes(x=days,y=IVIDX))+geom_point()+geom_line()+
-  geom_point(x=0,y=iniIVIDX,size=3.0,pch=3)+xlim(0,Stimdays)+ylim(min(IVIDX_path,iniIVIDX),max(IVIDX_path,iniIVIDX))
+  geom_point(x=0,y=iniIVIDX,size=3.0,pch=3)+
+  geom_point(x=AdjustDay,y=IVIDX_path[AdjustDay],size=8.0,colour="lightcoral",pch=1)+
+  xlim(0,Stimdays)+ylim(min(IVIDX_path,iniIVIDX),max(IVIDX_path,iniIVIDX))
 print(gg)
 ```
 
 ###Profit Path
 ```{r echo = FALSE}
 print(Profit_path)
-gg <- ggplot(data.frame(days=seq(1,Stimdays,by=1),profit=Profit_path),aes(x=days,y=profit))+geom_point()+geom_line()+
-  geom_point(x=0,y=0,size=3.0,pch=3)+xlim(0,Stimdays)+ylim(min(Profit_path,0),max(Profit_path,0))
+gg <- ggplot(data.frame(days=seq(1,Stimdays,by=1),profit=Profit_path),aes(x=days,y=profit),linetype=lt)+geom_point()+geom_line()+
+  geom_point(x=0,y=0,size=3.0,pch=3)+
+  geom_point(x=AdjustDay,y=Profit_path[AdjustDay],size=8.0,colour="lightcoral",pch=1)+
+  xlim(0,Stimdays)+ylim(min(Profit_path,0),max(Profit_path,0))
 print(gg)
 ```
 
@@ -167,6 +183,7 @@ gg <- ggplot(data.frame(days=seq(1,Stimdays,by=1),profit=Profit_path),aes(x=days
   geom_line(x=seq(1,Stimdays,by=1),y=ThetaE_path,colour="orange")+
   geom_point(x=seq(1,Stimdays,by=1),y=ThetaE_path,colour="orange")+geom_point(x=0,y=iniThetaE,size=3.0,colour="orange",pch=3)+
   geom_line(x=seq(1,Stimdays,by=1),y=GammaE_path,colour="red")+
+  geom_point(x=AdjustDay,y=Profit_path[AdjustDay],size=8.0,colour="lightcoral",pch=1)+
   geom_point(x=seq(1,Stimdays,by=1),y=GammaE_path,colour="red")+geom_point(x=0,y=iniGammaE,size=3.0,colour="red",pch=3)+
   xlim(0,Stimdays)+ylim(min(Profit_path,DeltaE_path,VegaE_path,ThetaE_path,GammaE_path,iniDeltaE,iniVegaE,iniThetaE,iniGammaE,0),
                         max(Profit_path,DeltaE_path,VegaE_path,ThetaE_path,GammaE_path,iniDeltaE,iniVegaE,iniThetaE,iniGammaE,0))
@@ -175,6 +192,8 @@ print(gg)
 
 ###Trade Index path
 ```{r echo = FALSE}
+cat("ini.DeltaE+VegaE",iniDeltaE+iniVegaE,"ini.ThetaE+GammaE",iniThetaE+iniGammaE,
+    "ini.AllE",iniDeltaE+iniVegaE+iniThetaE+iniGammaE,"\n")
 cat("DeltaE+VegaE",DeltaE_path+VegaE_path,"\n")
 cat("ThetaE+GammaE",ThetaE_path+GammaE_path,"\n")
 cat("AllE",DeltaE_path+VegaE_path+ThetaE_path+GammaE_path,"\n")

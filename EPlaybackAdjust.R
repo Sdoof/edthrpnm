@@ -12,11 +12,11 @@ ResultFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\ResultData\\"
 evalPosStart<-1
 
 #Evaluatin Table Position end
-evalPosEnd<-1
+evalPosEnd<-2
 
 exitDecision<-function(IniEvalScore,EvalScore){
   AllEffect<-EvalScore$DeltaEffect+EvalScore$VegaEffect+EvalScore$ThetaEffect+EvalScore$GammaEffect
-  if(AllEffect<(-500))
+  if(AllEffect<(-1000))
     return(TRUE)
   else
     return(FALSE)
@@ -78,6 +78,8 @@ PlaybackAdjust<-function(){
     data.frame(min_profit=min(modelScenario$min_profit),max_profit=max(modelScenario$max_profit),
                expected_profit=sum(modelScenario$weight*modelScenario$mean_profit)) %>% print()
     
+    fn<-paste(ResultFiles_Path_G,Underying_Symbol_G,"_adjustedScenario_",Counter,sep="")
+    save(modelScenario,file=fn)
   }
 }
 
