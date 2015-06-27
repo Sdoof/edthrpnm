@@ -12,15 +12,70 @@ ResultFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\ResultData\\"
 evalPosStart<-1
 
 #Evaluatin Table Position end
-evalPosEnd<-2
+evalPosEnd<-1
 
 exitDecision<-function(IniEvalScore,EvalScore){
   AllEffect<-EvalScore$DeltaEffect+EvalScore$VegaEffect+EvalScore$ThetaEffect+EvalScore$GammaEffect
-  if(AllEffect<(-1000))
+  Profit<-EvalScore$Price-IniEvalScore$Price
+  
+  ##
+  # Decision based on linear combination of GreekEfeect and Profit, and these compound conditions
+  # linear combination: a1*DeltaEffect+a2*VegaEffect+a3*ThetaEffect+a4*GammaEffect+a5*Profit
+  # compound conditions: if(comb1<200) ... else if(comb2>300).. else ...
+  
+  # Modelately Good Pattern
+  # AllEffect < Thresh
+  #      if(AllEffect<(-1200))
+  #        return(TRUE)
+  #      else
+  #        return(FALSE)
+  
+  # Modelately Good Pattern
+  # Profit > Thresh
+  #   if(Profit>=600)
+  #     return(TRUE)
+  #   else
+  #     return(FALSE)
+  
+  # Min_profit improves, but Expected Return worsens.
+  # Profit < Thresh
+  #   if(Profit<0)
+  #     return(TRUE)
+  #   else
+  #     return(FALSE)
+  
+  # Maybe depends on each situation.
+  # (Profit > Thresh1) OR (AllEffect<Thresh2)
+  #     if(Profit>=600)
+  #       return(TRUE)
+  #     else if(AllEffect<(-1200))
+  #       return(TRUE)
+  #     else
+  #       return(FALSE)
+  
+  # (Profit < Thresh1) OR (AllEffect<Thresh2)
+  #     if(Profit<0)
+  #       return(TRUE)
+  #     else if(AllEffect<(-1200))
+  #       return(TRUE)
+  #     else
+  #       return(FALSE)
+  
+  # Good Pattern 
+  # -1*AllEffect+Profit > Thresh
+  #   AllScore<-AllEffect*(-1)+Profit
+  #   if(AllScore>=1200)
+  #     return(TRUE)
+  #   else
+  #     return(FALSE)
+   
+  # Good Pattern
+  # AllEffect+Profit < Thresh
+  AllScore2<-AllEffect+Profit
+  if(AllScore2>(-1200))
     return(TRUE)
   else
     return(FALSE)
-  
 }
 
 PlaybackAdjust<-function(){
