@@ -53,6 +53,7 @@ exitDecision<-function(IniEvalScore,EvalScore){
   #     else
   #       return(FALSE)
   
+  # Not yet tested.
   # (Profit < Thresh1) OR (AllEffect<Thresh2)
   #     if(Profit<0)
   #       return(TRUE)
@@ -72,7 +73,7 @@ exitDecision<-function(IniEvalScore,EvalScore){
   # Good Pattern
   # AllEffect+Profit < Thresh
   AllScore2<-AllEffect+Profit
-  if(AllScore2>(-1200))
+  if(AllScore2>(-800))
     return(TRUE)
   else
     return(FALSE)
