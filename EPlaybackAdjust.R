@@ -23,38 +23,35 @@ exitDecision<-function(IniEvalScore,EvalScore){
   # linear combination: a1*DeltaEffect+a2*VegaEffect+a3*ThetaEffect+a4*GammaEffect+a5*Profit
   # compound conditions: if(comb1<200) ... else if(comb2>300).. else ...
   
-  # Modelately Good Pattern
-  # AllEffect < Thresh
-  #      if(AllEffect<(-1200))
-  #        return(TRUE)
-  #      else
-  #        return(FALSE)
+  ## AllEffect < Thresh
+  #if(AllEffect<(-1000))
+  #  return(TRUE)
+  #else
+  #  return(FALSE)
   
-  # Modelately Good Pattern
-  # Profit > Thresh
+  ## Profit > Thresh
   #   if(Profit>=600)
   #     return(TRUE)
   #   else
   #     return(FALSE)
   
-  # Min_profit improves, but Expected Return worsens.
-  # Profit < Thresh
+  ## Profit < Thresh
   #   if(Profit<0)
   #     return(TRUE)
   #   else
   #     return(FALSE)
   
-  # Maybe depends on each situation.
+  ## Maybe depends on each situation.
   # (Profit > Thresh1) OR (AllEffect<Thresh2)
-  #     if(Profit>=600)
-  #       return(TRUE)
-  #     else if(AllEffect<(-1200))
-  #       return(TRUE)
-  #     else
-  #       return(FALSE)
+#        if(Profit>=550)
+#          return(TRUE)
+#        else if(AllEffect<(-1000))
+#          return(TRUE)
+#        else
+#          return(FALSE)
   
-  # Not yet tested.
-  # (Profit < Thresh1) OR (AllEffect<Thresh2)
+  ## Not yet tested.
+  ## (Profit < Thresh1) OR (AllEffect<Thresh2)
   #     if(Profit<0)
   #       return(TRUE)
   #     else if(AllEffect<(-1200))
@@ -62,18 +59,23 @@ exitDecision<-function(IniEvalScore,EvalScore){
   #     else
   #       return(FALSE)
   
-  # Good Pattern 
-  # -1*AllEffect+Profit > Thresh
+  ## -1*AllEffect+Profit > Thresh
   #   AllScore<-AllEffect*(-1)+Profit
   #   if(AllScore>=1200)
   #     return(TRUE)
   #   else
   #     return(FALSE)
-   
-  # Good Pattern
-  # AllEffect+Profit < Thresh
-  AllScore2<-AllEffect+Profit
-  if(AllScore2>(-800))
+  
+  ## AllEffect+Profit < Thresh
+  #AllScore2<-AllEffect+Profit
+  #if(AllScore2>(-800))
+  #  return(TRUE)
+  #else
+  #  return(FALSE)
+  
+  ## ThetaEffect+GammaEffect < Thresh
+  AdvantageousEfct<-EvalScore$ThetaEffect+EvalScore$GammaEffect
+  if(AdvantageousEfct<(-150))
     return(TRUE)
   else
     return(FALSE)
