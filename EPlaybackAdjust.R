@@ -119,8 +119,7 @@ PlaybackAdjust<-function(){
           }    
         }
       }
-      proc_t<-proc.time()-start_t
-      cat(" scenario ",scenario_idx, " time: ",proc_t)
+      cat(" scenario ",scenario_idx, " time: ",(proc.time()-start_t)[3])
     }
     ##
     # modefied modelStimRawlist$stimrslt is to be reflected
