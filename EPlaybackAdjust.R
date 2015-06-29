@@ -23,6 +23,24 @@ exitDecision<-function(IniEvalScore,EvalScore){
   # linear combination: a1*DeltaEffect+a2*VegaEffect+a3*ThetaEffect+a4*GammaEffect+a5*Profit
   # compound conditions: if(comb1<200) ... else if(comb2>300).. else ...
   
+  ## ThetaEffect+GammaEffect < Thresh
+  #AdvantageousEfct<-EvalScore$ThetaEffect+EvalScore$GammaEffect
+  #if(AdvantageousEfct<(0))
+  #  return(TRUE)
+  #else
+  #  return(FALSE)
+  
+  ## ThetaEffect+GammaEffect < Thresh also dislike undirectional uncertaintity
+  AdvantageousEfct<-EvalScore$ThetaEffect+EvalScore$GammaEffect
+  #DirectionalEft<-EvalScore$DeltaEffect+EvalScore$VegaEffect
+  if(AdvantageousEfct<(-50))
+    return(TRUE)
+  # else if((DirectionalEft<(-1800)) && (AdvantageousEfct<(300)))
+  else if(AllEffect<(-1500))
+    return(TRUE)
+  else
+    return(FALSE)
+  
   ## AllEffect < Thresh
   #if(AllEffect<(-1000))
   #  return(TRUE)
@@ -72,24 +90,6 @@ exitDecision<-function(IniEvalScore,EvalScore){
   #  return(TRUE)
   #else
   #  return(FALSE)
-  
-  ## ThetaEffect+GammaEffect < Thresh
-  #AdvantageousEfct<-EvalScore$ThetaEffect+EvalScore$GammaEffect
-  #if(AdvantageousEfct<(0))
-  #  return(TRUE)
-  #else
-  #  return(FALSE)
-  
-  ## ThetaEffect+GammaEffect < Thresh also dislike undirectional uncertaintity
-  AdvantageousEfct<-EvalScore$ThetaEffect+EvalScore$GammaEffect
-  DirectionalEft<-EvalScore$DeltaEffect+EvalScore$VegaEffect
-  if(AdvantageousEfct<(-50))
-    return(TRUE)
- # else if((DirectionalEft<(-1800)) && (AdvantageousEfct<(300)))
-  else if(AllEffect<(-1800))
-    return(TRUE)
-  else
-    return(FALSE)
 }
 
 PlaybackAdjust<-function(){
@@ -108,12 +108,13 @@ PlaybackAdjust<-function(){
       SimuNum<-length(modelStimRawlist$stimrslt[[scenario_idx]])
       #process each simulation
       for(sim_idx in 1:SimuNum){
-        theIniEvalScore<-modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$IniEvalScore
+        #theIniEvalScore<-modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$IniEvalScore
         StimDays<-length(modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$EvalScore)
         #process each day
         for(ith_day in 1:StimDays){
-          theEvalScore<-modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$EvalScore[[ith_day]]
-          if(exitDecision(theIniEvalScore,theEvalScore)){
+          #theEvalScore<-modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$EvalScore[[ith_day]]
+          if(exitDecision(modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$IniEvalScore,
+                          modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$EvalScore[[ith_day]])){
             modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$AdjustDay<-ith_day
             break
           }    
