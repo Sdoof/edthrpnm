@@ -43,12 +43,12 @@ exitDecision<-function(IniEvalScore,EvalScore){
   
   ## Maybe depends on each situation.
   # (Profit > Thresh1) OR (AllEffect<Thresh2)
-#        if(Profit>=550)
-#          return(TRUE)
-#        else if(AllEffect<(-1000))
-#          return(TRUE)
-#        else
-#          return(FALSE)
+  #        if(Profit>=550)
+  #          return(TRUE)
+  #        else if(AllEffect<(-1000))
+  #          return(TRUE)
+  #        else
+  #          return(FALSE)
   
   ## Not yet tested.
   ## (Profit < Thresh1) OR (AllEffect<Thresh2)
@@ -74,8 +74,19 @@ exitDecision<-function(IniEvalScore,EvalScore){
   #  return(FALSE)
   
   ## ThetaEffect+GammaEffect < Thresh
+  #AdvantageousEfct<-EvalScore$ThetaEffect+EvalScore$GammaEffect
+  #if(AdvantageousEfct<(0))
+  #  return(TRUE)
+  #else
+  #  return(FALSE)
+  
+  ## ThetaEffect+GammaEffect < Thresh also dislike undirectional uncertaintity
   AdvantageousEfct<-EvalScore$ThetaEffect+EvalScore$GammaEffect
-  if(AdvantageousEfct<(-150))
+  DirectionalEft<-EvalScore$DeltaEffect+EvalScore$VegaEffect
+  if(AdvantageousEfct<(-50))
+    return(TRUE)
+ # else if((DirectionalEft<(-1800)) && (AdvantageousEfct<(300)))
+  else if(AllEffect<(-1800))
     return(TRUE)
   else
     return(FALSE)
@@ -93,6 +104,7 @@ PlaybackAdjust<-function(){
     #process each scenario
     ScenarioNum<-length(modelStimRawlist$stimrslt)
     for(scenario_idx in 1:ScenarioNum){
+      start_t<-proc.time()
       SimuNum<-length(modelStimRawlist$stimrslt[[scenario_idx]])
       #process each simulation
       for(sim_idx in 1:SimuNum){
@@ -107,6 +119,8 @@ PlaybackAdjust<-function(){
           }    
         }
       }
+      proc_t<-proc.time()-start_t
+      cat(" scenario ",scenario_idx, " time: ",proc_t)
     }
     ##
     # modefied modelStimRawlist$stimrslt is to be reflected
