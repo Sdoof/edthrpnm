@@ -25,8 +25,11 @@ TYPE 列
 * もし、ExpDate列が存在しないか、その値が正しくない場合は、以下の値をCopy & Paste
 =TEXT(MID(B2,FIND(1,B2,1),6),"2000!/00!/00")
 
-3. 上記 TODAYワークシートを
 RUT_Positions_TODAY.csv
 などのように、csvファイルに出力して保存
 
-4.EDataProvision2(仮称）に読み込んでファイル出力RUT_Positions_Pre_TODAY出力
+3. (UDLY)_Hist.csv,(UDLY)_IV.csv を更新する
+RUT.xlsx内のデータを更新して、それぞれのワークシートから(UDLY)_Hist.csv,(UDLY)_IV.csvを出力
+
+4.EDataProvision2(仮称）にRUT_Positions_TODAY.csv等を読み込んで、
+RUT_Positions_Pre_TODAY（仮称）ファイル出力
