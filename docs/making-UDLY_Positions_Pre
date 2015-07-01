@@ -1,35 +1,34 @@
 特定の日に探索するOption Chainの作るための手順
 
-1.opprice-2015-xxxxx(today).csv を秀丸で開く
+1.●opprice-2015-yyyy-mm-dd.csv を秀丸で開く
 Excel Fileにcsv形式で正しく読み込む準備をする。
 以下の置換を行う。
 1,234.00,RUTxxxxx -> 1234.00.RUTxxxxx
 
-秀丸の置換で、
+●秀丸の置換で、
 検索: ^\f(\d)\f,
 置換: \1
   -> 一括置換する。
 
-2. (UDLY)_OPChain.xlsx を開く。
+2. ●UDLY_OPChain.xlsx を開く。
 TODAYのワークシートに、
   [ホーム]-[貼り付け]-[テキストファイルウィザード]
-で上記opprice-2015-xxxxx(today).csv内の(UDLY)部分をCopy & Paste
+で上記●opprice-2015-yyyy-mm-dd.csv内のUDLY部分をCopy & Paste
 
-Date と TYPE 列を作成
+●Date と TYPE 列を作成
 Date 列
  =TODAY()-1
 TYPE 列 
  =IF(COUNTIF(B2,"*P*"),1,-1)
 と入力してCopy & Paste
-
 * もし、ExpDate列が存在しないか、その値が正しくない場合は、以下の値をCopy & Paste
 =TEXT(MID(B2,FIND(1,B2,1),6),"2000!/00!/00")
 
-RUT_Positions_TODAY.csv
-などのように、csvファイルに出力して保存
+●UDLY_OPChain_Pre_yyyy-mm-dd.csv
+などのcsvファイルに出力して保存
 
-3. (UDLY)_Hist.csv,(UDLY)_IV.csv を更新する
-RUT.xlsx内のデータを更新して、それぞれのワークシートから(UDLY)_Hist.csv,(UDLY)_IV.csvを出力
+3. ●UDLY_Hist.csv,UDLY_IV.csv を更新する
+●RUT.xlsx内のデータを更新して、それぞれのワークシートからUDLY_Hist.csv,UDLY_IV.csvを出力
 
-4.EDataProvision2(仮称）にRUT_Positions_TODAY.csv等を読み込んで、
-RUT_Positions_Pre_TODAY（仮称）ファイル出力
+4.EDataProvision2.R(仮称）に●UDLY_OPChain_Pre_yyyy-mm-dd.csv等を読み込んで、
+●UDLY_Positions_Pre_yyyy-mm-dd.scvファイル出力
