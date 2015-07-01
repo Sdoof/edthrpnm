@@ -9,13 +9,6 @@ wfilename_<-paste("opprice",today,".csv",sep="")
 quart<-getQuote("^RUT")
 write.table(quart,wfilename_,quote=T,row.names=F,append=T,sep=",")
 write("Strike,ContactName,Last,Bid,Ask,Change,%Change,Volume,OI,IV,ExpDate",wfilename_,append=T)
-#2015/06/30
-tbl_<-readHTMLTable("http://finance.yahoo.com/q/op?s=^RUT&date=1435622400")
-expdate<-"2015/6/30"
-tbl_[[2]]["ExpDate"]<-expdate
-write.table(tbl_[[2]],wfilename_,row.names=F,append=T,sep=",")
-tbl_[[3]]["ExpDate"]<-expdate
-write.table(tbl_[[3]],wfilename_,row.names=F,append=T,sep=",")
 #2015/07/17
 tbl_<-readHTMLTable("http://finance.yahoo.com/q/op?s=^RUT&date=1437091200")
 expdate<-"2015/7/17"
