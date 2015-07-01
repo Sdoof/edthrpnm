@@ -27,7 +27,7 @@
 #D2<-data.frame(HIST$Date,HIST$Close)
 
 #read data file
-rf_<-paste(DataFiles_Path_G,Underying_Synbol_G,"_OPChain_Pre.csv",sep="")
+rf_<-paste(DataFiles_Path_G,Underying_Symbol_G,"_OPChain_Pre.csv",sep="")
 opch_pr_<-read.table(rf_,header=T,sep=",")
 opch_pr_$X.Change<-NULL
 opch_pr_$Position<-0
@@ -36,11 +36,11 @@ opch_pr_$Price<-(opch_pr_$Bid+opch_pr_$Ask)/2
 opch_pr_$Theta<-opch_pr_$Vega<-opch_pr_$Gamma<-opch_pr_$Delta<-0
 opch_pr_$IV<-opch_pr_$OrigIV<-opch_pr_$Rho<-0
 
-#rf_<-paste(DataFiles_Path_G,Underying_Synbol_G,"_IV.csv",sep="")
+#rf_<-paste(DataFiles_Path_G,Underying_Symbol_G,"_IV.csv",sep="")
 #histIV_<-read.table(rf_,header=T,sep=",",nrows=1999)
 #histIV_<-data.frame(Date=histIV_$Date,IVIDX=histIV_$Close)
 
-rf_<-paste(DataFiles_Path_G,Underying_Synbol_G,"_Hist.csv",sep="")
+rf_<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Hist.csv",sep="")
 histPrc_<-read.table(rf_,header=T,sep=",",nrows=1999)
 histPrc_<-data.frame(Date=histPrc_$Date,UDLY=histPrc_$Close)
 
@@ -95,14 +95,10 @@ opch_pr_$Theta<-tmp$Theta
 opch_pr_$Rho<-tmp$Rho
 rm(tmp)
 
-wf_<-paste(DataFiles_Path_G,Underying_Synbol_G,"_OPChain_Pos.csv",sep="")
+wf_<-paste(DataFiles_Path_G,Underying_Symbol_G,"_OPChain_Pos.csv",sep="")
 write.table(opch_pr_,wf_,quote=T,row.names=F,sep=",")
 rm(wf_)
 
 
-## Utility functions ---------------
-#get variable name utility.
-getvarname <- function(v) {
-  deparse(substitute(v))
-}
+
 

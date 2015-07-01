@@ -22,7 +22,7 @@ ResultFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\ResultData\\"
 evalPosStart<-1
 
 #Evaluatin Table Position end
-evalPosEnd<-2
+evalPosEnd<-1
 
 #Scenario Mode
 #ScenarioMode="_modelScenario_"

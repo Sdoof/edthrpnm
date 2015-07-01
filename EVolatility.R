@@ -619,6 +619,11 @@ rm(atmiv.vcone.anal,atmiv,opch)
 ##
 #Function to be loaded ------------------
 
+#get variable name utility.
+getvarname <- function(v) {
+  deparse(substitute(v))
+}
+
 #Volatility Level correlaiton and regression functions
 #PCIVndCtC
 PCIVndCtC <- function(hist,iv,n){
