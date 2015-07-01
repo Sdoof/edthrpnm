@@ -1,0 +1,16 @@
+特定の日に探索するOption Chainの作るための手順
+
+1.opprice-2015-xxxxx(today).csv を秀丸で開く
+Excel Fileにcsv形式で正しく読み込む準備をする。
+以下の置換を行う。
+1,234.00,RUTxxxxx -> 1234.00.RUTxxxxx
+
+秀丸の置換で、
+検索: ^\f(\d)\f,
+置換: \1
+  -> 一括置換する。
+
+2. (UDLY)_OPChain.xlsx を開く。
+TODAYのワークシートに、
+  [ホーム]-[貼り付け]-[テキストファイルウィザード]
+で上記opprice-2015-xxxxx(today).csv内の(UDLY)部分をCopy & Paste
