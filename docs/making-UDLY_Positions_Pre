@@ -25,3 +25,8 @@ TYPE 列
 * もし、ExpDate列が存在しないか、その値が正しくない場合は、以下の値をCopy & Paste
 =TEXT(MID(B2,FIND(1,B2,1),6),"2000!/00!/00")
 
+3. 上記 TODAYワークシートを
+RUT_Positions_TODAY.csv
+などのように、csvファイルに出力して保存
+
+
