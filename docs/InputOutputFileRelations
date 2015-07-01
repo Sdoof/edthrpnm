@@ -1,0 +1,17 @@
+UDLY.xlsx [1] <- Historical Price sources[0]
+  HistPrice :Historical Price
+  RVX : IV
+
+UDLY_OPChain.xlsx [2] <- opprice-yyyy-mm-dd.csv[0']
+  OptionChain raw data 
+
+UDLY.xlsx[1] --> UDLY_Hist.csv [3]
+             --> UDLY_IV.csv [4]
+
+UDLY_OPChainUDLY.xlsx [2] -> UDLY_OPChain_Pre-yyyy-mm-dd.csv[5]
+                          -> (for skew calculation)[5']
+
+[3],[4],[5] -> RUT_Positions_Pre_yyy-mm-dd.csv[6]
+[3],[4],[5'] -> Skew Regression Result Object
+
+[3],[4] -> PriceChg/IVChg Regression Result Object
