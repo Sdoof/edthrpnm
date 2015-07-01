@@ -14,3 +14,14 @@ Excel Fileにcsv形式で正しく読み込む準備をする。
 TODAYのワークシートに、
   [ホーム]-[貼り付け]-[テキストファイルウィザード]
 で上記opprice-2015-xxxxx(today).csv内の(UDLY)部分をCopy & Paste
+
+Date と TYPE 列を作成
+Date 列
+ =TODAY()-1
+TYPE 列 
+ =IF(COUNTIF(B2,"*P*"),1,-1)
+と入力してCopy & Paste
+
+* もし、ExpDate列が存在しないか、その値が正しくない場合は、以下の値をCopy & Paste
+=TEXT(MID(B2,FIND(1,B2,1),6),"2000!/00!/00")
+
