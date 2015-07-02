@@ -17,7 +17,7 @@ OpType_Call_G=-1
 #Skewness Calculation
 TimeToExp_Limit_Closeness_G=0.3
 #File
-Underying_Symbol_G="FXI"
+Underying_Symbol_G="RUT"
 DataFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\MarketData\\data\\"
 
 ##
