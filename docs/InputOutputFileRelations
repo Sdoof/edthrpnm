@@ -1,28 +1,24 @@
 UDLY.xlsx [1] <- Historical Price sources[0]
-  HistPrice :Historical Price
-  RVX : IV
--Excel to csv
-UDLY.xlsx[1] --> UDLY_Hist.csv [3]
-             --> UDLY_IV.csv [4]
+  HistPrice :Historical Price  -> UDLY_Hist.csv [3]
+  RVX : IV                     -> UDLY_IV.csv [4]
 
 UDLY_OPChain.xlsx [2] <- opprice-yyyy-mm-dd.csv[0']
-  OptionChain raw data 
--Excel to csv  
-UDLY_OPChainUDLY.xlsx [2] -> UDLY_OPChain_Pre-yyyy-mm-dd.csv[5]
-                          -> (for skew calculation)[5']
+  OptionChain raw data  -> UDLY_OPChain_Pre-yyyy-mm-dd.csv[5]
+                        -> (for skew calculation)[5']
 
--PriceChg/IVChg Regression
-[3],[4] ->  Result Object[8,8']
+[3],[4] ->  PriceChg/IVChg Regression Result Object[8,8']
 
-[3],[4],[5] -> UDLY_Positions_Pre_yyy-mm-dd.csv[6]
-[3],[4],[5'] -> UDLY_OPChain_Pos-yyyy-mm-dd.csv[7]
-[4],[7] -> Skew/VCone Regression Result Object[8,8']
-        -> UDLY_OPChain_Skew.csv[9]
+[3],[4],[5,5']  -> UDLY_OPChain_Pos-yyyy-mm-dd.csv[6]
+[3],[4],[5,5']  -> UDLY_Positions_Pre_yyy-mm-dd.csv[7]
+
+[4],[6] -> Skew/VCone Regression Result Object[8,8']
+        -> UDLY_OPChain_Skew.csv[9] (not needed)
 
 -Optimization
-[4],[6],[8,8'] -> Optimization -> 1Cb,2Cb,3Cb,4Cb,6Cb.csv(Optimization results)[10]
+[4],[7],[8,8'] -> Optimization -> 1Cb,2Cb,3Cb,4Cb,6Cb.csv(Optimization results)[10]
+
+[10] -> UDLY_EvalPosition.csv[11]
 
 -Simulation
-[4],[6],RUT_EvalPosition.csv[11] -> Simulation -> UDLY_result.csv[12], UDLY_modelScenario_x,UDLY_modelStimRawlist_x
-UDLY_modelScenario_x,UDLY_modelStimRawlist_x -> PlaybackAdjust -> UDLY_adjustedScenario_x
-
+[4],[7],[11] -> UDLY_result.csv[12], UDLY_modelScenario_x,UDLY_modelStimRawlist_x[13]
+[13]  -> PlaybackAdjust -> UDLY_adjustedScenario_x[14]
