@@ -29,5 +29,9 @@ TYPE 列
 3. ●UDLY_Hist.csv,UDLY_IV.csv を更新する
 ●UDLY.xlsx内のデータを更新して、それぞれのワークシートからUDLY_Hist.csv,UDLY_IV.csvを出力
 
-4.EDataProvision2.R(仮称）に●UDLY_OPChain_Pre_yyyy-mm-dd.csv等を読み込んで、
-●UDLY_Positions_Pre_yyyy-mm-dd.scvファイル出力
+4.●UDLY_OPChain_Pre_yyyy-mm-dd.csv を処理対象のファイルとして、●UDLY_OPChain_Pre.csv
+  としてcopyする。
+
+EDataProvision2.R(仮称）に●UDLY_OPChain_Pre.csv等を読み込んで、●UDLY_Positions_Pre_yyyy-mm-dd.scv
+ファイル出力。このとき、EDataProvision2.R(仮称）内のisSkewCalc=FALSEとすること
+
