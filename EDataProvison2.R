@@ -24,10 +24,11 @@ ResultFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\ResultData\\"
 
 #switch: only for today or multiple days for skew calculation
 ProcessFileName=paste("_OPChain_Pre_",Sys.Date(),".csv",sep="")
-isSkewCalc=FALSE
-TargetFileName=paste("_OPChain_Pos_",Sys.Date(),".csv",sep="")
-#when isSkewCalc==TRUE, just comment out below
+isSkewCalc=TRUE
 TargetFileName=paste("_Positions_Pre_",Sys.Date(),".csv",sep="")
+#when isSkewCalc==TRUE, just comment out below
+if(isSkewCalc)
+  TargetFileName=paste("_OPChain_Pos_",Sys.Date(),".csv",sep="")
 
 makeOpchainContainer<-function(){  
   #read data file
@@ -96,11 +97,6 @@ opchain$Rho<-tmp$Rho
 rm(tmp)
 
 #Option_Chain_Pos file type has been created.
-
-##
-# if(isSkewCalc=FALSE){
-#  write.table()
-# }
 
 ##
 #  ATMIV IVIDX Moneyness etc. calculation for the opchain to be completed.
@@ -192,6 +188,7 @@ rm(wf_)
 rm(opchain)
 
 #Last Cleaning
+rm(makeOpchainContainer,makePosition)
 rm(CALENDAR_G,riskFreeRate_G,divYld_G,OpType_Put_G,OpType_Call_G,TimeToExp_Limit_Closeness_G)
 rm(Underying_Symbol_G,DataFiles_Path_G,ResultFiles_Path_G,ProcessFileName,TargetFileName,isSkewCalc)
 
