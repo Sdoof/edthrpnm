@@ -1,1 +1,0 @@
-robocopy "C:\Users\kuby\RProject\MarketData\data" "D:\MarketData" /E /PURGE 
