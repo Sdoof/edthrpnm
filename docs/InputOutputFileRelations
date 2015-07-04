@@ -22,3 +22,6 @@ UDLY_OPChain.xlsx [2] <--(hidemaru, excel input)- opprice-yyyy-mm-dd.csv[0']
 [4],[7],[11] -(Script2)--> UDLY_result.csv[12] + UDLY_modelScenario_x + UDLY_modelStimRawlist_x[13]
 [13]  -(PlaybackAdjust)--> UDLY_adjustedScenario_x[14]
 
+UDLY_modelScenario_x, UDLY_modelStimRawlist_x[13],UDLY_adjustedScenario_x[14] 
+  -(StimResult.Rmd,StimRsltInspct.Rmd)--> StimResult.html,StimRsltInspct.html[15]
+
