@@ -1,8 +1,8 @@
-UDLY.xlsx [1] <- Historical Price sources[0]
+UDLY.xlsx [1] <--(excel input)- Historical Price sources[0]
   HistPrice :Historical Price  -(excel output)--> UDLY_Hist.csv [3]
   RVX : IV                     -(excel output)--> UDLY_IV.csv [4]
 
-UDLY_OPChain.xlsx [2] <- opprice-yyyy-mm-dd.csv[0']
+UDLY_OPChain.xlsx [2] <--(hidemaru, excel input)- opprice-yyyy-mm-dd.csv[0']
   OptionChain raw data  -(excel output)--> UDLY_OPChain_Pre-yyyy-mm-dd.csv[5]
                         -(excel output)--> UDLY_OPChain_Pre-yyyy-mm-dd-yy-mm-dd.csv[5']
 
