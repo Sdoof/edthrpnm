@@ -24,7 +24,7 @@ ResultFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\ResultData\\"
 
 #switch: only for today or multiple days for skew calculation
 ProcessFileName=paste("_OPChain_Pre.csv",sep="")
-isSkewCalc=TRUE
+isSkewCalc=FALSE
 TargetFileName=paste("_Positions_Pre_",Sys.Date(),".csv",sep="")
 #when isSkewCalc==TRUE, just comment out below
 if(isSkewCalc)
@@ -176,11 +176,7 @@ makePosition <- function(opch=opchain){
   
 }
 
-if(!isSkewCalc){
-  opchain<-makePosition(opchain)
-}else{
-  opchain %>% dplyr::arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="%Y/%m/%d"),desc(TYPE),Strike) -> opchain
-}
+opchain<-makePosition(opchain)
 
 #Write to a file (RUT_Positions_Pre)
 wf_<-paste(DataFiles_Path_G,Underying_Symbol_G,TargetFileName,sep="")
