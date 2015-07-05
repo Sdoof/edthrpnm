@@ -763,7 +763,12 @@ create_initial_exact_PutCall_polulation<-function(popnum,type,thresh=3.0,putn=6,
     x<-as.numeric(((putn%%2)==0)*((calln%%2)==0))*ml*x+as.numeric(!((putn%%2)==0)*((calln%%2)==0))*x
     #val<-obj_Income(x,isDebug=isDebug)
     if(isDebug){ cat(" (:x",x,")") }
-    val<-obj_Income_sgmd(x,isDebug=isDebug,isDetail=isDetail)
+    
+    tryCatch(val<-obj_Income_sgmd(x,isDebug=isDebug,isDetail=isDetail),
+             error=function(e){
+               message(e)
+               val<-(thresh+1.0)
+             })
     if(val<thresh){
       if(added_num==0){
         ret_val<-x
@@ -856,7 +861,12 @@ create_combined_population<-function(popnum,thresh=1000,plelem=c(4,5),fname,isFi
     
     #evaluate
     #val<-obj_Income(x_new,isDebug=isDebug)
-    val<-obj_Income_sgmd(x_new,isDebug=isDebug,isDetail=isDebug)
+    tryCatch(val<-obj_Income_sgmd(x,isDebug=isDebug,isDetail=isDetail),
+             error=function(e){
+               message(e)
+               val<-(thresh+1.0)
+             })
+    
     if(val<thresh){
       if(added_num==0){
         ret_val<-x_new
