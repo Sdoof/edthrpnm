@@ -160,7 +160,7 @@ pools<-list(list(c(1,0,0),tmp)) #No.[[1]]
 # or when all results are mixed together regardress of the number of Putn and Calln, pools[[1]] should be set as
 # c(1,0,0) <- c(1Cb{=exact}, Putn not spicified, Calln not spicified)
 
-rm(poolidx,tmp)
+rm(tmp)
 
 #combined population serach --------------
 
@@ -861,7 +861,7 @@ create_combined_population<-function(popnum,thresh=1000,plelem=c(4,5),fname,isFi
     
     #evaluate
     #val<-obj_Income(x_new,isDebug=isDebug)
-    tryCatch(val<-obj_Income_sgmd(x,isDebug=isDebug,isDetail=isDetail),
+    tryCatch(val<-obj_Income_sgmd(x_new,isDebug=isDebug,isDetail=isDebug),
              error=function(e){
                message(e)
                val<-(thresh+1.0)
