@@ -24,7 +24,7 @@ ResultFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\ResultData\\"
 
 #switch: only for today or multiple days for skew calculation
 ProcessFileName=paste("_OPChain_Pre.csv",sep="")
-isSkewCalc=FALSE
+isSkewCalc=TRUE
 TargetFileName=paste("_Positions_Pre_",Sys.Date(),".csv",sep="")
 #when isSkewCalc==TRUE, just comment out below
 if(isSkewCalc)
@@ -96,6 +96,8 @@ opchain$Theta<-tmp$Theta
 opchain$Rho<-tmp$Rho
 rm(tmp)
 
+rownames(opchain) <- c(1:nrow(opchain))
+
 #Option_Chain_Pos file type has been created.
 
 ##
@@ -146,6 +148,7 @@ makePosition <- function(opch=opchain){
   opch <- merge(opch,
                 atmiv %>% dplyr::select(Date,ExpDate,TYPE,ATMIV) %>% as.data.frame(),
                 by.x=c("Date","ExpDate","TYPE"),by.y=c("Date","ExpDate","TYPE"),all.x=T)
+
   #sorting
   atmiv %>% dplyr::arrange(desc(TYPE),as.Date(ExpDate,format="%Y/%m/%d"),as.Date(Date,format="%Y/%m/%d")) -> atmiv
   opch %>% dplyr::arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="%Y/%m/%d"),desc(TYPE),Strike) -> opch
@@ -156,6 +159,12 @@ makePosition <- function(opch=opchain){
   opchain<-opch ; rm(opch)
   rm(atmiv)
   
+  
+  return(opchain)
+  
+}
+
+filterPosition <- function(opchain){
   ##
   #  Filter Target Ranges
   
@@ -178,6 +187,10 @@ makePosition <- function(opch=opchain){
 
 opchain<-makePosition(opchain)
 
+if(!isSkewCalc){
+  opchain<-filterPosition(opchain)
+}
+
 #Write to a file (RUT_Positions_Pre)
 wf_<-paste(DataFiles_Path_G,Underying_Symbol_G,TargetFileName,sep="")
 write.table(opchain,wf_,quote=T,row.names=F,sep=",")
@@ -186,7 +199,7 @@ rm(wf_)
 rm(opchain)
 
 #Last Cleaning
-rm(makeOpchainContainer,makePosition)
+rm(makeOpchainContainer,makePosition,filterPosition)
 rm(CALENDAR_G,riskFreeRate_G,divYld_G,OpType_Put_G,OpType_Call_G,TimeToExp_Limit_Closeness_G)
 rm(Underying_Symbol_G,DataFiles_Path_G,ResultFiles_Path_G,ProcessFileName,TargetFileName,isSkewCalc)
 
