@@ -1,1 +1,0 @@
-Get-ChildItem C:\Users\kuby\edthrpnm\ResultData  | Where-Object {$_.Name  -match "^*-\dCb*\+.\d*Cb-"}@| cat >>  C:\Users\kuby\edthrpnm\ResultData\2Cb-.csv
