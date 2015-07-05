@@ -1,1 +1,1 @@
-Get-ChildItem C:\Users\kuby\edthrpnm\ResultData\  | Where-Object {$_.Name  -match "^*inipop*"} | cat >> C:\Users\kuby\edthrpnm\ResultData\1Cb-.csv
+Get-ChildItem .\ResultData\  | Where-Object {$_.Name  -match "^*inipop*"} | cat >> .\ResultData\1Cb-.csv

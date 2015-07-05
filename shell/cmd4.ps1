@@ -1,1 +1,1 @@
-Get-Content C:\Users\kuby\edthrpnm\ResultData\2Cb-.csv | Out-File -Filepath C:\Users\kuby\edthrpnm\ResultData\2Cb.csv -Encoding default
+Get-Content .\ResultData\2Cb-.csv | Out-File -Filepath .\ResultData\2Cb.csv -Encoding default

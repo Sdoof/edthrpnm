@@ -1,1 +1,1 @@
- Get-ChildItem C:\Users\kuby\edthrpnm\ResultData  | Where-Object {$_.Name  -match "^*-2Cb.*2Cb.*-"} | cat >> C:\Users\kuby\edthrpnm\ResultData\4Cb-.csv
+ Get-ChildItem .\ResultData  | Where-Object {$_.Name  -match "^*-2Cb.*2Cb.*-"} | cat >> .\ResultData\4Cb-.csv
