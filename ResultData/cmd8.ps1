@@ -1,0 +1,1 @@
+Get-Content C:\Users\kuby\edthrpnm\ResultData\4Cb-.csv | Out-File -Filepath C:\Users\kuby\edthrpnm\ResultData\4Cb.csv -Encoding default
