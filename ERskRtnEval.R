@@ -140,12 +140,12 @@ for(tmp in 1:8){
 };rm(tmp)
 
 #1Cb.csv
-#st <- "powershell.exe .\\shell\\cmd1.ps1"
-#system(st)
-#st <- "powershell.exe .\\shell\\cmd2.ps1"
-#system(st)
-#st <- "powershell.exe -Command \" del .\\ResultData\\1Cb-.csv \" "
-#system(st) ;rm(st)
+st <- "powershell.exe .\\shell\\cmd1.ps1"
+system(st)
+st <- "powershell.exe .\\shell\\cmd2.ps1"
+system(st)
+st <- "powershell.exe -Command \" del .\\ResultData\\1Cb-.csv \" "
+system(st) ;rm(st)
 
 #creating candidate pool for combined search --------
 
@@ -169,12 +169,12 @@ rm(tmp)
 create_combined_population(popnum=30000,thresh=2.0,plelem=c(1,1),fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                            isFileout=TRUE,isDebug=FALSE,maxposn=8)
 #2Cb.csv
-#st <- "powershell.exe .\\shell\\cmd3.ps1"
-#system(st)
-#st <- "powershell.exe .\\shell\\cmd4.ps1"
-#system(st)
-#st <- "powershell.exe -Command \" del .\\ResultData\\2Cb-.csv \" "
-#system(st) ;rm(st)
+st <- "powershell.exe .\\shell\\cmd3.ps1"
+system(st)
+st <- "powershell.exe .\\shell\\cmd4.ps1"
+system(st)
+st <- "powershell.exe -Command \" del .\\ResultData\\2Cb-.csv \" "
+system(st) ;rm(st)
 
 ### 3(exact x exact x exact) Combinations (3Cb)
 
@@ -189,12 +189,12 @@ pools<-list(list(c(1,0,0),tmp)) #No.[[1]] again
 create_combined_population(popnum=30000,thresh=2.0,plelem=c(1,1,1),fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                            isFileout=TRUE,isDebug=FALSE,maxposn=8)
 #3Cb.csv
-#st <- "powershell.exe .\\shell\\cmd5.ps1"
-#system(st)
-#st <- "powershell.exe .\\shell\\cmd6.ps1"
-#system(st)
-#st <- "powershell.exe -Command \" del .\\ResultData\\3Cb-.csv \" "
-#system(st) ;rm(st)
+st <- "powershell.exe .\\shell\\cmd5.ps1"
+system(st)
+st <- "powershell.exe .\\shell\\cmd6.ps1"
+system(st)
+st <- "powershell.exe -Command \" del .\\ResultData\\3Cb-.csv \" "
+system(st) ;rm(st)
 
 ### 2x2(2Cbx2Cb) and 3x3(3Cbx3cb) Combinations
 ##create nested combine candidate pool 
@@ -222,23 +222,23 @@ rm(poolidx,tmp)
 create_combined_population(popnum=20000,thresh=2.0,plelem=c(2,2),fname=paste(".\\ResultData\\combine-Result-2Cb(+1Cb+1Cb)2Cb(+1Cb+1Cb)-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                            isFileout=TRUE,isDebug=FALSE,maxposn=8) 
 #4Cb.csv
-#st <- "powershell.exe .\\shell\\cmd7.ps1"
-#system(st)
-#st <- "powershell.exe .\\shell\\cmd8.ps1"
-#system(st)
-#st <- "powershell.exe -Command \" del .\\ResultData\\4Cb-.csv \" "
-#system(st) ;rm(st)
+st <- "powershell.exe .\\shell\\cmd7.ps1"
+system(st)
+st <- "powershell.exe .\\shell\\cmd8.ps1"
+system(st)
+st <- "powershell.exe -Command \" del .\\ResultData\\4Cb-.csv \" "
+system(st) ;rm(st)
 
 # 3Cbx3Cb Combination search
 create_combined_population(popnum=20000,thresh=2.0,plelem=c(3,3),fname=paste(".\\ResultData\\combine-Result-3Cb(+1Cb+1Cb+1Cb)3Cb(+1Cb+1Cb+1Cb)-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                            isFileout=TRUE,isDebug=FALSE,maxposn=8) 
 #6Cb.csv
-#st <- "powershell.exe .\\shell\\cmd9.ps1"
-#system(st)
-#st <- "powershell.exe .\\shell\\cmd10.ps1"
-#system(st)
-#st <- "powershell.exe -Command \" del .\\ResultData\\6Cb-.csv \" "
-#system(st) ;rm(st)
+st <- "powershell.exe .\\shell\\cmd9.ps1"
+system(st)
+st <- "powershell.exe .\\shell\\cmd10.ps1"
+system(st)
+st <- "powershell.exe -Command \" del .\\ResultData\\6Cb-.csv \" "
+system(st) ;rm(st)
 
 rm(pools)
 
