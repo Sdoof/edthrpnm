@@ -42,3 +42,39 @@ system(st)
 st <- "powershell.exe -Command \" del .\\ResultData\\6Cb-.csv \" "
 system(st) ;rm(st)
 
+#combine
+#Get-ChildItem ..\edthrpnm2\ResultData\1Cb.csv | cat >> .\ResultData\1Cb.csv
+st <- "powershell.exe -Command \" Get-ChildItem ..\\edthrpnm2\\ResultData\\1Cb.csv | cat >> .\\ResultData\\1Cb.csv \" "
+system(st) ;rm(st)
+#Get-ChildItem ..\edthrpnm3\ResultData\1Cb.csv | cat >> .\ResultData\1Cb.csv
+st <- "powershell.exe -Command \" Get-ChildItem ..\\edthrpnm3\\ResultData\\1Cb.csv | cat >> .\\ResultData\\1Cb.csv \" "
+system(st) ;rm(st)
+#Get-ChildItem ..\edthrpnm2\ResultData\2Cb.csv | cat >> .\ResultData\2Cb.csv
+st <- "powershell.exe -Command \" Get-ChildItem ..\\edthrpnm2\\ResultData\\2Cb.csv | cat >> .\\ResultData\\2Cb.csv \" "
+system(st) ;rm(st)
+#Get-ChildItem ..\edthrpnm3\ResultData\2Cb.csv | cat >> .\ResultData\2Cb.csv
+st <- "powershell.exe -Command \" Get-ChildItem ..\\edthrpnm3\\ResultData\\2Cb.csv | cat >> .\\ResultData\\2Cb.csv \" "
+system(st) ;rm(st)
+#Get-ChildItem ..\edthrpnm2\ResultData\3Cb.csv | cat >> .\ResultData\3Cb.csv
+st <- "powershell.exe -Command \" Get-ChildItem ..\\edthrpnm2\\ResultData\\3Cb.csv | cat >> .\\ResultData\\3Cb.csv \" "
+system(st) ;rm(st)
+#Get-ChildItem ..\edthrpnm3\ResultData\3Cb.csv | cat >> .\ResultData\3Cb.csv
+st <- "powershell.exe -Command \" Get-ChildItem ..\\edthrpnm3\\ResultData\\3Cb.csv | cat >> .\\ResultData\\3Cb.csv \" "
+system(st) ;rm(st)
+#Get-ChildItem ..\edthrpnm2\ResultData\4Cb.csv | cat >> .\ResultData\4Cb.csv
+st <- "powershell.exe -Command \" Get-ChildItem ..\\edthrpnm2\\ResultData\\4Cb.csv | cat >> .\\ResultData\\4Cb.csv \" "
+system(st) ;rm(st)
+#Get-ChildItem ..\edthrpnm3\ResultData\4Cb.csv | cat >> .\ResultData\4Cb.csv
+st <- "powershell.exe -Command \" Get-ChildItem ..\\edthrpnm3\\ResultData\\4Cb.csv | cat >> .\\ResultData\\4Cb.csv \" "
+system(st) ;rm(st)
+#Get-ChildItem ..\edthrpnm2\ResultData\6Cb.csv | cat >> .\ResultData\6Cb.csv
+st <- "powershell.exe -Command \" Get-ChildItem ..\\edthrpnm2\\ResultData\\6Cb.csv | cat >> .\\ResultData\\6Cb.csv \" "
+system(st) ;rm(st)
+#Get-ChildItem ..\edthrpnm3\ResultData\6Cb.csv | cat >> .\ResultData\6Cb.csv
+st <- "powershell.exe -Command \" Get-ChildItem ..\\edthrpnm3\\ResultData\\6Cb.csv | cat >> .\\ResultData\\6Cb.csv \" "
+system(st) ;rm(st)
+
+
+
+
+
