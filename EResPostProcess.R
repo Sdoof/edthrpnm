@@ -41,7 +41,7 @@ res1<-createCombineCandidatePool(fname=paste(ResultFiles_Path_G,"1Cb.csv",sep=""
 #above average score
 #res1 %>% filter(.[,length(iniPos)+1]<mean(res1[,length(iniPos)+1]))
 #over the specified socre
-res1 %>% filter(.[,length(iniPos)+1]<1.012) -> res1
+res1 %>% filter(.[,length(iniPos)+1]<1.04) -> res1
 #posnum put call
 res1[,1:length(iniPos)] %>% rowwise() %>% do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp
 tmp  %>% rowwise() %>% do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp2
@@ -57,7 +57,7 @@ res2<-createCombineCandidatePool(fname=paste(ResultFiles_Path_G,"2Cb.csv",sep=""
 res2 %>% select(1:(length(iniPos)+1)) -> res2
 
 #over the specified socre
-res2 %>% filter(.[,length(iniPos)+1]<1.01) -> res2
+res2 %>% filter(.[,length(iniPos)+1]<1.02) -> res2
 
 #posnum put call
 res2[,1:length(iniPos)] %>% rowwise() %>% do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp
@@ -73,7 +73,7 @@ rm(res1,res2)
 
 ##
 #  3Cb
-res1<-createCombineCandidatePool(fname=paste(ResultFiles_Path_G,"2Cb.csv",sep=""),
+res1<-createCombineCandidatePool(fname=paste(ResultFiles_Path_G,"3Cb.csv",sep=""),
                                  pnum=0,nrows=-1,skip=0,method=1)
 #必要のない列の削除
 res1 %>% select(1:(length(iniPos)+1)) -> res1
@@ -100,15 +100,18 @@ res1 %>% filter(.[,length(iniPos)+1]<1.02) -> res1
 res1[,1:length(iniPos)] %>% rowwise() %>% do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp
 tmp  %>% rowwise() %>% do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp2
 res1$putn<-unlist(tmp2$putn);res1$calln<-unlist(tmp2$calln);rm(tmp);rm(tmp2)
+
+#factorと認識されたときの変換
+#res1$V1<-as.numeric(as.character(res1$V1))
 #write.table(res1,paste(ResultFiles_Path_G,"4Cb-out.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
 #full join
 full_join(total_res,res1) %>% arrange(.[,length(iniPos)+1])  %>% distinct() -> total_res
 
 ##
 # 3Cb+3Cb
-res1<-createCombineCandidatePool(fname=paste(ResultFiles_Path_G,"6Cb.csv",sep=""),sep=""),
+res1<-createCombineCandidatePool(fname=paste(ResultFiles_Path_G,"6Cb.csv",sep=""),
                                  pnum=0,nrows=-1,skip=0,method=1)
-#必要のない列の削除
+
 res1 %>% select(1:(length(iniPos)+1)) -> res1
 #over the specified socre
 res1 %>% filter(.[,length(iniPos)+1]<1.01) -> res1
