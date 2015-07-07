@@ -26,13 +26,6 @@ rm(rf)
 #iniPos
 iniPos<-opchain$Position
 
-#add posnum info to result data frmae. this case pools[[6]][[2]]
-#pools[[6]][[2]][,1:length(iniPos)] %>% rowwise() %>% do(s=sum( as.numeric(unlist(.)!=0) )) -> tmp
-#unlist(tmp)
-#pools[[6]][[2]]$posnum<-unlist(tmp) ; rm(tmp)
-
-#read from file to post process. reuse createCombineCandidatePool to get a data.frame
-
 ##
 # Exact (1Cb)
 res1<-createCombineCandidatePool(fname=paste(ResultFiles_Path_G,"1Cb.csv",sep=""),
@@ -90,39 +83,33 @@ full_join(total_res,res1) %>% arrange(.[,length(iniPos)+1])  %>% distinct() -> t
 
 ##
 #  2Cb+2Cb
-res1<-createCombineCandidatePool(fname=paste(ResultFiles_Path_G,"4Cb.csv",sep=""),
-                                 pnum=0,nrows=-1,skip=0,method=1)
+# res1<-createCombineCandidatePool(fname=paste(ResultFiles_Path_G,"4Cb.csv",sep=""),
+#                                 pnum=0,nrows=-1,skip=0,method=1)
 #必要のない列の削除
-res1 %>% select(1:(length(iniPos)+1)) -> res1
+# res1 %>% select(1:(length(iniPos)+1)) -> res1
 #over the specified socre
-res1 %>% filter(.[,length(iniPos)+1]<1.02) -> res1
+# res1 %>% filter(.[,length(iniPos)+1]<1.02) -> res1
 #posnum put call
-res1[,1:length(iniPos)] %>% rowwise() %>% do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp
-tmp  %>% rowwise() %>% do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp2
-res1$putn<-unlist(tmp2$putn);res1$calln<-unlist(tmp2$calln);rm(tmp);rm(tmp2)
-
-#factorと認識されたときの変換
-#res1$V1<-as.numeric(as.character(res1$V1))
-#write.table(res1,paste(ResultFiles_Path_G,"4Cb-out.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
+# res1[,1:length(iniPos)] %>% rowwise() %>% do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp
+# tmp  %>% rowwise() %>% do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp2
+# res1$putn<-unlist(tmp2$putn);res1$calln<-unlist(tmp2$calln);rm(tmp);rm(tmp2)
+#factorと認識されたときの変換 #res1$V1<-as.numeric(as.character(res1$V1))
 #full join
-full_join(total_res,res1) %>% arrange(.[,length(iniPos)+1])  %>% distinct() -> total_res
+# full_join(total_res,res1) %>% arrange(.[,length(iniPos)+1])  %>% distinct() -> total_res
 
 ##
 # 3Cb+3Cb
-res1<-createCombineCandidatePool(fname=paste(ResultFiles_Path_G,"6Cb.csv",sep=""),
-                                 pnum=0,nrows=-1,skip=0,method=1)
-
-res1 %>% select(1:(length(iniPos)+1)) -> res1
+# res1<-createCombineCandidatePool(fname=paste(ResultFiles_Path_G,"6Cb.csv",sep=""),
+#                                  pnum=0,nrows=-1,skip=0,method=1)
+# res1 %>% select(1:(length(iniPos)+1)) -> res1
 #over the specified socre
-res1 %>% filter(.[,length(iniPos)+1]<1.01) -> res1
+# res1 %>% filter(.[,length(iniPos)+1]<1.01) -> res1
 #posnum put call
-res1[,1:length(iniPos)] %>% rowwise() %>% do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp
-tmp  %>% rowwise() %>% do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp2
-res1$putn<-unlist(tmp2$putn);res1$calln<-unlist(tmp2$calln);rm(tmp);rm(tmp2)
-#write.table(res1,paste(ResultFiles_Path_G,"6Cb-out.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
-
+# res1[,1:length(iniPos)] %>% rowwise() %>% do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp
+# tmp  %>% rowwise() %>% do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp2
+# res1$putn<-unlist(tmp2$putn);res1$calln<-unlist(tmp2$calln);rm(tmp);rm(tmp2)
 #full join
-full_join(total_res,res1) %>% arrange(.[,length(iniPos)+1])  %>% distinct() -> total_res
+# full_join(total_res,res1) %>% arrange(.[,length(iniPos)+1])  %>% distinct() -> total_res
 
 ##
 # 条件指定
@@ -137,35 +124,27 @@ write.table(tmp_fil2,paste(ResultFiles_Path_G,"posnEQ7.csv",sep=""),row.names = 
 write.table(tmp_fil3,paste(ResultFiles_Path_G,"posnGT8.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
 
 #profit impact
-total_res$profit<-NULL
-total_res[,1:length(iniPos)] %>% rowwise() %>% do(profit=getProfit(unlist(.),isDebug=FALSE,udlStepNum=4,udlStepPct=0.02)) -> tmp
-as.vector(unlist(tmp))
-total_res$profit<-as.vector(unlist(tmp)) ; rm(tmp)
+# total_res$profit<-NULL
+# total_res[,1:length(iniPos)] %>% rowwise() %>% do(profit=getProfit(unlist(.),isDebug=FALSE,udlStepNum=4,udlStepPct=0.02)) -> tmp
+# as.vector(unlist(tmp))
+# total_res$profit<-as.vector(unlist(tmp)) ; rm(tmp)
 
 #callの数でフィルタかけてみる
-total_res %>% filter(calln>=2) %>% arrange(.[,length(iniPos)+1]) -> tmp_fil
+# total_res %>% filter(calln>=2) %>% arrange(.[,length(iniPos)+1]) -> tmp_fil
 
 #profitでフィルタ
-total_res %>% filter(profit>90) %>% arrange(.[,length(iniPos)+1]) -> tmp_fil
+# total_res %>% filter(profit>90) %>% arrange(.[,length(iniPos)+1]) -> tmp_fil
 
 ##
 # , 形式での表示
 #1st 
-cat(unlist(total_res[1,]),sep=",")
+# cat(unlist(total_res[1,]),sep=",")
 #filtered tmp's 15th
-cat(unlist(tmp_fil[15,]),sep=",")
+# cat(unlist(tmp_fil[15,]),sep=",")
 
 #上位score1000の評価値の平均
-mean(tmp_fil[,length(iniPos)+1])
-mean(total_res[,length(iniPos)+1])
-
-# create initial population for optimizer
-#genoud
-genoud_inipop_vec<-createInitialPopulationVecForOptimizer(res_df=total_res, cand_num=10*length(iniPos))
-genoud_inipop_vec<-as.vector(genoud_inipop_vec)
-#dfoptiom, 38th element selected.
-unlist(total_res[38,1:length(iniPos)]) -> dfoptim_inipop_vec
-dfoptim_inipop_vec<-as.vector(dfoptim_inipop_vec)
+# mean(tmp_fil[,length(iniPos)+1])
+# mean(total_res[,length(iniPos)+1])
 
 rm(genoud_inipop_vec,dfoptim_inipop_vec)
 rm(tmp,tmp_fil,tmp_fil2,tmp_fil3,res1,res2)
