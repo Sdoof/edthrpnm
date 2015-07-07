@@ -115,7 +115,7 @@ full_join(total_res,res1) %>% arrange(.[,length(iniPos)+1])  %>% distinct() -> t
 # 条件指定
 #option position total number
 total_res %>% mutate(posn=(putn+calln)) -> total_res
-total_res %>%  filter(posn<=6) %>% filter(.[,length(iniPos)+1]<1.0) ->tmp_fil 
+total_res %>%  filter(posn<=6) %>% filter(.[,length(iniPos)+1]<1.02) ->tmp_fil 
 total_res %>%  filter(posn==7) %>% filter(.[,length(iniPos)+1]<1.0) ->tmp_fil2
 total_res %>%  filter(posn>=8) %>% filter(.[,length(iniPos)+1]<1.0) ->tmp_fil3
 
