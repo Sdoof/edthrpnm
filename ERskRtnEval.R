@@ -45,7 +45,7 @@ opchain %>% dplyr::filter(Position!=0) -> position
 
 ##Historical Implied Volatility Data ---------------
 rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_IV.csv",sep="") 
-histIV<-read.table(rf,header=T,sep=",",nrows=1999);rm(rf)
+histIV<-read.table(rf,header=T,sep=",",nrows=1000);rm(rf)
 #filtering
 histIV %>% dplyr::transmute(Date=Date,IVIDX=Close/100) -> histIV
 histIV %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")<=max(as.Date(opchain$Date,format="%Y/%m/%d"))) %>%
@@ -92,36 +92,36 @@ CallIVChgDown
 
 #sigmoid function  ------
 for(tmp in 1:8){
-   create_initial_exact_PutCall_polulation(popnum=4000,opchain$TYPE,thresh=2.0,putn=6,calln=2,ml=2,
+   create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,thresh=2.0,putn=6,calln=2,ml=2,
                                            fname=paste(".\\ResultData\\inipop-08P6C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                            isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-   create_initial_exact_PutCall_polulation(popnum=4000,opchain$TYPE,thresh=2.0,putn=5,calln=3,ml=2,
+   create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,thresh=2.0,putn=5,calln=3,ml=2,
                                            fname=paste(".\\ResultData\\inipop-08P5C3-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                            isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
    create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,thresh=2.0,putn=4,calln=4,ml=2,
                                            fname=paste(".\\ResultData\\inipop-08P4C4-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                            isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-   create_initial_exact_PutCall_polulation(popnum=4000,opchain$TYPE,thresh=2.0,putn=5,calln=2,ml=2,
+   create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,thresh=2.0,putn=5,calln=2,ml=2,
                                            fname=paste(".\\ResultData\\inipop-07P5C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                            isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-   create_initial_exact_PutCall_polulation(popnum=4000,opchain$TYPE,thresh=2.0,putn=4,calln=3,ml=2,
+   create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,thresh=2.0,putn=4,calln=3,ml=2,
                                            fname=paste(".\\ResultData\\inipop-07P4C3-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                            isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-   create_initial_exact_PutCall_polulation(popnum=4000,opchain$TYPE,thresh=2.0,putn=4,calln=2,ml=2,
+   create_initial_exact_PutCall_polulation(popnum=6000,opchain$TYPE,thresh=2.0,putn=4,calln=2,ml=2,
                                            fname=paste(".\\ResultData\\inipop-06P4C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                            isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-   create_initial_exact_PutCall_polulation(popnum=2000,opchain$TYPE,thresh=2.0,putn=3,calln=3,ml=2,
+   create_initial_exact_PutCall_polulation(popnum=4000,opchain$TYPE,thresh=2.0,putn=3,calln=3,ml=2,
                                            fname=paste(".\\ResultData\\inipop-06P3C3-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                            isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-   create_initial_exact_PutCall_polulation(popnum=2000,opchain$TYPE,thresh=2.0,putn=6,calln=0,ml=2,
+   create_initial_exact_PutCall_polulation(popnum=1000,opchain$TYPE,thresh=2.0,putn=6,calln=0,ml=2,
                                            fname=paste(".\\ResultData\\inipop-06P6C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                            isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-   create_initial_exact_PutCall_polulation(popnum=1500,opchain$TYPE,thresh=2.0,putn=3,calln=2,ml=2,
+   create_initial_exact_PutCall_polulation(popnum=2000,opchain$TYPE,thresh=2.0,putn=3,calln=2,ml=2,
                                            fname=paste(".\\ResultData\\inipop-05P3C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                            isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-   create_initial_exact_PutCall_polulation(popnum=1500,opchain$TYPE,thresh=2.0,putn=5,calln=0,ml=2,
-                                           fname=paste(".\\ResultData\\inipop-05P5C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                                           isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
+   #create_initial_exact_PutCall_polulation(popnum=1500,opchain$TYPE,thresh=2.0,putn=5,calln=0,ml=2,
+   #                                       fname=paste(".\\ResultData\\inipop-05P5C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+   #                                       isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
    create_initial_exact_PutCall_polulation(popnum=1000,opchain$TYPE,thresh=2.0,putn=4,calln=0,ml=2,
                                            fname=paste(".\\ResultData\\inipop-04P4C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                            isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
@@ -166,7 +166,7 @@ rm(tmp)
 
 ### 2(exact x exact) Combinations (2Cb)
 #
-create_combined_population(popnum=30000,thresh=2.0,plelem=c(1,1),fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+create_combined_population(popnum=60000,thresh=2.0,plelem=c(1,1),fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                            isFileout=TRUE,isDebug=FALSE,maxposn=8)
 #2Cb.csv
 st <- "powershell.exe .\\shell\\cmd3.ps1"
@@ -186,7 +186,7 @@ tmp %>% arrange(.[,length(iniPos)+1]) %>% head(600) -> tmp
   
 pools<-list(list(c(1,0,0),tmp)) #No.[[1]] again
 
-create_combined_population(popnum=30000,thresh=2.0,plelem=c(1,1,1),fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+create_combined_population(popnum=60000,thresh=2.0,plelem=c(1,1,1),fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                            isFileout=TRUE,isDebug=FALSE,maxposn=8)
 #3Cb.csv
 st <- "powershell.exe .\\shell\\cmd5.ps1"
@@ -197,48 +197,48 @@ st <- "powershell.exe -Command \" del .\\ResultData\\3Cb-.csv \" "
 system(st) ;rm(st)
 
 ### 2x2(2Cbx2Cb) and 3x3(3Cbx3cb) Combinations
-##create nested combine candidate pool 
-poolidx<-length(pools)+1
+###create nested combine candidate pool 
+# poolidx<-length(pools)+1
+# 
+# tmp<-createCombineCandidatePool(fname=paste(".\\ResultData\\2Cb.csv",sep=""),
+#                                             pnum=0,nrows=-1,skip=0,method=1)
+# tmp %>% filter(.[,length(iniPos)+1]<1.2) -> tmp
+# tmp %>% arrange(.[,length(iniPos)+1]) %>% head(3000) -> tmp
 
-tmp<-createCombineCandidatePool(fname=paste(".\\ResultData\\2Cb.csv",sep=""),
-                                            pnum=0,nrows=-1,skip=0,method=1)
-tmp %>% filter(.[,length(iniPos)+1]<1.2) -> tmp
-tmp %>% arrange(.[,length(iniPos)+1]) %>% head(3000) -> tmp
+###c(2Cb, Putn not spicified, Calln not spicified)
+# pools[poolidx]<-list(list(c(2,0,0),tmp)) ; poolidx<-poolidx+1 #No.[[4]] or No.[[2]]
+# 
+# 
+# tmp<-createCombineCandidatePool(fname=paste(".\\ResultData\\3Cb.csv",sep=""),
+#                                 pnum=0,nrows=-1,skip=0,method=1)
+# tmp %>% filter(.[,length(iniPos)+1]<1.2) -> tmp
+# tmp %>% arrange(.[,length(iniPos)+1]) %>% head(3000) -> tmp
+###c(3Cb, Putn not spicified, Calln not spicified)
+# pools[poolidx]<-list(list(c(3,0,0),tmp)) ; poolidx<-poolidx+1 #No.[[5]] or No.[[3]]
+# rm(poolidx,tmp)
 
-#c(2Cb, Putn not spicified, Calln not spicified)
-pools[poolidx]<-list(list(c(2,0,0),tmp)) ; poolidx<-poolidx+1 #No.[[4]] or No.[[2]]
+###Creating Population again
+### 2Cbx2cb Combination search
+# create_combined_population(popnum=20000,thresh=2.0,plelem=c(2,2),fname=paste(".\\ResultData\\combine-Result-2Cb(+1Cb+1Cb)2Cb(+1Cb+1Cb)-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+#                            isFileout=TRUE,isDebug=FALSE,maxposn=8) 
+###4Cb.csv
+# st <- "powershell.exe .\\shell\\cmd7.ps1"
+# system(st)
+# st <- "powershell.exe .\\shell\\cmd8.ps1"
+# system(st)
+# st <- "powershell.exe -Command \" del .\\ResultData\\4Cb-.csv \" "
+# system(st) ;rm(st)
 
-
-tmp<-createCombineCandidatePool(fname=paste(".\\ResultData\\3Cb.csv",sep=""),
-                                pnum=0,nrows=-1,skip=0,method=1)
-tmp %>% filter(.[,length(iniPos)+1]<1.2) -> tmp
-tmp %>% arrange(.[,length(iniPos)+1]) %>% head(3000) -> tmp
-#c(3Cb, Putn not spicified, Calln not spicified)
-pools[poolidx]<-list(list(c(3,0,0),tmp)) ; poolidx<-poolidx+1 #No.[[5]] or No.[[3]]
-rm(poolidx,tmp)
-
-#Creating Population again
-# 2Cbx2cb Combination search
-create_combined_population(popnum=20000,thresh=2.0,plelem=c(2,2),fname=paste(".\\ResultData\\combine-Result-2Cb(+1Cb+1Cb)2Cb(+1Cb+1Cb)-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                           isFileout=TRUE,isDebug=FALSE,maxposn=8) 
-#4Cb.csv
-st <- "powershell.exe .\\shell\\cmd7.ps1"
-system(st)
-st <- "powershell.exe .\\shell\\cmd8.ps1"
-system(st)
-st <- "powershell.exe -Command \" del .\\ResultData\\4Cb-.csv \" "
-system(st) ;rm(st)
-
-# 3Cbx3Cb Combination search
-create_combined_population(popnum=20000,thresh=2.0,plelem=c(3,3),fname=paste(".\\ResultData\\combine-Result-3Cb(+1Cb+1Cb+1Cb)3Cb(+1Cb+1Cb+1Cb)-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                           isFileout=TRUE,isDebug=FALSE,maxposn=8) 
-#6Cb.csv
-st <- "powershell.exe .\\shell\\cmd9.ps1"
-system(st)
-st <- "powershell.exe .\\shell\\cmd10.ps1"
-system(st)
-st <- "powershell.exe -Command \" del .\\ResultData\\6Cb-.csv \" "
-system(st) ;rm(st)
+### 3Cbx3Cb Combination search
+# create_combined_population(popnum=20000,thresh=2.0,plelem=c(3,3),fname=paste(".\\ResultData\\combine-Result-3Cb(+1Cb+1Cb+1Cb)3Cb(+1Cb+1Cb+1Cb)-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+#                            isFileout=TRUE,isDebug=FALSE,maxposn=8) 
+###6Cb.csv
+# st <- "powershell.exe .\\shell\\cmd9.ps1"
+# system(st)
+# st <- "powershell.exe .\\shell\\cmd10.ps1"
+# system(st)
+# st <- "powershell.exe -Command \" del .\\ResultData\\6Cb-.csv \" "
+# system(st) ;rm(st)
 
 rm(pools)
 
