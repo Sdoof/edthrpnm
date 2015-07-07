@@ -24,7 +24,7 @@ ResultFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\ResultData\\"
 
 #switch: only for today or multiple days for skew calculation
 ProcessFileName=paste("_OPChain_Pre.csv",sep="")
-isSkewCalc=TRUE
+isSkewCalc=FALSE
 TargetFileName=paste("_Positions_Pre_",Sys.Date(),".csv",sep="")
 #when isSkewCalc==TRUE, just comment out below
 if(isSkewCalc)
@@ -43,7 +43,7 @@ makeOpchainContainer<-function(){
   
   #read historical price
   rf_<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Hist.csv",sep="")
-  histPrc_<-read.table(rf_,header=T,sep=",",nrows=1999)
+  histPrc_<-read.table(rf_,header=T,sep=",",nrows=1000)
   histPrc_<-data.frame(Date=histPrc_$Date,UDLY=histPrc_$Close)
   
   #remove not used row
@@ -58,7 +58,9 @@ opchain<-makeOpchainContainer()
 
 #inconsistent data purged
 opchain %>% filter(Price!=0) -> opchain
+as.numeric(as.character(opchain$UDLY))
 opchain %>% filter((Strike-UDLY)*TYPE<Price) -> opchain
+
 #spread<ASK*k
 k<-0.4
 opchain %>% filter(!((Ask-Bid)>(Ask*k))) -> opchain
@@ -105,7 +107,7 @@ rownames(opchain) <- c(1:nrow(opchain))
 
 makePosition <- function(opch=opchain){
   rf_<-paste(DataFiles_Path_G,Underying_Symbol_G,"_IV.csv",sep="")
-  histIV<-read.table(rf_,header=T,sep=",",nrows=1999)
+  histIV<-read.table(rf_,header=T,sep=",",nrows=1000)
   rm(rf_)
   
   #
