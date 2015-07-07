@@ -27,7 +27,7 @@ ResultFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\ResultData\\"
 
 ##
 #  ERskRtnEval -------------
-#holdDays Trading Days. This should be correct.
+#holdDays Trading Days. GreeksEffect are calculated based on this holding days.
 holdDays<-3
 
 #Number of Days for calculating Annualized Daily Volatility of Implied Volatility (DVIV)
@@ -40,7 +40,7 @@ PosMultip<-100
 evalPosStart<-1
 
 #Evaluatin Table Position end
-evalPosEnd<-2
+evalPosEnd<-10
 
 #Option Chain and Position Data. Here we use UDL_Positions_Pre ---------------
 rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep="")
