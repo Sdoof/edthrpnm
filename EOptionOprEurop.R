@@ -1,47 +1,5 @@
 ###Start
 library(RQuantLib)
-
-###Global 変数及び定数.
-#Calendar
-CALENDAR_G="UnitedStates/NYSE"
-
-# Possibly read from File
-riskFreeRate_G=0.01
-divYld_G=0.0
-
-#Definition
-OpType_Put_G=1
-OpType_Call_G=-1
-#Skewness Calculation
-TimeToExp_Limit_Closeness_G=0.3
-#File
-Underying_Symbol_G="RUT"
-DataFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\MarketData\\data\\"
-ResultFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\ResultData\\"
-
-## Read a txt file(csv file)
-(xT0<-read.table("OptionVariables.csv",header=T,sep=","))
-
-#Set IV and get Greeks
-xT0$OrigIV<-set.IVOrig(xT=xT0)
-vgreeks<-set.EuropeanOptionValueGreeks(xT0)
-xT0$Price<-vgreeks$Price
-xT0$Delta<-vgreeks$Delta
-xT0$Gamma<-vgreeks$Gamma
-xT0$Vega<-vgreeks$Vega
-xT0$Theta<-vgreeks$Theta
-xT0$Rho<-vgreeks$Rho
-rm(vgreeks)
-
-##File への出力
-write.table(xT0,"OptionVariablesT0.csv",row.names = FALSE,col.names=T,sep=",",append=F)
-for(i in 1:NumOfOnesideStrkPrice_G){
-  wfilename_<-paste("OptionVariablesT0StrMns",as.character(i),".csv",sep="")
-  write.table(xT0StrMns[[i]],wfilename_,row.names = FALSE,col.names=T,sep=",",append=F)
-  wfilename_<-paste("OptionVariablesT0StrPlus",as.character(i),".csv",sep="")
-  write.table(xT0StrPlus[[i]],wfilename_,row.names = FALSE,col.names=T,sep=",",append=F)
-}
-
 ##
 # Functions to be loaded -------------------------
 

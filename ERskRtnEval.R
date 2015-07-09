@@ -1,261 +1,3 @@
-library(RQuantLib)
-library(ggplot2)
-library(plyr)
-library(dplyr)
-library(pracma)
-
-###Global 変数及び定数.
-#Calendar
-CALENDAR_G="UnitedStates/NYSE"
-
-# Possibly read from File
-riskFreeRate_G=0.01
-divYld_G=0.0
-
-#Definition
-OpType_Put_G=1
-OpType_Call_G=-1
-#Skewness Calculation
-
-TimeToExp_Limit_Closeness_G=0.3
-#File
-Underying_Symbol_G="RUT"
-DataFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\MarketData\\data\\"
-ResultFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\ResultData\\"
-
-#Holding Period
-#holdDays<-3*252/365 #Trading Days. This should be correct.
-holdDays<-3
-#Number of Days for calculating Annualized Daily Volatility of Implied Volatility (DVIV)
-dviv_caldays<-20
-#Multipler of Position
-PosMultip<-100
-
-#Option Chain and Position Data. Here we use UDL_Positions_Pre ---------------
-rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep="")
-opchain<-read.table(rf,header=T,sep=",")
-#filtering. deleting unnecessary column
-opchain %>% dplyr::select(-(contains('Frac',ignore.case=TRUE)),
-                          -(IV)) %>% as.data.frame() -> opchain
-#only OOM targeted
-opchain %>% dplyr::filter(HowfarOOM>=0) -> opchain
-#assiging initial Position?
-#get position where opchain$Position!=0
-opchain %>% dplyr::filter(Position!=0) -> position
-
-##Historical Implied Volatility Data ---------------
-rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_IV.csv",sep="") 
-histIV<-read.table(rf,header=T,sep=",",nrows=1000);rm(rf)
-#filtering
-histIV %>% dplyr::transmute(Date=Date,IVIDX=Close/100) -> histIV
-histIV %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")<=max(as.Date(opchain$Date,format="%Y/%m/%d"))) %>%
-  dplyr::arrange(desc(as.Date(Date,format="%Y/%m/%d"))) %>% head(n=dviv_caldays) -> histIV
-
-#Initial and evaluation vector -
-iniPos<-opchain$Position
-iniPos<-rep(0,length(iniPos))
-evaPos<-opchain$Position
-
-#test sample value -----------
-#best_result<-1.0
-#obj_Income_sgmd(x=evaPos,isDebug=TRUE,isDetail=TRUE,isFileout=FALSE)
-
-#Data Setup. Provisioning
-#Load Regression and Correlation Parameters ---------------
-load.PC2IV(PC="PC3dCtC",IVC="IVCF3dCtC")
-PC3dCtC_IVCF3dCtC
-load.PC2IV(PC="PC5dCtC",IVC="IVCF5dCtC")
-PC5dCtC_IVCF5dCtC
-load.PC2IV(PC="PC7dCtC",IVC="IVCF7dCtC")
-PC7dCtC_IVCF7dCtC
-load.PC2IV(PC="PC1dCtC",IVC="IVCF1dCtC")
-PC1dCtC_IVCF1dCtC
-#load.PC2IV(PC="PC1dCtO",IVC="IVCF1dCtO")
-#PC1dCtO_IVCF1dCtO
-load.Skew()
-SkewModel
-load.VCone(optype=OpType_Put_G)
-PutVCone
-load.VCone(optype=OpType_Call_G)
-CallVCone
-load.IVChg(OpType_Put_G,10)
-PutIVChgUp
-load.IVChg(OpType_Put_G,-10)
-PutIVChgDown
-load.IVChg(OpType_Call_G,10)
-CallIVChgUp
-load.IVChg(OpType_Call_G,-10)
-CallIVChgDown
-
-
-#creating initial population
-
-#sigmoid function  ------
-for(tmp in 1:8){
-    create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,thresh=2.0,putn=6,calln=2,ml=2,
-                                            fname=paste(".\\ResultData\\inipop-08P6C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                                           isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-   create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,thresh=2.0,putn=5,calln=3,ml=2,
-                                           fname=paste(".\\ResultData\\inipop-08P5C3-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                                           isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-   create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,thresh=2.0,putn=4,calln=4,ml=2,
-                                           fname=paste(".\\ResultData\\inipop-08P4C4-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                                           isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-   create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,thresh=2.0,putn=5,calln=2,ml=2,
-                                           fname=paste(".\\ResultData\\inipop-07P5C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                                           isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-   create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,thresh=2.0,putn=4,calln=3,ml=2,
-                                           fname=paste(".\\ResultData\\inipop-07P4C3-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                                           isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-   create_initial_exact_PutCall_polulation(popnum=2000,opchain$TYPE,thresh=2.0,putn=4,calln=2,ml=2,
-                                           fname=paste(".\\ResultData\\inipop-06P4C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                                           isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-   create_initial_exact_PutCall_polulation(popnum=1500,opchain$TYPE,thresh=2.0,putn=3,calln=3,ml=2,
-                                           fname=paste(".\\ResultData\\inipop-06P3C3-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                                           isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-   create_initial_exact_PutCall_polulation(popnum=1000,opchain$TYPE,thresh=2.0,putn=6,calln=0,ml=2,
-                                           fname=paste(".\\ResultData\\inipop-06P6C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                                           isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-   create_initial_exact_PutCall_polulation(popnum=2000,opchain$TYPE,thresh=2.0,putn=3,calln=2,ml=2,
-                                           fname=paste(".\\ResultData\\inipop-05P3C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                                           isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-   create_initial_exact_PutCall_polulation(popnum=1500,opchain$TYPE,thresh=2.0,putn=5,calln=0,ml=2,
-                                         fname=paste(".\\ResultData\\inipop-05P5C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                                         isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-   create_initial_exact_PutCall_polulation(popnum=1000,opchain$TYPE,thresh=2.0,putn=4,calln=0,ml=2,
-                                           fname=paste(".\\ResultData\\inipop-04P4C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                                           isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-   create_initial_exact_PutCall_polulation(popnum=800,opchain$TYPE,thresh=2.0,putn=2,calln=2,ml=2,
-                                           fname=paste(".\\ResultData\\inipop-04P2C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                                           isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-   create_initial_exact_PutCall_polulation(popnum=500,opchain$TYPE,thresh=2.0,putn=3,calln=0,ml=2,
-                                           fname=paste(".\\ResultData\\inipop-03P3C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                                           isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-   create_initial_exact_PutCall_polulation(popnum=500,opchain$TYPE,thresh=2.0,putn=2,calln=0,ml=2,
-                                           fname=paste(".\\ResultData\\inipop-02P2C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                                           isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-   create_initial_exact_PutCall_polulation(popnum=100,opchain$TYPE,thresh=2.0,putn=0,calln=2,ml=2,
-                                           fname=paste(".\\ResultData\\inipop-02P0C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                                           isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-};rm(tmp)
-
-#1Cb.csv
-st <- "powershell.exe .\\shell\\cmd1.ps1"
-system(st)
-st <- "powershell.exe .\\shell\\cmd2.ps1"
-system(st)
-st <- "powershell.exe -Command \" del .\\ResultData\\1Cb-.csv \" "
-system(st) ;rm(st)
-
-#creating candidate pool for combined search --------
-
-# tmp<-createCombineCandidatePool(fname=paste(".\\ResultData\\inipop-Exc-1000-08P6C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-#                                 pnum=0,nrows=-1,skip=0,method=1)
-# tmp<-createCombineCandidatePool(fname=paste(".\\ResultData\\1Cb.csv",sep=""),
-#                                 pnum=0,nrows=-1,skip=0,method=1)
-tmp<-read.table(paste(ResultFiles_Path_G,"1Cb.csv",sep=""),header=F,skipNul=TRUE,sep=",")
-tmp %>% dplyr::arrange(tmp[,(length(iniPos)+1)]) %>% dplyr::distinct() -> tmp
-#tmp %>% filter(.[,length(iniPos)+1]<1.15) -> tmp
-tmp %>% arrange(.[,length(iniPos)+1]) %>% head(2000) -> tmp
-pools<-list(list(c(1,0,0),tmp)) #No.[[1]]
-
-# or when all results are mixed together regardress of the number of Putn and Calln, pools[[1]] should be set as
-# c(1,0,0) <- c(1Cb{=exact}, Putn not spicified, Calln not spicified)
-
-rm(tmp)
-
-#combined population serach --------------
-
-### 2(exact x exact) Combinations (2Cb)
-#
-create_combined_population(popnum=30000,thresh=1.7,plelem=c(1,1),fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                           isFileout=TRUE,isDebug=FALSE,maxposn=8)
-#2Cb.csv
-st <- "powershell.exe .\\shell\\cmd3.ps1"
-system(st)
-st <- "powershell.exe .\\shell\\cmd4.ps1"
-system(st)
-st <- "powershell.exe -Command \" del .\\ResultData\\2Cb-.csv \" "
-system(st) ;rm(st)
-
-### 3(exact x exact x exact) Combinations (3Cb)
-
-#adjust combined candidate population considering combinational explostion
-# tmp<-createCombineCandidatePool(fname=paste(".\\ResultData\\1Cb.csv",sep=""),
-#                                 pnum=0,nrows=-1,skip=0,method=1)
-tmp<-read.table(paste(ResultFiles_Path_G,"1Cb.csv",sep=""),header=F,skipNul=TRUE,sep=",")
-tmp %>% dplyr::arrange(tmp[,(length(iniPos)+1)]) %>% dplyr::distinct() -> tmp
-#tmp %>% filter(.[,length(iniPos)+1]<1.08) -> tmp
-tmp %>% arrange(.[,length(iniPos)+1]) %>% head(800) -> tmp
-  
-pools<-list(list(c(1,0,0),tmp)) #No.[[1]] again
-
-create_combined_population(popnum=70000,thresh=1.7,plelem=c(1,1,1),fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                           isFileout=TRUE,isDebug=FALSE,maxposn=8)
-#3Cb.csv
-st <- "powershell.exe .\\shell\\cmd5.ps1"
-system(st)
-st <- "powershell.exe .\\shell\\cmd6.ps1"
-system(st)
-st <- "powershell.exe -Command \" del .\\ResultData\\3Cb-.csv \" "
-system(st) ;rm(st)
-
-### 2x2(2Cbx2Cb) and 3x3(3Cbx3cb) Combinations
-###create nested combine candidate pool 
-# poolidx<-length(pools)+1
-# 
-# tmp<-createCombineCandidatePool(fname=paste(".\\ResultData\\2Cb.csv",sep=""),
-#                                             pnum=0,nrows=-1,skip=0,method=1)
-# tmp %>% filter(.[,length(iniPos)+1]<1.2) -> tmp
-# tmp %>% arrange(.[,length(iniPos)+1]) %>% head(3000) -> tmp
-
-###c(2Cb, Putn not spicified, Calln not spicified)
-# pools[poolidx]<-list(list(c(2,0,0),tmp)) ; poolidx<-poolidx+1 #No.[[4]] or No.[[2]]
-# 
-# 
-# tmp<-createCombineCandidatePool(fname=paste(".\\ResultData\\3Cb.csv",sep=""),
-#                                 pnum=0,nrows=-1,skip=0,method=1)
-# tmp %>% filter(.[,length(iniPos)+1]<1.2) -> tmp
-# tmp %>% arrange(.[,length(iniPos)+1]) %>% head(3000) -> tmp
-###c(3Cb, Putn not spicified, Calln not spicified)
-# pools[poolidx]<-list(list(c(3,0,0),tmp)) ; poolidx<-poolidx+1 #No.[[5]] or No.[[3]]
-# rm(poolidx,tmp)
-
-###Creating Population again
-### 2Cbx2cb Combination search
-# create_combined_population(popnum=20000,thresh=2.0,plelem=c(2,2),fname=paste(".\\ResultData\\combine-Result-2Cb(+1Cb+1Cb)2Cb(+1Cb+1Cb)-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-#                            isFileout=TRUE,isDebug=FALSE,maxposn=8) 
-###4Cb.csv
-# st <- "powershell.exe .\\shell\\cmd7.ps1"
-# system(st)
-# st <- "powershell.exe .\\shell\\cmd8.ps1"
-# system(st)
-# st <- "powershell.exe -Command \" del .\\ResultData\\4Cb-.csv \" "
-# system(st) ;rm(st)
-
-### 3Cbx3Cb Combination search
-# create_combined_population(popnum=20000,thresh=2.0,plelem=c(3,3),fname=paste(".\\ResultData\\combine-Result-3Cb(+1Cb+1Cb+1Cb)3Cb(+1Cb+1Cb+1Cb)-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-#                            isFileout=TRUE,isDebug=FALSE,maxposn=8) 
-###6Cb.csv
-# st <- "powershell.exe .\\shell\\cmd9.ps1"
-# system(st)
-# st <- "powershell.exe .\\shell\\cmd10.ps1"
-# system(st)
-# st <- "powershell.exe -Command \" del .\\ResultData\\6Cb-.csv \" "
-# system(st) ;rm(st)
-
-rm(pools)
-
-#Cleaning
-rm(iniPos,evaPos)
-rm(best_result,holdDays,dviv_caldays,PosMultip)
-rm(opchain,histIV,position)
-rm(CallIVChgDown,CallIVChgUp,CallVCone,PutIVChgDown,PutIVChgUp,PutVCone,SkewModel)
-rm(PC1dCtC_IVCF1dCtC,PC3dCtC_IVCF3dCtC,PC5dCtC_IVCF5dCtC,PC7dCtC_IVCF7dCtC)
-rm(CALENDAR_G,OpType_Call_G,OpType_Put_G,ResultFiles_Path_G,TimeToExp_Limit_Closeness_G)
-rm(DataFiles_Path_G,Underying_Symbol_G,divYld_G,riskFreeRate_G)
-
-
 ##
 # functions optimized  -------------
 
@@ -894,5 +636,255 @@ create_combined_population<-function(popnum,thresh=1000,plelem=c(4,5),fname,isFi
     if(added_num==popnum)
       break
   }
+}
+
+##
+# Functions to be loaded from EResPosPricess.R -----------
+
+#inner functions : graphical related.
+#create Aggregated Price Table for Drawing
+createAgrregatedGreekTbl<-function(posStepDays,thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,multi=PosMultip,iniCredit=iniCredit){
+  
+  #Delta
+  posStepDays %>% group_by(days) %>% rowwise() %>% do(ptbl=createGreekTbl(.$days,.$scene$UDLY,.$scene$Delta)) -> tmp
+  greek_tbl<-full_join(tmp$ptbl[[1]],tmp$ptbl[[2]])
+  for(i in 2:length(tmp$ptbl)){
+    greek_tbl<-full_join(greek_tbl,tmp$ptbl[[i]])
+  }
+  greek_tbl %>% dplyr::rename(UDLY=x,Delta=greek) -> greek_tbl
+  agr_tbl <- greek_tbl
+  
+  #Gamma
+  posStepDays %>% group_by(days) %>% rowwise() %>% do(ptbl=createGreekTbl(.$days,.$scene$UDLY,.$scene$Gamma)) -> tmp
+  greek_tbl<-full_join(tmp$ptbl[[1]],tmp$ptbl[[2]])
+  for(i in 2:length(tmp$ptbl)){
+    greek_tbl<-full_join(greek_tbl,tmp$ptbl[[i]])
+  }
+  greek_tbl %>% rename(UDLY=x,Gamma=greek) -> greek_tbl
+  agr_tbl  %>% left_join(greek_tbl)  -> agr_tbl
+  
+  #Vega
+  posStepDays %>% group_by(days) %>% rowwise() %>% do(ptbl=createGreekTbl(.$days,.$scene$UDLY,.$scene$Vega)) -> tmp
+  greek_tbl<-full_join(tmp$ptbl[[1]],tmp$ptbl[[2]])
+  for(i in 2:length(tmp$ptbl)){
+    greek_tbl<-full_join(greek_tbl,tmp$ptbl[[i]])
+  }
+  greek_tbl %>% rename(UDLY=x,Vega=greek) -> greek_tbl
+  agr_tbl  %>% left_join(greek_tbl)  -> agr_tbl
+  
+  #Theta
+  posStepDays %>% group_by(days) %>% rowwise() %>% do(ptbl=createGreekTbl(.$days,.$scene$UDLY,.$scene$Theta)) -> tmp
+  greek_tbl<-full_join(tmp$ptbl[[1]],tmp$ptbl[[2]])
+  for(i in 2:length(tmp$ptbl)){
+    greek_tbl<-full_join(greek_tbl,tmp$ptbl[[i]])
+  }
+  greek_tbl %>% rename(UDLY=x,Theta=greek) -> greek_tbl
+  agr_tbl  %>% left_join(greek_tbl)  -> agr_tbl
+  
+  #ThetaEffect
+  posStepDays %>% group_by(days) %>% rowwise() %>% do(ptbl=createGreekTbl(.$days,.$scene$UDLY,.$scene$ThetaEffect)) -> tmp
+  greek_tbl<-full_join(tmp$ptbl[[1]],tmp$ptbl[[2]])
+  for(i in 2:length(tmp$ptbl)){
+    greek_tbl<-full_join(greek_tbl,tmp$ptbl[[i]])
+  }
+  greek_tbl %>% rename(UDLY=x,ThetaEffect=greek) -> greek_tbl
+  agr_tbl  %>% left_join(greek_tbl)  -> agr_tbl
+  
+  #GammaEffect
+  posStepDays %>% group_by(days) %>% rowwise() %>% do(ptbl=createGreekTbl(.$days,.$scene$UDLY,.$scene$GammaEffect)) -> tmp
+  greek_tbl<-full_join(tmp$ptbl[[1]],tmp$ptbl[[2]])
+  for(i in 2:length(tmp$ptbl)){
+    greek_tbl<-full_join(greek_tbl,tmp$ptbl[[i]])
+  }
+  greek_tbl %>% rename(UDLY=x,GammaEffect=greek) -> greek_tbl
+  agr_tbl  %>% left_join(greek_tbl)  -> agr_tbl
+  
+  #DeltaEffect
+  posStepDays %>% group_by(days) %>% rowwise() %>% do(ptbl=createGreekTbl(.$days,.$scene$UDLY,.$scene$DeltaEffect)) -> tmp
+  greek_tbl<-full_join(tmp$ptbl[[1]],tmp$ptbl[[2]])
+  for(i in 2:length(tmp$ptbl)){
+    greek_tbl<-full_join(greek_tbl,tmp$ptbl[[i]])
+  }
+  greek_tbl %>% rename(UDLY=x,DeltaEffect=greek) -> greek_tbl
+  agr_tbl  %>% left_join(greek_tbl)  -> agr_tbl
+  
+  #VegaEffect
+  posStepDays %>% group_by(days) %>% rowwise() %>% do(ptbl=createGreekTbl(.$days,.$scene$UDLY,.$scene$VegaEffect)) -> tmp
+  greek_tbl<-full_join(tmp$ptbl[[1]],tmp$ptbl[[2]])
+  for(i in 2:length(tmp$ptbl)){
+    greek_tbl<-full_join(greek_tbl,tmp$ptbl[[i]])
+  }
+  greek_tbl %>% rename(UDLY=x,VegaEffect=greek) -> greek_tbl
+  agr_tbl  %>% left_join(greek_tbl)  -> agr_tbl
+  
+  #profit
+  posStepDays %>% group_by(days) %>% rowwise() %>% do(ptbl=createPriceTbl(.$days,.$scene,iniCredit)) -> tmp
+  greek_tbl<-full_join(tmp$ptbl[[1]],tmp$ptbl[[2]])
+  for(i in 2:length(tmp$ptbl)){
+    greek_tbl<-full_join(greek_tbl,tmp$ptbl[[i]])
+  }
+  agr_tbl  %>% left_join(greek_tbl)  -> agr_tbl
+  
+  agr_tbl
+}
+
+createPriceTbl<-function(days,pos_smry,credit){
+  pos_smry$UDLY
+  pos_smry$Price+credit
+  
+  pricetbl<-data.frame(day=days,UDLY=pos_smry$UDLY, profit=(pos_smry$Price+credit))
+  pricetbl
+}
+
+
+createGreekTbl<-function(days,pos_smry_x,pos_smry_greek){ 
+  greektbl<-data.frame(day=days,x=pos_smry_x, greek=pos_smry_greek)
+  greektbl
+}
+
+
+#innfer functions : position operation related.
+
+#After each posTable is created by createPositinEvalTable(), 
+#we must adjust actual Date and related conditions. Date (and TimeToExpDate), 
+#Moneyness.nm,, IV(OrigIV) and time decayed Greeks.
+
+#assuming on each day, IVIDX doesn't change at udlChgPcg==0.
+#instance price change had only occured from stepdays before.
+
+#nested. adjustPosChg() calls adjustPosChgInner()
+adjustPosChgInner<-function(process_df,time_advcd, base_vol_chg=0){
+  pos<-as.data.frame(process_df$pos[1])
+  if(sum(as.numeric(time_advcd==0))!=0) return(pos)
+  #print(pos)
+  
+  #base volatility change relrected to IVIDX
+  ividx_chg_pct<-as.numeric(base_vol_chg)
+  pos$IVIDX<-pos$IVIDX*(1+ividx_chg_pct)
+  
+  # ATM IV change
+  pos$ATMIV<-pos$ATMIV*(1+ividx_chg_pct)*get.Volatility.Change.Regression.Result(pos,ividx_chg_pct)
+  
+  #Volatility Cone の影響。時間変化した分の影響を受ける。その比の分だけ比率変化
+  #ATMIV_pos <- ATMIV_pos*(ATMIV_pos/IVIDX_pos)t=TimeToExpDate_pre/(ATMIV_pos/IVIDX_pos)t=TimeToExpDate_pos
+  bdays_per_month<-252/12
+  TimeToExpDate_pos<-(pos$TimeToExpDate*bdays_per_month-time_advcd)/bdays_per_month
+  pos$ATMIV<-pos$ATMIV *
+    get.Volatility.Cone.Regression.Result(pos$TYPE,TimeToExpDate_pos)/
+    get.Volatility.Cone.Regression.Result(pos$TYPE,pos$TimeToExpDate)
+  
+  #set new TimeToExpDate
+  pos$TimeToExpDate<-TimeToExpDate_pos
+  
+  #Date advance
+  pos$Date <- format(advance(CALENDAR_G,dates=as.Date(pos$Date,format="%Y/%m/%d"),
+                             time_advcd,0),"%Y/%m/%d")
+  
+  #Moneyness.nm which reflects the value of TimetoExpDate
+  pos$Moneyness.Frac<-pos$Strike/pos$UDLY
+  eval_timeToExpDate<-as.numeric(pos$TimeToExpDate<TimeToExp_Limit_Closeness_G)*TimeToExp_Limit_Closeness_G+
+    as.numeric(pos$TimeToExpDate>=TimeToExp_Limit_Closeness_G)*pos$TimeToExpDate
+  pos$Moneyness.Nm<-log(pos$Moneyness.Frac)/pos$ATMIV/sqrt(eval_timeToExpDate)
+  pos$Moneyness.Frac<-NULL
+  
+  
+  #calculate IV_pos(OrigIV) using SkewModel based on model definition formula.
+  get.predicted.spline.skew(SkewModel,pos$Moneyness.Nm)
+  pos$ATMIV*get.predicted.spline.skew(SkewModel,pos$Moneyness.Nm)
+  pos$OrigIV<-pos$ATMIV*get.predicted.spline.skew(SkewModel,pos$Moneyness.Nm)
+  
+  #calculate pption price and thier greeks
+  vgreeks<-set.EuropeanOptionValueGreeks(pos)
+  pos$Price<-vgreeks$Price
+  pos$Delta<-vgreeks$Delta
+  pos$Gamma<-vgreeks$Gamma
+  pos$Vega<-vgreeks$Vega
+  pos$Theta<-vgreeks$Theta
+  pos$Rho<-vgreeks$Rho
+  
+  pos
+}
+
+adjustPosChg<-function(process_df,time_advcd,base_vol_chg=0){
+  print(process_df)
+  print(time_advcd)
+  
+  process_df %>% group_by(udlChgPct) %>% do(pos=adjustPosChgInner(.,time_advcd,base_vol_chg=base_vol_chg)) -> process_df
+  
+  ##
+  #  Greeks
+  #
+  #  UDLY
+  process_df %>% rowwise() %>% do(UDLY=mean(.$pos$UDLY)) ->tmp
+  unlist(tmp$UDLY)->tmp ; process_df$UDLY <- tmp ;rm(tmp)
+  #  Price
+  process_df %>% rowwise() %>% do(Price=getPosGreeks(pos=.$pos$Position,greek=.$pos$Price)) ->tmp
+  unlist(tmp$Price)->tmp ; process_df$Price <- tmp ;rm(tmp)
+  #  Delta
+  process_df %>% rowwise() %>% do(Delta=getPosGreeks(pos=.$pos$Position,greek=.$pos$Delta))->tmp
+  unlist(tmp$Delta)->tmp ; process_df$Delta <- tmp ;rm(tmp)
+  #  Gamma
+  process_df %>% rowwise() %>% do(Gamma=getPosGreeks(pos=.$pos$Position,greek=.$pos$Gamma))->tmp
+  unlist(tmp$Gamma)->tmp ; process_df$Gamma <- tmp ;rm(tmp)
+  #  Vega
+  process_df %>% rowwise() %>% do(Vega=getPosGreeks(pos=.$pos$Position,greek=.$pos$Vega))->tmp
+  unlist(tmp$Vega)->tmp ; process_df$Vega <- tmp ;rm(tmp)
+  #  Theta
+  process_df %>% rowwise() %>% do(Theta=getPosGreeks(pos=.$pos$Position,greek=.$pos$Theta)) ->tmp
+  unlist(tmp$Theta)->tmp ; process_df$Theta <- tmp ;rm(tmp)
+  
+  ##
+  # Greek Effects
+  
+  # ThetaEffect
+  process_df %>% rowwise() %>% do(ThetaEffect=getThetaEffect(pos=.$pos$Position,greek=.$pos$Theta)) -> tmp
+  unlist(tmp$ThetaEffect)->tmp ; process_df$ThetaEffect <- tmp ;rm(tmp)
+  # DeltaEffect
+  process_df %>% rowwise() %>% do(DeltaEffect=getDeltaEffect(pos=.$pos$Position,greek=.$pos$Delta,
+                                                             UDLY=.$pos$UDLY,
+                                                             ividx_td=getIV_td(.$pos$IVIDX))) -> tmp
+  unlist(tmp$DeltaEffect)->tmp ; process_df$DeltaEffect <- tmp ;rm(tmp)
+  # GammaEffect
+  process_df %>% rowwise() %>% do(GammaEffect=getGammaEffect(pos=.$pos$Position,greek=.$pos$Gamma,
+                                                             UDLY=.$pos$UDLY,
+                                                             ividx_td=getIV_td(.$pos$IVIDX))) -> tmp
+  unlist(tmp$GammaEffect)->tmp ; process_df$GammaEffect <- tmp ;rm(tmp)
+  # VegaEffect
+  process_df %>% rowwise() %>% do(VegaEffect=getVegaEffect(pos=.$pos$Position,greek=.$pos$Vega,
+                                                           ividx=getIV_td(.$pos$IVIDX)
+                                                           #dviv should be precalulated when optimized
+                                                           ,dviv=annuual.daily.volatility(getIV_td(histIV$IVIDX))$daily)) -> tmp
+  unlist(tmp$VegaEffect)->tmp ; process_df$VegaEffect <- tmp ;rm(tmp)
+  
+  return(process_df)
+}
+
+#One position's greeks are retuned as a data frame which has only one row.
+getPositionGreeks<-function(position,multi=PosMultip){
+  price<-getPosGreeks(pos=position$Position,greek=position$Price,multi=PosMultip)
+  delta<-getPosGreeks(pos=position$Position,greek=position$Delta,multi=PosMultip)
+  gamma<-getPosGreeks(pos=position$Position,greek=position$Gamma,multi=PosMultip)
+  theta<-getPosGreeks(pos=position$Position,greek=position$Theta,multi=PosMultip)
+  vega<-getPosGreeks(pos=position$Position,greek=position$Vega,multi=PosMultip)
+  udly<-mean(position$UDLY)
+  
+  thetaEffect<-getThetaEffect(pos=position$Position,greek=position$Theta)
+  vegaEffect<-getVegaEffect(pos=position$Position,greek=position$Vega,
+                            ividx=getIV_td(position$IVIDX),dviv=annuual.daily.volatility(getIV_td(histIV$IVIDX))$daily)
+  deltaEffect<-getDeltaEffect(pos=position$Position,greek=position$Delta,
+                              UDLY=position$UDLY,ividx_td=getIV_td(position$IVIDX))
+  
+  gammaEffect<-getGammaEffect(pos=position$Position,greek=position$Gamma,
+                              UDLY=position$UDLY,ividx_td=getIV_td(position$IVIDX))
+  
+  #DTRRR<-getDTRRR(position=position)
+  #VTRRR<-getVTRRR(position=position,
+  #                ividx=getIV_td(position$IVIDX),
+  #                dviv=annuual.daily.volatility(getIV_td(histIV$IVIDX))$daily)
+  
+  data.frame(Price=price,Delta=delta,Gamma=gamma,Theta=theta,Vega=vega,UDLY=udly,
+             ThetaEffect=thetaEffect,GammaEffect=gammaEffect,DeltaEffect=deltaEffect,VegaEffect=vegaEffect)
+  #,DTRRR=DTRRR,VTRRR=VTRRR)
+  
 }
 

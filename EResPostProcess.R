@@ -26,6 +26,17 @@ rm(rf)
 #iniPos
 iniPos<-opchain$Position
 
+#create put and call pos num of the specified spread
+getPutCallnOfthePosition<-function(x){
+  type<-opchain$TYPE
+  putpos<-as.numeric(type==OpType_Put_G)
+  putn<-sum( as.numeric((putpos*x)!=0) )
+  callpos<-as.numeric(type==OpType_Call_G)
+  calln<-sum( as.numeric((callpos*x)!=0) )
+  return (c(putn,calln))
+}
+
+
 ##
 # Exact (1Cb)
 #res1<-createCombineCandidatePool(fname=paste(ResultFiles_Path_G,"1Cb.csv",sep=""),
@@ -158,18 +169,6 @@ rm(total_res,opchain,iniPos)
 rm(DataFiles_Path_G,ResultFiles_Path_G,OpType_Call_G,OpType_Put_G)
 rm(Underying_Symbol_G,TimeToExp_Limit_Closeness_G)
 
-##
-# Functions to be loaded -------------------------
-
-#create put and call pos num of the specified spread
-getPutCallnOfthePosition<-function(x){
-  type<-opchain$TYPE
-  putpos<-as.numeric(type==OpType_Put_G)
-  putn<-sum( as.numeric((putpos*x)!=0) )
-  callpos<-as.numeric(type==OpType_Call_G)
-  calln<-sum( as.numeric((callpos*x)!=0) )
-  return (c(putn,calln))
-}
 
 # create initial population vector from data frame
 createInitialPopulationVecForOptimizer<-function(res_df, cand_num){
@@ -182,3 +181,4 @@ createInitialPopulationVecForOptimizer<-function(res_df, cand_num){
   }
   return (ret_vec)
 }
+
