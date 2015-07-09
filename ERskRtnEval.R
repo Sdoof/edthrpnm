@@ -92,25 +92,25 @@ CallIVChgDown
 
 #sigmoid function  ------
 for(tmp in 1:8){
-#    create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,thresh=2.0,putn=6,calln=2,ml=2,
-#                                            fname=paste(".\\ResultData\\inipop-08P6C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-#                                            isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-#    create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,thresh=2.0,putn=5,calln=3,ml=2,
-#                                            fname=paste(".\\ResultData\\inipop-08P5C3-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-#                                            isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-#    create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,thresh=2.0,putn=4,calln=4,ml=2,
-#                                            fname=paste(".\\ResultData\\inipop-08P4C4-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-#                                            isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-#    create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,thresh=2.0,putn=5,calln=2,ml=2,
-#                                            fname=paste(".\\ResultData\\inipop-07P5C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-#                                            isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-#    create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,thresh=2.0,putn=4,calln=3,ml=2,
-#                                            fname=paste(".\\ResultData\\inipop-07P4C3-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-#                                            isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-   create_initial_exact_PutCall_polulation(popnum=6000,opchain$TYPE,thresh=2.0,putn=4,calln=2,ml=2,
+    create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,thresh=2.0,putn=6,calln=2,ml=2,
+                                            fname=paste(".\\ResultData\\inipop-08P6C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                                           isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
+   create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,thresh=2.0,putn=5,calln=3,ml=2,
+                                           fname=paste(".\\ResultData\\inipop-08P5C3-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                                           isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
+   create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,thresh=2.0,putn=4,calln=4,ml=2,
+                                           fname=paste(".\\ResultData\\inipop-08P4C4-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                                           isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
+   create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,thresh=2.0,putn=5,calln=2,ml=2,
+                                           fname=paste(".\\ResultData\\inipop-07P5C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                                           isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
+   create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,thresh=2.0,putn=4,calln=3,ml=2,
+                                           fname=paste(".\\ResultData\\inipop-07P4C3-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                                           isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
+   create_initial_exact_PutCall_polulation(popnum=2000,opchain$TYPE,thresh=2.0,putn=4,calln=2,ml=2,
                                            fname=paste(".\\ResultData\\inipop-06P4C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                            isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-   create_initial_exact_PutCall_polulation(popnum=4000,opchain$TYPE,thresh=2.0,putn=3,calln=3,ml=2,
+   create_initial_exact_PutCall_polulation(popnum=15000,opchain$TYPE,thresh=2.0,putn=3,calln=3,ml=2,
                                            fname=paste(".\\ResultData\\inipop-06P3C3-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                            isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
    create_initial_exact_PutCall_polulation(popnum=1000,opchain$TYPE,thresh=2.0,putn=6,calln=0,ml=2,
@@ -119,9 +119,9 @@ for(tmp in 1:8){
    create_initial_exact_PutCall_polulation(popnum=2000,opchain$TYPE,thresh=2.0,putn=3,calln=2,ml=2,
                                            fname=paste(".\\ResultData\\inipop-05P3C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                            isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-   #create_initial_exact_PutCall_polulation(popnum=1500,opchain$TYPE,thresh=2.0,putn=5,calln=0,ml=2,
-   #                                       fname=paste(".\\ResultData\\inipop-05P5C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-   #                                       isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
+   create_initial_exact_PutCall_polulation(popnum=1500,opchain$TYPE,thresh=2.0,putn=5,calln=0,ml=2,
+                                         fname=paste(".\\ResultData\\inipop-05P5C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                                         isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
    create_initial_exact_PutCall_polulation(popnum=1000,opchain$TYPE,thresh=2.0,putn=4,calln=0,ml=2,
                                            fname=paste(".\\ResultData\\inipop-04P4C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                            isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
@@ -156,7 +156,7 @@ system(st) ;rm(st)
 tmp<-read.table(paste(ResultFiles_Path_G,"1Cb.csv",sep=""),header=F,skipNul=TRUE,sep=",")
 tmp %>% dplyr::arrange(tmp[,(length(iniPos)+1)]) %>% dplyr::distinct() -> tmp
 #tmp %>% filter(.[,length(iniPos)+1]<1.15) -> tmp
-tmp %>% arrange(.[,length(iniPos)+1]) %>% head(1500) -> tmp
+tmp %>% arrange(.[,length(iniPos)+1]) %>% head(2000) -> tmp
 pools<-list(list(c(1,0,0),tmp)) #No.[[1]]
 
 # or when all results are mixed together regardress of the number of Putn and Calln, pools[[1]] should be set as
@@ -186,7 +186,7 @@ system(st) ;rm(st)
 tmp<-read.table(paste(ResultFiles_Path_G,"1Cb.csv",sep=""),header=F,skipNul=TRUE,sep=",")
 tmp %>% dplyr::arrange(tmp[,(length(iniPos)+1)]) %>% dplyr::distinct() -> tmp
 #tmp %>% filter(.[,length(iniPos)+1]<1.08) -> tmp
-tmp %>% arrange(.[,length(iniPos)+1]) %>% head(1200) -> tmp
+tmp %>% arrange(.[,length(iniPos)+1]) %>% head(800) -> tmp
   
 pools<-list(list(c(1,0,0),tmp)) #No.[[1]] again
 
