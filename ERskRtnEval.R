@@ -110,7 +110,7 @@ for(tmp in 1:8){
    create_initial_exact_PutCall_polulation(popnum=2000,opchain$TYPE,thresh=2.0,putn=4,calln=2,ml=2,
                                            fname=paste(".\\ResultData\\inipop-06P4C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                            isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-   create_initial_exact_PutCall_polulation(popnum=15000,opchain$TYPE,thresh=2.0,putn=3,calln=3,ml=2,
+   create_initial_exact_PutCall_polulation(popnum=1500,opchain$TYPE,thresh=2.0,putn=3,calln=3,ml=2,
                                            fname=paste(".\\ResultData\\inipop-06P3C3-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                            isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
    create_initial_exact_PutCall_polulation(popnum=1000,opchain$TYPE,thresh=2.0,putn=6,calln=0,ml=2,
