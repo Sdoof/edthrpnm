@@ -30,12 +30,12 @@ iniPos<-opchain$Position
 # Exact (1Cb)
 #res1<-createCombineCandidatePool(fname=paste(ResultFiles_Path_G,"1Cb.csv",sep=""),
 #                                pnum=0,nrows=-1,skip=0,method=1)
-res1<-read.table(paste(ResultFiles_Path_G,"1Cb.csv",sep=""),header=F,sep=",")
+res1<-read.table(paste(ResultFiles_Path_G,"1Cb.csv",sep=""),header=F,skipNul=TRUE,sep=",")
 res1 %>% dplyr::arrange(res1[,(length(iniPos)+1)]) %>% dplyr::distinct() -> res1
 #above average score
 #res1 %>% filter(.[,length(iniPos)+1]<mean(res1[,length(iniPos)+1]))
 #over the specified socre
-res1 %>% filter(.[,length(iniPos)+1]<1.04) -> res1
+res1 %>% filter(.[,length(iniPos)+1]<1.1) -> res1
 #posnum put call
 res1[,1:length(iniPos)] %>% rowwise() %>% do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp
 tmp  %>% rowwise() %>% do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp2
@@ -47,7 +47,7 @@ res1$putn<-unlist(tmp2$putn);res1$calln<-unlist(tmp2$calln);rm(tmp);rm(tmp2)
 #  2Cb
 #res2<-createCombineCandidatePool(fname=paste(ResultFiles_Path_G,"2Cb.csv",sep=""),
 #                                 pnum=0,nrows=-1,skip=0,method=1)
-res2<-read.table(paste(ResultFiles_Path_G,"2Cb.csv",sep=""),header=F,sep=",")
+res2<-read.table(paste(ResultFiles_Path_G,"2Cb.csv",sep=""),header=F,skipNul=TRUE,sep=",")
 res2 %>% dplyr::arrange(res2[,(length(iniPos)+1)]) %>% dplyr::distinct() -> res2
 #必要のない列の削除
 res2 %>% select(1:(length(iniPos)+1)) -> res2
@@ -71,13 +71,13 @@ rm(res1,res2)
 #  3Cb
 #res1<-createCombineCandidatePool(fname=paste(ResultFiles_Path_G,"3Cb.csv",sep=""),
 #                                 pnum=0,nrows=-1,skip=0,method=1)
-res1<-read.table(paste(ResultFiles_Path_G,"3Cb.csv",sep=""),header=F,sep=",")
+res1<-read.table(paste(ResultFiles_Path_G,"3Cb.csv",sep=""),header=F,skipNul=TRUE,sep=",")
 res1 %>% dplyr::arrange(res1[,(length(iniPos)+1)]) %>% dplyr::distinct() -> res1
 
 #必要のない列の削除
 res1 %>% select(1:(length(iniPos)+1)) -> res1
 #over the specified socre
-res1 %>% filter(.[,length(iniPos)+1]<1.0) -> res1
+res1 %>% filter(.[,length(iniPos)+1]<1.02) -> res1
 #posnum put call
 res1[,1:length(iniPos)] %>% rowwise() %>% do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp
 tmp  %>% rowwise() %>% do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp2
@@ -121,9 +121,9 @@ full_join(total_res,res1) %>% arrange(.[,length(iniPos)+1])  %>% distinct() -> t
 # 条件指定
 #option position total number
 total_res %>% mutate(posn=(putn+calln)) -> total_res
-total_res %>%  filter(posn<=6) %>% filter(.[,length(iniPos)+1]<1.2) ->tmp_fil 
-total_res %>%  filter(posn==7) %>% filter(.[,length(iniPos)+1]<1.1) ->tmp_fil2
-total_res %>%  filter(posn>=8) %>% filter(.[,length(iniPos)+1]<1.0) ->tmp_fil3
+total_res %>%  filter(posn<=6) %>% filter(.[,length(iniPos)+1]<1.5) ->tmp_fil 
+total_res %>%  filter(posn==7) %>% filter(.[,length(iniPos)+1]<1.3) ->tmp_fil2
+total_res %>%  filter(posn>=8) %>% filter(.[,length(iniPos)+1]<1.2) ->tmp_fil3
 
 write.table(tmp_fil,paste(ResultFiles_Path_G,"posnLE6.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
 write.table(tmp_fil2,paste(ResultFiles_Path_G,"posnEQ7.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)

@@ -153,10 +153,10 @@ system(st) ;rm(st)
 #                                 pnum=0,nrows=-1,skip=0,method=1)
 # tmp<-createCombineCandidatePool(fname=paste(".\\ResultData\\1Cb.csv",sep=""),
 #                                 pnum=0,nrows=-1,skip=0,method=1)
-tmp<-read.table(paste(ResultFiles_Path_G,"1Cb.csv",sep=""),header=F,sep=",")
+tmp<-read.table(paste(ResultFiles_Path_G,"1Cb.csv",sep=""),header=F,skipNul=TRUE,sep=",")
 tmp %>% dplyr::arrange(tmp[,(length(iniPos)+1)]) %>% dplyr::distinct() -> tmp
-tmp %>% filter(.[,length(iniPos)+1]<1.15) -> tmp
-tmp %>% arrange(.[,length(iniPos)+1]) %>% head(3000) -> tmp
+#tmp %>% filter(.[,length(iniPos)+1]<1.15) -> tmp
+tmp %>% arrange(.[,length(iniPos)+1]) %>% head(1500) -> tmp
 pools<-list(list(c(1,0,0),tmp)) #No.[[1]]
 
 # or when all results are mixed together regardress of the number of Putn and Calln, pools[[1]] should be set as
@@ -168,7 +168,7 @@ rm(tmp)
 
 ### 2(exact x exact) Combinations (2Cb)
 #
-create_combined_population(popnum=60000,thresh=1.7,plelem=c(1,1),fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+create_combined_population(popnum=30000,thresh=1.7,plelem=c(1,1),fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                            isFileout=TRUE,isDebug=FALSE,maxposn=8)
 #2Cb.csv
 st <- "powershell.exe .\\shell\\cmd3.ps1"
@@ -183,14 +183,14 @@ system(st) ;rm(st)
 #adjust combined candidate population considering combinational explostion
 # tmp<-createCombineCandidatePool(fname=paste(".\\ResultData\\1Cb.csv",sep=""),
 #                                 pnum=0,nrows=-1,skip=0,method=1)
-tmp<-read.table(paste(ResultFiles_Path_G,"1Cb.csv",sep=""),header=F,sep=",")
+tmp<-read.table(paste(ResultFiles_Path_G,"1Cb.csv",sep=""),header=F,skipNul=TRUE,sep=",")
 tmp %>% dplyr::arrange(tmp[,(length(iniPos)+1)]) %>% dplyr::distinct() -> tmp
-tmp %>% filter(.[,length(iniPos)+1]<1.08) -> tmp
+#tmp %>% filter(.[,length(iniPos)+1]<1.08) -> tmp
 tmp %>% arrange(.[,length(iniPos)+1]) %>% head(1200) -> tmp
   
 pools<-list(list(c(1,0,0),tmp)) #No.[[1]] again
 
-create_combined_population(popnum=40000,thresh=1.7,plelem=c(1,1,1),fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+create_combined_population(popnum=70000,thresh=1.7,plelem=c(1,1,1),fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                            isFileout=TRUE,isDebug=FALSE,maxposn=8)
 #3Cb.csv
 st <- "powershell.exe .\\shell\\cmd5.ps1"
