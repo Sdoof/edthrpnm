@@ -43,16 +43,12 @@ getPutCallnOfthePosition<-function(x){
 #                                pnum=0,nrows=-1,skip=0,method=1)
 res1<-read.table(paste(ResultFiles_Path_G,"1Cb.csv",sep=""),header=F,skipNul=TRUE,sep=",")
 res1 %>% dplyr::arrange(res1[,(length(iniPos)+1)]) %>% dplyr::distinct() -> res1
-#above average score
-#res1 %>% filter(.[,length(iniPos)+1]<mean(res1[,length(iniPos)+1]))
 #over the specified socre
 res1 %>% filter(.[,length(iniPos)+1]<1.1) -> res1
 #posnum put call
 res1[,1:length(iniPos)] %>% rowwise() %>% do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp
 tmp  %>% rowwise() %>% do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp2
 res1$putn<-unlist(tmp2$putn);res1$calln<-unlist(tmp2$calln);rm(tmp);rm(tmp2)
-
-#write.table(res1,paste(ResultFiles_Path_G,"1Cb-out.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
 
 ##
 #  2Cb
@@ -62,19 +58,14 @@ res2<-read.table(paste(ResultFiles_Path_G,"2Cb.csv",sep=""),header=F,skipNul=TRU
 res2 %>% dplyr::arrange(res2[,(length(iniPos)+1)]) %>% dplyr::distinct() -> res2
 #必要のない列の削除
 res2 %>% select(1:(length(iniPos)+1)) -> res2
-
 #over the specified socre
 res2 %>% filter(.[,length(iniPos)+1]<1.02) -> res2
-
 #posnum put call
 res2[,1:length(iniPos)] %>% rowwise() %>% do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp
 tmp  %>% rowwise() %>% do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp2
 res2$putn<-unlist(tmp2$putn);res2$calln<-unlist(tmp2$calln);rm(tmp);rm(tmp2)
 
-#write.table(res1,paste(ResultFiles_Path_G,"2Cb-out.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
-
-#
-#  total_res  一つにまとめたdata.frame. 
+#full join
 full_join(res1,res2) %>% arrange(.[,length(iniPos)+1])  %>% distinct() -> total_res
 rm(res1,res2)
 
@@ -84,7 +75,6 @@ rm(res1,res2)
 #                                 pnum=0,nrows=-1,skip=0,method=1)
 res1<-read.table(paste(ResultFiles_Path_G,"3Cb.csv",sep=""),header=F,skipNul=TRUE,sep=",")
 res1 %>% dplyr::arrange(res1[,(length(iniPos)+1)]) %>% dplyr::distinct() -> res1
-
 #必要のない列の削除
 res1 %>% select(1:(length(iniPos)+1)) -> res1
 #over the specified socre
@@ -93,7 +83,6 @@ res1 %>% filter(.[,length(iniPos)+1]<1.02) -> res1
 res1[,1:length(iniPos)] %>% rowwise() %>% do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp
 tmp  %>% rowwise() %>% do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp2
 res1$putn<-unlist(tmp2$putn);res1$calln<-unlist(tmp2$calln);rm(tmp);rm(tmp2)
-#write.table(res1,paste(ResultFiles_Path_G,"3Cb-out.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
 
 #full join
 full_join(total_res,res1) %>% arrange(.[,length(iniPos)+1])  %>% distinct() -> total_res
@@ -168,17 +157,3 @@ rm(tmp,tmp_fil,tmp_fil2,tmp_fil3,res1,res2)
 rm(total_res,opchain,iniPos)
 rm(DataFiles_Path_G,ResultFiles_Path_G,OpType_Call_G,OpType_Put_G)
 rm(Underying_Symbol_G,TimeToExp_Limit_Closeness_G)
-
-
-# create initial population vector from data frame
-createInitialPopulationVecForOptimizer<-function(res_df, cand_num){
-  if(cand_num>nrow(res_df)){ cand_num<-nrow(res_df)  }
-  ret_vec<-rep(0,times=0)
-  for(i in 1:cand_num){
-    cat(unlist(res_df[i,1:length(iniPos)]),"\n",sep=",")
-    x<-unlist(res_df[i,1:length(iniPos)])
-    ret_vec<-as.numeric((i==1))*x+as.numeric((i!=1))*c(ret_vec,x)
-  }
-  return (ret_vec)
-}
-
