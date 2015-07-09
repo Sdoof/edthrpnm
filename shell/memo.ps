@@ -1,0 +1,34 @@
+#Combine
+#1
+st <- "powershell.exe -Command \" Get-ChildItem ..\\edthrpnm\\ResultData\\1Cb.csv | cat >> .\\ResultData\\1Cb-.csv \" "
+system(st) ;rm(st)
+st <- "powershell.exe -Command \" Get-Content .\\ResultData\\1Cb-.csv | Out-File -Filepath .\\ResultData\\1Cb--.csv -Encoding default \" "
+system(st) ;rm(st)
+st <- "powershell.exe -Command \" del .\\ResultData\\1Cb-.csv \" "
+system(st) ;rm(st)
+#2
+st <- "powershell.exe -Command \" Get-ChildItem ..\\edthrpnm2\\ResultData\\1Cb.csv | cat >> .\\ResultData\\1Cb-.csv \" "
+system(st) ;rm(st)
+st <- "powershell.exe -Command \" Get-Content .\\ResultData\\1Cb-.csv | Out-File -Filepath .\\ResultData\\1Cb-2.csv -Encoding default \" "
+system(st) ;rm(st)
+st <- "powershell.exe -Command \" Get-ChildItem .\\ResultData\\1Cb-2.csv | cat >> .\\ResultData\\1Cb--.csv \" "
+system(st) ;rm(st)
+st <- "powershell.exe -Command \" del .\\ResultData\\1Cb-.csv \" "
+system(st) ;rm(st)
+st <- "powershell.exe -Command \" del .\\ResultData\\1Cb-2.csv \" "
+system(st) ;rm(st)
+#3 
+st <- "powershell.exe -Command \" Get-ChildItem ..\\edthrpnm3\\ResultData\\1Cb.csv | cat >> .\\ResultData\\1Cb-.csv \" "
+system(st) ;rm(st)
+st <- "powershell.exe -Command \" Get-Content .\\ResultData\\1Cb-.csv | Out-File -Filepath .\\ResultData\\1Cb-2.csv -Encoding default \" "
+system(st) ;rm(st)
+st <- "powershell.exe -Command \" Get-ChildItem .\\ResultData\\1Cb-2.csv | cat >> .\\ResultData\\1Cb--.csv \" "
+system(st) ;rm(st)
+st <- "powershell.exe -Command \" del .\\ResultData\\1Cb-.csv \" "
+system(st) ;rm(st)
+st <- "powershell.exe -Command \" del .\\ResultData\\1Cb-2.csv \" "
+system(st) ;rm(st)
+#matome
+st <- "powershell.exe -Command \" mv .\\ResultData\\1Cb--.csv .\\ResultData\\1Cb_agr.csv  \" "
+system(st) ;rm(st)
+
