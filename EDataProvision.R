@@ -3,24 +3,30 @@ library(ggplot2)
 library(plyr)
 library(dplyr)
 
+#Config File
+ConfigFileName_G="ConfigParameters.csv"
+DataFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\MarketData\\data\\"
+
+ConfigParameters<-read.table(paste(DataFiles_Path_G,ConfigFileName_G,sep=""),
+                             row.names=1, comment.char="#",header=T,stringsAsFactors=F,sep=",")
+
 ###Global 変数及び定数.
 #Calendar
-CALENDAR_G="UnitedStates/NYSE"
+CALENDAR_G=ConfigParameters["CALENDAR_G",1]
 
 # Possibly read from File
-riskFreeRate_G=0.01
-divYld_G=0.0
+riskFreeRate_G=as.numeric(ConfigParameters["riskFreeRate_G",1])
+divYld_G=as.numeric(ConfigParameters["divYld_G",1])
 
 #Definition
-OpType_Put_G=1
-OpType_Call_G=-1
+OpType_Put_G=as.numeric(ConfigParameters["OpType_Put_G",1])
+OpType_Call_G=as.numeric(ConfigParameters["OpType_Call_G",1])
 #Skewness Calculation
 
-TimeToExp_Limit_Closeness_G=0.3
+TimeToExp_Limit_Closeness_G=as.numeric(ConfigParameters["TimeToExp_Limit_Closeness_G",1])
 #File
-Underying_Symbol_G="RUT"
-DataFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\MarketData\\data\\"
-ResultFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\ResultData\\"
+Underying_Symbol_G=ConfigParameters["Underying_Symbol_G",1]
+ResultFiles_Path_G=ConfigParameters["ResultFiles_Path_G",1]
 
 #switch: only for today or multiple days for skew calculation
 ProcessFileName=paste("_OPChain_Pre.csv",sep="")
@@ -202,6 +208,7 @@ rm(opchain)
 
 #Last Cleaning
 rm(makeOpchainContainer,makePosition,filterPosition)
+rm(ConfigFileName_G,ConfigParameters)
 rm(CALENDAR_G,riskFreeRate_G,divYld_G,OpType_Put_G,OpType_Call_G,TimeToExp_Limit_Closeness_G)
 rm(Underying_Symbol_G,DataFiles_Path_G,ResultFiles_Path_G,ProcessFileName,TargetFileName,isSkewCalc)
 

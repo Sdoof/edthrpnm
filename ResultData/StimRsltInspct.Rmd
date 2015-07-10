@@ -11,22 +11,26 @@ title: "StimRsltltnInspct"
 output: html_document
 ---
 ```{r echo = FALSE}
-##
-#  EOptionOprEurop -------------
-
-#File
-Underying_Symbol_G="RUT"
+#Config File
+ConfigFileName_G="ConfigParameters.csv"
 DataFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\MarketData\\data\\"
-ResultFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\ResultData\\"
+
+ConfigParameters<-read.table(paste(DataFiles_Path_G,ConfigFileName_G,sep=""),
+                             row.names=1, comment.char="#",header=T,stringsAsFactors=F,sep=",")
+#File
+Underying_Symbol_G=ConfigParameters["Underying_Symbol_G",1]
+ResultFiles_Path_G=ConfigParameters["ResultFiles_Path_G",1]
 
 ## from here is the meat
 
 #Target idx to be evaluated
-evalTargetIdx<-data.frame(spread_idx=1,scenario_idx=1,stim_idx=42)
+evalTargetIdx<-data.frame(spread_idx=as.numeric(ConfigParameters["SimInspct.Spread",1]),
+                          scenario_idx=as.numeric(ConfigParameters["SimInspct.Scenario",1]),
+                          stim_idx=as.numeric(ConfigParameters["SimInspct.SimID",1]))
 
 #Scenario Mode
+ScenarioMode=ConfigParameters["SimInspctScenarioMode",1]
 #ScenarioMode="_modelScenario_"
-ScenarioMode="_adjustedScenario_"
 
 ##
 # Option Chain and Position Data. Here we use UDL_Positions_Pre

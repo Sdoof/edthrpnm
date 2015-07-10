@@ -3,44 +3,45 @@ library(ggplot2)
 library(plyr)
 library(dplyr)
 
-##
-#  EOptionOprEurop -------------
+#Config File
+ConfigFileName_G="ConfigParameters.csv"
+DataFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\MarketData\\data\\"
 
-###Global 変数及び定数.
+ConfigParameters<-read.table(paste(DataFiles_Path_G,ConfigFileName_G,sep=""),
+                             row.names=1, comment.char="#",header=T,stringsAsFactors=F,sep=",")
 #Calendar
-CALENDAR_G="UnitedStates/NYSE"
+CALENDAR_G=ConfigParameters["CALENDAR_G",1]
 
 # Possibly read from File
-riskFreeRate_G=0.01
-divYld_G=0.0
+riskFreeRate_G=as.numeric(ConfigParameters["riskFreeRate_G",1])
+divYld_G=as.numeric(ConfigParameters["divYld_G",1])
 
 #Definition
-OpType_Put_G=1
-OpType_Call_G=-1
+OpType_Put_G=as.numeric(ConfigParameters["OpType_Put_G",1])
+OpType_Call_G=as.numeric(ConfigParameters["OpType_Call_G",1])
 #Skewness Calculation
 
-TimeToExp_Limit_Closeness_G=0.3
+TimeToExp_Limit_Closeness_G=as.numeric(ConfigParameters["TimeToExp_Limit_Closeness_G",1])
 #File
-Underying_Symbol_G="RUT"
-DataFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\MarketData\\data\\"
-ResultFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\ResultData\\"
+Underying_Symbol_G=ConfigParameters["Underying_Symbol_G",1]
+ResultFiles_Path_G=ConfigParameters["ResultFiles_Path_G",1]
 
 ##
 #  ERskRtnEval -------------
 #holdDays Trading Days. GreeksEffect are calculated based on this holding days.
-holdDays<-3
+holdDays=as.numeric(ConfigParameters["holdDays",1])
 
 #Number of Days for calculating Annualized Daily Volatility of Implied Volatility (DVIV)
-dviv_caldays<-20
+dviv_caldays=as.numeric(ConfigParameters["dviv_caldays",1])
 
 #Multipler of Position
-PosMultip<-100
+PosMultip=as.numeric(ConfigParameters["PosMultip",1])
 
 #Evaluatin Table Position start
-evalPosStart<-1
+evalPosStart=as.numeric(ConfigParameters["SimEvalPosStart",1])
 
 #Evaluatin Table Position end
-evalPosEnd<-10
+evalPosEnd=as.numeric(ConfigParameters["SimEvalPosEnd",1])
 
 #Option Chain and Position Data. Here we use UDL_Positions_Pre ---------------
 rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep="")
@@ -49,7 +50,7 @@ opchain<-read.table(rf,header=T,sep=",",stringsAsFactors=FALSE)
 opchain %>% dplyr::select(-(contains('Frac',ignore.case=TRUE)),
                           -(IV)) %>% as.data.frame() -> opchain
 #only OOM targeted
-opchain %>% dplyr::filter(HowfarOOM>=0) -> opchain
+#opchain %>% dplyr::filter(HowfarOOM>=0) -> opchain
 
 
 #Load Regression and Correlation Parameters
@@ -78,7 +79,7 @@ CallIVChgDown
 
 ##Historical Implied Volatility Data ---------------
 rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_IV.csv",sep="") 
-histIV<-read.table(rf,header=T,sep=",",stringsAsFactors=FALSE,nrows=1999);rm(rf)
+histIV<-read.table(rf,header=T,sep=",",stringsAsFactors=FALSE,nrows=1000);rm(rf)
 #filtering
 histIV %>% dplyr::transmute(Date=Date,IVIDX=Close/100) -> histIV
 histIV %>% #dplyr::filter(as.Date(Date,format="%Y/%m/%d")<=max(as.Date(position$Date,format="%Y/%m/%d"))) %>%
@@ -98,10 +99,10 @@ evalPositions %>% arrange(.[,length(opchain$Position)+1]) %>% slice(evalPosStart
 #First spread
 
 # Num of each Stimulation
-StimultaionNum<-100
+StimultaionNum=as.numeric(ConfigParameters["SimultaionNum",1])
 
 #Max duration (days) of the Stimulation
-MaxStimDay<-14
+MaxStimDay=as.numeric(ConfigParameters["MaxSimDay",1])
 
 #create pertubation combinations of these parameters
 # Parameter Tables--
@@ -128,16 +129,17 @@ MaxStimDay<-14
 #
 # wx(!=0)の重みを与えられたシナリオについてstimulationを行い、weightで重み付けられた結果
 # を最終評価値とする
-mu_udly_drift_up<-0.15
-mu_udly_drift_down<-0.15
-sigma_udly_drift_up<-0.30
-sigma_udly_drift_down<-0.20
-HV_IV_Adjust_Ratio<-0.95
-mu_iv_drift_up<-0.25
-mu_iv_drift_down<-0.25
-scenario_weight<-c(c(1.0,0.8,0.8),c(0.6,0.4,0.6),c(0.7,1.0,0.2),c(0.4,0.4,0.4))
-scenario_weight<-scenario_weight/sum(scenario_weight)
-
+ mu_udly_drift_up<-0.15
+ mu_udly_drift_down<-0.15
+ sigma_udly_drift_up<-0.30
+ sigma_udly_drift_down<-0.20
+ HV_IV_Adjust_Ratio<-0.95
+ mu_iv_drift_up<-0.25
+ mu_iv_drift_down<-0.25
+# scenario_weight<-c(c(1.0,0.8,0.8),c(0.6,0.4,0.6),c(0.7,1.0,0.2),c(0.4,0.4,0.4))
+# scenario_weight<-scenario_weight/sum(scenario_weight)
+scenario_weight<-eval(parse(text=gsub("-",",",ConfigParameters["SimScenarioWeight",1])))
+  
 #Result CSV file 
 out_text_file<-paste(ResultFiles_Path_G,Underying_Symbol_G,"_result.csv",sep="")
 
@@ -214,38 +216,6 @@ for(Counter in evalPosStart:evalPosEnd){
   write.table(data.frame(min_profit=min(tmp$min_profit),max_profit=max(tmp$max_profit),expected_profit=sum(tmp$weight*tmp$mean_profit)),
               out_text_file,quote=T,row.names=F,append=T,sep=",")
   rm(tmp)
-  
-#   for(i in 1:nrow(modelScenario) ){
-#     pdf(file=paste(ResultFiles_Path_G,Underying_Symbol_G,"_report",Counter,"_",i,".pdf",sep=""))
-#     resdf<-modelScenario$resdf[[i]]
-#     #udly price histgram
-#     gg <- ggplot(resdf,aes(x=udly))+geom_histogram(alpha=0.9,aes(y=..density..))+geom_density(size=1.0,adjust=0.8,colour="cyan2")+
-#       geom_point(x=mean(position$UDLY),y=0,size=6.0,width=3.0,colour="red",pch=3)+
-#       geom_point(x=mean(resdf$udly),y=0,size=6.0,colour="red",pch=1)+
-#       geom_point(x=median(resdf$udly),y=0,size=6.0,colour="orange",pch=1)+
-#       geom_point(x=mean(resdf$udly)+sd(resdf$udly),y=0,size=6.0,colour="darkgrey",pch=2)+
-#       geom_point(x=mean(resdf$udly)-sd(resdf$udly),y=0,size=6.0,colour="darkgrey",pch=2)
-#     print(gg)
-#     
-#     #payoff function
-#     gg <- ggplot(resdf,aes(x=udly,y=profit,colour=liqDay))+
-#       geom_point()+
-#       geom_point(x=mean(position$UDLY),y=0,size=6.0,colour="red",pch=3)+
-#       geom_point(x=mean(resdf$udly),y=0,size=6.0,colour="red",pch=1)+
-#       geom_point(x=median(resdf$udly),y=0,size=6.0,colour="orange",pch=1)+
-#       geom_point(x=mean(resdf$udly)+sd(resdf$udly),y=0,size=6.0,colour="darkgrey",pch=2)+
-#       geom_point(x=mean(resdf$udly)-sd(resdf$udly),y=0,size=6.0,colour="darkgrey",pch=2)
-#     print(gg)
-#     
-#     #profit histgram
-#     gg <- ggplot(resdf,aes(x=profit))+geom_histogram(alpha=0.9,aes(y=..density..))+geom_density(size=1.0,adjust=0.3,colour="cyan2")+
-#       geom_point(x=mean(resdf$profit),y=0,size=5.0,colour="red",pch=3)+
-#       geom_point(x=median(resdf$profit),y=0,size=5.0,colour="orange",pch=1)+
-#       geom_point(x=mean(resdf$profit)+sd(resdf$profit),y=0,size=5.0,colour="darkgrey",pch=2)+
-#       geom_point(x=mean(resdf$profit)-sd(resdf$profit),y=0,size=5.0,colour="darkgrey",pch=2)
-#     print(gg)
-#     dev.off()
-#   };rm(i);rm(gg);rm(resdf)
 }
 rm(evaPos,Counter)
 rm(modelScenario,modelStimRawlist)
@@ -260,6 +230,7 @@ rm(evalPositions,opchain)
 #Parameters Cleaning
 rm(CallIVChgDown,CallIVChgUp,CallVCone,PutIVChgDown,PutIVChgUp,PutVCone)
 rm(PC1dCtC_IVCF1dCtC,PC3dCtC_IVCF3dCtC,PC5dCtC_IVCF5dCtC,PC7dCtC_IVCF7dCtC,SkewModel)
+rm(ConfigFileName_G,ConfigParameters)
 rm(riskFreeRate_G,divYld_G,OpType_Put_G,OpType_Call_G,TimeToExp_Limit_Closeness_G)
 rm(CALENDAR_G,Underying_Symbol_G,DataFiles_Path_G,ResultFiles_Path_G,holdDays,dviv_caldays,PosMultip)
 

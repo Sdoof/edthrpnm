@@ -3,16 +3,22 @@ library(RQuantLib)
 library(plyr)
 library(dplyr)
 
-#File
-Underying_Symbol_G="RUT"
+#Config File
+ConfigFileName_G="ConfigParameters.csv"
 DataFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\MarketData\\data\\"
-ResultFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\ResultData\\"
+
+ConfigParameters<-read.table(paste(DataFiles_Path_G,ConfigFileName_G,sep=""),
+                             row.names=1, comment.char="#",header=T,stringsAsFactors=F,sep=",")
+
+#File
+Underying_Symbol_G=ConfigParameters["Underying_Symbol_G",1]
+ResultFiles_Path_G=ConfigParameters["ResultFiles_Path_G",1]
 
 #Evaluatin Table Position start
-evalPosStart<-1
+evalPosStart=as.numeric(ConfigParameters["PlaybackPosStart",1])
 
 #Evaluatin Table Position end
-evalPosEnd<-1
+evalPosEnd=as.numeric(ConfigParameters["PlaybackPosEnd",1])
 
 exitDecision<-function(IniEvalScore,EvalScore){
   AllEffect<-EvalScore$DeltaEffect+EvalScore$VegaEffect+EvalScore$ThetaEffect+EvalScore$GammaEffect
@@ -157,5 +163,6 @@ PlaybackAdjust<-function(){
 
 PlaybackAdjust()
 
+rm(ConfigFileName_G,ConfigParameters)
 rm(DataFiles_Path_G,ResultFiles_Path_G,Underying_Symbol_G,evalPosStart,evalPosEnd)
 rm(exitDecision,PlaybackAdjust)

@@ -4,32 +4,37 @@ library(plyr)
 library(dplyr)
 library(pracma)
 
+#Config File
+ConfigFileName_G="ConfigParameters.csv"
+DataFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\MarketData\\data\\"
+
+ConfigParameters<-read.table(paste(DataFiles_Path_G,ConfigFileName_G,sep=""),
+                             row.names=1, comment.char="#",header=T,stringsAsFactors=F,sep=",")
 ###Global 変数及び定数.
 #Calendar
-CALENDAR_G="UnitedStates/NYSE"
+CALENDAR_G=ConfigParameters["CALENDAR_G",1]
 
 # Possibly read from File
-riskFreeRate_G=0.01
-divYld_G=0.0
+riskFreeRate_G=as.numeric(ConfigParameters["riskFreeRate_G",1])
+divYld_G=as.numeric(ConfigParameters["divYld_G",1])
 
 #Definition
-OpType_Put_G=1
-OpType_Call_G=-1
-#Skewness Calculation
+OpType_Put_G=as.numeric(ConfigParameters["OpType_Put_G",1])
+OpType_Call_G=as.numeric(ConfigParameters["OpType_Call_G",1])
 
-TimeToExp_Limit_Closeness_G=0.3
+#Skewness Calculation
+TimeToExp_Limit_Closeness_G=as.numeric(ConfigParameters["TimeToExp_Limit_Closeness_G",1])
 #File
-Underying_Symbol_G="RUT"
-DataFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\MarketData\\data\\"
-ResultFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\ResultData\\"
+Underying_Symbol_G=ConfigParameters["Underying_Symbol_G",1]
+ResultFiles_Path_G=ConfigParameters["ResultFiles_Path_G",1]
 
 #Holding Period
 #holdDays<-3*252/365 #Trading Days. This should be correct.
-holdDays<-3
+holdDays=as.numeric(ConfigParameters["holdDays",1])
 #Number of Days for calculating Annualized Daily Volatility of Implied Volatility (DVIV)
-dviv_caldays<-20
+dviv_caldays=as.numeric(ConfigParameters["dviv_caldays",1])
 #Multipler of Position
-PosMultip<-100
+PosMultip=as.numeric(ConfigParameters["PosMultip",1])
 
 #Option Chain and Position Data. Here we use UDL_Positions_Pre ---------------
 rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep="")
@@ -252,5 +257,6 @@ rm(best_result,holdDays,dviv_caldays,PosMultip)
 rm(opchain,histIV,position)
 rm(CallIVChgDown,CallIVChgUp,CallVCone,PutIVChgDown,PutIVChgUp,PutVCone,SkewModel)
 rm(PC1dCtC_IVCF1dCtC,PC3dCtC_IVCF3dCtC,PC5dCtC_IVCF5dCtC,PC7dCtC_IVCF7dCtC)
+rm(ConfigFileName_G,ConfigParameters)
 rm(CALENDAR_G,OpType_Call_G,OpType_Put_G,ResultFiles_Path_G,TimeToExp_Limit_Closeness_G)
 rm(DataFiles_Path_G,Underying_Symbol_G,divYld_G,riskFreeRate_G)

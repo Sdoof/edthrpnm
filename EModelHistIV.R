@@ -3,25 +3,26 @@ library(ggplot2)
 library(plyr)
 library(dplyr)
 
-##
-#  From EOptionOprEurop -----------
-
-###Global 変数及び定数.
-# Possibly read from File
-riskFreeRate_G=0.01
-divYld_G=0.0
-
-#Definition
-OpType_Put_G=1
-OpType_Call_G=-1
-#Skewness Calculation
-TimeToExp_Limit_Closeness_G=0.3
-#File
-Underying_Symbol_G="RUT"
+#Config File
+ConfigFileName_G="ConfigParameters.csv"
 DataFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\MarketData\\data\\"
 
-##
-#  From EVolatility -----------
+ConfigParameters<-read.table(paste(DataFiles_Path_G,ConfigFileName_G,sep=""),
+                             row.names=1, comment.char="#",header=T,stringsAsFactors=F,sep=",")
+
+#Calendar
+CALENDAR_G=ConfigParameters["CALENDAR_G",1]
+
+riskFreeRate_G=as.numeric(ConfigParameters["riskFreeRate_G",1])
+divYld_G=as.numeric(ConfigParameters["divYld_G",1])
+
+#Definition
+OpType_Put_G=as.numeric(ConfigParameters["OpType_Put_G",1])
+OpType_Call_G=as.numeric(ConfigParameters["OpType_Call_G",1])
+#Skewness Calculation
+TimeToExp_Limit_Closeness_G=as.numeric(ConfigParameters["TimeToExp_Limit_Closeness_G",1])
+#File
+Underying_Symbol_G=ConfigParameters["Underying_Symbol_G",1]
 
 #read data file
 rf_<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Hist.csv",sep="")
@@ -150,4 +151,5 @@ rm(PC1dCtC,PC3dCtC,PC5dCtC,PC7dCtC,PCIV5dCtC)
 rm(IVCF1dCtC,IVCF3dCtC,IVCF5dCtC,IVCF7dCtC)
 rm(norns.lm,start_day_,num_day_)
 rm(P2IV1d,P2IV3d,P2IV5d,P2IV7d)
+rm(ConfigFileName_G,ConfigParameters)
 rm(CALENDAR_G,DataFiles_Path_G,OpType_Call_G,OpType_Put_G,TimeToExp_Limit_Closeness_G,Underying_Symbol_G,divYld_G,riskFreeRate_G)

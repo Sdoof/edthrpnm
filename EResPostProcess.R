@@ -2,17 +2,38 @@ library(dplyr)
 library(RQuantLib)
 library(ggplot2)
 
-###Global 変数及び定数.
+#Config File
+ConfigFileName_G="ConfigParameters.csv"
+DataFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\MarketData\\data\\"
+
+ConfigParameters<-read.table(paste(DataFiles_Path_G,ConfigFileName_G,sep=""),
+                             row.names=1, comment.char="#",header=T,stringsAsFactors=F,sep=",")
+#Calendar
+CALENDAR_G=ConfigParameters["CALENDAR_G",1]
+
+# Possibly read from File
+riskFreeRate_G=as.numeric(ConfigParameters["riskFreeRate_G",1])
+divYld_G=as.numeric(ConfigParameters["divYld_G",1])
 
 #Definition
-OpType_Put_G=1
-OpType_Call_G=-1
+OpType_Put_G=as.numeric(ConfigParameters["OpType_Put_G",1])
+OpType_Call_G=-as.numeric(ConfigParameters["OpType_Call_G",1])
+
 #Skewness Calculation
-TimeToExp_Limit_Closeness_G=0.3
+TimeToExp_Limit_Closeness_G=as.numeric(ConfigParameters["TimeToExp_Limit_Closeness_G",1])
+
 #File
-Underying_Symbol_G="RUT"
-DataFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\MarketData\\data\\"
-ResultFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\ResultData\\"
+Underying_Symbol_G=ConfigParameters["Underying_Symbol_G",1]
+ResultFiles_Path_G=ConfigParameters["ResultFiles_Path_G",1]
+
+#holdDays Trading Days. GreeksEffect are calculated based on this holding days.
+holdDays=as.numeric(ConfigParameters["holdDays",1])
+
+#Number of Days for calculating Annualized Daily Volatility of Implied Volatility (DVIV)
+dviv_caldays=as.numeric(ConfigParameters["dviv_caldays",1])
+
+#Multipler of Position
+PosMultip=as.numeric(ConfigParameters["PosMultip",1])
 
 #ophcain 
 rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep="")
@@ -21,7 +42,7 @@ opchain<-read.table(rf,header=T,sep=",",stringsAsFactors=FALSE)
 opchain %>% dplyr::select(-(contains('Frac',ignore.case=TRUE)),
                           -(IV)) %>% as.data.frame() -> opchain
 #only OOM targeted
-opchain %>% dplyr::filter(HowfarOOM>=0) -> opchain
+#opchain %>% dplyr::filter(HowfarOOM>=0) -> opchain
 rm(rf)
 #iniPos
 iniPos<-opchain$Position
@@ -35,7 +56,6 @@ getPutCallnOfthePosition<-function(x){
   calln<-sum( as.numeric((callpos*x)!=0) )
   return (c(putn,calln))
 }
-
 
 ##
 # Exact (1Cb)
@@ -151,9 +171,11 @@ write.table(tmp_fil3,paste(ResultFiles_Path_G,"posnGT8.csv",sep=""),row.names = 
 #上位score1000の評価値の平均
 # mean(tmp_fil[,length(iniPos)+1])
 # mean(total_res[,length(iniPos)+1])
-
+rm(getPutCallnOfthePosition)
 rm(genoud_inipop_vec,dfoptim_inipop_vec)
 rm(tmp,tmp_fil,tmp_fil2,tmp_fil3,res1,res2)
 rm(total_res,opchain,iniPos)
+rm(CALENDAR_G,PosMultip,divYld_G,dviv_caldays,holdDays,riskFreeRate_G)
+rm(ConfigFileName_G,ConfigParameters)
 rm(DataFiles_Path_G,ResultFiles_Path_G,OpType_Call_G,OpType_Put_G)
 rm(Underying_Symbol_G,TimeToExp_Limit_Closeness_G)
