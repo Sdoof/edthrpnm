@@ -15,6 +15,13 @@ SimEvalPosEnd,1
 SimultaionNum,200
 MaxSimDay,10
 SimScenarioWeight,c(0.13698630-0.10958904-0.10958904-0.08219178-0.05479452-0.08219178-0.09589041-0.13698630-0.02739726-0.05479452-0.05479452-0.05479452)
+Sim_Mu_udly_drift_up,0.15
+Sim_Mu_udly_drift_down,0.15
+Sim_Sigma_udly_drift_up,0.30
+Sim_Sigma_udly_drift_down,0.20
+Sim_HV_IV_Adjust_Ratio,0.95
+Sim_Mu_iv_drift_up,0.25
+Sim_Mu_iv_drift_down,0.25
 SimReportPosStart,1
 SimReportPosEnd,1
 SimReportScenarioMode,_modelScenario_
@@ -25,4 +32,7 @@ SimInspct.SimID,1
 SimInspctScenarioMode,_modelScenario_
 #SimInspctScenarioMode,_adjustedScenario_
 PlaybackPosStart,1
-PlaybackPosEnd,1
+PlaybackPosEnd,1\
+AnalyStepdays,3
+AnalyStepNum,80
+AnalyStepPct,0.005
