@@ -2,10 +2,60 @@ library(dplyr)
 library(RQuantLib)
 library(ggplot2)
 
+###Global 変数及び定数.
+#Calendar
+CALENDAR_G="UnitedStates/NYSE"
+
+# Possibly read from File
+riskFreeRate_G=0.01
+divYld_G=0.0
+
+#Definition
+OpType_Put_G=1
+OpType_Call_G=-1
+#Skewness Calculation
+
+TimeToExp_Limit_Closeness_G=0.3
+#File
+Underying_Symbol_G="RUT"
+DataFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\MarketData\\data\\"
+ResultFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\ResultData\\"
+
 # set days interval between which the position is analyzed step by step.
 stepdays<-3
 udlStepNum<-80
 udlStepPct=0.005
+
+#Holding Period
+#holdDays<-3*252/365 #Trading Days. This should be correct.
+holdDays<-3
+#Number of Days for calculating Annualized Daily Volatility of Implied Volatility (DVIV)
+dviv_caldays<-20
+#Multipler of Position
+PosMultip<-100
+
+#Load opchain object
+#Option Chain and Position Data. Here we use UDL_Positions_Pre ---------------
+rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep="")
+opchain<-read.table(rf,header=T,sep=",",stringsAsFactors=FALSE)
+#filtering. deleting unnecessary column
+opchain %>% dplyr::select(-(contains('Frac',ignore.case=TRUE)),
+                          -(IV)) %>% as.data.frame() -> opchain
+rm(rf)
+#or below
+#rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pos.csv",sep="")
+#opchain<-read.table(rf,header=T,sep=",") ;rm(rf)
+
+##Historical Implied Volatility Data ---------------
+rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_IV.csv",sep="") 
+histIV<-read.table(rf,header=T,sep=",",nrows=1000);rm(rf)
+#filtering
+histIV %>% dplyr::transmute(Date=Date,IVIDX=Close/100) -> histIV
+histIV %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")<=max(as.Date(opchain$Date,format="%Y/%m/%d"))) %>%
+  dplyr::arrange(desc(as.Date(Date,format="%Y/%m/%d"))) %>% head(n=dviv_caldays) -> histIV
+
+#evaluated position or set evaPos manually by copy&paste csv value
+evaPos<-opchain$Position
 
 #get evaluation days vector, evaldays
 opchain$Date<-as.character(opchain$Date);
@@ -24,6 +74,7 @@ if(evaldays[length(evaldays)]==max_days){
   }
 }
 rm(max_days)
+
 #read analyzed positon. here we give by copy and paste
 pos_anlys<-evaPos
  
@@ -135,5 +186,13 @@ gg<-ggplot(drawGrktbl,aes(x=UDLY,y=ThetaEffect,group=day))
 )
 
 rm(gg,drawGrktbl)
+rm(opchain,histIV,evaPos)
+
 rm(stepdays,pos_anlys,totalstep,udlStepNum,udlStepPct,vol_chg,iniPrice,iniCredit,iniDelta)
 rm(posStepDays,posStepDays_vc,thePosition,thePositonGrks)
+
+rm(riskFreeRate_G,divYld_G,OpType_Put_G,OpType_Call_G)
+rm(CALENDAR_G,TimeToExp_Limit_Closeness_G,Underying_Symbol_G,DataFiles_Path_G,ResultFiles_Path_G)
+rm(holdDays,dviv_caldays,PosMultip)
+
+
