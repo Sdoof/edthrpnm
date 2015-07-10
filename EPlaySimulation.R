@@ -136,13 +136,14 @@ MaxStimDay=as.numeric(ConfigParameters["MaxSimDay",1])
 #
 # wx(!=0)の重みを与えられたシナリオについてstimulationを行い、weightで重み付けられた結果
 # を最終評価値とする
- mu_udly_drift_up<-0.15
- mu_udly_drift_down<-0.15
- sigma_udly_drift_up<-0.30
- sigma_udly_drift_down<-0.20
- HV_IV_Adjust_Ratio<-0.95
- mu_iv_drift_up<-0.25
- mu_iv_drift_down<-0.25
+ mu_udly_drift_up=as.numeric(ConfigParameters["Sim_Mu_udly_drift_up",1])
+ mu_udly_drift_down=as.numeric(ConfigParameters["Sim_Mu_udly_drift_down",1])
+ sigma_udly_drift_up=as.numeric(ConfigParameters["Sim_Sigma_udly_drift_up",1])
+ sigma_udly_drift_down=as.numeric(ConfigParameters["Sim_Sigma_udly_drift_down",1])
+ HV_IV_Adjust_Ratio=as.numeric(ConfigParameters["Sim_HV_IV_Adjust_Ratio",1])
+ mu_iv_drift_up=as.numeric(ConfigParameters["Sim_Mu_iv_drift_up",1])
+ mu_iv_drift_down=as.numeric(ConfigParameters["Sim_Mu_iv_drift_down",1])
+
 # scenario_weight<-c(c(1.0,0.8,0.8),c(0.6,0.4,0.6),c(0.7,1.0,0.2),c(0.4,0.4,0.4))
 # scenario_weight<-scenario_weight/sum(scenario_weight)
 scenario_weight<-eval(parse(text=gsub("-",",",ConfigParameters["SimScenarioWeight",1])))
