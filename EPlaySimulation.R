@@ -52,6 +52,13 @@ opchain %>% dplyr::select(-(contains('Frac',ignore.case=TRUE)),
 #only OOM targeted
 #opchain %>% dplyr::filter(HowfarOOM>=0) -> opchain
 
+##Historical Implied Volatility Data ---------------
+rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_IV.csv",sep="") 
+histIV<-read.table(rf,header=T,sep=",",nrows=1000);rm(rf)
+#filtering
+histIV %>% dplyr::transmute(Date=Date,IVIDX=Close/100) -> histIV
+histIV %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")<=max(as.Date(opchain$Date,format="%Y/%m/%d"))) %>%
+  dplyr::arrange(desc(as.Date(Date,format="%Y/%m/%d"))) %>% head(n=dviv_caldays) -> histIV
 
 #Load Regression and Correlation Parameters
 load.PC2IV(PC="PC3dCtC",IVC="IVCF3dCtC")
