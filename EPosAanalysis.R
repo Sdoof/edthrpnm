@@ -112,6 +112,9 @@ pos_anlys<-evaPos
 opchain$Position<-pos_anlys
 opchain %>% dplyr::filter(Position!=0) -> thePosition
 
+#check optimization function value
+#obj_Income_sgmd(x=evaPos,isDebug=TRUE,isDetail=TRUE,isFileout=FALSE)
+
 #thePosition's greek df and initial price
 thePositonGrks<-getPositionGreeks(thePosition)
 iniPrice <- thePositonGrks$Price

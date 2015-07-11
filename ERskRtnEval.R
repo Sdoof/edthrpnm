@@ -1,11 +1,12 @@
 ##
 # functions optimized  -------------
 
-obj_Income_sgmd <- function(x,isDebug=FALSE,isDetail=FALSE,isFileout=FALSE,
-                            udlStepNum=4,udlStepPct=0.02,maxposnum=8,
-                            tail_rate=0.4,lossLimitPrice=30000){
+obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
+                            udlStepNum,udlStepPct,maxposnum,
+                            tail_rate,lossLimitPrice){
   #gradually change constraint
   exp_c<-0
+  unacceptableVal=100
   #position where pos$Position != 0
   position<-hollowNonZeroPosition(pos=x)
   #position evaluated after holdDays later
@@ -17,46 +18,54 @@ obj_Income_sgmd <- function(x,isDebug=FALSE,isDetail=FALSE,isFileout=FALSE,
   if(isDetail){print(posEvalTbl$pos)}
   if(isDetail){print(posEvalTbl)}  
   
-  ##
-  # penalty1: position total num
-#   pos_change<-sum(as.numeric((round(x)-iniPos)!=0))
-#   penalty1<-(1+as.numeric((pos_change-maxposnum)>0)*(pos_change-maxposnum))^5
-  penalty1<-1
-#   if(penalty1>2){
-#     if(isDebug){cat("pos num",pos_change,"\n")}
-#     return((pos_change-maxposnum)*penalty1 )
-#   }
-#   if(isDebug){cat(x," ");cat(" :p1",penalty1)}
+  #weighting calculate
+  sd_multp<-holdDays
+  anlzd_sd<-getIV_td(histIV$IVIDX[1])*Setting$HV_IV_Adjust_Ratio
+  sd_hd<-(anlzd_sd/sqrt(252/sd_multp))
+  weight<-dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd / sum(dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd)
+  if(isDebug){cat(" :wht",weight)}
   
   ##
-  # penalty4. ThetaEffect. This should be soft constraint  
-#   sd_multp<-holdDays;anlzd_sd<-getIV_td(histIV$IVIDX[1]);sd_hd<-(anlzd_sd/sqrt(252/sd_multp))
-#   weight<-dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd / sum(dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd)
-#   theta_ttl<-thePositionGrk$ThetaEffect+sum(posEvalTbl$ThetaEffect*weight)
-#   
-#   exp_c<-as.numeric((pos_change-maxposnum)>0)*0+as.numeric((pos_change-maxposnum)<=0)
-  penalty4<-1
-#   penalty4<-(1+as.numeric(theta_ttl<0)*(abs(theta_ttl)))^exp_c
-#   
-#   if(isDetail){cat(" :thta_ttl",theta_ttl);cat(" :p4",penalty4)}
-#   if(isDetail){cat(" :thta_ini",thePositionGrk$ThetaEffect);cat(" :thta_hld",sum(posEvalTbl$ThetaEffect*weight))}
-#   
+  # penalty1: position total num
+  #pos_change<-sum(as.numeric((round(x)-iniPos)!=0))
+  #penalty1<-(1+as.numeric((pos_change-maxposnum)>0)*(pos_change-maxposnum))^5
+  penalty1<-1
+  #if(penalty1>2){
+  #  if(isDebug){cat("pos num",pos_change,"\n")}
+  #   return((pos_change-maxposnum)*penalty1 )
+  #}
+  #if(isDebug){cat(x," ");cat(" :p1",penalty1)}
+  
+  ##
+  # penalty4. ThetaEffect. This should be soft constraint
+  if(Setting$ThetaEffectPositive){
+    theta_ttl<-thePositionGrk$ThetaEffect+sum(posEvalTbl$ThetaEffect*weight)
+    #exp_c<-as.numeric((pos_change-maxposnum)>0)*0+as.numeric((pos_change-maxposnum)<=0)
+    penalty4<-1
+    #penalty4<-(1+as.numeric(theta_ttl<0)*(abs(theta_ttl)))^exp_c   
+    if(isDetail){cat(" :thta_ttl",theta_ttl)}
+    if(isDetail){cat(" :thta_ini",thePositionGrk$ThetaEffect);cat(" :thta_holding",sum(posEvalTbl$ThetaEffect*weight))}
+    if(theta_ttl<0)
+      return(unacceptableVal)
+  }
+  
   ##
   # penalty2 tail-risk
   tailPrice<-min(sum(getIntrisicValue(position$UDLY[1]*(1-tail_rate),position)),
                  sum(getIntrisicValue(position$UDLY[1]*(1+tail_rate),position)))
+  #penalty2<-(1+as.numeric((tailPrice-lossLimitPrice)<0)*(10))^exp_c
+  penalty2<-1
   lossLimitPrice <- (-1)*lossLimitPrice
-  penalty2<-(1+as.numeric((tailPrice-lossLimitPrice)<0)*(10))^exp_c
   if(isDebug){cat(" :tlpr",tailPrice);cat(" :lslmt",lossLimitPrice);cat(" :p2",penalty2)}
+  if(tailPrice<lossLimitPrice)
+    return(unacceptableVal)
   
   ##
   # penalty3, cost3: profit must be positive. also must be a cost term.
   if(isDetail){cat(" :prc_hd",posEvalTbl$Price);cat(" :prc_ini:",getPositionGreeks(position,multi=PosMultip)$Price)}
   if(isDetail){cat(" :prft",posEvalTbl$Price-getPositionGreeks(position,multi=PosMultip)$Price)}
   
-  sd_multp<-holdDays;anlzd_sd<-getIV_td(histIV$IVIDX[1]);sd_hd<-(anlzd_sd/sqrt(252/sd_multp))
-  weight<-dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd / sum(dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd)
-  if(isDebug){cat(" :wht",weight)} 
+  
   profit_hdays<-sum((posEvalTbl$Price-thePositionGrk$Price)*weight)
   if(isDebug){cat(" :prft_wt",profit_hdays)}  
   #exp_c<-as.numeric((pos_change-maxposnum)>0)*0+as.numeric((pos_change-maxposnum)<=0)
@@ -65,17 +74,15 @@ obj_Income_sgmd <- function(x,isDebug=FALSE,isDetail=FALSE,isFileout=FALSE,
   penalty3<-1
   if(isDebug){cat(" :p3",penalty3)}
   # cost 3
-  cost3<- sigmoid(-1*profit_hdays*0.001,a=1,b=0)
+  cost3<- sigmoid(-1*profit_hdays,a=Setting$SigmoidA_Profit,b=0)
   if(isDebug){cat(" :cost3",cost3)}
+  
   ##
   # cost5 Each Effects.
   #weight is normalized
-  sd_multp<-holdDays;anlzd_sd<-getIV_td(histIV$IVIDX[1]);sd_hd<-(anlzd_sd/sqrt(252/sd_multp))
-  weight<-dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd / sum(dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd)
-  if(isDebug){cat(" :wht2",weight)}
   c5<- -sum((posEvalTbl$DeltaEffect+posEvalTbl$GammaEffect+
                posEvalTbl$VegaEffect+posEvalTbl$ThetaEffect)*weight)
-  cost5<-sigmoid(c5*0.001,a=1,b=0)
+  cost5<-sigmoid(c5,a=Setting$SigmoidA_AllEffect,b=0)
   if(isDebug){cat(" c5:",c5," :cost5",cost5)}
   
   ##
@@ -86,23 +93,11 @@ obj_Income_sgmd <- function(x,isDebug=FALSE,isDetail=FALSE,isFileout=FALSE,
   
   ##
   # total cost and penalty
-  val<-cost*penalty2 #*penalty1*penalty3*penalty4
+  val<-cost #*penalty2*penalty1*penalty3*penalty4
   
   if(isDebug){cat(" val:",val,"\n")}
-  
-  if(isFileout){
-    if(val<best_result){
-      cat(x,file=result_file,sep=",",append=TRUE);cat(",",file=result_file,append=TRUE)
-      cat(val,file=result_file,"\n",append=TRUE)
-      best_result<<-val+0.1
-      #assign(best_result,val,env=.GlobalEnv)
-    }
-  }
   return(val)
 }
-
-
-
 
 #used for post-evaluation
 getProfit <- function(x,isDebug=TRUE,udlStepNum=4,udlStepPct=0.02){
@@ -461,7 +456,7 @@ getIntrisicValue<-function(udly_price,position,multip=PosMultip){
 # as the case of even number (half +1 long, the other half -1 short).
 # When the each position of returned compound spread is 1 or -1, the spread position are multiplied by ml. 
 
-create_initial_exact_PutCall_polulation<-function(popnum,type,thresh=3.0,putn=6,calln=6,ml=2,fname,isFileout=FALSE,isDebug=FALSE,isDetail=FALSE){
+create_initial_exact_PutCall_polulation<-function(popnum,type,EvalFuncSetting,thresh=3.0,putn=6,calln=6,ml=2,fname,isFileout=FALSE,isDebug=FALSE,isDetail=FALSE){
   added_num<-0
   total_count<-0
   while(TRUE){
@@ -507,10 +502,12 @@ create_initial_exact_PutCall_polulation<-function(popnum,type,thresh=3.0,putn=6,
     if(isDebug){ cat(" (:z",z,") :x(y+z) ") }
     x<-y+z
     x<-as.numeric(((putn%%2)==0)*((calln%%2)==0))*ml*x+as.numeric(!((putn%%2)==0)*((calln%%2)==0))*x
-    #val<-obj_Income(x,isDebug=isDebug)
     if(isDebug){ cat(" (:x",x,")") }
     
-    tryCatch(val<-obj_Income_sgmd(x,isDebug=isDebug,isDetail=isDetail),
+    tryCatch(val<-obj_Income_sgmd(x,EvalFuncSetting,isDebug=isDebug,isDetail=isDetail,
+                                  udlStepNum=EvalFuncSetting$UdlStepNum,udlStepPct=EvalFuncSetting$UdlStepPct,
+                                  maxposnum=EvalFuncSetting$Maxposnum,
+                                  tail_rate=EvalFuncSetting$Tail_rate,lossLimitPrice=EvalFuncSetting$LossLimitPrice),
              error=function(e){
                message(e)
                val<-(thresh+1.0)
@@ -570,7 +567,7 @@ createCombineCandidatePool<-function(fname,pnum=1000,nrows=-1,skip=0,method=1){
 
 # two sample examples. one from pools[[2]], the other from pools[[3]]
 #ceiling(runif(1, min=1e-320, max=nrow(pools[[2]][[2]])))
-create_combined_population<-function(popnum,thresh=1000,plelem=c(4,5),fname,isFileout=FALSE,isDebug=FALSE,maxposn=8){
+create_combined_population<-function(popnum,EvalFuncSetting,thresh,plelem,fname,isFileout=FALSE,isDebug=FALSE,maxposn){
   added_num<-0
   total_count<-0
   while(TRUE) {
@@ -605,9 +602,11 @@ create_combined_population<-function(popnum,thresh=1000,plelem=c(4,5),fname,isFi
       next
     }
     
-    #evaluate
-    #val<-obj_Income(x_new,isDebug=isDebug)
-    tryCatch(val<-obj_Income_sgmd(x_new,isDebug=isDebug,isDetail=isDebug),
+    #evaluate    
+    tryCatch(val<-obj_Income_sgmd(x_new,EvalFuncSetting,isDebug=isDebug,isDetail=isDebug,
+                                  udlStepNum=EvalFuncSetting$UdlStepNum,udlStepPct=EvalFuncSetting$UdlStepPct,
+                                  maxposnum=EvalFuncSetting$Maxposnum,
+                                  tail_rate=EvalFuncSetting$Tail_rate,lossLimitPrice=EvalFuncSetting$LossLimitPrice),
              error=function(e){
                message(e)
                val<-(thresh+1.0)
