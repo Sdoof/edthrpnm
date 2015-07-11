@@ -11,7 +11,7 @@ holdDays,3
 dviv_caldays,20
 PosMultip,100
 SimEvalPosStart,1
-SimEvalPosEnd,1
+SimEvalPosEnd,50
 SimultaionNum,200
 MaxSimDay,10
 SimScenarioWeight,c(0.13698630-0.10958904-0.10958904-0.08219178-0.05479452-0.08219178-0.09589041-0.13698630-0.02739726-0.05479452-0.05479452-0.05479452)
@@ -23,7 +23,7 @@ Sim_HV_IV_Adjust_Ratio,0.8
 Sim_Mu_iv_drift_up,0.25
 Sim_Mu_iv_drift_down,0.25
 SimReportPosStart,1
-SimReportPosEnd,1
+SimReportPosEnd,50
 SimReportScenarioMode,_modelScenario_
 #SimReportScenarioMode,_adjustedScenario_
 SimInspct.Spread,1
@@ -44,4 +44,9 @@ EvalFnc_LossLimitPrice,30000
 EvalFnc_HV_IV_Adjust_Ratio,0.8
 EvalFnc_SigmoidA_Profit,0.001
 EvalFnc_SigmoidA_AllEffect,0.001
-EvalFnc_ThetaEffectPositive,0
+EvalFnc_ThetaEffectPositive,1
+Optimize_InitialPopCreateLoopNum,4
+Optimize_TopN_1,2000
+Optimize_PopN_1,20000
+Optimize_TopN_2,600
+Optimize_PopN_2,10000

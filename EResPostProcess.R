@@ -17,7 +17,7 @@ divYld_G=as.numeric(ConfigParameters["divYld_G",1])
 
 #Definition
 OpType_Put_G=as.numeric(ConfigParameters["OpType_Put_G",1])
-OpType_Call_G=-as.numeric(ConfigParameters["OpType_Call_G",1])
+OpType_Call_G=as.numeric(ConfigParameters["OpType_Call_G",1])
 
 #Skewness Calculation
 TimeToExp_Limit_Closeness_G=as.numeric(ConfigParameters["TimeToExp_Limit_Closeness_G",1])
@@ -79,7 +79,7 @@ res2 %>% dplyr::arrange(res2[,(length(iniPos)+1)]) %>% dplyr::distinct() -> res2
 #必要のない列の削除
 res2 %>% select(1:(length(iniPos)+1)) -> res2
 #over the specified socre
-res2 %>% filter(.[,length(iniPos)+1]<1.02) -> res2
+res2 %>% filter(.[,length(iniPos)+1]<1.1) -> res2
 #posnum put call
 res2[,1:length(iniPos)] %>% rowwise() %>% do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp
 tmp  %>% rowwise() %>% do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp2
@@ -98,7 +98,7 @@ res1 %>% dplyr::arrange(res1[,(length(iniPos)+1)]) %>% dplyr::distinct() -> res1
 #必要のない列の削除
 res1 %>% select(1:(length(iniPos)+1)) -> res1
 #over the specified socre
-res1 %>% filter(.[,length(iniPos)+1]<1.02) -> res1
+res1 %>% filter(.[,length(iniPos)+1]<1.08) -> res1
 #posnum put call
 res1[,1:length(iniPos)] %>% rowwise() %>% do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp
 tmp  %>% rowwise() %>% do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp2

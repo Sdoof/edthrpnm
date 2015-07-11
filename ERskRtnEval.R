@@ -5,8 +5,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
                             udlStepNum,udlStepPct,maxposnum,
                             tail_rate,lossLimitPrice){
   #gradually change constraint
-  exp_c<-0
-  unacceptableVal=100
+  unacceptableVal=10
   #position where pos$Position != 0
   position<-hollowNonZeroPosition(pos=x)
   #position evaluated after holdDays later
@@ -19,11 +18,11 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   if(isDetail){print(posEvalTbl)}  
   
   #weighting calculate
-  sd_multp<-holdDays
+  sd_multp<-Setting$holdDays
   anlzd_sd<-getIV_td(histIV$IVIDX[1])*Setting$HV_IV_Adjust_Ratio
   sd_hd<-(anlzd_sd/sqrt(252/sd_multp))
   weight<-dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd / sum(dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd)
-  if(isDebug){cat(" :wht",weight)}
+  if(isDebug){cat(" :holdDays",Setting$holdDays);cat(" :weight",weight)}
   
   ##
   # penalty1: position total num
@@ -40,11 +39,9 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   # penalty4. ThetaEffect. This should be soft constraint
   if(Setting$ThetaEffectPositive){
     theta_ttl<-thePositionGrk$ThetaEffect+sum(posEvalTbl$ThetaEffect*weight)
-    #exp_c<-as.numeric((pos_change-maxposnum)>0)*0+as.numeric((pos_change-maxposnum)<=0)
     penalty4<-1
-    #penalty4<-(1+as.numeric(theta_ttl<0)*(abs(theta_ttl)))^exp_c   
     if(isDetail){cat(" :thta_ttl",theta_ttl)}
-    if(isDetail){cat(" :thta_ini",thePositionGrk$ThetaEffect);cat(" :thta_holding",sum(posEvalTbl$ThetaEffect*weight))}
+    if(isDetail){cat(" :thta_ini",thePositionGrk$ThetaEffect);cat(" :thta_wt",sum(posEvalTbl$ThetaEffect*weight))}
     if(theta_ttl<0)
       return(unacceptableVal)
   }
@@ -53,7 +50,6 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   # penalty2 tail-risk
   tailPrice<-min(sum(getIntrisicValue(position$UDLY[1]*(1-tail_rate),position)),
                  sum(getIntrisicValue(position$UDLY[1]*(1+tail_rate),position)))
-  #penalty2<-(1+as.numeric((tailPrice-lossLimitPrice)<0)*(10))^exp_c
   penalty2<-1
   lossLimitPrice <- (-1)*lossLimitPrice
   if(isDebug){cat(" :tlpr",tailPrice);cat(" :lslmt",lossLimitPrice);cat(" :p2",penalty2)}
@@ -62,17 +58,13 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   
   ##
   # penalty3, cost3: profit must be positive. also must be a cost term.
-  if(isDetail){cat(" :prc_hd",posEvalTbl$Price);cat(" :prc_ini:",getPositionGreeks(position,multi=PosMultip)$Price)}
+  if(isDetail){cat(" :price_hld",posEvalTbl$Price);cat(" :price_ini:",getPositionGreeks(position,multi=PosMultip)$Price)}
   if(isDetail){cat(" :prft",posEvalTbl$Price-getPositionGreeks(position,multi=PosMultip)$Price)}
   
   
   profit_hdays<-sum((posEvalTbl$Price-thePositionGrk$Price)*weight)
   if(isDebug){cat(" :prft_wt",profit_hdays)}  
-  #exp_c<-as.numeric((pos_change-maxposnum)>0)*0+as.numeric((pos_change-maxposnum)<=0)
-  exp_c<-0
-  #penalty3<-(1+as.numeric(profit_hdays<0)*(abs(profit_hdays)))^exp_c
   penalty3<-1
-  if(isDebug){cat(" :p3",penalty3)}
   # cost 3
   cost3<- sigmoid(-1*profit_hdays,a=Setting$SigmoidA_Profit,b=0)
   if(isDebug){cat(" :cost3",cost3)}

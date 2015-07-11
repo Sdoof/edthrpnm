@@ -38,6 +38,20 @@ dviv_caldays=as.numeric(ConfigParameters["dviv_caldays",1])
 #Multipler of Position
 PosMultip=as.numeric(ConfigParameters["PosMultip",1])
 
+#EvalFuncSetting
+EvalFuncSetting<-list(as.numeric(ConfigParameters["EvalFnc_UdlStepNum",1]))
+EvalFuncSetting<-c(EvalFuncSetting,list(as.numeric(ConfigParameters["EvalFnc_UdlStepPct",1])))
+EvalFuncSetting<-c(EvalFuncSetting,list(as.numeric(ConfigParameters["EvalFnc_Maxposnum",1])))
+EvalFuncSetting<-c(EvalFuncSetting,list(as.numeric(ConfigParameters["EvalFnc_Tail_rate",1])))
+EvalFuncSetting<-c(EvalFuncSetting,list(as.numeric(ConfigParameters["EvalFnc_LossLimitPrice",1])))
+EvalFuncSetting<-c(EvalFuncSetting,list(as.numeric(ConfigParameters["EvalFnc_HV_IV_Adjust_Ratio",1])))
+EvalFuncSetting<-c(EvalFuncSetting,list(as.numeric(ConfigParameters["EvalFnc_SigmoidA_Profit",1])))
+EvalFuncSetting<-c(EvalFuncSetting,list(as.numeric(ConfigParameters["EvalFnc_SigmoidA_AllEffect",1])))
+EvalFuncSetting<-c(EvalFuncSetting,list(ifelse(as.numeric(ConfigParameters["EvalFnc_ThetaEffectPositive",1])==1,TRUE,FALSE)))
+EvalFuncSetting<-c(EvalFuncSetting,list(holdDays))
+names(EvalFuncSetting)<-c("UdlStepNum","UdlStepPct","Maxposnum","Tail_rate","LossLimitPrice",
+                          "HV_IV_Adjust_Ratio","SigmoidA_Profit","SigmoidA_AllEffect","ThetaEffectPositive","holdDays")
+
 #Load opchain object
 #Option Chain and Position Data. Here we use UDL_Positions_Pre ---------------
 rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep="")
@@ -108,12 +122,17 @@ rm(max_days)
 #read analyzed positon. here we give by copy and paste
 pos_anlys<-evaPos
  
+##
+# check optimization function value
+# val<-obj_Income_sgmd(x=evaPos,EvalFuncSetting,isDebug=TRUE,isDetail=TRUE,
+#                 udlStepNum=EvalFuncSetting$UdlStepNum,udlStepPct=EvalFuncSetting$UdlStepPct,
+#                 maxposnum=EvalFuncSetting$Maxposnum,
+#                 tail_rate=EvalFuncSetting$Tail_rate,lossLimitPrice=EvalFuncSetting$LossLimitPrice)
+# rm(val)
+
 #note opchain is already instanciated by the proceduces of ERskRtnEval
 opchain$Position<-pos_anlys
 opchain %>% dplyr::filter(Position!=0) -> thePosition
-
-#check optimization function value
-#obj_Income_sgmd(x=evaPos,isDebug=TRUE,isDetail=TRUE,isFileout=FALSE)
 
 #thePosition's greek df and initial price
 thePositonGrks<-getPositionGreeks(thePosition)
@@ -224,7 +243,7 @@ rm(evaldays,stepdays,pos_anlys,totalstep,udlStepNum,udlStepPct,vol_chg,iniPrice,
 rm(posStepDays,posStepDays_vc,thePosition,thePositonGrks)
 rm(PC1dCtC_IVCF1dCtC,PC3dCtC_IVCF3dCtC,PC5dCtC_IVCF5dCtC,PC7dCtC_IVCF7dCtC,SkewModel)
 rm(CallIVChgDown,CallIVChgUp,CallVCone,PutIVChgDown,PutIVChgUp,PutVCone)
-rm(ConfigFileName_G,ConfigParameters)
+rm(ConfigFileName_G,ConfigParameters,EvalFuncSetting)
 rm(riskFreeRate_G,divYld_G,OpType_Put_G,OpType_Call_G)
 rm(CALENDAR_G,TimeToExp_Limit_Closeness_G,Underying_Symbol_G,DataFiles_Path_G,ResultFiles_Path_G)
 rm(holdDays,dviv_caldays,PosMultip)

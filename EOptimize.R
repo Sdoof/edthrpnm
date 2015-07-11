@@ -46,8 +46,16 @@ EvalFuncSetting<-c(EvalFuncSetting,list(as.numeric(ConfigParameters["EvalFnc_HV_
 EvalFuncSetting<-c(EvalFuncSetting,list(as.numeric(ConfigParameters["EvalFnc_SigmoidA_Profit",1])))
 EvalFuncSetting<-c(EvalFuncSetting,list(as.numeric(ConfigParameters["EvalFnc_SigmoidA_AllEffect",1])))
 EvalFuncSetting<-c(EvalFuncSetting,list(ifelse(as.numeric(ConfigParameters["EvalFnc_ThetaEffectPositive",1])==1,TRUE,FALSE)))
+EvalFuncSetting<-c(EvalFuncSetting,list(holdDays))
 names(EvalFuncSetting)<-c("UdlStepNum","UdlStepPct","Maxposnum","Tail_rate","LossLimitPrice",
-                          "HV_IV_Adjust_Ratio","SigmoidA_Profit","SigmoidA_AllEffect","ThetaEffectPositive")
+                          "HV_IV_Adjust_Ratio","SigmoidA_Profit","SigmoidA_AllEffect","ThetaEffectPositive","holdDays")
+
+#Parameters for Combinational Optimization
+InitialPopCreateLoopNum<-as.numeric(ConfigParameters["Optimize_InitialPopCreateLoopNum",1])
+TopN_1=as.numeric(ConfigParameters["Optimize_TopN_1",1])
+PopN_1=as.numeric(ConfigParameters["Optimize_PopN_1",1])
+TopN_2=as.numeric(ConfigParameters["Optimize_TopN_2",1])
+PopN_2=as.numeric(ConfigParameters["Optimize_PopN_2",1])
 
 #Option Chain and Position Data. Here we use UDL_Positions_Pre ---------------
 rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep="")
@@ -108,16 +116,16 @@ CallIVChgDown
 #creating initial population
 
 #sigmoid function  ------
-for(tmp in 1:8){
-  create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,EvalFuncSetting,thresh=2.0,putn=6,calln=2,ml=2,
-                                          fname=paste(".\\ResultData\\inipop-08P6C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                                          isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
+for(tmp in 1:InitialPopCreateLoopNum){
+  # create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,EvalFuncSetting,thresh=2.0,putn=6,calln=2,ml=2,
+  #                                           fname=paste(".\\ResultData\\inipop-08P6C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+  #                                           isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
   create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,EvalFuncSetting,thresh=2.0,putn=5,calln=3,ml=2,
                                           fname=paste(".\\ResultData\\inipop-08P5C3-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                           isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-  create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,EvalFuncSetting,thresh=2.0,putn=4,calln=4,ml=2,
-                                          fname=paste(".\\ResultData\\inipop-08P4C4-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                                          isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
+  # create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,EvalFuncSetting,thresh=2.0,putn=4,calln=4,ml=2,
+  #                                           fname=paste(".\\ResultData\\inipop-08P4C4-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+  #                                           isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
   create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,EvalFuncSetting,thresh=2.0,putn=5,calln=2,ml=2,
                                           fname=paste(".\\ResultData\\inipop-07P5C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                           isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
@@ -130,15 +138,15 @@ for(tmp in 1:8){
   create_initial_exact_PutCall_polulation(popnum=1500,opchain$TYPE,EvalFuncSetting,thresh=2.0,putn=3,calln=3,ml=2,
                                           fname=paste(".\\ResultData\\inipop-06P3C3-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                           isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-  create_initial_exact_PutCall_polulation(popnum=1000,opchain$TYPE,EvalFuncSetting,thresh=2.0,putn=6,calln=0,ml=2,
-                                          fname=paste(".\\ResultData\\inipop-06P6C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                                          isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
+  # create_initial_exact_PutCall_polulation(popnum=1000,opchain$TYPE,EvalFuncSetting,thresh=2.0,putn=6,calln=0,ml=2,
+  #                                          fname=paste(".\\ResultData\\inipop-06P6C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+  #                                          isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
   create_initial_exact_PutCall_polulation(popnum=2000,opchain$TYPE,EvalFuncSetting,thresh=2.0,putn=3,calln=2,ml=2,
                                           fname=paste(".\\ResultData\\inipop-05P3C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                           isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-  create_initial_exact_PutCall_polulation(popnum=1500,opchain$TYPE,EvalFuncSetting,thresh=2.0,putn=5,calln=0,ml=2,
-                                          fname=paste(".\\ResultData\\inipop-05P5C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                                          isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
+  # create_initial_exact_PutCall_polulation(popnum=1500,opchain$TYPE,EvalFuncSetting,thresh=2.0,putn=5,calln=0,ml=2,
+  #                                         fname=paste(".\\ResultData\\inipop-05P5C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+  #                                         isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
   create_initial_exact_PutCall_polulation(popnum=1000,opchain$TYPE,EvalFuncSetting,thresh=2.0,putn=4,calln=0,ml=2,
                                           fname=paste(".\\ResultData\\inipop-04P4C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                           isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
@@ -173,7 +181,7 @@ system(st) ;rm(st)
 tmp<-read.table(paste(ResultFiles_Path_G,"1Cb.csv",sep=""),header=F,skipNul=TRUE,sep=",")
 tmp %>% dplyr::arrange(tmp[,(length(iniPos)+1)]) %>% dplyr::distinct() -> tmp
 #tmp %>% filter(.[,length(iniPos)+1]<1.15) -> tmp
-tmp %>% arrange(.[,length(iniPos)+1]) %>% head(3000) -> tmp
+tmp %>% arrange(.[,length(iniPos)+1]) %>% head(TopN_1) -> tmp
 pools<-list(list(c(1,0,0),tmp)) #No.[[1]]
 
 # or when all results are mixed together regardress of the number of Putn and Calln, pools[[1]] should be set as
@@ -185,7 +193,7 @@ rm(tmp)
 
 ### 2(exact x exact) Combinations (2Cb)
 #
-create_combined_population(popnum=30000,EvalFuncSetting,thresh=1.7,plelem=c(1,1),fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+create_combined_population(popnum=PopN_1,EvalFuncSetting,thresh=1.7,plelem=c(1,1),fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                            isFileout=TRUE,isDebug=FALSE,maxposn=8)
 #2Cb.csv
 st <- "powershell.exe .\\shell\\cmd3.ps1"
@@ -203,11 +211,12 @@ system(st) ;rm(st)
 tmp<-read.table(paste(ResultFiles_Path_G,"1Cb.csv",sep=""),header=F,skipNul=TRUE,sep=",")
 tmp %>% dplyr::arrange(tmp[,(length(iniPos)+1)]) %>% dplyr::distinct() -> tmp
 #tmp %>% filter(.[,length(iniPos)+1]<1.08) -> tmp
-tmp %>% arrange(.[,length(iniPos)+1]) %>% head(600) -> tmp
+tmp %>% arrange(.[,length(iniPos)+1]) %>% head(TopN_2) -> tmp
 
 pools<-list(list(c(1,0,0),tmp)) #No.[[1]] again
+rm(tmp)
 
-create_combined_population(popnum=10000,EvalFuncSetting,thresh=1.7,plelem=c(1,1,1),fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+create_combined_population(popnum=PopN_2,EvalFuncSetting,thresh=1.7,plelem=c(1,1,1),fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                            isFileout=TRUE,isDebug=FALSE,maxposn=8)
 #3Cb.csv
 st <- "powershell.exe .\\shell\\cmd5.ps1"
@@ -267,8 +276,10 @@ rm(pools)
 rm(iniPos,evaPos)
 rm(best_result,holdDays,dviv_caldays,PosMultip)
 rm(opchain,histIV,position)
+rm(InitialPopCreateLoopNum,TopN_1,PopN_1,TopN_2,PopN_2)
 rm(CallIVChgDown,CallIVChgUp,CallVCone,PutIVChgDown,PutIVChgUp,PutVCone,SkewModel)
 rm(PC1dCtC_IVCF1dCtC,PC3dCtC_IVCF3dCtC,PC5dCtC_IVCF5dCtC,PC7dCtC_IVCF7dCtC)
 rm(ConfigFileName_G,ConfigParameters,EvalFuncSetting)
 rm(CALENDAR_G,OpType_Call_G,OpType_Put_G,ResultFiles_Path_G,TimeToExp_Limit_Closeness_G)
 rm(DataFiles_Path_G,Underying_Symbol_G,divYld_G,riskFreeRate_G)
+
