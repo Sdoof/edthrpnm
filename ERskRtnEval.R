@@ -1,8 +1,8 @@
 ##
-# functions optimized  -------------
+# functions optimized
 
 obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
-                            udlStepNum,udlStepPct,maxposnum,
+                            udlStepNum,udlStepPct,maxposnum,PosMultip,
                             tail_rate,lossLimitPrice){
   #gradually change constraint
   unacceptableVal=10
@@ -439,7 +439,7 @@ getIntrisicValue<-function(udly_price,position,multip=PosMultip){
 # as the case of even number (half +1 long, the other half -1 short).
 # When the each position of returned compound spread is 1 or -1, the spread position are multiplied by ml. 
 
-create_initial_exact_PutCall_polulation<-function(popnum,type,EvalFuncSetting,thresh=3.0,putn=6,calln=6,ml=2,fname,isFileout=FALSE,isDebug=FALSE,isDetail=FALSE){
+create_initial_exact_PutCall_polulation<-function(popnum,type,EvalFuncSetting,thresh=3.0,putn=6,calln=6,ml=2,fname,PosMultip,isFileout=FALSE,isDebug=FALSE,isDetail=FALSE){
   added_num<-0
   total_count<-0
   while(TRUE){
@@ -489,7 +489,7 @@ create_initial_exact_PutCall_polulation<-function(popnum,type,EvalFuncSetting,th
     
     tryCatch(val<-obj_Income_sgmd(x,EvalFuncSetting,isDebug=isDebug,isDetail=isDetail,
                                   udlStepNum=EvalFuncSetting$UdlStepNum,udlStepPct=EvalFuncSetting$UdlStepPct,
-                                  maxposnum=EvalFuncSetting$Maxposnum,
+                                  maxposnum=EvalFuncSetting$Maxposnum,PosMultip=PosMultip,
                                   tail_rate=EvalFuncSetting$Tail_rate,lossLimitPrice=EvalFuncSetting$LossLimitPrice),
              error=function(e){
                message(e)
@@ -550,7 +550,7 @@ createCombineCandidatePool<-function(fname,pnum=1000,nrows=-1,skip=0,method=1){
 
 # two sample examples. one from pools[[2]], the other from pools[[3]]
 #ceiling(runif(1, min=1e-320, max=nrow(pools[[2]][[2]])))
-create_combined_population<-function(popnum,EvalFuncSetting,thresh,plelem,fname,isFileout=FALSE,isDebug=FALSE,maxposn){
+create_combined_population<-function(popnum,EvalFuncSetting,thresh,plelem,fname,isFileout=FALSE,isDebug=FALSE,maxposn,PosMultip){
   added_num<-0
   total_count<-0
   while(TRUE) {
@@ -588,7 +588,7 @@ create_combined_population<-function(popnum,EvalFuncSetting,thresh,plelem,fname,
     #evaluate    
     tryCatch(val<-obj_Income_sgmd(x_new,EvalFuncSetting,isDebug=isDebug,isDetail=isDebug,
                                   udlStepNum=EvalFuncSetting$UdlStepNum,udlStepPct=EvalFuncSetting$UdlStepPct,
-                                  maxposnum=EvalFuncSetting$Maxposnum,
+                                  maxposnum=EvalFuncSetting$Maxposnum,PosMultip=PosMultip,
                                   tail_rate=EvalFuncSetting$Tail_rate,lossLimitPrice=EvalFuncSetting$LossLimitPrice),
              error=function(e){
                message(e)

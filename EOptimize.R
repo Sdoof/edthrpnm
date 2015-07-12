@@ -125,49 +125,49 @@ CallIVChgDown
 #sigmoid function  ------
 for(tmp in 1:InitialPopCreateLoopNum){
   # create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=6,calln=2,ml=2,
-  #                                           fname=paste(".\\ResultData\\inipop-08P6C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+  #                                           fname=paste(".\\ResultData\\inipop-08P6C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
   #                                           isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
   create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=5,calln=3,ml=2,
-                                          fname=paste(".\\ResultData\\inipop-08P5C3-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                                          fname=paste(".\\ResultData\\inipop-08P5C3-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
                                           isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
   # create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=4,calln=4,ml=2,
-  #                                           fname=paste(".\\ResultData\\inipop-08P4C4-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+  #                                           fname=paste(".\\ResultData\\inipop-08P4C4-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
   #                                           isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
   create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=5,calln=2,ml=2,
-                                          fname=paste(".\\ResultData\\inipop-07P5C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                                          fname=paste(".\\ResultData\\inipop-07P5C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
                                           isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
   create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=4,calln=3,ml=2,
-                                          fname=paste(".\\ResultData\\inipop-07P4C3-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                                          fname=paste(".\\ResultData\\inipop-07P4C3-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
                                           isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
   create_initial_exact_PutCall_polulation(popnum=2000,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=4,calln=2,ml=2,
-                                          fname=paste(".\\ResultData\\inipop-06P4C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                                          fname=paste(".\\ResultData\\inipop-06P4C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
                                           isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
   create_initial_exact_PutCall_polulation(popnum=1500,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=3,calln=3,ml=2,
-                                          fname=paste(".\\ResultData\\inipop-06P3C3-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                                          fname=paste(".\\ResultData\\inipop-06P3C3-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
                                           isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
   # create_initial_exact_PutCall_polulation(popnum=1000,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=6,calln=0,ml=2,
-  #                                          fname=paste(".\\ResultData\\inipop-06P6C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+  #                                          fname=paste(".\\ResultData\\inipop-06P6C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
   #                                          isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
   create_initial_exact_PutCall_polulation(popnum=2000,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=3,calln=2,ml=2,
-                                          fname=paste(".\\ResultData\\inipop-05P3C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                                          fname=paste(".\\ResultData\\inipop-05P3C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
                                           isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
   # create_initial_exact_PutCall_polulation(popnum=1500,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=5,calln=0,ml=2,
-  #                                         fname=paste(".\\ResultData\\inipop-05P5C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+  #                                         fname=paste(".\\ResultData\\inipop-05P5C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
   #                                         isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
   create_initial_exact_PutCall_polulation(popnum=1000,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=4,calln=0,ml=2,
-                                          fname=paste(".\\ResultData\\inipop-04P4C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                                          fname=paste(".\\ResultData\\inipop-04P4C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
                                           isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
   create_initial_exact_PutCall_polulation(popnum=800,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=2,calln=2,ml=2,
-                                          fname=paste(".\\ResultData\\inipop-04P2C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                                          fname=paste(".\\ResultData\\inipop-04P2C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
                                           isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
   create_initial_exact_PutCall_polulation(popnum=500,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=3,calln=0,ml=2,
-                                          fname=paste(".\\ResultData\\inipop-03P3C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                                          fname=paste(".\\ResultData\\inipop-03P3C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
                                           isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
   create_initial_exact_PutCall_polulation(popnum=100,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=2,calln=0,ml=2,
-                                          fname=paste(".\\ResultData\\inipop-02P2C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                                          fname=paste(".\\ResultData\\inipop-02P2C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
                                           isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
   create_initial_exact_PutCall_polulation(popnum=100,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=0,calln=2,ml=2,
-                                          fname=paste(".\\ResultData\\inipop-02P0C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                                          fname=paste(".\\ResultData\\inipop-02P0C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
                                           isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
 };rm(tmp)
 
@@ -201,7 +201,7 @@ rm(tmp)
 ### 2(exact x exact) Combinations (2Cb)
 #
 create_combined_population(popnum=PopN_1,EvalFuncSetting,thresh=Thresh_1,plelem=c(1,1),fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                           isFileout=TRUE,isDebug=FALSE,maxposn=8)
+                           isFileout=TRUE,isDebug=FALSE,maxposn=8,PosMultip=PosMultip)
 #2Cb.csv
 st <- "powershell.exe .\\shell\\cmd3.ps1"
 system(st)
@@ -224,7 +224,7 @@ pools<-list(list(c(1,0,0),tmp)) #No.[[1]] again
 rm(tmp)
 
 create_combined_population(popnum=PopN_2,EvalFuncSetting,thresh=Thresh_2,plelem=c(1,1,1),fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                           isFileout=TRUE,isDebug=FALSE,maxposn=8)
+                           isFileout=TRUE,isDebug=FALSE,maxposn=8,PosMultip=PosMultip)
 #3Cb.csv
 st <- "powershell.exe .\\shell\\cmd5.ps1"
 system(st)
