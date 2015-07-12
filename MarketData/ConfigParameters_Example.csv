@@ -44,9 +44,11 @@ EvalFnc_LossLimitPrice,30000
 EvalFnc_HV_IV_Adjust_Ratio,0.8
 EvalFnc_SigmoidA_Profit,0.001
 EvalFnc_SigmoidA_AllEffect,0.001
-EvalFnc_ThetaEffectPositive,1
-Optimize_InitialPopCreateLoopNum,4
-Optimize_TopN_1,2000
+EvalFnc_SigmoidA_AdvEffect,0.001
+EvalFnc_SigmoidA_DirectEffect,0.001
+EvalFnc_ThetaEffectPositive,0
+Optimize_InitialPopCreateLoopNum,8
+Optimize_TopN_1,3000
 Optimize_PopN_1,20000
 Optimize_TopN_2,600
 Optimize_PopN_2,10000
