@@ -137,12 +137,29 @@ full_join(total_res,res1) %>% arrange(.[,length(iniPos)+1])  %>% distinct() -> t
 #full join
 # full_join(total_res,res1) %>% arrange(.[,length(iniPos)+1])  %>% distinct() -> total_res
 
+##Historical Implied Volatility Data ---------------
+rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_IV.csv",sep="") 
+histIV<-read.table(rf,header=T,sep=",",nrows=1000);rm(rf)
+#filtering
+histIV %>% dplyr::transmute(Date=Date,IVIDX=Close/100) -> histIV
+histIV %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")<=max(as.Date(opchain$Date,format="%Y/%m/%d"))) %>%
+  dplyr::arrange(desc(as.Date(Date,format="%Y/%m/%d"))) %>% head(n=dviv_caldays) -> histIV
+
+#Advantageous Effect
+total_res[,1:length(iniPos)] %>% rowwise() %>% 
+  do(ThetaEffect=getPositionGreeks(hollowNonZeroPosition(unlist(.)),multi=PosMultip)$ThetaEffect,
+     GammaEffect=getPositionGreeks(hollowNonZeroPosition(unlist(.)),multi=PosMultip)$GammaEffect) -> tmp
+total_res$AdvEffect<-unlist(tmp$ThetaEffect)+unlist(tmp$GammaEffect) ; rm(tmp)
+
+#Filter based on theGreeks Effect
+total_res %>% dplyr::filter(AdvEffect>100) -> total_res
+
 ##
 # 条件指定
 #option position total number
 total_res %>% mutate(posn=(putn+calln)) -> total_res
-total_res %>%  filter(posn<=6) %>% filter(.[,length(iniPos)+1]<1.5) ->tmp_fil 
-total_res %>%  filter(posn==7) %>% filter(.[,length(iniPos)+1]<1.3) ->tmp_fil2
+total_res %>%  filter(posn<=6) %>% filter(.[,length(iniPos)+1]<1.8) ->tmp_fil 
+total_res %>%  filter(posn==7) %>% filter(.[,length(iniPos)+1]<1.4) ->tmp_fil2
 total_res %>%  filter(posn>=8) %>% filter(.[,length(iniPos)+1]<1.2) ->tmp_fil3
 
 write.table(tmp_fil,paste(ResultFiles_Path_G,"posnLE6.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
@@ -174,7 +191,7 @@ write.table(tmp_fil3,paste(ResultFiles_Path_G,"posnGT8.csv",sep=""),row.names = 
 rm(getPutCallnOfthePosition)
 rm(genoud_inipop_vec,dfoptim_inipop_vec)
 rm(tmp,tmp_fil,tmp_fil2,tmp_fil3,res1,res2)
-rm(total_res,opchain,iniPos)
+rm(histIV,total_res,opchain,iniPos)
 rm(CALENDAR_G,PosMultip,divYld_G,dviv_caldays,holdDays,riskFreeRate_G)
 rm(ConfigFileName_G,ConfigParameters)
 rm(DataFiles_Path_G,ResultFiles_Path_G,OpType_Call_G,OpType_Put_G)
