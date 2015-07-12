@@ -25,29 +25,18 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   if(isDebug){cat(" :holdDays",Setting$holdDays);cat(" :weight",weight)}
   
   ##
-  # penalty1: position total num
+  # Constraint 1. Position Total Num
   #pos_change<-sum(as.numeric((round(x)-iniPos)!=0))
   #penalty1<-(1+as.numeric((pos_change-maxposnum)>0)*(pos_change-maxposnum))^5
-  penalty1<-1
-  #if(penalty1>2){
+  #penalty1<-1
+  #if(((1+as.numeric((pos_change-maxposnum)>0)*(pos_change-maxposnum))^5)>2){
   #  if(isDebug){cat("pos num",pos_change,"\n")}
-  #   return((pos_change-maxposnum)*penalty1 )
+  #   return(unacceptableVal)
   #}
   #if(isDebug){cat(x," ");cat(" :p1",penalty1)}
   
   ##
-  # penalty4. ThetaEffect. This should be soft constraint
-  if(Setting$ThetaEffectPositive){
-    theta_ttl<-thePositionGrk$ThetaEffect+sum(posEvalTbl$ThetaEffect*weight)
-    penalty4<-1
-    if(isDetail){cat(" :thta_ttl",theta_ttl)}
-    if(isDetail){cat(" :thta_ini",thePositionGrk$ThetaEffect);cat(" :thta_wt",sum(posEvalTbl$ThetaEffect*weight))}
-    if(theta_ttl<0)
-      return(unacceptableVal)
-  }
-  
-  ##
-  # penalty2 tail-risk
+  # Constraint 2. Tail Risk
   tailPrice<-min(sum(getIntrisicValue(position$UDLY[1]*(1-tail_rate),position)),
                  sum(getIntrisicValue(position$UDLY[1]*(1+tail_rate),position)))
   penalty2<-1
@@ -57,37 +46,69 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
     return(unacceptableVal)
   
   ##
-  # penalty3, cost3: profit must be positive. also must be a cost term.
+  # Constraint 4. ThetaEffect. This should be soft constraint
+  if(Setting$ThetaEffectPositive){
+    theta_ttl<-thePositionGrk$ThetaEffect+sum(posEvalTbl$ThetaEffect*weight)
+    penalty4<-(1)
+    if(isDetail){cat(" :thta_ttl",theta_ttl)}
+    if(isDetail){cat(" :thta_ini",thePositionGrk$ThetaEffect);cat(" :thta_wt",sum(posEvalTbl$ThetaEffect*weight))}
+    if(theta_ttl<0)
+      return(unacceptableVal)
+  }
+  
+  ##
+  # cost3 Profit
   if(isDetail){cat(" :price_hld",posEvalTbl$Price);cat(" :price_ini:",getPositionGreeks(position,multi=PosMultip)$Price)}
   if(isDetail){cat(" :prft",posEvalTbl$Price-getPositionGreeks(position,multi=PosMultip)$Price)}
-  
   
   profit_hdays<-sum((posEvalTbl$Price-thePositionGrk$Price)*weight)
   if(isDebug){cat(" :prft_wt",profit_hdays)}  
   penalty3<-1
-  # cost 3
-  cost3<- sigmoid(-1*profit_hdays,a=Setting$SigmoidA_Profit,b=0)
-  if(isDebug){cat(" :cost3",cost3)}
+  c3<-profit_hdays
+  #cost3<- sigmoid(c3,a=Setting$SigmoidA_Profit,b=0)
+  if(isDebug){cat(" :c3(Profit)",c3)}
   
   ##
-  # cost5 Each Effects.
+  # cost5 Advantageous Effects.
   #weight is normalized
-  c5<- -sum((posEvalTbl$DeltaEffect+posEvalTbl$GammaEffect+
-               posEvalTbl$VegaEffect+posEvalTbl$ThetaEffect)*weight)
-  cost5<-sigmoid(c5,a=Setting$SigmoidA_AllEffect,b=0)
-  if(isDebug){cat(" c5:",c5," :cost5",cost5)}
+  c5<- sum((posEvalTbl$GammaEffect+posEvalTbl$ThetaEffect)*weight)
+  #cost5<-sigmoid(c5,a=Setting$SigmoidA_AllEffect,b=0)
+  if(isDebug){cat(" :c5(AdvEffect)",c5)}
+  
+  ##
+  # cost6 Directional Effects.
+  #weight is normalized
+  c6<- -sum((posEvalTbl$DeltaEffect+posEvalTbl$VegaEffect)*weight)
+  #cost6<-sigmoid(c5,a=Setting$SigmoidA_AllEffect,b=0)
+  if(isDebug){cat(" :c6(DrctlEffect)",c6)}
+  
+  ##
+  # cost7 All Effects.
+  #weight is normalized
+  c7<- c5+c6
+  #cost7<-sigmoid(c5,a=Setting$SigmoidA_AllEffect,b=0)
+  if(isDebug){cat(" :c7(AllEffect)",c7)}
   
   ##
   # total cost is weighted sum of each cost.
-  #cost<-(cost3+cost5)
-  cost<-(cost5/(1-cost3))
-  if(isDebug){cat(" :cost",cost," ")}
+  A<-Setting$DrctlEffect_Coef*c6+Setting$AllEffect_Coef*c7
+  B<-Setting$AdvEffect_Coef*c5+Setting$Profit_Coef*c3
+ 
+  if(isDebug){cat(" :Coef_Drct",Setting$DrctlEffect_Coef,"x",c6,"+:Coef_AllE",Setting$AllEffect_Coef,"x",c7,"= Numr",A)}
+  if(isDebug){cat(" :Coef_Adv",Setting$AdvEffect_Coef,"x",c5,"+:Coef_Prft",Setting$Profit_Coef,"x",c3,"= Denom",B)}
+  
+  sigA<-sigmoid(A,a=Setting$SigmoidA_Numerator,b=0)
+  sigB<-sigmoid(B,a=Setting$SigmoidA_Denominator,b=0)
+  #cost<-(sigA/(1-sigB))
+  cost<-sigA/sigB
+  if(isDebug){cat(" :sigA",sigA,":sigB",sigB,":cost(sigA/sigB)",cost)}
+  #if(isDebug){cat(" :cost",cost," ")}
   
   ##
   # total cost and penalty
   val<-cost #*penalty2*penalty1*penalty3*penalty4
   
-  if(isDebug){cat(" val:",val,"\n")}
+  if(isDebug){cat(" :val",val,"\n")}
   return(val)
 }
 
