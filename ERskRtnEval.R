@@ -112,37 +112,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   return(val)
 }
 
-#used for post-evaluation
-getProfit <- function(x,isDebug=TRUE,udlStepNum=4,udlStepPct=0.02){
-  #position where pos$Position != 0
-  position<-hollowNonZeroPosition(pos=x)
-  #position evaluated after holdDays later
-  udlStepNum<-udlStepNum; udlStepPct<-udlStepPct
-  udlChgPct<-seq(-udlStepPct*udlStepNum,udlStepPct*udlStepNum,length=(2*udlStepNum)+1)
-  posEvalTbl<-createPositinEvalTable(position=position,udlStepNum=udlStepNum,udlStepPct=udlStepPct)
-  #At day 0 position price and Greeks.
-  thePositionGrk<-getPositionGreeks(position,multi=PosMultip)
-  if(isDebug){print(posEvalTbl$pos)}
-  if(isDebug){print(posEvalTbl)}  
-  
-  ##
-  # Profit
-  if(isDebug){cat(" :prc_hd",posEvalTbl$Price);cat(" :prc_ini:",getPositionGreeks(position,multi=PosMultip)$Price)}
-  if(isDebug){cat(" :prft",posEvalTbl$Price-getPositionGreeks(position,multi=PosMultip)$Price)}
-  
-  sd_multp<-holdDays;anlzd_sd<-getIV_td(histIV$IVIDX[1]);sd_hd<-(anlzd_sd/sqrt(252/sd_multp))
-  weight<-dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd / sum(dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd)
-  if(isDebug){cat(" :wht",weight)} 
-  profit_hdays<-sum((posEvalTbl$Price-thePositionGrk$Price)*weight)
-  if(isDebug){cat(" :prft_wt",profit_hdays,"\n")}  
-  
-  return (as.numeric(profit_hdays))
-}
-
-##
-# Functions to be loaded -------------------
-
-#Rsk/Rtn greek related functions --------------
+#Rsk/Rtn greek related functions
 #get the position's total greek
 getPosGreeks<-function(pos,greek,multi=PosMultip){
   pos_greek<-sum(pos*multi*greek)

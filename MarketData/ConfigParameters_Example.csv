@@ -33,7 +33,7 @@ Optimize_Thresh_1,1.6
 Optimize_TopN_2,600
 Optimize_PopN_2,1000
 Optimize_Thresh_2,1.6
-SimEvalPosStart,1
+SimEvalPosStart,11
 SimEvalPosEnd,50
 SimultaionNum,200
 MaxSimDay,10
@@ -45,6 +45,10 @@ Sim_Sigma_udly_drift_down,0.2
 Sim_HV_IV_Adjust_Ratio,0.8
 Sim_Mu_iv_drift_up,0.25
 Sim_Mu_iv_drift_down,0.25
+ResultProcess_Thresh_Score1,1.1
+ResultProcess_Thresh_Score2,1.1
+ResultProcess_Thresh_Score3,1.08
+ResultProcess_Thresh_AdvEffect,100
 SimReportPosStart,1
 SimReportPosEnd,50
 SimReportScenarioMode,_modelScenario_
