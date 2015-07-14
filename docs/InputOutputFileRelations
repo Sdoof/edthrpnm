@@ -8,8 +8,8 @@ UDLY_OPChain.xlsx [2] <--(hidemaru, excel input)- opprice-yyyy-mm-dd.csv[0']
 
 [3],[4] -(Script1)-->  PriceChg/IVChg Regression Result Object[8,8']
 
-[3],[4],[5,5']  -(DataPrivision2)--> UDLY_OPChain_Pos-yyyy-mm-dd.csv[6]
-[3],[4],[5,5']  -(DataPrivision2)--> UDLY_Positions_Pre_yyy-mm-dd.csv[7]
+[3],[4],[5,5']  -(DataPrivision)--> UDLY_OPChain_Pos-yyyy-mm-dd.csv[6]
+[3],[4],[5,5']  -(DataPrivision)--> UDLY_Positions_Pre_yyy-mm-dd.csv[7]
 
 [4],[6] -(Script3)--> Skew/VCone Regression Result Object[8,8'] + UDLY_OPChain_Skew.csv[9]
 
