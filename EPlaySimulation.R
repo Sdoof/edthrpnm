@@ -202,14 +202,17 @@ for(Counter in evalPosStart:evalPosEnd){
   write.table(position %>% select(Date,ExpDate,TYPE,Strike,Position,ContactName,UDLY,OrigIV,Delta),
               out_text_file,quote=T,row.names=F,append=T,sep=",")
   
-  write.table(opchain %>% select(Date,ExpDate,TYPE,Strike,Position,ContactName,UDLY,OrigIV,Delta),
-              out_text_file,quote=T,row.names=F,append=T,sep=",")
+  #write.table(opchain %>% select(Date,ExpDate,TYPE,Strike,Position,ContactName,UDLY,OrigIV,Delta),
+  #            out_text_file,quote=T,row.names=F,append=T,sep=",")
   
   modelScenario %>% dplyr::select(-(resdf)) -> tmp
   print(tmp)
   write.table(tmp,out_text_file,quote=T,row.names=F,append=T,sep=",")
   write.table(data.frame(min_profit=min(tmp$min_profit),max_profit=max(tmp$max_profit),expected_profit=sum(tmp$weight*tmp$mean_profit)),
               out_text_file,quote=T,row.names=F,append=T,sep=",")
+  #initialEvalScore
+  modelStimRawlist$stimrslt[[1]][[1]]$IniEvalScore %>% mutate(AdvtgEffect=ThetaEffect+GammaEffect,DirectalEffect=DeltaEffect+VegaEffect) -> tmp
+  write.table(tmp,out_text_file,quote=T,row.names=F,append=T,sep=",")
   rm(tmp)
 }
 rm(evaPos,Counter)
