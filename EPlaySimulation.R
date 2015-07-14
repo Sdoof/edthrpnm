@@ -49,8 +49,6 @@ opchain<-read.table(rf,header=T,sep=",",stringsAsFactors=FALSE)
 #filtering. deleting unnecessary column
 opchain %>% dplyr::select(-(contains('Frac',ignore.case=TRUE)),
                           -(IV)) %>% as.data.frame() -> opchain
-#only OOM targeted
-#opchain %>% dplyr::filter(HowfarOOM>=0) -> opchain
 
 ##Historical Implied Volatility Data ---------------
 rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_IV.csv",sep="") 
@@ -60,37 +58,6 @@ histIV %>% dplyr::transmute(Date=Date,IVIDX=Close/100) -> histIV
 histIV %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")<=max(as.Date(opchain$Date,format="%Y/%m/%d"))) %>%
   dplyr::arrange(desc(as.Date(Date,format="%Y/%m/%d"))) %>% head(n=dviv_caldays) -> histIV
 
-#Load Regression and Correlation Parameters
-load.PC2IV(PC="PC3dCtC",IVC="IVCF3dCtC")
-PC3dCtC_IVCF3dCtC
-load.PC2IV(PC="PC5dCtC",IVC="IVCF5dCtC")
-PC5dCtC_IVCF5dCtC
-load.PC2IV(PC="PC7dCtC",IVC="IVCF7dCtC")
-PC7dCtC_IVCF7dCtC
-load.PC2IV(PC="PC1dCtC",IVC="IVCF1dCtC")
-PC1dCtC_IVCF1dCtC
-load.Skew()
-SkewModel
-load.VCone(optype=OpType_Put_G)
-PutVCone
-load.VCone(optype=OpType_Call_G)
-CallVCone
-load.IVChg(OpType_Put_G,10)
-PutIVChgUp
-load.IVChg(OpType_Put_G,-10)
-PutIVChgDown
-load.IVChg(OpType_Call_G,10)
-CallIVChgUp
-load.IVChg(OpType_Call_G,-10)
-CallIVChgDown
-
-##Historical Implied Volatility Data ---------------
-rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_IV.csv",sep="") 
-histIV<-read.table(rf,header=T,sep=",",stringsAsFactors=FALSE,nrows=1000);rm(rf)
-#filtering
-histIV %>% dplyr::transmute(Date=Date,IVIDX=Close/100) -> histIV
-histIV %>% #dplyr::filter(as.Date(Date,format="%Y/%m/%d")<=max(as.Date(position$Date,format="%Y/%m/%d"))) %>%
-  dplyr::arrange(desc(as.Date(Date,format="%Y/%m/%d"))) %>% head(n=dviv_caldays) -> histIV
 
 ##Spreads to be evaluated loaded
 rf<-paste(ResultFiles_Path_G,Underying_Symbol_G,"_EvalPosition.csv",sep="")
@@ -102,8 +69,6 @@ if(length(evalPositions)>length(opchain$Position)){
 
 # Top n Spreads
 evalPositions %>% arrange(.[,length(opchain$Position)+1]) %>% slice(evalPosStart:evalPosEnd) -> evalPositions
-
-#First spread
 
 # Num of each Stimulation
 StimultaionNum=as.numeric(ConfigParameters["SimultaionNum",1])
@@ -136,22 +101,44 @@ MaxStimDay=as.numeric(ConfigParameters["MaxSimDay",1])
 #
 # wx(!=0)の重みを与えられたシナリオについてstimulationを行い、weightで重み付けられた結果
 # を最終評価値とする
- mu_udly_drift_up=as.numeric(ConfigParameters["Sim_Mu_udly_drift_up",1])
- mu_udly_drift_down=as.numeric(ConfigParameters["Sim_Mu_udly_drift_down",1])
- sigma_udly_drift_up=as.numeric(ConfigParameters["Sim_Sigma_udly_drift_up",1])
- sigma_udly_drift_down=as.numeric(ConfigParameters["Sim_Sigma_udly_drift_down",1])
- HV_IV_Adjust_Ratio=as.numeric(ConfigParameters["Sim_HV_IV_Adjust_Ratio",1])
- mu_iv_drift_up=as.numeric(ConfigParameters["Sim_Mu_iv_drift_up",1])
- mu_iv_drift_down=as.numeric(ConfigParameters["Sim_Mu_iv_drift_down",1])
+mu_udly_drift_up=as.numeric(ConfigParameters["Sim_Mu_udly_drift_up",1])
+mu_udly_drift_down=as.numeric(ConfigParameters["Sim_Mu_udly_drift_down",1])
+sigma_udly_drift_up=as.numeric(ConfigParameters["Sim_Sigma_udly_drift_up",1])
+sigma_udly_drift_down=as.numeric(ConfigParameters["Sim_Sigma_udly_drift_down",1])
+HV_IV_Adjust_Ratio=as.numeric(ConfigParameters["Sim_HV_IV_Adjust_Ratio",1])
+mu_iv_drift_up=as.numeric(ConfigParameters["Sim_Mu_iv_drift_up",1])
+mu_iv_drift_down=as.numeric(ConfigParameters["Sim_Mu_iv_drift_down",1])
 
 # scenario_weight<-c(c(1.0,0.8,0.8),c(0.6,0.4,0.6),c(0.7,1.0,0.2),c(0.4,0.4,0.4))
 # scenario_weight<-scenario_weight/sum(scenario_weight)
 scenario_weight<-eval(parse(text=gsub("-",",",ConfigParameters["SimScenarioWeight",1])))
-  
+
 #Result CSV file 
 out_text_file<-paste(ResultFiles_Path_G,Underying_Symbol_G,"_result.csv",sep="")
 
-#Evaluatin Table Position end
+#Load Regression and Correlation Parameters
+load.PC2IV(PC="PC3dCtC",IVC="IVCF3dCtC")
+PC3dCtC_IVCF3dCtC
+load.PC2IV(PC="PC5dCtC",IVC="IVCF5dCtC")
+PC5dCtC_IVCF5dCtC
+load.PC2IV(PC="PC7dCtC",IVC="IVCF7dCtC")
+PC7dCtC_IVCF7dCtC
+load.PC2IV(PC="PC1dCtC",IVC="IVCF1dCtC")
+PC1dCtC_IVCF1dCtC
+load.Skew()
+SkewModel
+load.VCone(optype=OpType_Put_G)
+PutVCone
+load.VCone(optype=OpType_Call_G)
+CallVCone
+load.IVChg(OpType_Put_G,10)
+PutIVChgUp
+load.IVChg(OpType_Put_G,-10)
+PutIVChgDown
+load.IVChg(OpType_Call_G,10)
+CallIVChgUp
+load.IVChg(OpType_Call_G,-10)
+CallIVChgDown
 
 for(Counter in evalPosStart:evalPosEnd){
   evaPos<-evalPositions[Counter-evalPosStart+1,1:length(opchain$Position)]

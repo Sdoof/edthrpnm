@@ -281,7 +281,7 @@ rm(pools)
 
 #Cleaning
 rm(iniPos,evaPos)
-rm(best_result,holdDays,dviv_caldays,PosMultip)
+rm(holdDays,dviv_caldays,PosMultip)
 rm(opchain,histIV,position)
 rm(InitialPopCreateLoopNum,InitialPopThresh,TopN_1,PopN_1,Thresh_1,TopN_2,PopN_2,Thresh_2)
 rm(CallIVChgDown,CallIVChgUp,CallVCone,PutIVChgDown,PutIVChgUp,PutVCone,SkewModel)

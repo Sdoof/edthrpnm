@@ -166,7 +166,8 @@ total_res %>%  filter(posn<=6) %>% filter(.[,length(iniPos)+1]<1.8) ->tmp_fil
 total_res %>%  filter(posn==7) %>% filter(.[,length(iniPos)+1]<1.4) ->tmp_fil2
 total_res %>%  filter(posn>=8) %>% filter(.[,length(iniPos)+1]<1.2) ->tmp_fil3
 
-write.table(tmp_fil,paste(ResultFiles_Path_G,"posnLE6.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
+#write.table(tmp_fil,paste(ResultFiles_Path_G,"posnLE6.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
+write.table(tmp_fil,paste(ResultFiles_Path_G,Underying_Symbol_G,"_EvalPosition.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
 write.table(tmp_fil2,paste(ResultFiles_Path_G,"posnEQ7.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
 write.table(tmp_fil3,paste(ResultFiles_Path_G,"posnGT8.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
 
