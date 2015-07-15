@@ -17,6 +17,10 @@ DataFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\MarketData\\data\\"
 ConfigParameters<-read.table(paste(DataFiles_Path_G,ConfigFileName_G,sep=""),
                              row.names=1, comment.char="#",header=T,stringsAsFactors=F,sep=",")
 
+#Definition
+OpType_Put_G=as.numeric(ConfigParameters["OpType_Put_G",1])
+OpType_Call_G=as.numeric(ConfigParameters["OpType_Call_G",1])
+
 #File
 Underying_Symbol_G=ConfigParameters["Underying_Symbol_G",1]
 ResultFiles_Path_G=ConfigParameters["ResultFiles_Path_G",1]
@@ -65,6 +69,11 @@ evalPositions %>% arrange(.[,length(opchain$Position)+1]) %>% slice(evalPosStart
 #                      ↑     auto     w11
 #                      ↓     auto     w12
 ```
+##Put Call TYPE Value
+```{r echo = FALSE}
+cat("TYPE Value :Put",OpType_Put_G," :Call",OpType_Call_G)
+```
+
 ##Position Vector and Option Chain
 ```{r echo=FALSE,warning=FALSE,error=FALSE,fig.width=4.7,fig.height=4.2}
 for(Counter in evalPosStart:evalPosEnd){
@@ -80,17 +89,18 @@ for(Counter in evalPosStart:evalPosEnd){
   
   #drawing Option Chain
   opchain$Position<-unlist(evaPos)
-  opchain %>% select(Date,ExpDate,TYPE,Strike,Position,ContactName,UDLY) %>% print()
-  cat("\n")
-  
   #getting position by exluding Position==0 row
   opchain %>% dplyr::filter(Position!=0) -> position
+  
+  #print position
+  cat("\n")
+  position %>% select(Date,ExpDate,TYPE,Strike,Position,ContactName,UDLY) %>% mutate(TYPE=ifelse(TYPE==OpType_Put_G,"Put","Call")) %>% print()
   
   #loading the model Scenario of Counter index
   fn<-paste(ResultFiles_Path_G,Underying_Symbol_G,ScenarioMode,Counter,sep="")
   load(file=fn)
   #drawing scenario table and its summary result
-  modelScenario %>% dplyr::select(-(resdf)) -> tmp
+  modelScenario %>% dplyr::select(-(resdf))  %>% select(weight,min_profit,max_profit,mean_profit,median_profit,profit_sd) -> tmp
   print(tmp);cat("\n")
   data.frame(min_profit=min(tmp$min_profit),max_profit=max(tmp$max_profit),expected_profit=sum(tmp$weight*tmp$mean_profit)) %>%
     print() ;cat("\n")
