@@ -212,13 +212,28 @@ Stimulate <- function (position,
 getStimResultDataFrame <- function (StimRslts,StimultaionNum){
   profit_each_itr_ <- rep(0,StimultaionNum)
   udly_price_at_liquidation_  <- rep(0,StimultaionNum)
+  DeltaEffect_at_liliquidation <- rep(0,StimultaionNum)
+  VegaEffect_at_liliquidation <- rep(0,StimultaionNum)
+  ThetaEffect_at_liliquidation <- rep(0,StimultaionNum)
+  GammaEffect_at_liliquidation <- rep(0,StimultaionNum)
+  Delta_at_liliquidation <- rep(0,StimultaionNum)
+  Vega_at_liliquidation <- rep(0,StimultaionNum)
   liq_days_<- rep(0,StimultaionNum)
   for(j in 1:StimultaionNum){
     profit_each_itr_[j]<-StimRslts[[j]]$Profit[StimRslts[[j]]$AdjustDay]
     udly_price_at_liquidation_[j]<-mean(StimRslts[[j]]$ValueGreek[[StimRslts[[j]]$AdjustDay]]$UDLY)
+    DeltaEffect_at_liliquidation[j]<-StimRslts[[j]]$EvalScore[[StimRslts[[j]]$AdjustDay]]$DeltaEffect
+    VegaEffect_at_liliquidation[j]<-StimRslts[[j]]$EvalScore[[StimRslts[[j]]$AdjustDay]]$VegaEffect
+    ThetaEffect_at_liliquidation[j]<-StimRslts[[j]]$EvalScore[[StimRslts[[j]]$AdjustDay]]$ThetaEffect
+    GammaEffect_at_liliquidation[j]<-StimRslts[[j]]$EvalScore[[StimRslts[[j]]$AdjustDay]]$GammaEffect
+    Delta_at_liliquidation[j]<-StimRslts[[j]]$EvalScore[[StimRslts[[j]]$AdjustDay]]$Delta
+    Vega_at_liliquidation[j]<-StimRslts[[j]]$EvalScore[[StimRslts[[j]]$AdjustDay]]$Vega
     liq_days_[j]<-StimRslts[[j]]$AdjustDay
   }
-  return(data.frame(udly=udly_price_at_liquidation_,profit=profit_each_itr_,liqDay=liq_days_))
+  return(data.frame(udly=udly_price_at_liquidation_,profit=profit_each_itr_,
+                    DeltaEffect=DeltaEffect_at_liliquidation,VegaEffect=VegaEffect_at_liliquidation,
+                    ThetaEffect=ThetaEffect_at_liliquidation,GammaEffect=GammaEffect_at_liliquidation,
+                    Delta=Delta_at_liliquidation,Vega=Vega_at_liliquidation,liqDay=liq_days_))
 }
 
 ##set.AmericanOptionValueGreeks(xt)

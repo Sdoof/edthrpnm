@@ -20,31 +20,37 @@ SpreaIDs=c(3)
 #plot data every this step days
 PlotStepDay=3
 
+#Scenario Mode
+ScenarioMode="_modelScenario_"
+#ScenarioMode="_adjustedScenario_"
+
 #plotFile
 FileChunk="_scenarioPlot_"
 
 getPlotDataframe<-function(PlotDay){
-    #process each scenario
-    ScenarioNum<-length(modelStimRawlist$stimrslt)
-    for(scenario_idx in 1:ScenarioNum){
-      start_t<-proc.time()
-      SimuNum<-length(modelStimRawlist$stimrslt[[scenario_idx]])
-      #process each simulation
-      for(sim_idx in 1:SimuNum){
+  #process each scenario
+  ScenarioNum<-length(modelStimRawlist$stimrslt)
+  for(scenario_idx in 1:ScenarioNum){
+    start_t<-proc.time()
+    SimuNum<-length(modelStimRawlist$stimrslt[[scenario_idx]])
+    #process each simulation
+    for(sim_idx in 1:SimuNum){
+      #In adjustedScenario_, could be liqudated early
+      if(modelScenario$resdf[[scenario_idx]][sim_idx,]$liqDay>=PlotDay)
         modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$AdjustDay<-PlotDay
-      }
-      cat(" scenario ",scenario_idx, " time: ",(proc.time()-start_t)[3])
     }
-    
-    SimultaionNum<-length(modelStimRawlist$stimrslt[[1]])
-    modelStimRawlist %>% rowwise() %>% do(resdf=getStimResultDataFrame(.$stimrslt,SimultaionNum)) -> tmp
-    
-    #full join day PlotDay's end value
-    target_df<-tmp$resdf[[1]]
-    for(i in 2:ScenarioNum){
-      target_df %>% full_join(tmp$resdf[[i]]) -> target_df
-    }
-    return(target_df)
+    cat(" scenario ",scenario_idx, " time: ",(proc.time()-start_t)[3])
+  }
+  
+  SimultaionNum<-length(modelStimRawlist$stimrslt[[1]])
+  modelStimRawlist %>% rowwise() %>% do(resdf=getStimResultDataFrame(.$stimrslt,SimultaionNum)) -> tmp
+  
+  #full join day PlotDay's end value
+  target_df<-tmp$resdf[[1]]
+  for(i in 2:ScenarioNum){
+    target_df %>% full_join(tmp$resdf[[i]]) -> target_df
+  }
+  return(target_df)
 }
 
 #create data frames and write to the files
@@ -52,15 +58,17 @@ for(SpreadID in SpreaIDs){
   cat("Spred ID:",SpreadID)
   #load modelStimRawlist and modelScenario.
   load(file=paste(ResultFiles_Path_G,Underying_Symbol_G,"_modelStimRawlist_",SpreadID,sep=""))
-  load(file=paste(ResultFiles_Path_G,Underying_Symbol_G,"_modelScenario_",SpreadID,sep=""))
+  load(file=paste(ResultFiles_Path_G,Underying_Symbol_G,ScenarioMode,SpreadID,sep=""))
   SimDays<-length(modelStimRawlist$stimrslt[[1]][[2]]$EvalScore)
+  
+  maxDay<-modelScenario$resdf
   
   totalstep=SimDays%/%PlotStepDay
   
   PlotDays<-rep(PlotStepDay,times=totalstep)
   PlotDays<- cumsum(PlotDays)
   PlotDays[length(PlotDays)+1]<-SimDays
-
+  
   total_df<-getPlotDataframe(PlotDays[1])
   for(day in 2:length(PlotDays)){
     total_df %>% full_join(getPlotDataframe(PlotDays[day])) -> total_df 
@@ -71,13 +79,13 @@ rm(day,totalstep,total_df)
 
 ##
 # Option Chain and Position Data. Here we use UDL_Positions_Pre
-opchain<-read.table(paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep=""),
-                    header=T,sep=",",stringsAsFactors=FALSE)
+#opchain<-read.table(paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep=""),
+#                    header=T,sep=",",stringsAsFactors=FALSE)
 #filtering. deleting unnecessary column
-opchain %>% dplyr::select(-(contains('Frac',ignore.case=TRUE)),
-                          -(IV)) %>% as.data.frame() -> opchain
+#opchain %>% dplyr::select(-(contains('Frac',ignore.case=TRUE)),
+#                          -(IV)) %>% as.data.frame() -> opchain
 #Position reseted to 0
-opchain$Position<-0
+#opchain$Position<-0
 
 for(SpreadID in SpreaIDs){
   cat("Spred ID:",SpreadID)
@@ -124,7 +132,7 @@ for(SpreadID in SpreaIDs){
       max(c(max(plot_df$ThetaEffect),max(plot_df$DeltaEffect),
             max(plot_df$GammaEffect),max(plot_df$VegaEffect),
             max(plot_df$profit)))
-      )  
+    )  
   print(gg)
   
 }
@@ -133,7 +141,7 @@ for(SpreadID in SpreaIDs){
 rm(gg,SpreadID,InitUDLY,plot_df,opchain)
 rm(modelScenario,modelStimRawlist)
 rm(SpreaIDs,PlotStepDay,SimDays,PlotDays)
-rm(ConfigFileName_G,ConfigParameters)
+rm(ConfigFileName_G,ConfigParameters,ScenarioMode)
 rm(FileChunk,SpreadIDS)
 rm(DataFiles_Path_G,ResultFiles_Path_G,Underying_Symbol_G,evalPosStart,evalPosEnd)
 rm(getPlotDataframe)
