@@ -11,9 +11,9 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   #position evaluated after holdDays later
   udlStepNum<-udlStepNum; udlStepPct<-udlStepPct
   udlChgPct<-seq(-udlStepPct*udlStepNum,udlStepPct*udlStepNum,length=(2*udlStepNum)+1)
-  posEvalTbl<-createPositinEvalTable(position=position,udlStepNum=udlStepNum,udlStepPct=udlStepPct)
+  posEvalTbl<-createPositinEvalTable(position=position,udlStepNum=udlStepNum,udlStepPct=udlStepPct,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)
   #At day 0 position price and Greeks.
-  thePositionGrk<-getPositionGreeks(position,multi=PosMultip)
+  thePositionGrk<-getPositionGreeks(position,multi=PosMultip,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)
   if(isDetail){print(posEvalTbl$pos)}
   if(isDetail){print(posEvalTbl)}  
   
@@ -58,8 +58,8 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   
   ##
   # cost3 Profit
-  if(isDetail){cat(" :price_hld",posEvalTbl$Price);cat(" :price_ini:",getPositionGreeks(position,multi=PosMultip)$Price)}
-  if(isDetail){cat(" :prft",posEvalTbl$Price-getPositionGreeks(position,multi=PosMultip)$Price)}
+  if(isDetail){cat(" :price_hld",posEvalTbl$Price);cat(" :price_ini:",getPositionGreeks(position,multi=PosMultip,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)$Price)}
+  if(isDetail){cat(" :prft",posEvalTbl$Price-getPositionGreeks(position,multi=PosMultip,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)$Price)}
   
   profit_hdays<-sum((posEvalTbl$Price-thePositionGrk$Price)*weight)
   if(isDebug){cat(" :prft_wt",profit_hdays)}  
@@ -130,15 +130,15 @@ getThetaEffect<-function(pos,greek,multi=PosMultip,hdd=holdDays){
   thetaEfct
 }
 
-getDeltaEffect<-function(pos,greek,UDLY,ividx_td,multi=PosMultip,hdd=holdDays){
-  expPriceChange<-mean(UDLY*(exp(ividx_td*sqrt(hdd/365))-1))
+getDeltaEffect<-function(pos,greek,UDLY,rlzdvol_td,multi=PosMultip,hdd=holdDays){
+  expPriceChange<-mean(UDLY*(exp(rlzdvol_td*sqrt(hdd/365))-1))
   delta<-getPosGreeks(pos=pos,greek=greek)
   deltaEfct<-(-abs(delta))*expPriceChange
   deltaEfct
 }
 
-getGammaEffect<-function(pos,greek,UDLY,ividx_td,multi=PosMultip,hdd=holdDays){
-  expPriceChange<-mean(UDLY*(exp(ividx_td*sqrt(hdd/365))-1))
+getGammaEffect<-function(pos,greek,UDLY,rlzdvol_td,multi=PosMultip,hdd=holdDays){
+  expPriceChange<-mean(UDLY*(exp(rlzdvol_td*sqrt(hdd/365))-1))
   gamma<-getPosGreeks(pos=pos,greek=greek)
   gammaEfct<-gamma*(expPriceChange^2)/2
   gammaEfct
@@ -155,37 +155,6 @@ getVegaEffect<-function(pos,greek,ividx,dviv,multi=PosMultip,hdd=holdDays){
   vegaEffect
 }
 
-getDTRRR<-function(position,multi=PosMultip,hdd=holdDays){
-  thetaEffect<-getThetaEffect(pos=position$Position,greek=position$Theta)
-  
-  deltaEffect<-getDeltaEffect(pos=position$Position,greek=position$Delta,
-                              UDLY=position$UDLY,ividx_td=getIV_td(position$IVIDX))
-  
-  gammaEffect<-getGammaEffect(pos=position$Position,greek=position$Gamma,
-                              UDLY=position$UDLY,ividx_td=getIV_td(position$IVIDX)) 
-  
-  #DTRRR<-(deltaEffect+gammaEffect)/thetaEffect
-  #DTRRR<- exp(deltaEffect+gammaEffect)*exp(thetaEffect)
-  thetaEffect<-as.numeric(thetaEffect!=0)*thetaEffect+as.numeric(thetaEffect==0)*0.001
-  DTRRR<- (deltaEffect+gammaEffect+(0.5*thetaEffect))/abs(thetaEffect)
-  DTRRR
-}
-
-getVTRRR<-function(position,ividx,dviv,multi=PosMultip,hdd=holdDays){
-  thetaEffect<-getThetaEffect(pos=position$Position,greek=position$Theta)
-  #thetaEffect<-as.numeric(thetaEffect>0)*thetaEffect+as.numeric(thetaEffect<0)*(0.001)+as.numeric(thetaEffect==0)*0.001
-  
-  vegaEffect<-getVegaEffect(pos=position$Position,greek=position$Vega,
-                            ividx=ividx,dviv=dviv)
-  #VTRRR<-vegaEffect/thetaEffect
-  #VTRRR<- exp(vegaEffect)*exp(-1*thetaEffect)
-  
-  thetaEffect<-as.numeric(thetaEffect!=0)*thetaEffect+as.numeric(thetaEffect==0)*0.001
-  VTRRR<- (vegaEffect+(0.5*thetaEffect))/abs(thetaEffect)
-  VTRRR
-}
-
-#Rsk/Rtn Scenario functions -----------------------------
 #Factory of Volatility Level Regression Result
 get.Volatility.Level.Regression<-function(Days=holdDays,ctoc=TRUE){
   if((!ctoc)*(Days==1)){
@@ -234,55 +203,6 @@ get.Volatility.Cone.Regression.Result<-function(optype,month){
 get.UDLY.Changed.Price<-function(udly,chg_pct){
   change<-udly*chg_pct
   change
-}
-
-#functions for gruped or rowwise operations. -------------
-
-#evalPosRskRtnXXX is just wrappers for Rsk/Rtn greek related functions.
-evalPosRskRtnDTRRR<- function(pos_eval){
-  pos_DTRRR<-pos_eval$pos
-  dtrrr<-getDTRRR(position=pos_DTRRR)
-  dtrrr
-}
-
-evalPosRskRtnVTRRR<- function(pos_eval){
-  pos_DTRRR<-pos_eval$pos
-  #  print(pos_DTRRR)
-  #dviv should be pre-calculated when optimize
-  vtrrr<-getVTRRR(position=pos_DTRRR,ividx=getIV_td(pos_DTRRR$IVIDX),dviv=annuual.daily.volatility(getIV_td(histIV$IVIDX))$daily)
-  vtrrr
-}
-
-evalPosRskRtnThetaEffect<- function(pos_eval){
-  pos<-pos_eval$pos
-  #  print(pos)
-  thetaEffect<-getThetaEffect(pos=pos$Position,greek=pos$Theta)
-  thetaEffect
-}
-
-evalPosRskRtnDeltaEffect<- function(pos_eval){
-  pos<-pos_eval$pos
-  #  print(pos)
-  deltaEffect<-getDeltaEffect(pos=pos$Position,greek=pos$Delta,
-                              UDLY=pos$UDLY,ividx_td=getIV_td(pos$IVIDX))
-  deltaEffect
-}
-
-evalPosRskRtnGammaEffect<- function(pos_eval){
-  pos<-pos_eval$pos
-  #  print(pos)
-  gammaEffect<-getGammaEffect(pos=pos$Position,greek=pos$Gamma,
-                              UDLY=pos$UDLY,ividx_td=getIV_td(pos$IVIDX))
-  gammaEffect
-}
-
-evalPosRskRtnVegaEffect<- function(pos_eval){
-  pos<-pos_eval$pos
-  #  print(pos)
-  #dviv should be pre-calculated when optimize
-  vegaEffect<-getVegaEffect(pos=pos$Position,greek=pos$Vega,
-                            ividx=getIV_td(pos$IVIDX),dviv=annuual.daily.volatility(getIV_td(histIV$IVIDX))$daily)
-  vegaEffect
 }
 
 # operate to each position data frame based on scenaro changes
@@ -359,21 +279,16 @@ hollowNonZeroPosition<-function(pos){
   position
 }
 
-createPositinEvalTable<-function(position,udlStepNum=3,udlStepPct=0.03,days=holdDays){
+createPositinEvalTable<-function(position,udlStepNum=3,udlStepPct=0.03,days=holdDays,HV_IV_Adjust_Ratio){
   udlChgPct<-seq(-udlStepPct*udlStepNum,udlStepPct*udlStepNum,length=(2*udlStepNum)+1)
   posEvalTbl<-data.frame(udlChgPct=udlChgPct) ;rm(udlStepNum,udlStepPct)
   #Set data frames as a row value of another data frame.
   posEvalTbl %>% group_by(udlChgPct) %>% do(pos=position) -> posEvalTbl
   #Modify pos based on scenario
   posEvalTbl %>% group_by(udlChgPct) %>% do(pos=reflectPosChg(.,days)) -> posEvalTbl
-  #DTRRR
-  #posEvalTbl %>% rowwise() %>% do(DTRRR=evalPosRskRtnDTRRR(.)) -> tmp
-  #unlist(tmp$DTRRR)->tmp ; posEvalTbl$DTRRR <- tmp ;rm(tmp)
-  #VTRRR
-  #posEvalTbl %>% rowwise() %>% do(VTRRR=evalPosRskRtnVTRRR(.)) -> tmp
-  #unlist(tmp$VTRRR)->tmp ; posEvalTbl$VTRRR <- tmp ;rm(tmp)
+ 
+  #cat("HV_IV_Adjust_Ratio (createPositinEvalTable):",HV_IV_Adjust_Ratio)
   
-  #debugging(Just for Info ) purpose. when optimized, not necessary.
   ##
   #  Greek Effects
   
@@ -383,12 +298,12 @@ createPositinEvalTable<-function(position,udlStepNum=3,udlStepPct=0.03,days=hold
   #  DeltaEffect
   posEvalTbl %>% rowwise() %>% do(DeltaEffect=getDeltaEffect(pos=.$pos$Position,greek=.$pos$Delta,
                                                              UDLY=.$pos$UDLY,
-                                                             ividx_td=getIV_td(.$pos$IVIDX))) -> tmp
+                                                             rlzdvol_td=getIV_td(.$pos$IVIDX)*HV_IV_Adjust_Ratio)) -> tmp
   unlist(tmp$DeltaEffect)->tmp ; posEvalTbl$DeltaEffect <- tmp ;rm(tmp)
   #  GammaEffect
   posEvalTbl %>% rowwise() %>% do(GammaEffect=getGammaEffect(pos=.$pos$Position,greek=.$pos$Gamma,
                                                              UDLY=.$pos$UDLY,
-                                                             ividx_td=getIV_td(.$pos$IVIDX))) -> tmp
+                                                             rlzdvol_td=getIV_td(.$pos$IVIDX)*HV_IV_Adjust_Ratio)) -> tmp
   unlist(tmp$GammaEffect)->tmp ; posEvalTbl$GammaEffect <- tmp ;rm(tmp) 
   #  VegaEffect
   posEvalTbl %>% rowwise() %>% do(VegaEffect=getVegaEffect(pos=.$pos$Position,greek=.$pos$Vega,
@@ -516,9 +431,7 @@ create_initial_exact_PutCall_polulation<-function(popnum,type,EvalFuncSetting,th
   ret_val
 }
 
-#function for creating one candidate pool --------------
-# nrows are rows to be read from a file, skip indicates how many rows should be skipped.
-# if pnum==0, then max nrows are sampled.
+#function for creating one candidate pool
 createCombineCandidatePool<-function(fname,pnum=1000,nrows=-1,skip=0,method=1){
   pool<-read.csv(fname, header=FALSE,nrows=nrows,skip=skip)
   pnum<-as.numeric((pnum==0))*nrow(pool)+as.numeric((pnum!=0))*pnum
@@ -546,8 +459,7 @@ createCombineCandidatePool<-function(fname,pnum=1000,nrows=-1,skip=0,method=1){
   return(pool)
 }
 
-#function for seraching candidate by combination ------------
-
+#function for seraching candidate by combination 
 # two sample examples. one from pools[[2]], the other from pools[[3]]
 #ceiling(runif(1, min=1e-320, max=nrow(pools[[2]][[2]])))
 create_combined_population<-function(popnum,EvalFuncSetting,thresh,plelem,fname,isFileout=FALSE,isDebug=FALSE,maxposn,PosMultip){
@@ -621,7 +533,7 @@ create_combined_population<-function(popnum,EvalFuncSetting,thresh,plelem,fname,
 }
 
 ##
-# Functions to be loaded from EResPosPricess.R -----------
+# Functions to be loaded from EResPosPricess.R
 
 #inner functions : graphical related.
 #create Aggregated Price Table for Drawing
@@ -769,7 +681,6 @@ adjustPosChgInner<-function(process_df,time_advcd, base_vol_chg=0){
   pos$Moneyness.Nm<-log(pos$Moneyness.Frac)/pos$ATMIV/sqrt(eval_timeToExpDate)
   pos$Moneyness.Frac<-NULL
   
-  
   #calculate IV_pos(OrigIV) using SkewModel based on model definition formula.
   get.predicted.spline.skew(SkewModel,pos$Moneyness.Nm)
   pos$ATMIV*get.predicted.spline.skew(SkewModel,pos$Moneyness.Nm)
@@ -787,11 +698,13 @@ adjustPosChgInner<-function(process_df,time_advcd, base_vol_chg=0){
   pos
 }
 
-adjustPosChg<-function(process_df,time_advcd,base_vol_chg=0){
+adjustPosChg<-function(process_df,time_advcd,base_vol_chg=0,HV_IV_Adjust_Ratio){
   print(process_df)
   print(time_advcd)
   
   process_df %>% group_by(udlChgPct) %>% do(pos=adjustPosChgInner(.,time_advcd,base_vol_chg=base_vol_chg)) -> process_df
+  
+  #cat("HV_IV_Adjust_Ratio (adjustPosChg):",HV_IV_Adjust_Ratio)
   
   ##
   #  Greeks
@@ -824,12 +737,12 @@ adjustPosChg<-function(process_df,time_advcd,base_vol_chg=0){
   # DeltaEffect
   process_df %>% rowwise() %>% do(DeltaEffect=getDeltaEffect(pos=.$pos$Position,greek=.$pos$Delta,
                                                              UDLY=.$pos$UDLY,
-                                                             ividx_td=getIV_td(.$pos$IVIDX))) -> tmp
+                                                             rlzdvol_td=getIV_td(.$pos$IVIDX)*HV_IV_Adjust_Ratio)) -> tmp
   unlist(tmp$DeltaEffect)->tmp ; process_df$DeltaEffect <- tmp ;rm(tmp)
   # GammaEffect
   process_df %>% rowwise() %>% do(GammaEffect=getGammaEffect(pos=.$pos$Position,greek=.$pos$Gamma,
                                                              UDLY=.$pos$UDLY,
-                                                             ividx_td=getIV_td(.$pos$IVIDX))) -> tmp
+                                                             rlzdvol_td=getIV_td(.$pos$IVIDX)*HV_IV_Adjust_Ratio)) -> tmp
   unlist(tmp$GammaEffect)->tmp ; process_df$GammaEffect <- tmp ;rm(tmp)
   # VegaEffect
   process_df %>% rowwise() %>% do(VegaEffect=getVegaEffect(pos=.$pos$Position,greek=.$pos$Vega,
@@ -842,7 +755,7 @@ adjustPosChg<-function(process_df,time_advcd,base_vol_chg=0){
 }
 
 #One position's greeks are retuned as a data frame which has only one row.
-getPositionGreeks<-function(position,multi=PosMultip){
+getPositionGreeks<-function(position,multi=PosMultip,HV_IV_Adjust_Ratio){
   price<-getPosGreeks(pos=position$Position,greek=position$Price,multi=PosMultip)
   delta<-getPosGreeks(pos=position$Position,greek=position$Delta,multi=PosMultip)
   gamma<-getPosGreeks(pos=position$Position,greek=position$Gamma,multi=PosMultip)
@@ -850,23 +763,19 @@ getPositionGreeks<-function(position,multi=PosMultip){
   vega<-getPosGreeks(pos=position$Position,greek=position$Vega,multi=PosMultip)
   udly<-mean(position$UDLY)
   
+  #cat("HV_IV_Adjust_Ratio (getPositionGreeks):",HV_IV_Adjust_Ratio)
+  
   thetaEffect<-getThetaEffect(pos=position$Position,greek=position$Theta)
   vegaEffect<-getVegaEffect(pos=position$Position,greek=position$Vega,
                             ividx=getIV_td(position$IVIDX),dviv=annuual.daily.volatility(getIV_td(histIV$IVIDX))$daily)
   deltaEffect<-getDeltaEffect(pos=position$Position,greek=position$Delta,
-                              UDLY=position$UDLY,ividx_td=getIV_td(position$IVIDX))
+                              UDLY=position$UDLY,rlzdvol_td=getIV_td(position$IVIDX)*HV_IV_Adjust_Ratio)
   
   gammaEffect<-getGammaEffect(pos=position$Position,greek=position$Gamma,
-                              UDLY=position$UDLY,ividx_td=getIV_td(position$IVIDX))
-  
-  #DTRRR<-getDTRRR(position=position)
-  #VTRRR<-getVTRRR(position=position,
-  #                ividx=getIV_td(position$IVIDX),
-  #                dviv=annuual.daily.volatility(getIV_td(histIV$IVIDX))$daily)
+                              UDLY=position$UDLY,rlzdvol_td=getIV_td(position$IVIDX)*HV_IV_Adjust_Ratio)
   
   data.frame(Price=price,Delta=delta,Gamma=gamma,Theta=theta,Vega=vega,UDLY=udly,
              ThetaEffect=thetaEffect,GammaEffect=gammaEffect,DeltaEffect=deltaEffect,VegaEffect=vegaEffect)
-  #,DTRRR=DTRRR,VTRRR=VTRRR)
-  
+
 }
 

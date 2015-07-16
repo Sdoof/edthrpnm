@@ -35,6 +35,9 @@ dviv_caldays=as.numeric(ConfigParameters["dviv_caldays",1])
 #Multipler of Position
 PosMultip=as.numeric(ConfigParameters["PosMultip",1])
 
+#HV_IV_Adjust_Ratio
+HV_IV_Adjust_Ratio=as.numeric(ConfigParameters["EvalFnc_HV_IV_Adjust_Ratio",1])
+
 #Threshhold
 Thresh_Score1=as.numeric(ConfigParameters["ResultProcess_Thresh_Score1",1])
 Thresh_Score2=as.numeric(ConfigParameters["ResultProcess_Thresh_Score2",1])
@@ -153,8 +156,8 @@ histIV %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")<=max(as.Date(opchain$Da
 
 ## Advantageous Effect
 total_res[,1:length(iniPos)] %>% rowwise() %>% 
-  do(ThetaEffect=getPositionGreeks(hollowNonZeroPosition(unlist(.)),multi=PosMultip)$ThetaEffect,
-     GammaEffect=getPositionGreeks(hollowNonZeroPosition(unlist(.)),multi=PosMultip)$GammaEffect) -> tmp
+  do(ThetaEffect=getPositionGreeks(hollowNonZeroPosition(unlist(.)),multi=PosMultip,HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio)$ThetaEffect,
+     GammaEffect=getPositionGreeks(hollowNonZeroPosition(unlist(.)),multi=PosMultip,HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio)$GammaEffect) -> tmp
 total_res$AdvEffect<-unlist(tmp$ThetaEffect)+unlist(tmp$GammaEffect) ; rm(tmp)
 #Filter based on theGreeks Effect
 total_res %>% dplyr::filter(AdvEffect>Thresh_AdvEffect) -> total_res

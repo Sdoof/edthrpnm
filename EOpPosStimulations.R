@@ -59,7 +59,8 @@ Stimulate <- function (position,
                        #volatility drift mu of geometric brown motion
                        mu_iv,
                        #vov of geometric brown motion
-                       sigma_iv) {
+                       sigma_iv,
+                       HV_IV_Adjust_Ratio) {
   
   #List of Every Result
   StimRslts<-NULL  
@@ -100,7 +101,7 @@ Stimulate <- function (position,
     names(StimulationParameters)<-c("StimDays","Mu_udl","Sigma_udl","Mu_iv","Sigma_iv")
     
     #First calculate original Position Grks
-    orgPositionGrk<-getPositionGreeks(XTOrig,multi=PosMultip)
+    orgPositionGrk<-getPositionGreeks(XTOrig,multi=PosMultip,HV_IV_Adjust_Ratio)
     #print(orgPositionGrk)
     
     histIVOrig<-histIV
@@ -146,7 +147,7 @@ Stimulate <- function (position,
       
       # greekEffects are calculated supposing this position held for "holdDays"
       # 
-      newPositionGrk<-getPositionGreeks(XTStim,multi=PosMultip)
+      newPositionGrk<-getPositionGreeks(XTStim,multi=PosMultip,HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio)
       #print(newPositionGrk)
       
       #Case of American Option

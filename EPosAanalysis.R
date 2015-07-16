@@ -30,6 +30,9 @@ stepdays=as.numeric(ConfigParameters["AnalyStepdays",1])
 udlStepNum=as.numeric(ConfigParameters["AnalyStepNum",1])
 udlStepPct=as.numeric(ConfigParameters["AnalyStepPct",1])
 
+#HV_IV_Adjust_Ratio
+HV_IV_Adjust_Ratio=as.numeric(ConfigParameters["EvalFnc_HV_IV_Adjust_Ratio",1])
+
 #Holding Period
 #holdDays<-3*252/365 #Trading Days. This should be correct.
 holdDays=as.numeric(ConfigParameters["holdDays",1])
@@ -135,7 +138,7 @@ opchain$Position<-pos_anlys
 opchain %>% dplyr::filter(Position!=0) -> thePosition
 
 #thePosition's greek df and initial price
-thePositonGrks<-getPositionGreeks(thePosition)
+thePositonGrks<-getPositionGreeks(thePosition,HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio)
 iniPrice <- thePositonGrks$Price
 iniCredit <- -1*iniPrice
 
@@ -144,10 +147,10 @@ posStepDays<-data.frame(days=evaldays)
 
 #Set data frames as a row value of another data frame.
 posStepDays %>% group_by(days) %>%
-  do(scene=createPositinEvalTable(position=thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,days=stepdays)) -> posStepDays
+  do(scene=createPositinEvalTable(position=thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,days=stepdays,HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio)) -> posStepDays
 posStepDays_vc<-posStepDays
 #We must adjust each position values
-posStepDays %>% group_by(days) %>% rowwise() %>% do(days=.$days,scene2=adjustPosChg(.$scene,.$days-stepdays,base_vol_chg=0)) -> tmp
+posStepDays %>% group_by(days) %>% rowwise() %>% do(days=.$days,scene2=adjustPosChg(.$scene,.$days-stepdays,base_vol_chg=0,HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio)) -> tmp
 unlist(tmp$days) -> posStepDays$days ; tmp$scene2 -> posStepDays$scene ;rm(tmp)
 #We've got the complete posStepDays.
 
