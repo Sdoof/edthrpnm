@@ -60,7 +60,10 @@ Stimulate <- function (position,
                        mu_iv,
                        #vov of geometric brown motion
                        sigma_iv,
-                       HV_IV_Adjust_Ratio) {
+                       #Assumed Realized Volatility and IV ratio
+                       HV_IV_Adjust_Ratio,
+                       #randomness introduced to calculated(estimated) IV
+                       IV_DEVIATION) {
   
   #List of Every Result
   StimRslts<-NULL  
@@ -129,7 +132,7 @@ Stimulate <- function (position,
       ## Reflect Position Change
       #
       #days=1 means just 1 day will have passed. 
-      tmp2 %>% group_by(udlChgPct) %>% do(pos=reflectPosChg(.,days=1)) -> tmp2
+      tmp2 %>% group_by(udlChgPct) %>% do(pos=reflectPosChg(.,days=1,IV_DEVIATION=IV_DEVIATION)) -> tmp2
       XTStim<-tmp2$pos[[1]]
       
       #XTStim is the above_data_frame$pos which reflects the Date,UDLY,IVIDX,OrigIV,All Greeks

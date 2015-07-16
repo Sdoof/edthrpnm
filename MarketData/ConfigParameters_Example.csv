@@ -45,6 +45,7 @@ Sim_Sigma_udly_drift_down,0.2
 Sim_HV_IV_Adjust_Ratio,0.8
 Sim_Mu_iv_drift_up,0.25
 Sim_Mu_iv_drift_down,0.25
+Sim_IV_DEVIATION,0.1
 ResultProcess_Thresh_Score1,1.1
 ResultProcess_Thresh_Score2,1.1
 ResultProcess_Thresh_Score3,1.08

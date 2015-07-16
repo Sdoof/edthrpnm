@@ -2,6 +2,9 @@ library(dplyr)
 library(RQuantLib)
 library(ggplot2)
 
+#evaluated position or set evaPos manually by copy&paste csv value
+evaPos<-c()
+
 #Config File
 ConfigFileName_G="ConfigParameters.csv"
 DataFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\MarketData\\data\\"
@@ -74,9 +77,6 @@ histIV<-read.table(rf,header=T,sep=",",nrows=1000);rm(rf)
 histIV %>% dplyr::transmute(Date=Date,IVIDX=Close/100) -> histIV
 histIV %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")<=max(as.Date(opchain$Date,format="%Y/%m/%d"))) %>%
   dplyr::arrange(desc(as.Date(Date,format="%Y/%m/%d"))) %>% head(n=dviv_caldays) -> histIV
-
-#evaluated position or set evaPos manually by copy&paste csv value
-evaPos<-opchain$Position
 
 #Load Regression and Correlation Parameters
 load.PC2IV(PC="PC3dCtC",IVC="IVCF3dCtC")

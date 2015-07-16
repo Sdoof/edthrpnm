@@ -19,9 +19,13 @@ divYld_G=as.numeric(ConfigParameters["divYld_G",1])
 #Definition
 OpType_Put_G=as.numeric(ConfigParameters["OpType_Put_G",1])
 OpType_Call_G=as.numeric(ConfigParameters["OpType_Call_G",1])
-#Skewness Calculation
 
+#IV deviation
+Sim_IV_DEVIATION=as.numeric(ConfigParameters["Sim_IV_DEVIATION",1])
+
+#Skewness Calculation
 TimeToExp_Limit_Closeness_G=as.numeric(ConfigParameters["TimeToExp_Limit_Closeness_G",1])
+
 #File
 Underying_Symbol_G=ConfigParameters["Underying_Symbol_G",1]
 ResultFiles_Path_G=ConfigParameters["ResultFiles_Path_G",1]
@@ -48,9 +52,9 @@ rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep="")
 opchain<-read.table(rf,header=T,sep=",",stringsAsFactors=FALSE)
 #filtering. deleting unnecessary column
 opchain %>% dplyr::select(-(contains('Frac',ignore.case=TRUE)),
-                          -(IV)) %>% as.data.frame() -> opchain
+                          -(IV),-(Change)) %>% as.data.frame() -> opchain
 
-##Historical Implied Volatility Data ---------------
+##Historical Implied Volatility Data
 rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_IV.csv",sep="") 
 histIV<-read.table(rf,header=T,sep=",",nrows=1000);rm(rf)
 #filtering
@@ -167,7 +171,7 @@ for(Counter in evalPosStart:evalPosEnd){
   ## Stimulation
   modelScenario %>% rowwise() %>% do(stimrslt=Stimulate(position=position,StimultaionNum=StimultaionNum,MaxStimDay=MaxStimDay,PosMultip=PosMultip,
                                                         mu_udly=.$mu_udly,sigma_udly=.$sigma_udly,
-                                                        mu_iv=.$mu_iv,sigma_iv=.$sigma_iv,HV_IV_Adjust_Ratio)) -> modelStimRawlist
+                                                        mu_iv=.$mu_iv,sigma_iv=.$sigma_iv,HV_IV_Adjust_Ratio,IV_DEVIATION=Sim_IV_DEVIATION)) -> modelStimRawlist
   
   modelStimRawlist %>% rowwise() %>% do(resdf=getStimResultDataFrame(.$stimrslt,StimultaionNum)) -> tmp
   modelScenario$resdf<-tmp$resdf ; rm(tmp)
@@ -222,7 +226,7 @@ rm(modelScenario,modelStimRawlist)
 rm(histIV,position,MaxStimDay,StimultaionNum,out_text_file)
 rm(evalPosStart,evalPosEnd)
 rm(mu_udly_drift_up,mu_udly_drift_down,sigma_udly_drift_up,sigma_udly_drift_down)
-rm(HV_IV_Adjust_Ratio,mu_iv_drift_up,mu_iv_drift_down,scenario_weight)
+rm(HV_IV_Adjust_Ratio,Sim_IV_DEVIATION,mu_iv_drift_up,mu_iv_drift_down,scenario_weight)
 rm(evalPositions,opchain)
 
 #Parameters Cleaning

@@ -213,7 +213,7 @@ get.UDLY.Changed.Price<-function(udly,chg_pct){
 #   3      0.12   <S3:data.frame>
 # <S3:data.frame> is original data frame which only UDLY are modified.
 # This function reflects Date,IV,etc after udlChg% change for the UDLYs in "days" days.
-reflectPosChg<- function(process_df,days=holdDays){
+reflectPosChg<- function(process_df,days=holdDays,IV_DEVIATION=0){
   pos<-as.data.frame(process_df$pos[1])
   chg<-as.numeric(process_df$udlChgPct[1])
   # print(chg)
@@ -259,6 +259,9 @@ reflectPosChg<- function(process_df,days=holdDays){
   get.predicted.spline.skew(SkewModel,pos$Moneyness.Nm)
   pos$ATMIV*get.predicted.spline.skew(SkewModel,pos$Moneyness.Nm)
   pos$OrigIV<-pos$ATMIV*get.predicted.spline.skew(SkewModel,pos$Moneyness.Nm)
+  
+  IV_deviation<-rnorm(n=length(pos$OrigIV),mean=0,sd=IV_DEVIATION)
+  pos$OrigIV<-pos$OrigIV*(1+IV_deviation)
   
   #calculate pption price and thier greeks
   vgreeks<-set.EuropeanOptionValueGreeks(pos)
