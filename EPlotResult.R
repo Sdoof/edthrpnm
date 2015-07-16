@@ -15,7 +15,7 @@ Underying_Symbol_G=ConfigParameters["Underying_Symbol_G",1]
 ResultFiles_Path_G=ConfigParameters["ResultFiles_Path_G",1]
 
 #target spread IDs
-SpreaIDs=c(3)
+SpreaIDs=c(1)
 
 #plot data every this step days
 PlotStepDay=3
@@ -23,6 +23,9 @@ PlotStepDay=3
 #Scenario Mode
 ScenarioMode="_modelScenario_"
 #ScenarioMode="_adjustedScenario_"
+
+#Max Plotting num of points for one image
+PlotMAxPointNum=30000
 
 #plotFile
 FileChunk="_scenarioPlot_"
@@ -96,52 +99,77 @@ for(SpreadID in SpreaIDs){
   load(file=paste(ResultFiles_Path_G,Underying_Symbol_G,"_modelStimRawlist_",SpreadID,sep=""))
   InitUDLY<-modelStimRawlist$stimrslt[[1]][[1]]$IniEvalScore$UDLY
   
-  gg<-ggplot(plot_df,aes(x=udly,y=profit,colour=liqDay))+
+  #プロットする点が多すぎる場合はrandam sampleする
+  if(nrow(plot_df)>PlotMAxPointNum){
+    plot_df[sort(sample(nrow(plot_df),size=PlotMAxPointNum,replace=F)),] -> plot_df_view
+    #sorting
+    plot_df_view %>%  arrange(liqDay) -> plot_df_view
+    #行番号の振り直し
+    rownames(plot_df_view) <- c(1:nrow(plot_df_view))
+  }else{
+    plot_df_view <-plot_df 
+  }
+  
+  #グラフ表示
+  gg<-ggplot(plot_df_view,aes(x=udly,y=profit,colour=liqDay))+
     geom_point(alpha=0.3)+
     geom_point(x=InitUDLY,y=0,size=6.0,colour="red",pch=3)+
-    ylim(min(plot_df$profit),max(plot_df$profit))
+    ylim(min(plot_df_view$profit),max(plot_df_view$profit))
   print(gg)
   
-  gg<-ggplot(plot_df,aes(x=udly,y=Delta,colour=liqDay))+
+  gg<-ggplot(plot_df_view,aes(x=udly,y=Delta,colour=liqDay))+
     geom_point(alpha=0.3)+
     geom_point(x=InitUDLY,y=0,size=6.0,colour="red",pch=4)+
-    ylim(min(plot_df$Delta),max(plot_df$Delta))
+    ylim(min(plot_df_view$Delta),max(plot_df_view$Delta))
   print(gg)
   
-  gg<-ggplot(plot_df,aes(x=udly,y=Vega,colour=liqDay))+
+  gg<-ggplot(plot_df_view,aes(x=udly,y=Vega,colour=liqDay))+
     geom_point(alpha=0.3)+
     geom_point(x=InitUDLY,y=0,size=6.0,colour="red",pch=4)+
-    ylim(min(plot_df$Vega),max(plot_df$Vega))
+    ylim(min(plot_df_view$Vega),max(plot_df_view$Vega))
   print(gg)
   
-  gg<-ggplot(plot_df,aes(x=udly,y=profit))+
-    geom_point(alpha=0.2,size=ceiling(plot_df$liqDay/min(plot_df$liqDay)))+
-    geom_point(x=plot_df$udly,y=plot_df$ThetaEffect,colour="orange",alpha=0.2,size=ceiling(plot_df$liqDay/min(plot_df$liqDay)))+
-    geom_point(x=plot_df$udly,y=plot_df$GammaEffect,colour="red",alpha=0.2,size=ceiling(plot_df$liqDay/min(plot_df$liqDay)))+
-    geom_point(x=plot_df$udly,y=plot_df$VegaEffect*ifelse(plot_df$Vega>0,-1,1),colour="green",alpha=0.2,size=ceiling(plot_df$liqDay/min(plot_df$liqDay)))+
-    geom_point(x=plot_df$udly,y=plot_df$DeltaEffect*ifelse(plot_df$Delta>0,-1,1),colour="blue",alpha=0.2,size=ceiling(plot_df$liqDay/min(plot_df$liqDay)))+
+  # 5倍plotする事に留意する
+  if(nrow(plot_df)>ceiling(PlotMAxPointNum/5)){
+    plot_df[sort(sample(nrow(plot_df),size=ceiling(PlotMAxPointNum/5),replace=F)),] -> plot_df_view
+    #sorting
+    plot_df_view %>%  arrange(liqDay) -> plot_df_view
+    #行番号の振り直し
+    rownames(plot_df_view) <- c(1:nrow(plot_df_view))
+  } else{
+    plot_df_view <-plot_df 
+  }
+  
+  gg<-ggplot(plot_df_view,aes(x=udly,y=profit))+
+    geom_point(alpha=0.2,size=ceiling(plot_df_view$liqDay/min(plot_df_view$liqDay)))+
+    geom_point(x=plot_df_view$udly,y=plot_df_view$ThetaEffect,colour="orange",alpha=0.2,size=ceiling(plot_df_view$liqDay/min(plot_df_view$liqDay)))+
+    geom_point(x=plot_df_view$udly,y=plot_df_view$GammaEffect,colour="red",alpha=0.2,size=ceiling(plot_df_view$liqDay/min(plot_df_view$liqDay)))+
+    geom_point(x=plot_df_view$udly,y=plot_df_view$VegaEffect*ifelse(plot_df_view$Vega>0,-1,1),colour="green",alpha=0.2,size=ceiling(plot_df_view$liqDay/min(plot_df_view$liqDay)))+
+    geom_point(x=plot_df_view$udly,y=plot_df_view$DeltaEffect*ifelse(plot_df_view$Delta>0,-1,1),colour="blue",alpha=0.2,size=ceiling(plot_df_view$liqDay/min(plot_df_view$liqDay)))+
     geom_point(x=InitUDLY,y=0,size=4.0,colour="black")+
     geom_point(x=InitUDLY,y=modelStimRawlist$stimrslt[[1]][[1]]$IniEvalScore$ThetaEffect,size=4.0,colour="orange")+
     geom_point(x=InitUDLY,y=modelStimRawlist$stimrslt[[1]][[1]]$IniEvalScore$GammaEffect,size=4.0,colour="red")+
     geom_point(x=InitUDLY,y=modelStimRawlist$stimrslt[[1]][[1]]$IniEvalScore$DeltaEffect*ifelse(modelStimRawlist$stimrslt[[1]][[1]]$IniEvalScore$Delta>0,-1,1),size=4.0,colour="blue")+
     geom_point(x=InitUDLY,y=modelStimRawlist$stimrslt[[1]][[1]]$IniEvalScore$VegaEffect*ifelse(modelStimRawlist$stimrslt[[1]][[1]]$IniEvalScore$Vega>0,-1,1),size=4.0,colour="green")+
     ylim(
-      min(c(min(plot_df$ThetaEffect),min(plot_df$DeltaEffect),
-            min(plot_df$GammaEffect),min(plot_df$VegaEffect),
-            min(plot_df$profit))),
-      max(c(max(plot_df$ThetaEffect),max(plot_df$DeltaEffect),
-            max(plot_df$GammaEffect),max(plot_df$VegaEffect),
-            max(plot_df$profit)))
+      min(c(min(plot_df_view$ThetaEffect),min(plot_df_view$DeltaEffect),
+            min(plot_df_view$GammaEffect),min(plot_df_view$VegaEffect),
+            min(plot_df_view$profit))),
+      max(c(max(plot_df_view$ThetaEffect),max(plot_df_view$DeltaEffect),
+            max(plot_df_view$GammaEffect),max(plot_df_view$VegaEffect),
+            max(plot_df_view$profit)))
     )  
   print(gg)
   
 }
 
 #read files and plot
-rm(gg,SpreadID,InitUDLY,plot_df,opchain)
+rm(day,maxDay,totalstep)
+rm(gg,SpreadID,InitUDLY,plot_df,plot_df_view,opchain)
 rm(modelScenario,modelStimRawlist)
 rm(SpreaIDs,PlotStepDay,SimDays,PlotDays)
-rm(ConfigFileName_G,ConfigParameters,ScenarioMode)
+rm(ConfigFileName_G,ConfigParameters,ScenarioMode,PlotMAxPointNum)
 rm(FileChunk,SpreadIDS)
 rm(DataFiles_Path_G,ResultFiles_Path_G,Underying_Symbol_G,evalPosStart,evalPosEnd)
 rm(getPlotDataframe)
+
