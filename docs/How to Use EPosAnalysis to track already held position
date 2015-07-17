@@ -1,0 +1,45 @@
+EPosAnalysis.Rを使ってポジションを追う。
+##
+# 準備
+RUT_IV.csv
+Skewその他のモデル
+(RUT_Hist.csv)
+は最新にして、MarketData\dataに置いておく。
+
+RUT_Positions_Pre.csvだけ、ポジションを作成した
+日のファイルをMarketData\dataに置く。
+
+##
+# EPosAnalysis.R内での処理と、追加部
+
+#本日のthePositionの作成
+evaPos<-c()
+pos_anlys<-evaPos
+opchain$Position<-pos_anlys
+thePosition$Price<-c(20.7,19.1,27.9)
+set.IVOrig(thePosition)
+thePosition$OrigIV<-set.IVOrig(thePosition)
+thePosition
+set.EuropeanOptionValueGreeks(thePosition)
+set.EuropeanOptionValueGreeks(thePosition)$Theta
+thePosition$Theta<-set.EuropeanOptionValueGreeks(thePosition)$Theta
+thePosition
+thePosition$Gamma<-set.EuropeanOptionValueGreeks(thePosition)$Gamma
+thePosition$Vega<-set.EuropeanOptionValueGreeks(thePosition)$Vega
+thePosition$Theta<-set.EuropeanOptionValueGreeks(thePosition)$Theta
+thePosition$Delta<-set.EuropeanOptionValueGreeks(thePosition)Delta
+thePosition$Delta<-set.EuropeanOptionValueGreeks(thePosition)$Delta
+thePosition$Rho<-set.EuropeanOptionValueGreeks(thePosition)$Rho
+thePosition$IVIDX<-histIV[1,]$IVIDX
+
+#evaldaysの生成
+evaldays<-evaldays[1:3]
+
+#その後に、処理を継続
+#total data frame
+posStepDays<-data.frame(days=evaldays)
+
+#Set data frames as a row value of another data frame.
+posStepDays %>% group_by(days) %>%
+  do(scene=createPositinEvalTable(position=thePo.....
+
