@@ -7,6 +7,7 @@ library(RQuantLib)
 
 #IV (Original IV)
 set.IVOrig <- function(xT){
+  xT$OrigIV<-rep(0,times=length(xT$TYPE))
   for(i in 1:length(xT$TYPE)){
     ##  Business days
     busdays_betwn<-businessDaysBetween(CALENDAR_G,
@@ -54,11 +55,15 @@ set.ValueGreeks <- function(xT){
     theta[i]<- C0_tmp$theta
     rho[i]<- C0_tmp$rho
   }
-  tmp_ret<-list(value)
-  tmp_ret<-c(tmp_ret,list(delta))
-  tmp_ret<-c(tmp_ret,list(gamma))
-  tmp_ret<-c(tmp_ret,list(vega))
-  tmp_ret<-c(tmp_ret,list(theta))
-  tmp_ret<-c(tmp_ret,list(rho))
+  
+  Grknames<-c("Price","Delta","Gamma","Vega","Theta","Rho")
+  tmp_ret<-vector("list",length(Grknames))
+  tmp_ret[[1]]<-value
+  tmp_ret[[2]]<-delta
+  tmp_ret[[3]]<-gamma
+  tmp_ret[[4]]<-vega
+  tmp_ret[[5]]<-theta
+  tmp_ret[[6]]<-rho 
+  names(tmp_ret)<-Grknames
   tmp_ret
 }

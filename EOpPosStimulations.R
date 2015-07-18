@@ -18,20 +18,25 @@ get.busdays.between <- function(start,end){
 # Option Value and Greek Change
 set.EuropeanOptionValueGreeks <- function(xt){
   tmp_<-(set.ValueGreeks(xt))
-  #Price
-  ret_<-list(tmp_[[1]])
-  #Delta
-  ret_<-c(ret_,list(tmp_[[2]]))
-  #Gamma
-  ret_<-c(ret_,list(tmp_[[3]]))
-  #Vega
-  ret_<-c(ret_,list(tmp_[[4]]/100))
-  #Theta
-  ret_<-c(ret_,list(tmp_[[5]]/365))
-  #Rho
-  ret_<-c(ret_,list(tmp_[[6]]/365))
-  names(ret_)<-c("Price","Delta","Gamma","Vega","Theta","Rho")  
-  ret_
+  
+#   Grknames<-c("Price","Delta","Gamma","Vega","Theta","Rho")
+#   ret_<-vector("list",length(Grknames))
+#   #Price
+#   ret_[[1]]<-tmp_[[1]]
+#   #Delta
+#   ret_[[2]]<-tmp_[[2]]
+#   #Gamma
+#   ret_[[3]]<-tmp_[[3]]
+#   #Vega
+#   ret_[[4]]<-tmp_[[4]]/100
+#   #Theta
+#   ret_[[5]]<-tmp_[[5]]/365
+#   #Rho
+#   ret_[[6]]<-tmp_[[6]]/365
+#   names(ret_)<-Grknames
+  #ret_<-tmp_
+  #ret_
+  tmp_
 }
 
 ##
@@ -214,22 +219,22 @@ Stimulate <- function (position,
 # revised version of S't'imulate
 
 Simulate <- function (position,
-                       #Total Stimulation Num
-                       StimultaionNum=1000,
-                       #Max Stimulation day.
-                       MaxStimDay,PosMultip=PosMultip,
-                       #underlying daily return for geometic brown motion
-                       mu_udly,
-                       #underlying initial daily volatility.
-                       sigma_udly,
-                       #volatility drift mu of geometric brown motion
-                       mu_iv,
-                       #vov of geometric brown motion
-                       sigma_iv,
-                       #Assumed Realized Volatility and IV ratio
-                       HV_IV_Adjust_Ratio,
-                       #randomness introduced to calculated(estimated) IV
-                       IV_DEVIATION) {
+                      #Total Stimulation Num
+                      StimultaionNum=1000,
+                      #Max Stimulation day.
+                      MaxStimDay,PosMultip=PosMultip,
+                      #underlying daily return for geometic brown motion
+                      mu_udly,
+                      #underlying initial daily volatility.
+                      sigma_udly,
+                      #volatility drift mu of geometric brown motion
+                      mu_iv,
+                      #vov of geometric brown motion
+                      sigma_iv,
+                      #Assumed Realized Volatility and IV ratio
+                      HV_IV_Adjust_Ratio,
+                      #randomness introduced to calculated(estimated) IV
+                      IV_DEVIATION) {
   
   #List of Every Result
   start_t<-proc.time()  
@@ -244,7 +249,6 @@ Simulate <- function (position,
     #if MaxStimDay<stim_days_num, stim_days_num<-MaxStimDay.
     stim_days_num<-as.numeric(MaxStimDay<stim_days_num)*(MaxStimDay-stim_days_num)+stim_days_num
     
-   
     #get the underlying changed of all days.
     udly_prices <- geombrmtn.stimulate(s0=XTStim$UDLY[[1]],mu=mu_udly,sigma=sigma_udly,length=stim_days_num)
     #cat(udly_prices,sep=",","\n")
@@ -307,22 +311,18 @@ Simulate <- function (position,
       #cat("UDLY should become ",udly_prices[day_chg],"\n")
       #cat("Actual UDLY ",XTStim$UDLY,"\n")
       #print(XTStim)
-      rm(tmp,tmp2)
       
       #Latest (Date,IVIDX) inserted on top of histIV 
       XTStim  %>% select(Date,IVIDX) %>% .[1,] -> tmp
       histIV<-insertRow(histIV,tmp,r=1)
       #Oldest row should be removed
       histIV %>% slice(-nrow(histIV))->histIV
-      rm(tmp)
       
       #Caluculate Greeks 
       newPositionGrk<-getPositionGreeks(XTStim,multi=PosMultip,HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio)
       #print(newPositionGrk)
       
       #Position Profit
-      #positionProfit[day_chg]<-(sum(XTStim$Position*XTStim$Price) - sum(XTOrig$Position*XTOrig$Price))*posMultip
-      # or
       positionProfit[day_chg]<-newPositionGrk$Price-orgPositionGrk$Price
       
       #EvalScore
