@@ -20,6 +20,13 @@ evalPosStart=as.numeric(ConfigParameters["PlaybackPosStart",1])
 #Evaluatin Table Position end
 evalPosEnd=as.numeric(ConfigParameters["PlaybackPosEnd",1])
 
+#Delta Hedge (or Playback Adjust) target spread IDs
+SpreaIDs=c(1)
+
+#ScenarioMode
+ScenarioMode="_modelScenario_"
+#ScenarioMode,_adjustedScenario_
+
 exitDecision<-function(IniEvalScore,EvalScore){
   AllEffect<-EvalScore$DeltaEffect+EvalScore$VegaEffect+EvalScore$ThetaEffect+EvalScore$GammaEffect
   Profit<-EvalScore$Price-IniEvalScore$Price
@@ -105,11 +112,11 @@ PlaybackAdjust<-function(){
     fn<-paste(ResultFiles_Path_G,Underying_Symbol_G,"_modelStimRawlist_",Counter,sep="")
     load(file=fn)
     fn<-paste(ResultFiles_Path_G,Underying_Symbol_G,"_modelScenario_",Counter,sep="")
-    load(file=fn)
-    
+    load(file=fn) 
     #process each scenario
-    ScenarioNum<-length(modelStimRawlist$stimrslt)
-    for(scenario_idx in 1:ScenarioNum){
+    StimDays<-length(modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$EvalScore)
+    #process each day
+    for(ith_day in 1:StimDays){
       start_t<-proc.time()
       SimuNum<-length(modelStimRawlist$stimrslt[[scenario_idx]])
       #process each simulation
@@ -157,6 +164,104 @@ PlaybackAdjust<-function(){
                expected_profit=sum(modelScenario$weight*modelScenario$mean_profit)) %>% print()
     
     fn<-paste(ResultFiles_Path_G,Underying_Symbol_G,"_adjustedScenario_",Counter,sep="")
+    save(modelScenario,file=fn)
+  }
+}
+
+DeltaHedge<-function(){
+  for(SpreadID in SpreadIDs){
+    #load modelStimRawlist and modelScenario.
+    #modelStimRawlist and modelScenario correspond to the specific Spread
+    fn<-paste(ResultFiles_Path_G,Underying_Symbol_G,"_modelStimRawlist_",SpreadID,sep="")
+    load(file=fn)
+    fn<-paste(ResultFiles_Path_G,Underying_Symbol_G,ScenarioMode,SpreadID,sep="")
+    load(file=fn)
+    
+    #Hedgetable=data.frame(payoff,delta,last_udly)
+    
+    #process each scenario
+    ScenarioNum<-length(modelStimRawlist$stimrslt)
+    for(scenario_idx in 1:ScenarioNum){
+      start_t<-proc.time()
+      SimuNum<-length(modelStimRawlist$stimrslt[[scenario_idx]])
+      #process each simulation
+      for(sim_idx in 1:SimuNum){
+        theIniEvalScore<-modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$IniEvalScore
+        ExitDay<-modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$AdjustDay
+        IniUDLY<-theIniEvalScore$UDLY
+        
+        ##
+        # prepare data structure for the sim_idx'th simulation
+        
+        #Hedge score
+        DeltaHedgeScore=data.frame(Day=rep(0,times=ExitDay+1),Payoff=rep(0,times=ExitDay+1),
+                                   HedgedDelta=rep(0,times=ExitDay+1),Last_UDLY=rep(IniUDLY,times=ExitDay+1),)
+        Profit_new<-rep(0,times=ExitDay+1)
+        ##
+        # process each day
+        for(ith_day in 1:ExitDay){
+          theEvalScore<-modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$EvalScore[[ith_day]]
+          #get Delta
+          theDelta<-theEvalScore$Delta
+          theProfit<-modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$Profit
+          
+          #the day's delta hedged payoff should be calculated.
+          newDeltaHedgedPayoff<-0
+          newDeltaHedged<-DeltaHedgeScore[ith_day,0]$HedgeDelta
+        
+          #Delta Hedge causing trigger
+          if(theDelta<DeltThresh_Minus){
+          ##if(theDelta>DeltThresh_Plus && DeltaHedgeScore[ith_day,0]$HedgedDelta>0){
+            
+            newDeltaHedged<-(-1)*theDelta
+            
+            Profit_new[ith_day]<-theProfit+DeltaHedgeScore[ith_day,0]$Payoff
+            
+            #新しいDeltaEffectを計算するために、expPriceChangeを元のEvalScoreから逆算する
+            theExpPriceChange<-(-theEvalScore$DeltaEffect/abs(theEvalScore$Delta))
+            #new Delta and DeltaEffect updated.
+            theEvalScore$Delta<-newDelta<-theEvalScore$Delta+DeltaHedgeScore[ith_day,0]$HedgeDelta
+            theEvalScore$DeltaEffect<-(-abs(newDelta))*theExpPriceChange
+            
+            #theEvalScore$Price should be updated?
+          }
+          DeltaHedgeScore[ith_day,0]<-c(ith_day,theDeltaHedgedPayoff,newDeltaHedged,theEvalScore$UDLY)
+          
+          modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$EvalScore[[ith_day]]<-theEvalScore
+        }
+        #modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$Profit <- Profit_new
+      }
+      cat(" scenario ",scenario_idx, " time: ",(proc.time()-start_t)[3])
+    }
+    ##
+    # modefied modelStimRawlist$stimrslt is to be reflected
+    
+    #show the profit profiles before the reflection
+    modelScenario %>% select(min_profit,max_profit,mean_profit,median_profit,profit_sd) %>% print()
+    data.frame(min_profit=min(modelScenario$min_profit),max_profit=max(modelScenario$max_profit),
+               expected_profit=sum(modelScenario$weight*modelScenario$mean_profit)) %>% print()
+    
+    #reflection each-scenario-rowwise()
+    #first resdf
+    modelStimRawlist %>% rowwise() %>% do(resdf=getStimResultDataFrame(.$stimrslt,SimuNum)) -> tmp
+    modelScenario$resdf<-tmp$resdf ; rm(tmp)
+    #second profit profiles
+    modelScenario %>% rowwise() %>% do(min_profit=min(.$resdf$profit),max_profit=max(.$resdf$profit),
+                                       mean_profit=mean(.$resdf$profit),median_profit=median(.$resdf$profit),
+                                       profit_sd=sd(.$resdf$profit)) -> tmp
+    modelScenario$min_profit<-unlist(tmp$min_profit)
+    modelScenario$max_profit<-unlist(tmp$max_profit)
+    modelScenario$mean_profit<-unlist(tmp$mean_profit)
+    modelScenario$median_profit<-unlist(tmp$median_profit)
+    modelScenario$profit_sd<-unlist(tmp$profit_sd)
+    
+    #show the profit profiles after the reflection
+    #modelScenario %>% rowwise() %>% do(.$resdf %>% print()  )
+    modelScenario %>% select(min_profit,max_profit,mean_profit,median_profit,profit_sd) %>% print()
+    data.frame(min_profit=min(modelScenario$min_profit),max_profit=max(modelScenario$max_profit),
+               expected_profit=sum(modelScenario$weight*modelScenario$mean_profit)) %>% print()
+    
+    fn<-paste(ResultFiles_Path_G,Underying_Symbol_G,"_adjustedScenario_",SpreadID,sep="")
     save(modelScenario,file=fn)
   }
 }
