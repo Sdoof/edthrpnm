@@ -15,7 +15,7 @@ Underying_Symbol_G=ConfigParameters["Underying_Symbol_G",1]
 ResultFiles_Path_G=ConfigParameters["ResultFiles_Path_G",1]
 
 #target spread IDs
-SpreaIDs=c(1)
+SpreadIDs=c(1)
 
 #plot data every this step days
 PlotStepDay=3
@@ -57,7 +57,7 @@ getPlotDataframe<-function(PlotDay){
 }
 
 #create data frames and write to the files
-for(SpreadID in SpreaIDs){
+for(SpreadID in SpreadIDs){
   cat("Spred ID:",SpreadID)
   #load modelStimRawlist and modelScenario.
   load(file=paste(ResultFiles_Path_G,Underying_Symbol_G,"_modelStimRawlist_",SpreadID,sep=""))
@@ -90,7 +90,7 @@ rm(day,totalstep,total_df)
 #Position reseted to 0
 #opchain$Position<-0
 
-for(SpreadID in SpreaIDs){
+for(SpreadID in SpreadIDs){
   cat("Spred ID:",SpreadID)
   plot_df<-read.table(paste(ResultFiles_Path_G,Underying_Symbol_G,FileChunk,SpreadID,".csv",sep=""),comment.char="#",header=T,sep=",")
   print(plot_df)
@@ -167,7 +167,7 @@ for(SpreadID in SpreaIDs){
 rm(day,maxDay,totalstep)
 rm(gg,SpreadID,InitUDLY,plot_df,plot_df_view,opchain)
 rm(modelScenario,modelStimRawlist)
-rm(SpreaIDs,PlotStepDay,SimDays,PlotDays)
+rm(SpreadIDs,PlotStepDay,SimDays,PlotDays)
 rm(ConfigFileName_G,ConfigParameters,ScenarioMode,PlotMAxPointNum)
 rm(FileChunk,SpreadIDS)
 rm(DataFiles_Path_G,ResultFiles_Path_G,Underying_Symbol_G,evalPosStart,evalPosEnd)
