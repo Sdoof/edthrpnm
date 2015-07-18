@@ -78,25 +78,25 @@ res1 %>% filter(.[,length(iniPos)+1]<Thresh_Score1) -> res1
 res1[,1:length(iniPos)] %>% rowwise() %>% do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp
 tmp  %>% rowwise() %>% do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp2
 res1$putn<-unlist(tmp2$putn);res1$calln<-unlist(tmp2$calln);rm(tmp);rm(tmp2)
+res1 -> total_res
 
 ##
 #  2Cb
-#res2<-createCombineCandidatePool(fname=paste(ResultFiles_Path_G,"2Cb.csv",sep=""),
-#                                 pnum=0,nrows=-1,skip=0,method=1)
-res2<-read.table(paste(ResultFiles_Path_G,"2Cb.csv",sep=""),header=F,skipNul=TRUE,sep=",")
-res2 %>% dplyr::arrange(res2[,(length(iniPos)+1)]) %>% dplyr::distinct() -> res2
+
+res1<-read.table(paste(ResultFiles_Path_G,"2Cb.csv",sep=""),header=F,skipNul=TRUE,sep=",")
+res1 %>% dplyr::arrange(res1[,(length(iniPos)+1)]) %>% dplyr::distinct() -> res1
 #必要のない列の削除
-res2 %>% select(1:(length(iniPos)+1)) -> res2
+res1 %>% select(1:(length(iniPos)+1)) -> res1
 #over the specified socre
-res2 %>% filter(.[,length(iniPos)+1]<Thresh_Score2) -> res2
+res1 %>% filter(.[,length(iniPos)+1]<Thresh_Score2) -> res1
 #posnum put call
-res2[,1:length(iniPos)] %>% rowwise() %>% do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp
+res1[,1:length(iniPos)] %>% rowwise() %>% do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp
 tmp  %>% rowwise() %>% do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp2
-res2$putn<-unlist(tmp2$putn);res2$calln<-unlist(tmp2$calln);rm(tmp);rm(tmp2)
+res1$putn<-unlist(tmp2$putn);res1$calln<-unlist(tmp2$calln);rm(tmp);rm(tmp2)
 
 #full join
-full_join(res1,res2) %>% arrange(.[,length(iniPos)+1])  %>% distinct() -> total_res
-rm(res1,res2)
+full_join(total_res,res1) %>% arrange(.[,length(iniPos)+1])  %>% distinct() -> total_res
+rm(res1)
 
 ##
 #  3Cb
@@ -115,6 +115,49 @@ res1$putn<-unlist(tmp2$putn);res1$calln<-unlist(tmp2$calln);rm(tmp);rm(tmp2)
 
 #full join
 full_join(total_res,res1) %>% arrange(.[,length(iniPos)+1])  %>% distinct() -> total_res
+
+full_join(total_res,res1) %>% arrange(.[,length(iniPos)+1])  %>% distinct() -> total_res
+
+##Historical Implied Volatility Data
+rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_IV.csv",sep="") 
+histIV<-read.table(rf,header=T,sep=",",nrows=1000);rm(rf)
+#filtering
+histIV %>% dplyr::transmute(Date=Date,IVIDX=Close/100) -> histIV
+histIV %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")<=max(as.Date(opchain$Date,format="%Y/%m/%d"))) %>%
+  dplyr::arrange(desc(as.Date(Date,format="%Y/%m/%d"))) %>% head(n=dviv_caldays) -> histIV
+
+## Advantageous Effect
+total_res[,1:length(iniPos)] %>% rowwise() %>% 
+  do(ThetaEffect=getPositionGreeks(hollowNonZeroPosition(unlist(.)),multi=PosMultip,HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio)$ThetaEffect,
+     GammaEffect=getPositionGreeks(hollowNonZeroPosition(unlist(.)),multi=PosMultip,HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio)$GammaEffect) -> tmp
+total_res$AdvEffect<-unlist(tmp$ThetaEffect)+unlist(tmp$GammaEffect) ; rm(tmp)
+
+# Writing to files based on option legs total number
+total_res %>% mutate(posn=(putn+calln)) -> total_res
+total_res %>%  filter(posn<=5) %>% filter(.[,length(iniPos)+1]<2.0) ->tmp_fil 
+
+#Filter based on theGreeks Effect
+tmp_fil %>% dplyr::filter(AdvEffect>Thresh_AdvEffect) -> tmp_fil
+
+##
+
+#total_res %>%  filter(posn==7) %>% filter(.[,length(iniPos)+1]<1.4) ->tmp_fil2
+#total_res %>%  filter(posn>=8) %>% filter(.[,length(iniPos)+1]<1.2) ->tmp_fil3
+
+#write.table(tmp_fil,paste(ResultFiles_Path_G,"posnLE6.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
+write.table(tmp_fil,paste(ResultFiles_Path_G,Underying_Symbol_G,"_EvalPosition.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
+#write.table(tmp_fil2,paste(ResultFiles_Path_G,"posnEQ7.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
+#write.table(tmp_fil3,paste(ResultFiles_Path_G,"posnGT8.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
+
+rm(getPutCallnOfthePosition)
+rm(genoud_inipop_vec,dfoptim_inipop_vec)
+rm(tmp,tmp_fil,tmp_fil2,tmp_fil3,res1)
+rm(histIV,total_res,opchain,iniPos)
+rm(Thresh_Score1,Thresh_Score2,Thresh_Score3,Thresh_AdvEffect)
+rm(CALENDAR_G,PosMultip,divYld_G,dviv_caldays,holdDays,riskFreeRate_G)
+rm(ConfigFileName_G,ConfigParameters)
+rm(DataFiles_Path_G,ResultFiles_Path_G,OpType_Call_G,OpType_Put_G)
+rm(Underying_Symbol_G,TimeToExp_Limit_Closeness_G)
 
 ##
 #  2Cb+2Cb
@@ -144,42 +187,4 @@ full_join(total_res,res1) %>% arrange(.[,length(iniPos)+1])  %>% distinct() -> t
 # tmp  %>% rowwise() %>% do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp2
 # res1$putn<-unlist(tmp2$putn);res1$calln<-unlist(tmp2$calln);rm(tmp);rm(tmp2)
 #full join
-# full_join(total_res,res1) %>% arrange(.[,length(iniPos)+1])  %>% distinct() -> total_res
-
-##Historical Implied Volatility Data
-rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_IV.csv",sep="") 
-histIV<-read.table(rf,header=T,sep=",",nrows=1000);rm(rf)
-#filtering
-histIV %>% dplyr::transmute(Date=Date,IVIDX=Close/100) -> histIV
-histIV %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")<=max(as.Date(opchain$Date,format="%Y/%m/%d"))) %>%
-  dplyr::arrange(desc(as.Date(Date,format="%Y/%m/%d"))) %>% head(n=dviv_caldays) -> histIV
-
-## Advantageous Effect
-total_res[,1:length(iniPos)] %>% rowwise() %>% 
-  do(ThetaEffect=getPositionGreeks(hollowNonZeroPosition(unlist(.)),multi=PosMultip,HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio)$ThetaEffect,
-     GammaEffect=getPositionGreeks(hollowNonZeroPosition(unlist(.)),multi=PosMultip,HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio)$GammaEffect) -> tmp
-total_res$AdvEffect<-unlist(tmp$ThetaEffect)+unlist(tmp$GammaEffect) ; rm(tmp)
-#Filter based on theGreeks Effect
-total_res %>% dplyr::filter(AdvEffect>Thresh_AdvEffect) -> total_res
-
-##
-# Writing to files based on option legs total number
-total_res %>% mutate(posn=(putn+calln)) -> total_res
-total_res %>%  filter(posn<=6) %>% filter(.[,length(iniPos)+1]<1.8) ->tmp_fil 
-total_res %>%  filter(posn==7) %>% filter(.[,length(iniPos)+1]<1.4) ->tmp_fil2
-total_res %>%  filter(posn>=8) %>% filter(.[,length(iniPos)+1]<1.2) ->tmp_fil3
-
-#write.table(tmp_fil,paste(ResultFiles_Path_G,"posnLE6.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
-write.table(tmp_fil,paste(ResultFiles_Path_G,Underying_Symbol_G,"_EvalPosition.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
-write.table(tmp_fil2,paste(ResultFiles_Path_G,"posnEQ7.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
-write.table(tmp_fil3,paste(ResultFiles_Path_G,"posnGT8.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
-
-rm(getPutCallnOfthePosition)
-rm(genoud_inipop_vec,dfoptim_inipop_vec)
-rm(tmp,tmp_fil,tmp_fil2,tmp_fil3,res1,res2)
-rm(histIV,total_res,opchain,iniPos)
-rm(Thresh_Score1,Thresh_Score2,Thresh_Score3,Thresh_AdvEffect)
-rm(CALENDAR_G,PosMultip,divYld_G,dviv_caldays,holdDays,riskFreeRate_G)
-rm(ConfigFileName_G,ConfigParameters)
-rm(DataFiles_Path_G,ResultFiles_Path_G,OpType_Call_G,OpType_Put_G)
-rm(Underying_Symbol_G,TimeToExp_Limit_Closeness_G)
+#
