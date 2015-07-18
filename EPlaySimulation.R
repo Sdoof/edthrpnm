@@ -168,8 +168,7 @@ for(Counter in evalPosStart:evalPosEnd){
   modelScenario<-data.frame(mu_udly=mu_udly,sigma_udly=sigma_udly,mu_iv=mu_iv,sigma_iv=sigma_iv,weight=weight)
   rm(mu_udly,sigma_udly,mu_iv,sigma_iv,weight)
   
-  ## Stimulation
-  modelScenario %>% rowwise() %>% do(stimrslt=Stimulate(position=position,StimultaionNum=StimultaionNum,MaxStimDay=MaxStimDay,PosMultip=PosMultip,
+  modelScenario %>% rowwise() %>% do(stimrslt=Simulate(position=position,StimultaionNum=StimultaionNum,MaxStimDay=MaxStimDay,PosMultip=PosMultip,
                                                         mu_udly=.$mu_udly,sigma_udly=.$sigma_udly,
                                                         mu_iv=.$mu_iv,sigma_iv=.$sigma_iv,HV_IV_Adjust_Ratio,IV_DEVIATION=Sim_IV_DEVIATION)) -> modelStimRawlist
   
