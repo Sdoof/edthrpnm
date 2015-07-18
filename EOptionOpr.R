@@ -1,6 +1,3 @@
-library(RQuantLib)
-##
-# Functions to be loaded ----------------
 
 #  Greekの計算と設定
 set.AmericanIVOrig <- function(xT){

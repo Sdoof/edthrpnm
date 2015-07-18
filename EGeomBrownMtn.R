@@ -1,5 +1,3 @@
-##
-# functions to be loaded --------------
 
 # Volatility Level Analysis and Regression
 #getting annual and daili volatility

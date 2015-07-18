@@ -1,11 +1,4 @@
-###Start
-library(RQuantLib)
-##
-# Functions to be loaded -------------------------
-
-#  Greekの計算と設定
-
-#IV (Original IV)
+#Set IV
 set.IVOrig <- function(xT){
   xT$OrigIV<-rep(0,times=length(xT$TYPE))
   for(i in 1:length(xT$TYPE)){
@@ -26,9 +19,8 @@ set.IVOrig <- function(xT){
   xT$OrigIV
 }
 
-
 #Set Value Greeks
-set.ValueGreeks <- function(xT){
+set.EuropeanOptionValueGreeks <- function(xT){
   value<-rep(0,length(xT$TYPE))
   delta<-rep(0,length(xT$TYPE))
   gamma<-rep(0,length(xT$TYPE))

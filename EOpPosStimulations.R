@@ -1,42 +1,9 @@
-###
-# Start Stimulation
-##
-####
-
-##
-# Functions to be loaded ---------
-
 #get business days between the days expressed as character
 get.busdays.between <- function(start,end){
   bus_day<-businessDaysBetween(CALENDAR_G,
                                as.Date(start,format="%Y/%m/%d"),
                                as.Date(end,format="%Y/%m/%d"))
   bus_day
-}
-
-#set.ValueGreeks(xt) should be loaded before.
-# Option Value and Greek Change
-set.EuropeanOptionValueGreeks <- function(xt){
-  tmp_<-(set.ValueGreeks(xt))
-  
-#   Grknames<-c("Price","Delta","Gamma","Vega","Theta","Rho")
-#   ret_<-vector("list",length(Grknames))
-#   #Price
-#   ret_[[1]]<-tmp_[[1]]
-#   #Delta
-#   ret_[[2]]<-tmp_[[2]]
-#   #Gamma
-#   ret_[[3]]<-tmp_[[3]]
-#   #Vega
-#   ret_[[4]]<-tmp_[[4]]/100
-#   #Theta
-#   ret_[[5]]<-tmp_[[5]]/365
-#   #Rho
-#   ret_[[6]]<-tmp_[[6]]/365
-#   names(ret_)<-Grknames
-  #ret_<-tmp_
-  #ret_
-  tmp_
 }
 
 ##
