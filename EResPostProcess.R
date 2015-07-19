@@ -116,8 +116,6 @@ res1$putn<-unlist(tmp2$putn);res1$calln<-unlist(tmp2$calln);rm(tmp);rm(tmp2)
 #full join
 full_join(total_res,res1) %>% arrange(.[,length(iniPos)+1])  %>% distinct() -> total_res
 
-full_join(total_res,res1) %>% arrange(.[,length(iniPos)+1])  %>% distinct() -> total_res
-
 ##Historical Implied Volatility Data
 rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_IV.csv",sep="") 
 histIV<-read.table(rf,header=T,sep=",",nrows=1000);rm(rf)
@@ -126,20 +124,18 @@ histIV %>% dplyr::transmute(Date=Date,IVIDX=Close/100) -> histIV
 histIV %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")<=max(as.Date(opchain$Date,format="%Y/%m/%d"))) %>%
   dplyr::arrange(desc(as.Date(Date,format="%Y/%m/%d"))) %>% head(n=dviv_caldays) -> histIV
 
-## Advantageous Effect
-total_res[,1:length(iniPos)] %>% rowwise() %>% 
-  do(ThetaEffect=getPositionGreeks(hollowNonZeroPosition(unlist(.)),multi=PosMultip,HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio)$ThetaEffect,
-     GammaEffect=getPositionGreeks(hollowNonZeroPosition(unlist(.)),multi=PosMultip,HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio)$GammaEffect) -> tmp
-total_res$AdvEffect<-unlist(tmp$ThetaEffect)+unlist(tmp$GammaEffect) ; rm(tmp)
-
 # Writing to files based on option legs total number
 total_res %>% mutate(posn=(putn+calln)) -> total_res
-total_res %>%  filter(posn<=5) %>% filter(.[,length(iniPos)+1]<2.0) ->tmp_fil 
+total_res %>%  filter(posn<=5) %>% filter(.[,length(iniPos)+1]<1.0) ->tmp_fil 
+
+## Advantageous Effect
+tmp_fil[,1:length(iniPos)] %>% rowwise() %>% 
+  do(ThetaEffect=getPositionGreeks(hollowNonZeroPosition(unlist(.)),multi=PosMultip,HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio)$ThetaEffect,
+     GammaEffect=getPositionGreeks(hollowNonZeroPosition(unlist(.)),multi=PosMultip,HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio)$GammaEffect) -> tmp
+tmp_fil$AdvEffect<-unlist(tmp$ThetaEffect)+unlist(tmp$GammaEffect) ; rm(tmp)
 
 #Filter based on theGreeks Effect
 tmp_fil %>% dplyr::filter(AdvEffect>Thresh_AdvEffect) -> tmp_fil
-
-##
 
 #total_res %>%  filter(posn==7) %>% filter(.[,length(iniPos)+1]<1.4) ->tmp_fil2
 #total_res %>%  filter(posn>=8) %>% filter(.[,length(iniPos)+1]<1.2) ->tmp_fil3
@@ -150,15 +146,15 @@ write.table(tmp_fil,paste(ResultFiles_Path_G,Underying_Symbol_G,"_EvalPosition.c
 #write.table(tmp_fil3,paste(ResultFiles_Path_G,"posnGT8.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
 
 rm(getPutCallnOfthePosition)
-rm(genoud_inipop_vec,dfoptim_inipop_vec)
 rm(tmp,tmp_fil,tmp_fil2,tmp_fil3,res1)
-rm(histIV,total_res,opchain,iniPos)
+rm(histIV,opchain,iniPos)
 rm(Thresh_Score1,Thresh_Score2,Thresh_Score3,Thresh_AdvEffect)
 rm(CALENDAR_G,PosMultip,divYld_G,dviv_caldays,holdDays,riskFreeRate_G)
 rm(ConfigFileName_G,ConfigParameters)
 rm(DataFiles_Path_G,ResultFiles_Path_G,OpType_Call_G,OpType_Put_G)
 rm(Underying_Symbol_G,TimeToExp_Limit_Closeness_G)
 
+rm(total_res)
 ##
 #  2Cb+2Cb
 # res1<-createCombineCandidatePool(fname=paste(ResultFiles_Path_G,"4Cb.csv",sep=""),
