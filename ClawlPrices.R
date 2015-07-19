@@ -9,13 +9,6 @@ wfilename_<-paste("opprice",today,".csv",sep="")
 quart<-getQuote("^RUT")
 write.table(quart,wfilename_,quote=T,row.names=F,append=T,sep=",")
 write("Strike,ContactName,Last,Bid,Ask,Change,%Change,Volume,OI,IV,ExpDate",wfilename_,append=T)
-#2015/07/17
-tbl_<-readHTMLTable("http://finance.yahoo.com/q/op?s=^RUT&date=1437091200")
-expdate<-"2015/7/17"
-tbl_[[2]]["ExpDate"]<-expdate
-write.table(tbl_[[2]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
-tbl_[[3]]["ExpDate"]<-expdate
-write.table(tbl_[[3]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
 #2015/08/21
 tbl_<-readHTMLTable("http://finance.yahoo.com/q/op?s=^RUT&date=1440115200")
 expdate<-"2015/8/21"
@@ -49,13 +42,6 @@ write.table(tbl_[[3]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
 quart<-getQuote("^SPXPM")
 write.table(quart,wfilename_,quote=T,row.names=F,col.names=F,append=T,sep=",")
 write("Strike,ContactName,Last,Bid,Ask,Change,%Change,Volume,OI,IV,ExpDate",wfilename_,append=T)
-#2015/07/17
-tbl_<-readHTMLTable("http://finance.yahoo.com/q/op?s=^SPXPM&date=1437091200")
-expdate<-"2015/7/17"
-tbl_[[2]]["ExpDate"]<-expdate
-write.table(tbl_[[2]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
-tbl_[[3]]["ExpDate"]<-expdate
-write.table(tbl_[[3]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
 #2015/08/21
 tbl_<-readHTMLTable("http://finance.yahoo.com/q/op?s=^SPXPM&date=1440115200")
 expdate<-"2015/8/21"
@@ -108,13 +94,6 @@ write.table(tbl_[[3]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
 quart<-getQuote("EEM")
 write.table(quart,wfilename_,quote=T,row.names=F,col.names=F,append=T,sep=",")
 write("Strike,ContactName,Last,Bid,Ask,Change,%Change,Volume,OI,IV,ExpDate",wfilename_,append=T)
-#2015/07/17
-tbl_<-readHTMLTable("http://finance.yahoo.com/q/op?s=EEM&date=1437091200")
-expdate<-"2015/7/17"
-tbl_[[2]]["ExpDate"]<-expdate
-write.table(tbl_[[2]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
-tbl_[[3]]["ExpDate"]<-expdate
-write.table(tbl_[[3]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
 #2015/08/21
 tbl_<-readHTMLTable("http://finance.yahoo.com/q/op?s=EEM&date=1440115200")
 expdate<-"2015/8/21"
@@ -155,13 +134,6 @@ write.table(tbl_[[3]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
 quart<-getQuote("VWO")
 write.table(quart,wfilename_,quote=T,row.names=F,col.names=F,append=T,sep=",")
 write("Strike,ContactName,Last,Bid,Ask,Change,%Change,Volume,OI,IV,ExpDate",wfilename_,append=T)
-#2015/07/17
-tbl_<-readHTMLTable("http://finance.yahoo.com/q/op?s=VWO&date=1437091200")
-expdate<-"2015/7/17"
-tbl_[[2]]["ExpDate"]<-expdate
-write.table(tbl_[[2]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
-tbl_[[3]]["ExpDate"]<-expdate
-write.table(tbl_[[3]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
 #2015/09/18
 tbl_<-readHTMLTable("http://finance.yahoo.com/q/op?s=VWO&date=1442534400")
 expdate<-"2015/7/17"
@@ -174,13 +146,6 @@ write.table(tbl_[[3]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
 quart<-getQuote("GLD")
 write.table(quart,wfilename_,quote=T,row.names=F,col.names=F,append=T,sep=",")
 write("Strike,ContactName,Last,Bid,Ask,Change,%Change,Volume,OI,IV,ExpDate",wfilename_,append=T)
-#2015/7/17
-tbl_<-readHTMLTable("http://finance.yahoo.com/q/op?s=GLD&date=1437091200")
-expdate<-"2015/7/17"
-tbl_[[2]]["ExpDate"]<-expdate
-write.table(tbl_[[2]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
-tbl_[[3]]["ExpDate"]<-expdate
-write.table(tbl_[[3]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
 #2015/8/21
 tbl_<-readHTMLTable("http://finance.yahoo.com/q/op?s=GLD&date=1440115200")
 expdate<-"2015/8/21"
@@ -221,13 +186,6 @@ write.table(tbl_[[3]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
 quart<-getQuote("SLV")
 write.table(quart,wfilename_,quote=T,row.names=F,col.names=F,append=T,sep=",")
 write("Strike,ContactName,Last,Bid,Ask,Change,%Change,Volume,OI,IV,ExpDate",wfilename_,append=T)
-#2015/07/17
-tbl_<-readHTMLTable("http://finance.yahoo.com/q/op?s=SLV&date=1437091200")
-expdate<-"2015/7/17"
-tbl_[[2]]["ExpDate"]<-expdate
-write.table(tbl_[[2]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
-tbl_[[3]]["ExpDate"]<-expdate
-write.table(tbl_[[3]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
 
 #AUD/USD Future Option
 #2015 Sep
