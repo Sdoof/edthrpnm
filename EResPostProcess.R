@@ -44,6 +44,9 @@ Thresh_Score2=as.numeric(ConfigParameters["ResultProcess_Thresh_Score2",1])
 Thresh_Score3=as.numeric(ConfigParameters["ResultProcess_Thresh_Score3",1])
 Thresh_AdvEffect=as.numeric(ConfigParameters["ResultProcess_Thresh_AdvEffect",1])
 
+#Save the rest position
+SAVE_ALL=FALSE
+
 #ophcain 
 rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep="")
 opchain<-read.table(rf,header=T,sep=",",stringsAsFactors=FALSE)
@@ -129,33 +132,62 @@ total_res %>% mutate(posn=(putn+calln)) -> total_res
 total_res %>%  filter(posn==5) %>% filter(.[,length(iniPos)+1]<2.0) ->tmp_fil 
 
 ## Advantageous Effect
-tmp_fil[,1:length(iniPos)] %>% rowwise() %>% 
-  do(ThetaEffect=getPositionGreeks(hollowNonZeroPosition(unlist(.)),multi=PosMultip,HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio)$ThetaEffect,
-     GammaEffect=getPositionGreeks(hollowNonZeroPosition(unlist(.)),multi=PosMultip,HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio)$GammaEffect) -> tmp
-tmp_fil$AdvEffect<-unlist(tmp$ThetaEffect)+unlist(tmp$GammaEffect) ; rm(tmp)
 
-#Filter based on theGreeks Effect
-tmp_fil %>% dplyr::filter(AdvEffect>Thresh_AdvEffect) -> tmp_fil
+#create put and call pos num of the specified spread
+getPositionWithGreeks<-function(tmp_fil){
+  tmp_fil[,1:length(iniPos)] %>% rowwise() %>% 
+    do(theGreks=getPositionGreeks(hollowNonZeroPosition(unlist(.)),multi=PosMultip,HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio)) -> tmp
+  tmp_fil$theGreks<-tmp$theGreks
+  tmp_fil %>% rowwise() %>% do(Delta=.$theGreks$Delta,DeltaEffect=.$theGreks$DeltaEffect,VegaEffect=.$theGreks$VegaEffect,
+                               ThetaEffect=.$theGreks$ThetaEffect,GammaEffect=.$theGreks$GammaEffect) -> tmp2
+  tmp_fil$Delta<-unlist(tmp2$Delta)
+  tmp_fil$DeltaEffect<-unlist(tmp2$DeltaEffect)
+  tmp_fil$ThetaEffect<-unlist(tmp2$ThetaEffect)
+  tmp_fil$GammaEffect<-unlist(tmp2$GammaEffect)
+  tmp_fil$VegaEffect<-unlist(tmp2$VegaEffect)
+  tmp_fil$theGreks<-NULL
+  tmp_fil$AdvEffect<-unlist(tmp2$ThetaEffect)+unlist(tmp2$GammaEffect)
+  
+  return(tmp_fil)
+}
 
-total_res -> tmp_fil2
-#total_res %>%  filter(posn==7) %>% filter(.[,length(iniPos)+1]<1.4) ->tmp_fil2
-#total_res %>%  filter(posn>=8) %>% filter(.[,length(iniPos)+1]<1.2) ->tmp_fil3
+getPositionWithGreeks(tmp_fil) %>% arrange(desc(AdvEffect)) -> tmp_fil
 
-#write.table(tmp_fil,paste(ResultFiles_Path_G,"posnLE6.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
-write.table(tmp_fil,paste(ResultFiles_Path_G,Underying_Symbol_G,"_EvalPosition.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
-write.table(tmp_fil2,paste(ResultFiles_Path_G,Underying_Symbol_G,"_ALLEvalPosition.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
-#write.table(tmp_fil3,paste(ResultFiles_Path_G,"posnGT8.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
+## Filtering
+tmp_fil %>% arrange(desc(AdvEffect)) %>%  filter(Delta>-50) %>% filter(Delta<30) %>%
+  top_n(100) -> tmp_fil_w ; print(tmp_fil_w)
+tmp_fil %>% arrange(desc(AdvEffect)) %>%  filter(.[,length(iniPos)+1]<1.2) %>% 
+  filter(Delta>-50) %>% filter(Delta<30) %>% top_n(100) -> tmp_fil_w ; print(tmp_fil_w)
 
-rm(getPutCallnOfthePosition)
-rm(tmp,tmp_fil,tmp_fil2,tmp_fil3,res1)
+## Save to a file
+write.table(tmp_fil_w,paste(ResultFiles_Path_G,Underying_Symbol_G,"_EvalPosition.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
+rm(tmp_fil_w)
+
+## Advantageous Effect for the Rest
+if(SAVE_ALL){
+  total_res -> tmp_fil2
+  getPositionWithGreeks(tmp_fil2) %>% arrange(desc(AdvEffect)) -> tmp_fil2
+ 
+  ##Filtering
+  tmp_fil2 %>% arrange(desc(AdvEffect)) %>%  filter(.[,length(iniPos)+1]<1.2) %>% 
+    filter(Delta>-50) %>% filter(Delta<30) %>% top_n(5000) -> tmp_fil2_w ; print(tmp_fil2_w) ; print(tail(tmp_fil2_w,5))
+  
+  ##Save to a file
+  write.table(tmp_fil2_w,paste(ResultFiles_Path_G,Underying_Symbol_G,"_ALLEvalPosition.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
+  rm(tmp_fil2_w)
+}
+
+rm(getPutCallnOfthePosition,getPositionWithGreeks)
+rm(tmp,res1)
 rm(histIV,opchain,iniPos)
-rm(Thresh_Score1,Thresh_Score2,Thresh_Score3,Thresh_AdvEffect)
+
+rm(tmp_fil,tmp_fil2,total_res)
+rm(HV_IV_Adjust_Ratio,Thresh_Score1,Thresh_Score2,Thresh_Score3,Thresh_AdvEffect,SAVE_ALL)
 rm(CALENDAR_G,PosMultip,divYld_G,dviv_caldays,holdDays,riskFreeRate_G)
 rm(ConfigFileName_G,ConfigParameters)
 rm(DataFiles_Path_G,ResultFiles_Path_G,OpType_Call_G,OpType_Put_G)
 rm(Underying_Symbol_G,TimeToExp_Limit_Closeness_G)
 
-rm(total_res)
 ##
 #  2Cb+2Cb
 # res1<-createCombineCandidatePool(fname=paste(ResultFiles_Path_G,"4Cb.csv",sep=""),
