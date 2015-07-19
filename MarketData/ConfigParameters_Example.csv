@@ -11,12 +11,12 @@ holdDays,3
 dviv_caldays,20
 PosMultip,100
 EvalFnc_UdlStepNum,4
-EvalFnc_UdlStepPct,0.02
+EvalFnc_UdlStepPct,0.012
 EvalFnc_Maxposnum,8
 EvalFnc_Tail_rate,0.4
 EvalFnc_LossLimitPrice,30000
 EvalFnc_HV_IV_Adjust_Ratio,0.8
-EvalFnc_Delta_Thresh_Minus,-25
+EvalFnc_Delta_Thresh_Minus,-50
 EvalFnc_Delta_Thresh_Plus,0
 EvalFnc_AdvEffect_Coef,1
 EvalFnc_Profit_Coef,0
