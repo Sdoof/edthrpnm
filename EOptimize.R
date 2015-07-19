@@ -44,6 +44,8 @@ EvalFuncSetting<-c(EvalFuncSetting,list(as.numeric(ConfigParameters["EvalFnc_Max
 EvalFuncSetting<-c(EvalFuncSetting,list(as.numeric(ConfigParameters["EvalFnc_Tail_rate",1])))
 EvalFuncSetting<-c(EvalFuncSetting,list(as.numeric(ConfigParameters["EvalFnc_LossLimitPrice",1])))
 EvalFuncSetting<-c(EvalFuncSetting,list(as.numeric(ConfigParameters["EvalFnc_HV_IV_Adjust_Ratio",1])))
+EvalFuncSetting<-c(EvalFuncSetting,list(as.numeric(ConfigParameters["EvalFnc_Delta_Thresh_Minus",1])))
+EvalFuncSetting<-c(EvalFuncSetting,list(as.numeric(ConfigParameters["EvalFnc_Delta_Thresh_Plus",1])))
 EvalFuncSetting<-c(EvalFuncSetting,list(as.numeric(ConfigParameters["EvalFnc_Profit_Coef",1])))
 EvalFuncSetting<-c(EvalFuncSetting,list(as.numeric(ConfigParameters["EvalFnc_AllEffect_Coef",1])))
 EvalFuncSetting<-c(EvalFuncSetting,list(as.numeric(ConfigParameters["EvalFnc_AdvEffect_Coef",1])))
@@ -53,6 +55,7 @@ EvalFuncSetting<-c(EvalFuncSetting,list(as.numeric(ConfigParameters["EvalFnc_Sig
 EvalFuncSetting<-c(EvalFuncSetting,list(ifelse(as.numeric(ConfigParameters["EvalFnc_ThetaEffectPositive",1])==1,TRUE,FALSE)))
 
 names(EvalFuncSetting)<-c("holdDays","UdlStepNum","UdlStepPct","Maxposnum","Tail_rate","LossLimitPrice","HV_IV_Adjust_Ratio",
+                          "Delta_Thresh_Minus","Delta_Thresh_Plus",
                           "Profit_Coef","AllEffect_Coef","AdvEffect_Coef","DrctlEffect_Coef","SigmoidA_Numerator","SigmoidA_Denominator",
                           "ThetaEffectPositive")
 
@@ -165,10 +168,10 @@ for(tmp in 1:InitialPopCreateLoopNum){
                                           isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
   create_initial_exact_PutCall_polulation(popnum=100,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=2,calln=0,ml=2,
                                           fname=paste(".\\ResultData\\inipop-02P2C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
-                                          isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
+                                          isFileout=TRUE,isDebug=TRUE,isDetail=TRUE)
   create_initial_exact_PutCall_polulation(popnum=100,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=0,calln=2,ml=2,
                                           fname=paste(".\\ResultData\\inipop-02P0C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
-                                          isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
+                                          isFileout=TRUE,isDebug=TRUE,isDetail=TRUE)
 };rm(tmp)
 
 #1Cb.csv

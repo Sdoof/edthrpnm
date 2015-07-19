@@ -78,9 +78,20 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   ##
   # cost6 Directional Effects.
   #weight is normalized
-  c6<- -sum((posEvalTbl$DeltaEffect+posEvalTbl$VegaEffect)*weight)
+  theDelta<-sum(posEvalTbl$Delta*weight)
+  theDeltaEfct<-sum(posEvalTbl$DeltaEffect*weight)
+  #DeltaE_comp<-(Delta<0)*(Delta<L1)*DeltaE+(Delta>0)*(Delta>L2)*DeltaE
+  DeltaEffect_Comp<-(theDelta<0)*(theDelta<Setting$Delta_Thresh_Minus)*theDeltaEfct+
+                            (theDelta>0)*(theDelta>Setting$Delta_Thresh_Plus)*theDeltaEfct
+  
+  if(isDebug){
+    cat(" :(Delta)",theDelta)
+    cat(" :(DeltaE)",theDeltaEfct," :(new DeltaE)",DeltaEffect_Comp)
+  }
+  
+  c6<- -sum(posEvalTbl$VegaEffect*weight)-DeltaEffect_Comp
   #cost6<-sigmoid(c5,a=Setting$SigmoidA_AllEffect,b=0)
-  if(isDebug){cat(" :c6(DrctlEffect)",c6)}
+  if(isDebug){cat(":VegaE",sum(posEvalTbl$VegaEffect*weight)," :c6(DrctlEffect)",c6)}
   
   ##
   # cost7 All Effects.
