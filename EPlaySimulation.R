@@ -68,11 +68,11 @@ rf<-paste(ResultFiles_Path_G,Underying_Symbol_G,"_EvalPosition.csv",sep="")
 evalPositions<-read.table(rf,header=F,sep=",")
 length(opchain$Position)
 if(length(evalPositions)>length(opchain$Position)){
-  evalPositions %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% distinct() -> evalPositions 
+  evalPositions %>% distinct() -> evalPositions 
 };rm(rf)
 
 # Top n Spreads
-evalPositions %>% arrange(.[,length(opchain$Position)+1]) %>% slice(evalPosStart:evalPosEnd) -> evalPositions
+evalPositions %>% slice(evalPosStart:evalPosEnd) -> evalPositions
 
 # Num of each Stimulation
 StimultaionNum=as.numeric(ConfigParameters["SimultaionNum",1])
