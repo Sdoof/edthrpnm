@@ -368,7 +368,7 @@ getIntrisicValue<-function(udly_price,position,multip=PosMultip){
 # as the case of even number (half +1 long, the other half -1 short).
 # When the each position of returned compound spread is 1 or -1, the spread position are multiplied by ml. 
 
-create_initial_exact_PutCall_polulation<-function(popnum,type,EvalFuncSetting,thresh=3.0,putn=6,calln=6,ml=2,fname,PosMultip,isFileout=FALSE,isDebug=FALSE,isDetail=FALSE){
+create_initial_exact_PutCall_polulation<-function(popnum,type,EvalFuncSetting,thresh,putn,calln,ml,fname,PosMultip,isFileout=FALSE,isDebug=FALSE,isDetail=FALSE){
   added_num<-0
   total_count<-0
   while(TRUE){
@@ -413,7 +413,8 @@ create_initial_exact_PutCall_polulation<-function(popnum,type,EvalFuncSetting,th
     if(isDebug){ cat(" (:y",y,")") }
     if(isDebug){ cat(" (:z",z,") :x(y+z) ") }
     x<-y+z
-    x<-as.numeric(((putn%%2)==0)*((calln%%2)==0))*ml*x+as.numeric(!((putn%%2)==0)*((calln%%2)==0))*x
+    #x<-as.numeric(((putn%%2)==0)*((calln%%2)==0))*ml*x+as.numeric(!((putn%%2)==0)*((calln%%2)==0))*x
+    x<-as.numeric(((putn%%2)==0)*((calln%%2)==0))*ml*x+as.numeric(!((putn%%2)==0)*((calln%%2)==0))*ml*x
     if(isDebug){ cat(" (:x",x,")") }
     
     tryCatch(val<-obj_Income_sgmd(x,EvalFuncSetting,isDebug=isDebug,isDetail=isDetail,
