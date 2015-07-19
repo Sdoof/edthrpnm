@@ -126,7 +126,7 @@ histIV %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")<=max(as.Date(opchain$Da
 
 # Writing to files based on option legs total number
 total_res %>% mutate(posn=(putn+calln)) -> total_res
-total_res %>%  filter(posn<=5) %>% filter(.[,length(iniPos)+1]<1.0) ->tmp_fil 
+total_res %>%  filter(posn==5) %>% filter(.[,length(iniPos)+1]<2.0) ->tmp_fil 
 
 ## Advantageous Effect
 tmp_fil[,1:length(iniPos)] %>% rowwise() %>% 
