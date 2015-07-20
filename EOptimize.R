@@ -286,9 +286,6 @@ Thresh_Score2=as.numeric(ConfigParameters["ResultProcess_Thresh_Score2",1])
 Thresh_Score3=as.numeric(ConfigParameters["ResultProcess_Thresh_Score3",1])
 Thresh_AdvEffect=as.numeric(ConfigParameters["ResultProcess_Thresh_AdvEffect",1])
 
-#Save the rest position
-SAVE_ALL=FALSE
-
 #ophcain 
 rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep="")
 opchain<-read.table(rf,header=T,sep=",",stringsAsFactors=FALSE)
@@ -348,7 +345,9 @@ histIV %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")<=max(as.Date(opchain$Da
 
 # Writing to files based on option legs total number
 total_res %>% mutate(posn=(putn+calln)) -> total_res
-total_res %>%  filter(posn<=6) %>% filter(.[,length(iniPos)+1]<2.0) ->tmp_fil 
+total_res %>%  filter(posn==6) %>% filter(.[,length(iniPos)+1]<2.0) ->tmp_fil 
+total_res %>%  filter(posn==5|posn==4) %>% filter(.[,length(iniPos)+1]<2.0) ->tmp_fil2
+total_res %>%  filter(posn<=3) %>% filter(.[,length(iniPos)+1]<2.0) ->tmp_fil3
 
 ## Advantageous Effect
 
@@ -371,30 +370,30 @@ getPositionWithGreeks<-function(tmp_fil){
 }
 
 getPositionWithGreeks(tmp_fil) %>% arrange(desc(AdvEffect)) -> tmp_fil
+getPositionWithGreeks(tmp_fil2) %>% arrange(desc(AdvEffect)) -> tmp_fil2
+getPositionWithGreeks(tmp_fil3) %>% arrange(desc(AdvEffect)) -> tmp_fil3
 
 ## Filtering
-tmp_fil %>% arrange(desc(AdvEffect)) %>%  filter(Delta>-50) %>% filter(Delta<30) %>%
+tmp_fil %>% arrange(desc(AdvEffect)) %>%  filter(Delta>-50,Delta<30) %>% # filter(Delta<30) %>%
   top_n(100) -> tmp_fil_w ; print(tmp_fil_w)
 tmp_fil %>% arrange(desc(AdvEffect)) %>%  filter(.[,length(iniPos)+1]<1.6) %>% 
-  filter(Delta>-40) %>% filter(Delta<30) %>% top_n(100) -> tmp_fil_w ; print(tmp_fil_w)
+  filter(Delta>-40,Delta<30) %>% top_n(100) -> tmp_fil_w ; print(tmp_fil_w)
+
+tmp_fil2 %>% arrange(desc(AdvEffect)) %>%  filter(Delta>-50) %>% filter(Delta<30) %>%
+  top_n(100) -> tmp_fil_w2 ; print(tmp_fil_w2)
+tmp_fil2 %>% arrange(desc(AdvEffect)) %>%  filter(.[,length(iniPos)+1]<1.6) %>% 
+  filter(Delta>-40) %>% filter(Delta<30) %>% top_n(100) -> tmp_fil_w2 ; print(tmp_fil_w2)
+
+tmp_fil3 %>% arrange(desc(AdvEffect)) %>%  filter(Delta>-50) %>% filter(Delta<30) %>%
+  top_n(100) -> tmp_fil_w3 ; print(tmp_fil_w3)
+tmp_fil3 %>% arrange(desc(AdvEffect)) %>%  filter(.[,length(iniPos)+1]<1.6) %>% 
+  filter(Delta>-40) %>% filter(Delta<30) %>% top_n(100) -> tmp_fil_w3 ; print(tmp_fil_w3)
 
 ## Save to a file
 write.table(tmp_fil_w,paste(ResultFiles_Path_G,"EvalCnd.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
-rm(tmp_fil_w)
-
-## Advantageous Effect for the Rest
-if(SAVE_ALL){
-  total_res -> tmp_fil2
-  getPositionWithGreeks(tmp_fil2) %>% arrange(desc(AdvEffect)) -> tmp_fil2
-  
-  ##Filtering
-  tmp_fil2 %>% arrange(desc(AdvEffect)) %>%  filter(.[,length(iniPos)+1]<1.2) %>% 
-    filter(Delta>-50) %>% filter(Delta<30) %>% top_n(5000) -> tmp_fil2_w ; print(tmp_fil2_w) ; print(tail(tmp_fil2_w,5))
-  
-  ##Save to a file
-  write.table(tmp_fil2_w,paste(ResultFiles_Path_G,Underying_Symbol_G,"_ALLEvalPosition.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
-  rm(tmp_fil2_w)
-}
+write.table(tmp_fil_w2,paste(ResultFiles_Path_G,"EvalCnd2.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
+write.table(tmp_fil_w3,paste(ResultFiles_Path_G,"EvalCnd3.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
+rm(tmp_fil_w,tmp_fil_w2,tmp_fil_w3)
 
 rm(getPutCallnOfthePosition,getPositionWithGreeks)
 
@@ -410,6 +409,6 @@ rm(ConfigFileName_G,ConfigParameters,EvalFuncSetting)
 rm(CALENDAR_G,OpType_Call_G,OpType_Put_G,DataFiles_Path_G,ResultFiles_Path_G,TimeToExp_Limit_Closeness_G,Underying_Symbol_G)
 
 rm(tmp_fil,tmp_fil2,total_res)
-rm(HV_IV_Adjust_Ratio,Thresh_Score1,Thresh_Score2,Thresh_Score3,Thresh_AdvEffect,SAVE_ALL)
+rm(HV_IV_Adjust_Ratio,Thresh_Score1,Thresh_Score2,Thresh_Score3,Thresh_AdvEffect)
 
 
