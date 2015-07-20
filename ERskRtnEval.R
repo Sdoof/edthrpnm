@@ -8,14 +8,16 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   unacceptableVal=10
   #position where pos$Position != 0
   position<-hollowNonZeroPosition(pos=x)
+
   #position evaluated after holdDays later
   udlStepNum<-udlStepNum; udlStepPct<-udlStepPct
   udlChgPct<-seq(-udlStepPct*udlStepNum,udlStepPct*udlStepNum,length=(2*udlStepNum)+1)
   posEvalTbl<-createPositinEvalTable(position=position,udlStepNum=udlStepNum,udlStepPct=udlStepPct,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)
+  
   #At day 0 position price and Greeks.
-  thePositionGrk<-getPositionGreeks(position,multi=PosMultip,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)
-  if(isDetail){print(posEvalTbl$pos)}
-  if(isDetail){print(posEvalTbl)}  
+  #   thePositionGrk<-getPositionGreeks(position,multi=PosMultip,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)
+  #   if(isDetail){print(posEvalTbl$pos)}
+  #   if(isDetail){print(posEvalTbl)}  
   
   #weighting calculate
   sd_multp<-Setting$holdDays
@@ -37,36 +39,36 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   
   ##
   # Constraint 2. Tail Risk
-  tailPrice<-min(sum(getIntrisicValue(position$UDLY[1]*(1-tail_rate),position)),
-                 sum(getIntrisicValue(position$UDLY[1]*(1+tail_rate),position)))
+  #   tailPrice<-min(sum(getIntrisicValue(position$UDLY[1]*(1-tail_rate),position)),
+  #                  sum(getIntrisicValue(position$UDLY[1]*(1+tail_rate),position)))
+  #   lossLimitPrice <- (-1)*lossLimitPrice
+  #   if(isDebug){cat(" :tlpr",tailPrice);cat(" :lslmt",lossLimitPrice);cat(" :p2",penalty2)}
+  #   if(tailPrice<lossLimitPrice)
+  #     return(unacceptableVal)
   penalty2<-1
-  lossLimitPrice <- (-1)*lossLimitPrice
-  if(isDebug){cat(" :tlpr",tailPrice);cat(" :lslmt",lossLimitPrice);cat(" :p2",penalty2)}
-  if(tailPrice<lossLimitPrice)
-    return(unacceptableVal)
   
   ##
   # Constraint 4. ThetaEffect. This should be soft constraint
-  if(Setting$ThetaEffectPositive){
-    theta_ttl<-thePositionGrk$ThetaEffect+sum(posEvalTbl$ThetaEffect*weight)
-    penalty4<-(1)
-    if(isDetail){cat(" :thta_ttl",theta_ttl)}
-    if(isDetail){cat(" :thta_ini",thePositionGrk$ThetaEffect);cat(" :thta_wt",sum(posEvalTbl$ThetaEffect*weight))}
-    if(theta_ttl<0)
-      return(unacceptableVal)
-  }
+  #   if(Setting$ThetaEffectPositive){
+  #     theta_ttl<-thePositionGrk$ThetaEffect+sum(posEvalTbl$ThetaEffect*weight)
+  #     penalty4<-(1)
+  #     if(isDetail){cat(" :thta_ttl",theta_ttl)}
+  #     if(isDetail){cat(" :thta_ini",thePositionGrk$ThetaEffect);cat(" :thta_wt",sum(posEvalTbl$ThetaEffect*weight))}
+  #     if(theta_ttl<0)
+  #       return(unacceptableVal)
+  #   }
   
   ##
   # cost3 Profit
-  if(isDetail){cat(" :price_hld",posEvalTbl$Price);cat(" :price_ini:",getPositionGreeks(position,multi=PosMultip,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)$Price)}
-  if(isDetail){cat(" :prft",posEvalTbl$Price-getPositionGreeks(position,multi=PosMultip,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)$Price)}
-  
-  profit_hdays<-sum((posEvalTbl$Price-thePositionGrk$Price)*weight)
-  if(isDebug){cat(" :prft_wt",profit_hdays)}  
-  penalty3<-1
+  #   if(isDetail){cat(" :price_hld",posEvalTbl$Price);cat(" :price_ini:",getPositionGreeks(position,multi=PosMultip,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)$Price)}
+  #   if(isDetail){cat(" :prft",posEvalTbl$Price-getPositionGreeks(position,multi=PosMultip,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)$Price)}
+  #   
+  #   profit_hdays<-sum((posEvalTbl$Price-thePositionGrk$Price)*weight)
+  #   if(isDebug){cat(" :prft_wt",profit_hdays)}  
+  #   penalty3<-1
   c3<-profit_hdays
   #cost3<- sigmoid(c3,a=Setting$SigmoidA_Profit,b=0)
-  if(isDebug){cat(" :c3(Profit)",c3)}
+  #   if(isDebug){cat(" :c3(Profit)",c3)}
   
   ##
   # cost5 Advantageous Effects.
@@ -82,7 +84,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   theDeltaEfct<-sum(posEvalTbl$DeltaEffect*weight)
   #DeltaE_comp<-(Delta<0)*(Delta<L1)*DeltaE+(Delta>0)*(Delta>L2)*DeltaE
   DeltaEffect_Comp<-(theDelta<0)*(theDelta<Setting$Delta_Thresh_Minus)*theDeltaEfct+
-                            (theDelta>0)*(theDelta>Setting$Delta_Thresh_Plus)*theDeltaEfct
+    (theDelta>0)*(theDelta>Setting$Delta_Thresh_Plus)*theDeltaEfct
   
   if(isDebug){
     cat(" :(Delta)",theDelta)
@@ -104,7 +106,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   # total cost is weighted sum of each cost.
   A<-Setting$DrctlEffect_Coef*c6+Setting$AllEffect_Coef*c7
   B<-Setting$AdvEffect_Coef*c5+Setting$Profit_Coef*c3
- 
+  
   if(isDebug){cat(" :Coef_Drct",Setting$DrctlEffect_Coef,"x",c6,"+:Coef_AllE",Setting$AllEffect_Coef,"x",c7,"= Numr",A)}
   if(isDebug){cat(" :Coef_Adv",Setting$AdvEffect_Coef,"x",c5,"+:Coef_Prft",Setting$Profit_Coef,"x",c3,"= Denom",B)}
   
@@ -121,6 +123,75 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   
   if(isDebug){cat(" :val",val,"\n")}
   return(val)
+}
+
+#evaluation of the Date and just its greekeffect (not weighted)
+obj_fixedpt_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
+                                         udlStepNum,udlStepPct,maxposnum,PosMultip,
+                                         tail_rate,lossLimitPrice){
+  #gradually change constraint
+  unacceptableVal=10
+  #position where pos$Position != 0
+  position<-hollowNonZeroPosition(pos=x)
+
+  #At day 0 position price and Greeks.
+  thePositionGrk<-getPositionGreeks(position,multi=PosMultip,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)
+  if(isDetail){print(position)}
+  if(isDetail){print(thePositionGrk)}  
+  
+  #weight is normalized
+  c5<- thePositionGrk$GammaEffect+thePositionGrk$ThetaEffect
+  #cost5<-sigmoid(c5,a=Setting$SigmoidA_AllEffect,b=0)
+  if(isDebug){cat(" :c5(AdvEffect)",c5)}
+  
+  ##
+  # cost6 Directional Effects.
+  #weight is normalized
+  theDelta<-thePositionGrk$Delta
+  theDeltaEfct<-thePositionGrk$DeltaEffect
+  #DeltaE_comp<-(Delta<0)*(Delta<L1)*DeltaE+(Delta>0)*(Delta>L2)*DeltaE
+  DeltaEffect_Comp<-(theDelta<0)*(theDelta<Setting$Delta_Thresh_Minus)*theDeltaEfct+
+    (theDelta>0)*(theDelta>Setting$Delta_Thresh_Plus)*theDeltaEfct
+  
+  if(isDebug){
+    cat(" :(Delta)",theDelta)
+    cat(" :(DeltaE)",theDeltaEfct," :(new DeltaE)",DeltaEffect_Comp)
+  }
+  
+  c6<- ((-1)*thePositionGrk$VegaEffect)-DeltaEffect_Comp
+  #cost6<-sigmoid(c5,a=Setting$SigmoidA_AllEffect,b=0)
+  if(isDebug){cat(":VegaE",thePositionGrk$VegaEffect," :c6(DrctlEffect)",c6)}
+  
+  ##
+  # cost7 All Effects.
+  #weight is normalized
+  c7<- c5+c6
+  #cost7<-sigmoid(c5,a=Setting$SigmoidA_AllEffect,b=0)
+  if(isDebug){cat(" :c7(AllEffect)",c7)}
+  
+  ##
+  # total cost is weighted sum of each cost.
+  c3<-0
+  A<-Setting$DrctlEffect_Coef*c6+Setting$AllEffect_Coef*c7
+  B<-Setting$AdvEffect_Coef*c5+Setting$Profit_Coef*c3
+  
+  if(isDebug){cat(" :Coef_Drct",Setting$DrctlEffect_Coef,"x",c6,"+:Coef_AllE",Setting$AllEffect_Coef,"x",c7,"= Numr",A)}
+  if(isDebug){cat(" :Coef_Adv",Setting$AdvEffect_Coef,"x",c5,"+:Coef_Prft",Setting$Profit_Coef,"x",c3,"= Denom",B)}
+  
+  sigA<-sigmoid(A,a=Setting$SigmoidA_Numerator,b=0)
+  sigB<-sigmoid(B,a=Setting$SigmoidA_Denominator,b=0)
+  #cost<-(sigA/(1-sigB))
+  cost<-sigA/sigB
+  if(isDebug){cat(" :sigA",sigA,":sigB",sigB,":cost(sigA/sigB)",cost)}
+  #if(isDebug){cat(" :cost",cost," ")}
+  
+  ##
+  # total cost and penalty
+  val<-cost #*penalty2*penalty1*penalty3*penalty4
+  
+  if(isDebug){cat(" :val",val,"\n")}
+  return(val)
+  
 }
 
 #Rsk/Rtn greek related functions
@@ -371,6 +442,7 @@ getIntrisicValue<-function(udly_price,position,multip=PosMultip){
 create_initial_exact_PutCall_polulation<-function(popnum,type,EvalFuncSetting,thresh,putn,calln,ml,fname,PosMultip,isFileout=FALSE,isDebug=FALSE,isDetail=FALSE){
   added_num<-0
   total_count<-0
+  start_t<-proc.time()
   while(TRUE){
     #Put   
     idxy<-as.numeric(type==OpType_Put_G)*rep(1:length(iniPos),length=length(iniPos))
@@ -413,24 +485,21 @@ create_initial_exact_PutCall_polulation<-function(popnum,type,EvalFuncSetting,th
     if(isDebug){ cat(" (:y",y,")") }
     if(isDebug){ cat(" (:z",z,") :x(y+z) ") }
     x<-y+z
-    #x<-as.numeric(((putn%%2)==0)*((calln%%2)==0))*ml*x+as.numeric(!((putn%%2)==0)*((calln%%2)==0))*x
     x<-as.numeric(((putn%%2)==0)*((calln%%2)==0))*ml*x+as.numeric(!((putn%%2)==0)*((calln%%2)==0))*ml*x
     if(isDebug){ cat(" (:x",x,")") }
     
-    tryCatch(val<-obj_Income_sgmd(x,EvalFuncSetting,isDebug=isDebug,isDetail=isDetail,
-                                  udlStepNum=EvalFuncSetting$UdlStepNum,udlStepPct=EvalFuncSetting$UdlStepPct,
-                                  maxposnum=EvalFuncSetting$Maxposnum,PosMultip=PosMultip,
-                                  tail_rate=EvalFuncSetting$Tail_rate,lossLimitPrice=EvalFuncSetting$LossLimitPrice),
-             error=function(e){
-               message(e)
-               val<-(thresh+1.0)
-             })
+    tryCatch(
+      #val<-obj_Income_sgmd(x,EvalFuncSetting,isDebug=isDebug,isDetail=isDetail,
+      val<-obj_fixedpt_sgmd(x,EvalFuncSetting,isDebug=isDebug,isDetail=isDetail,
+                            udlStepNum=EvalFuncSetting$UdlStepNum,udlStepPct=EvalFuncSetting$UdlStepPct,
+                            maxposnum=EvalFuncSetting$Maxposnum,PosMultip=PosMultip,
+                            tail_rate=EvalFuncSetting$Tail_rate,lossLimitPrice=EvalFuncSetting$LossLimitPrice),
+      error=function(e){
+        message(e)
+        val<-(thresh+1.0)
+      })
+    
     if(val<thresh){
-      if(added_num==0){
-        ret_val<-x
-      }else{
-        ret_val<-c(ret_val,x)
-      }
       added_num<-added_num+1
       if(isFileout){
         cat(x,file=fname,sep=",",append=TRUE);cat(",",file=fname,append=TRUE)
@@ -438,12 +507,14 @@ create_initial_exact_PutCall_polulation<-function(popnum,type,EvalFuncSetting,th
       }
     }
     total_count<-total_count+1
-    if(((added_num%%30)==0)){cat(" added num:",added_num,"total count:",total_count,"\n")}
+    if((added_num%%50)==0){
+      cat(" added num:",added_num,"total count:",total_count,"putn:",putn,"calln:",calln,"time:",(proc.time()-start_t)[3],"\n")
+      start_t<-proc.time()
+    }
     if(added_num==popnum)
       break
   }
-  cat(" added num:",added_num,"total count:",total_count,"\n")
-  ret_val
+  cat(" added num:",added_num,"total count:",total_count,"putn:",putn,"calln:",calln,"time:",(proc.time()-start_t)[3],"\n")
 }
 
 #function for creating one candidate pool
@@ -494,8 +565,7 @@ create_combined_population<-function(popnum,EvalFuncSetting,thresh,plelem,fname,
       s3<-pools[[ plelem[3] ]][[2]][ceiling(runif(1, min=1e-320, max=nrow(pools[[  plelem[3] ]][[2]]))), ]
       s3_pos<-unlist(s3[1:length(iniPos)]);s3_score<-as.numeric(s3[length(s3)])
       if(isDebug){cat(" s3 :",s3_pos," sc:",s3_score)   }
-    }
-    
+    }  
     x_new<-rep(0,times=length(iniPos))
     x_new<-s1_pos+s2_pos+s3_pos
     x_new<-as.numeric((sum(x_new%%7)!=0))*x_new+as.numeric((sum(x_new%%7)==0))*x_new/7
@@ -513,21 +583,17 @@ create_combined_population<-function(popnum,EvalFuncSetting,thresh,plelem,fname,
     }
     
     #evaluate    
-    tryCatch(val<-obj_Income_sgmd(x_new,EvalFuncSetting,isDebug=isDebug,isDetail=isDebug,
-                                  udlStepNum=EvalFuncSetting$UdlStepNum,udlStepPct=EvalFuncSetting$UdlStepPct,
-                                  maxposnum=EvalFuncSetting$Maxposnum,PosMultip=PosMultip,
-                                  tail_rate=EvalFuncSetting$Tail_rate,lossLimitPrice=EvalFuncSetting$LossLimitPrice),
-             error=function(e){
-               message(e)
-               val<-(thresh+1.0)
-             })
+    tryCatch(#val<-obj_Income_sgmd(x_new,EvalFuncSetting,isDebug=isDebug,isDetail=isDebug,
+      val<-obj_fixedpt_sgmd(x_new,EvalFuncSetting,isDebug=isDebug,isDetail=isDebug,
+                            udlStepNum=EvalFuncSetting$UdlStepNum,udlStepPct=EvalFuncSetting$UdlStepPct,
+                            maxposnum=EvalFuncSetting$Maxposnum,PosMultip=PosMultip,
+                            tail_rate=EvalFuncSetting$Tail_rate,lossLimitPrice=EvalFuncSetting$LossLimitPrice),
+      error=function(e){
+        message(e)
+        val<-(thresh+1.0)
+      })
     
     if(val<thresh){
-      if(added_num==0){
-        ret_val<-x_new
-      }else{
-        ret_val<-c(ret_val,x_new)
-      }
       added_num<-added_num+1
       if(isFileout){  
         cat(x_new,file=fname,sep=",",append=TRUE);cat(",",file=fname,append=TRUE)

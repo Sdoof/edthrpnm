@@ -71,8 +71,6 @@ getPutCallnOfthePosition<-function(x){
 
 ##
 # Exact (1Cb)
-#res1<-createCombineCandidatePool(fname=paste(ResultFiles_Path_G,"1Cb.csv",sep=""),
-#                                pnum=0,nrows=-1,skip=0,method=1)
 res1<-read.table(paste(ResultFiles_Path_G,"1Cb.csv",sep=""),header=F,skipNul=TRUE,sep=",")
 res1 %>% dplyr::arrange(res1[,(length(iniPos)+1)]) %>% dplyr::distinct() -> res1
 #over the specified socre
@@ -85,7 +83,6 @@ res1 -> total_res
 
 ##
 #  2Cb
-
 res1<-read.table(paste(ResultFiles_Path_G,"2Cb.csv",sep=""),header=F,skipNul=TRUE,sep=",")
 res1 %>% dplyr::arrange(res1[,(length(iniPos)+1)]) %>% dplyr::distinct() -> res1
 #必要のない列の削除
@@ -103,8 +100,6 @@ rm(res1)
 
 ##
 #  3Cb
-#res1<-createCombineCandidatePool(fname=paste(ResultFiles_Path_G,"3Cb.csv",sep=""),
-#                                 pnum=0,nrows=-1,skip=0,method=1)
 res1<-read.table(paste(ResultFiles_Path_G,"3Cb.csv",sep=""),header=F,skipNul=TRUE,sep=",")
 res1 %>% dplyr::arrange(res1[,(length(iniPos)+1)]) %>% dplyr::distinct() -> res1
 #必要のない列の削除
@@ -129,7 +124,7 @@ histIV %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")<=max(as.Date(opchain$Da
 
 # Writing to files based on option legs total number
 total_res %>% mutate(posn=(putn+calln)) -> total_res
-total_res %>%  filter(posn==5) %>% filter(.[,length(iniPos)+1]<2.0) ->tmp_fil 
+total_res %>%  filter(posn<=6) %>% filter(.[,length(iniPos)+1]<2.0) ->tmp_fil 
 
 ## Advantageous Effect
 
@@ -156,8 +151,8 @@ getPositionWithGreeks(tmp_fil) %>% arrange(desc(AdvEffect)) -> tmp_fil
 ## Filtering
 tmp_fil %>% arrange(desc(AdvEffect)) %>%  filter(Delta>-50) %>% filter(Delta<30) %>%
   top_n(100) -> tmp_fil_w ; print(tmp_fil_w)
-tmp_fil %>% arrange(desc(AdvEffect)) %>%  filter(.[,length(iniPos)+1]<1.2) %>% 
-  filter(Delta>-50) %>% filter(Delta<30) %>% top_n(100) -> tmp_fil_w ; print(tmp_fil_w)
+tmp_fil %>% arrange(desc(AdvEffect)) %>%  filter(.[,length(iniPos)+1]<1.6) %>% 
+  filter(Delta>-40) %>% filter(Delta<30) %>% top_n(100) -> tmp_fil_w ; print(tmp_fil_w)
 
 ## Save to a file
 write.table(tmp_fil_w,paste(ResultFiles_Path_G,Underying_Symbol_G,"_EvalPosition.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
@@ -183,6 +178,7 @@ rm(histIV,opchain,iniPos)
 
 rm(tmp_fil,tmp_fil2,total_res)
 rm(HV_IV_Adjust_Ratio,Thresh_Score1,Thresh_Score2,Thresh_Score3,Thresh_AdvEffect,SAVE_ALL)
+rm(Thresh_Score1,Thresh_Score2,Thresh_Score3,Thresh_AdvEffect,SAVE_ALL)
 rm(CALENDAR_G,PosMultip,divYld_G,dviv_caldays,holdDays,riskFreeRate_G)
 rm(ConfigFileName_G,ConfigParameters)
 rm(DataFiles_Path_G,ResultFiles_Path_G,OpType_Call_G,OpType_Put_G)

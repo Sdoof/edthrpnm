@@ -91,11 +91,6 @@ iniPos<-opchain$Position
 iniPos<-rep(0,length(iniPos))
 evaPos<-opchain$Position
 
-# obj_Income_sgmd(x=evaPos,Setting=EvalFuncSetting,isDebug=FALSE,isDetail=FALSE,
-#                 udlStepNum=EvalFuncSetting$UdlStepNum,udlStepPct=EvalFuncSetting$UdlStepPct,
-#                 maxposnum=EvalFuncSetting$Maxposnum,
-#                 tail_rate=EvalFuncSetting$Tail_rate,lossLimitPrice=EvalFuncSetting$LossLimitPrice)
-
 #Data Setup. Provisioning
 #Load Regression and Correlation Parameters
 load.PC2IV(PC="PC3dCtC",IVC="IVCF3dCtC")
@@ -127,19 +122,19 @@ CallIVChgDown
 
 #sigmoid function  ------
 for(tmp in 1:InitialPopCreateLoopNum){
-  # create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=6,calln=2,ml=2,
+  # create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=6,calln=2,ml=1,
   #                                           fname=paste(".\\ResultData\\inipop-08P6C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
   #                                           isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-  #create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=5,calln=3,ml=2,
+  #create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=5,calln=3,ml=1,
   #                                        fname=paste(".\\ResultData\\inipop-08P5C3-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
   #                                        isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-  # create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=4,calln=4,ml=2,
+  # create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=4,calln=4,ml=1,
   #                                         fname=paste(".\\ResultData\\inipop-08P4C4-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
   #                                         isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-  # create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=5,calln=2,ml=2,
+  # create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=5,calln=2,ml=1,
   #                                         fname=paste(".\\ResultData\\inipop-07P5C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
   #                                         isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-  # create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=4,calln=3,ml=2,
+  # create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=4,calln=3,ml=1,
   #                                         fname=paste(".\\ResultData\\inipop-07P4C3-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
   #                                         isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
   create_initial_exact_PutCall_polulation(popnum=2000,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=4,calln=2,ml=2,
@@ -174,7 +169,7 @@ for(tmp in 1:InitialPopCreateLoopNum){
                                           isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
   create_initial_exact_PutCall_polulation(popnum=100,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=0,calln=2,ml=2,
                                           fname=paste(".\\ResultData\\inipop-02P0C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
-                                          isFileout=TRUE,isDebug=TRUE,isDetail=TRUE)
+                                          isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
 };rm(tmp)
 
 #1Cb.csv
@@ -185,59 +180,51 @@ system(st)
 st <- "powershell.exe -Command \" del .\\ResultData\\1Cb-.csv \" "
 system(st) ;rm(st)
 
-#creating candidate pool for combined search --------
-
-# tmp<-createCombineCandidatePool(fname=paste(".\\ResultData\\inipop-Exc-1000-08P6C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-#                                 pnum=0,nrows=-1,skip=0,method=1)
-# tmp<-createCombineCandidatePool(fname=paste(".\\ResultData\\1Cb.csv",sep=""),
-#                                 pnum=0,nrows=-1,skip=0,method=1)
-tmp<-read.table(paste(ResultFiles_Path_G,"1Cb.csv",sep=""),header=F,skipNul=TRUE,sep=",")
-tmp %>% dplyr::arrange(tmp[,(length(iniPos)+1)]) %>% dplyr::distinct() -> tmp
-#tmp %>% filter(.[,length(iniPos)+1]<1.15) -> tmp
-tmp %>% arrange(.[,length(iniPos)+1]) %>% head(TopN_1) -> tmp
-pools<-list(list(c(1,0,0),tmp)) #No.[[1]]
+#creating candidate pool for combined search
+# tmp<-read.table(paste(ResultFiles_Path_G,"1Cb.csv",sep=""),header=F,skipNul=TRUE,sep=",")
+# tmp %>% dplyr::arrange(tmp[,(length(iniPos)+1)]) %>% dplyr::distinct() -> tmp
+# tmp %>% arrange(.[,length(iniPos)+1]) %>% head(TopN_1) -> tmp
+# pools<-list(list(c(1,0,0),tmp)) #No.[[1]]
 
 # or when all results are mixed together regardress of the number of Putn and Calln, pools[[1]] should be set as
 # c(1,0,0) <- c(1Cb{=exact}, Putn not spicified, Calln not spicified)
-
-rm(tmp)
+# rm(tmp)
 
 #combined population serach --------------
 
 ### 2(exact x exact) Combinations (2Cb)
 #
-create_combined_population(popnum=PopN_1,EvalFuncSetting,thresh=Thresh_1,plelem=c(1,1),fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                           isFileout=TRUE,isDebug=FALSE,maxposn=8,PosMultip=PosMultip)
+# create_combined_population(popnum=PopN_1,EvalFuncSetting,thresh=Thresh_1,plelem=c(1,1),fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+#                            isFileout=TRUE,isDebug=FALSE,maxposn=8,PosMultip=PosMultip)
+
 #2Cb.csv
-st <- "powershell.exe .\\shell\\cmd3.ps1"
-system(st)
-st <- "powershell.exe .\\shell\\cmd4.ps1"
-system(st)
-st <- "powershell.exe -Command \" del .\\ResultData\\2Cb-.csv \" "
-system(st) ;rm(st)
+# st <- "powershell.exe .\\shell\\cmd3.ps1"
+# system(st)
+# st <- "powershell.exe .\\shell\\cmd4.ps1"
+# system(st)
+# st <- "powershell.exe -Command \" del .\\ResultData\\2Cb-.csv \" "
+# system(st) ;rm(st)
 
 ### 3(exact x exact x exact) Combinations (3Cb)
 
 #adjust combined candidate population considering combinational explostion
-# tmp<-createCombineCandidatePool(fname=paste(".\\ResultData\\1Cb.csv",sep=""),
-#                                 pnum=0,nrows=-1,skip=0,method=1)
-tmp<-read.table(paste(ResultFiles_Path_G,"1Cb.csv",sep=""),header=F,skipNul=TRUE,sep=",")
-tmp %>% dplyr::arrange(tmp[,(length(iniPos)+1)]) %>% dplyr::distinct() -> tmp
-#tmp %>% filter(.[,length(iniPos)+1]<1.08) -> tmp
-tmp %>% arrange(.[,length(iniPos)+1]) %>% head(TopN_2) -> tmp
-
-pools<-list(list(c(1,0,0),tmp)) #No.[[1]] again
-rm(tmp)
-
-create_combined_population(popnum=PopN_2,EvalFuncSetting,thresh=Thresh_2,plelem=c(1,1,1),fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                           isFileout=TRUE,isDebug=FALSE,maxposn=8,PosMultip=PosMultip)
+# tmp<-read.table(paste(ResultFiles_Path_G,"1Cb.csv",sep=""),header=F,skipNul=TRUE,sep=",")
+# tmp %>% dplyr::arrange(tmp[,(length(iniPos)+1)]) %>% dplyr::distinct() -> tmp
+# tmp %>% arrange(.[,length(iniPos)+1]) %>% head(TopN_2) -> tmp
+# 
+# pools<-list(list(c(1,0,0),tmp)) #No.[[1]] again
+# rm(tmp)
+# 
+# create_combined_population(popnum=PopN_2,EvalFuncSetting,thresh=Thresh_2,plelem=c(1,1,1),fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+#                            isFileout=TRUE,isDebug=FALSE,maxposn=8,PosMultip=PosMultip)
 #3Cb.csv
-st <- "powershell.exe .\\shell\\cmd5.ps1"
-system(st)
-st <- "powershell.exe .\\shell\\cmd6.ps1"
-system(st)
-st <- "powershell.exe -Command \" del .\\ResultData\\3Cb-.csv \" "
-system(st) ;rm(st)
+# st <- "powershell.exe .\\shell\\cmd5.ps1"
+# system(st)
+# st <- "powershell.exe .\\shell\\cmd6.ps1"
+# system(st)
+# st <- "powershell.exe -Command \" del .\\ResultData\\3Cb-.csv \" "
+# system(st) ;rm(st)
+
 
 ### 2x2(2Cbx2Cb) and 3x3(3Cbx3cb) Combinations
 ###create nested combine candidate pool 
@@ -283,16 +270,146 @@ system(st) ;rm(st)
 # st <- "powershell.exe -Command \" del .\\ResultData\\6Cb-.csv \" "
 # system(st) ;rm(st)
 
-rm(pools)
+#rm(pools)
 
-#Cleaning
+
+###
+##
+# Result Post Proceccing
+
+#HV_IV_Adjust_Ratio
+HV_IV_Adjust_Ratio=as.numeric(ConfigParameters["EvalFnc_HV_IV_Adjust_Ratio",1])
+
+#Threshhold
+Thresh_Score1=as.numeric(ConfigParameters["ResultProcess_Thresh_Score1",1])
+Thresh_Score2=as.numeric(ConfigParameters["ResultProcess_Thresh_Score2",1])
+Thresh_Score3=as.numeric(ConfigParameters["ResultProcess_Thresh_Score3",1])
+Thresh_AdvEffect=as.numeric(ConfigParameters["ResultProcess_Thresh_AdvEffect",1])
+
+#Save the rest position
+SAVE_ALL=FALSE
+
+#ophcain 
+rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep="")
+opchain<-read.table(rf,header=T,sep=",",stringsAsFactors=FALSE)
+#filtering. deleting unnecessary column
+opchain %>% dplyr::select(-(contains('Frac',ignore.case=TRUE)),
+                          -(IV)) %>% as.data.frame() -> opchain
+#only OOM targeted
+#opchain %>% dplyr::filter(HowfarOOM>=0) -> opchain
+rm(rf)
+#iniPos
+iniPos<-opchain$Position
+
+#create put and call pos num of the specified spread
+getPutCallnOfthePosition<-function(x){
+  type<-opchain$TYPE
+  putpos<-as.numeric(type==OpType_Put_G)
+  putn<-sum( as.numeric((putpos*x)!=0) )
+  callpos<-as.numeric(type==OpType_Call_G)
+  calln<-sum( as.numeric((callpos*x)!=0) )
+  return (c(putn,calln))
+}
+
+##
+# Exact (1Cb)
+#res1<-createCombineCandidatePool(fname=paste(ResultFiles_Path_G,"1Cb.csv",sep=""),
+#                                pnum=0,nrows=-1,skip=0,method=1)
+res1<-read.table(paste(ResultFiles_Path_G,"1Cb.csv",sep=""),header=F,skipNul=TRUE,sep=",")
+res1 %>% dplyr::arrange(res1[,(length(iniPos)+1)]) %>% dplyr::distinct() -> res1
+#over the specified socre
+res1 %>% filter(.[,length(iniPos)+1]<Thresh_Score1) -> res1
+#posnum put call
+res1[,1:length(iniPos)] %>% rowwise() %>% do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp
+tmp  %>% rowwise() %>% do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp2
+res1$putn<-unlist(tmp2$putn);res1$calln<-unlist(tmp2$calln);rm(tmp);rm(tmp2)
+res1 -> total_res
+
+##
+# Exact (1Cb)
+res1<-read.table(paste(ResultFiles_Path_G,"1Cb.csv",sep=""),header=F,skipNul=TRUE,sep=",")
+res1 %>% dplyr::arrange(res1[,(length(iniPos)+1)]) %>% dplyr::distinct() -> res1
+#over the specified socre
+res1 %>% filter(.[,length(iniPos)+1]<Thresh_Score1) -> res1
+#posnum put call
+res1[,1:length(iniPos)] %>% rowwise() %>% do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp
+tmp  %>% rowwise() %>% do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp2
+res1$putn<-unlist(tmp2$putn);res1$calln<-unlist(tmp2$calln);rm(tmp);rm(tmp2)
+res1 -> total_res
+rm(res1)
+
+##Historical Implied Volatility Data
+rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_IV.csv",sep="") 
+histIV<-read.table(rf,header=T,sep=",",nrows=1000);rm(rf)
+#filtering
+histIV %>% dplyr::transmute(Date=Date,IVIDX=Close/100) -> histIV
+histIV %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")<=max(as.Date(opchain$Date,format="%Y/%m/%d"))) %>%
+  dplyr::arrange(desc(as.Date(Date,format="%Y/%m/%d"))) %>% head(n=dviv_caldays) -> histIV
+
+# Writing to files based on option legs total number
+total_res %>% mutate(posn=(putn+calln)) -> total_res
+total_res %>%  filter(posn<=6) %>% filter(.[,length(iniPos)+1]<2.0) ->tmp_fil 
+
+## Advantageous Effect
+
+#create put and call pos num of the specified spread
+getPositionWithGreeks<-function(tmp_fil){
+  tmp_fil[,1:length(iniPos)] %>% rowwise() %>% 
+    do(theGreks=getPositionGreeks(hollowNonZeroPosition(unlist(.)),multi=PosMultip,HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio)) -> tmp
+  tmp_fil$theGreks<-tmp$theGreks
+  tmp_fil %>% rowwise() %>% do(Delta=.$theGreks$Delta,DeltaEffect=.$theGreks$DeltaEffect,VegaEffect=.$theGreks$VegaEffect,
+                               ThetaEffect=.$theGreks$ThetaEffect,GammaEffect=.$theGreks$GammaEffect) -> tmp2
+  tmp_fil$Delta<-unlist(tmp2$Delta)
+  tmp_fil$DeltaEffect<-unlist(tmp2$DeltaEffect)
+  tmp_fil$ThetaEffect<-unlist(tmp2$ThetaEffect)
+  tmp_fil$GammaEffect<-unlist(tmp2$GammaEffect)
+  tmp_fil$VegaEffect<-unlist(tmp2$VegaEffect)
+  tmp_fil$theGreks<-NULL
+  tmp_fil$AdvEffect<-unlist(tmp2$ThetaEffect)+unlist(tmp2$GammaEffect)
+  
+  return(tmp_fil)
+}
+
+getPositionWithGreeks(tmp_fil) %>% arrange(desc(AdvEffect)) -> tmp_fil
+
+## Filtering
+tmp_fil %>% arrange(desc(AdvEffect)) %>%  filter(Delta>-50) %>% filter(Delta<30) %>%
+  top_n(100) -> tmp_fil_w ; print(tmp_fil_w)
+tmp_fil %>% arrange(desc(AdvEffect)) %>%  filter(.[,length(iniPos)+1]<1.6) %>% 
+  filter(Delta>-40) %>% filter(Delta<30) %>% top_n(100) -> tmp_fil_w ; print(tmp_fil_w)
+
+## Save to a file
+write.table(tmp_fil_w,paste(ResultFiles_Path_G,"EvalCnd.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
+rm(tmp_fil_w)
+
+## Advantageous Effect for the Rest
+if(SAVE_ALL){
+  total_res -> tmp_fil2
+  getPositionWithGreeks(tmp_fil2) %>% arrange(desc(AdvEffect)) -> tmp_fil2
+  
+  ##Filtering
+  tmp_fil2 %>% arrange(desc(AdvEffect)) %>%  filter(.[,length(iniPos)+1]<1.2) %>% 
+    filter(Delta>-50) %>% filter(Delta<30) %>% top_n(5000) -> tmp_fil2_w ; print(tmp_fil2_w) ; print(tail(tmp_fil2_w,5))
+  
+  ##Save to a file
+  write.table(tmp_fil2_w,paste(ResultFiles_Path_G,Underying_Symbol_G,"_ALLEvalPosition.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
+  rm(tmp_fil2_w)
+}
+
+rm(getPutCallnOfthePosition,getPositionWithGreeks)
+
+##
+# finally remove these variables
 rm(iniPos,evaPos)
-rm(holdDays,dviv_caldays,PosMultip)
+rm(holdDays,dviv_caldays,divYld_G,riskFreeRate_G,PosMultip)
 rm(opchain,histIV,position)
 rm(InitialPopCreateLoopNum,InitialPopThresh,TopN_1,PopN_1,Thresh_1,TopN_2,PopN_2,Thresh_2)
 rm(CallIVChgDown,CallIVChgUp,CallVCone,PutIVChgDown,PutIVChgUp,PutVCone,SkewModel)
 rm(PC1dCtC_IVCF1dCtC,PC3dCtC_IVCF3dCtC,PC5dCtC_IVCF5dCtC,PC7dCtC_IVCF7dCtC)
 rm(ConfigFileName_G,ConfigParameters,EvalFuncSetting)
-rm(CALENDAR_G,OpType_Call_G,OpType_Put_G,ResultFiles_Path_G,TimeToExp_Limit_Closeness_G)
-rm(DataFiles_Path_G,Underying_Symbol_G,divYld_G,riskFreeRate_G)
+rm(CALENDAR_G,OpType_Call_G,OpType_Put_G,DataFiles_Path_G,ResultFiles_Path_G,TimeToExp_Limit_Closeness_G,Underying_Symbol_G)
+
+rm(tmp_fil,tmp_fil2,total_res)
+rm(HV_IV_Adjust_Ratio,Thresh_Score1,Thresh_Score2,Thresh_Score3,Thresh_AdvEffect,SAVE_ALL)
+
 

@@ -1,4 +1,52 @@
-#Get-Content
+##
+# Combine  EvalCnd and make uniq UDLY_EvalPosition
+
+library(RQuantLib)
+library(ggplot2)
+library(plyr)
+library(dplyr)
+
+#Config File
+ConfigFileName_G="ConfigParameters.csv"
+DataFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\MarketData\\data\\"
+
+ConfigParameters<-read.table(paste(DataFiles_Path_G,ConfigFileName_G,sep=""),
+                             row.names=1, comment.char="#",header=T,stringsAsFactors=F,sep=",")
+
+#File
+Underying_Symbol_G=ConfigParameters["Underying_Symbol_G",1]
+ResultFiles_Path_G=ConfigParameters["ResultFiles_Path_G",1]
+
+#combine
+st <- "powershell.exe -Command \" Get-ChildItem ..\\edthrpnm2\\ResultData\\EvalCnd.csv | cat >> .\\ResultData\\EvalCnd-.csv \" "
+system(st) ;rm(st)
+st <- "powershell.exe -Command \" Get-ChildItem ..\\edthrpnm3\\ResultData\\EvalCnd.csv | cat >> .\\ResultData\\EvalCnd-.csv \" "
+system(st) ;rm(st)
+## Get-ChildItem EvalCnd-.csv | cat >> \\ResultData\\EvalCnd
+
+#Option Chain 
+rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep="")
+opchain<-read.table(rf,header=T,sep=",",stringsAsFactors=FALSE)
+#filtering. deleting unnecessary column
+opchain %>% dplyr::select(-(contains('Frac',ignore.case=TRUE)),
+                          -(IV),-(Change)) %>% as.data.frame() -> opchain
+
+#EvalPosition
+rf<-paste(ResultFiles_Path_G,"EvalCnd.csv",sep="")
+evalPositions<-read.table(rf,header=F,sep=",") ;rm(rf)
+length(opchain$Position)
+evalPositions %>% distinct() -> evalPositions
+write.table(evalPositions,paste(ResultFiles_Path_G,Underying_Symbol_G,"_EvalPosition.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
+
+rm(opchain,evalPositions)
+rm(ConfigFileName_G,DataFiles_Path_G,ConfigParameters,Underying_Symbol_G,ResultFiles_Path_G)
+
+####
+#####
+#######
+
+##
+# Get-Content
 st <- "powershell.exe -Command \" Get-ChildItem . \" "
 system(st) ;rm(st)
 
