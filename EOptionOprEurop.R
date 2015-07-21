@@ -53,9 +53,9 @@ set.EuropeanOptionValueGreeks <- function(xT){
   tmp_ret[[1]]<-value
   tmp_ret[[2]]<-delta
   tmp_ret[[3]]<-gamma
-  tmp_ret[[4]]<-vega
-  tmp_ret[[5]]<-theta
-  tmp_ret[[6]]<-rho 
+  tmp_ret[[4]]<-vega/100
+  tmp_ret[[5]]<-theta/365
+  tmp_ret[[6]]<-rho/365
   names(tmp_ret)<-Grknames
   tmp_ret
 }
