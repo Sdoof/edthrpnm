@@ -32,7 +32,7 @@ OpchainOutFileName=paste("_OPChain_Skew_",Sys.Date(),".csv",sep="")
 rf_<-paste(DataFiles_Path_G,Underying_Symbol_G,"_OPChain_Pos.csv",sep="")
 opch<-read.table(rf_,header=T,sep=",",nrows=50000)
 rf_<-paste(DataFiles_Path_G,Underying_Symbol_G,"_IV.csv",sep="")
-histIV<-read.table(rf_,header=T,sep=",",nrows=1999)
+histIV<-read.table(rf_,header=T,sep=",",nrows=1000)
 rm(rf_)
 
 ##START Create complete opch
