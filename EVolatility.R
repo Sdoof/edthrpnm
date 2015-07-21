@@ -1,5 +1,3 @@
-#Function to be loaded ------------------
-
 #get variable name utility.
 getvarname <- function(v) {
   deparse(substitute(v))

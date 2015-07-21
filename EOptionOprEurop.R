@@ -9,11 +9,11 @@ set.IVOrig <- function(xT){
     if(xT$TYPE[i] == 1){
       xT$OrigIV[i]=EuropeanOptionImpliedVolatility(type="put", value=xT$Price[i],underlying=xT$UDLY[i],
                                                    strike=xT$Strike[i],dividendYield=divYld_G,riskFreeRate=riskFreeRate_G,
-                                                   maturity=busdays_betwn/365,volatility=0.2)
+                                                   maturity=busdays_betwn/252,volatility=0.2)
     }else if(xT$TYPE[i] == -1){
       xT$OrigIV[i]=EuropeanOptionImpliedVolatility(type="call", value=xT$Price[i],underlying=xT$UDLY[i],
                                                    strike=xT$Strike[i],dividendYield=divYld_G,riskFreeRate=riskFreeRate_G,
-                                                   maturity=busdays_betwn/365,volatility=0.2)
+                                                   maturity=busdays_betwn/252,volatility=0.2)
     }
   }
   xT$OrigIV
@@ -34,11 +34,11 @@ set.EuropeanOptionValueGreeks <- function(xT){
                                        as.Date(xT$ExpDate[i],format="%Y/%m/%d"))
     if(xT$TYPE[i] == 1){
       C0_tmp<-EuropeanOption(type="put", underlying=xT$UDLY[i], strike=xT$Strike[i],
-                             dividendYield=divYld_G, riskFreeRate=riskFreeRate_G, maturity=busdays_betwn/365, volatility=xT$OrigIV[i])
+                             dividendYield=divYld_G, riskFreeRate=riskFreeRate_G, maturity=busdays_betwn/252, volatility=xT$OrigIV[i])
       
     }else if(xT$TYPE[i] == -1){
       C0_tmp<-EuropeanOption(type="call", underlying=xT$UDLY[i], strike=xT$Strike[i],
-                             dividendYield=divYld_G, riskFreeRate=riskFreeRate_G, maturity=busdays_betwn/365, volatility=xT$OrigIV[i])
+                             dividendYield=divYld_G, riskFreeRate=riskFreeRate_G, maturity=busdays_betwn/252, volatility=xT$OrigIV[i])
     }
     value[i]<-C0_tmp$value
     delta[i]<- C0_tmp$delta
@@ -54,8 +54,8 @@ set.EuropeanOptionValueGreeks <- function(xT){
   tmp_ret[[2]]<-delta
   tmp_ret[[3]]<-gamma
   tmp_ret[[4]]<-vega/100
-  tmp_ret[[5]]<-theta/365
-  tmp_ret[[6]]<-rho/365
+  tmp_ret[[5]]<-theta/252
+  tmp_ret[[6]]<-rho/252
   names(tmp_ret)<-Grknames
   tmp_ret
 }

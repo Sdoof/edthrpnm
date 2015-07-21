@@ -9,11 +9,11 @@ set.AmericanIVOrig <- function(xT){
     if(xT$TYPE[i] == 1){
       xT$OrigIV[i]=AmericanOptionImpliedVolatility(type="put", value=xT$Price[i],underlying=xT$UDLY[i],
                                                    strike=xT$Strike[i],dividendYield=divYld_G,riskFreeRate=riskFreeRate_G,
-                                                   maturity=busdays_betwn/365,volatility=0.2)
+                                                   maturity=busdays_betwn/252,volatility=0.2)
     }else if(xT$TYPE[i] == -1){
       xT$OrigIV[i]=AmericanOptionImpliedVolatility(type="call", value=xT$Price[i],underlying=xT$UDLY[i],
                                                    strike=xT$Strike[i],dividendYield=divYld_G,riskFreeRate=riskFreeRate_G,
-                                                   maturity=busdays_betwn/365,volatility=0.2)
+                                                   maturity=busdays_betwn/252,volatility=0.2)
     }
   }
   xT$OrigIV
