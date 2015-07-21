@@ -53,7 +53,7 @@ opchain %>% dplyr::select(-(contains('Frac',ignore.case=TRUE)),
                           -(IV),-(Change)) %>% as.data.frame() -> opchain
 
 #EvalPosition
-rf<-paste(ResultFiles_Path_G,"EvalCnd.csv",sep="")
+rf<-paste(ResultFiles_Path_G,Underying_Symbol_G,"_EvalPosition.csv",sep="")
 evalPositions<-read.table(rf,header=F,sep=",") ;rm(rf)
 length(opchain$Position)
 evalPositions %>% distinct() -> evalPositions

@@ -408,7 +408,7 @@ rm(PC1dCtC_IVCF1dCtC,PC3dCtC_IVCF3dCtC,PC5dCtC_IVCF5dCtC,PC7dCtC_IVCF7dCtC)
 rm(ConfigFileName_G,ConfigParameters,EvalFuncSetting)
 rm(CALENDAR_G,OpType_Call_G,OpType_Put_G,DataFiles_Path_G,ResultFiles_Path_G,TimeToExp_Limit_Closeness_G,Underying_Symbol_G)
 
-rm(tmp_fil,tmp_fil2,total_res)
+rm(tmp_fil,tmp_fil2,tmp_fil3,total_res)
 rm(HV_IV_Adjust_Ratio,Thresh_Score1,Thresh_Score2,Thresh_Score3,Thresh_AdvEffect)
 
 
