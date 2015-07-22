@@ -8,7 +8,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   unacceptableVal=10
   #position where pos$Position != 0
   position<-hollowNonZeroPosition(pos=x)
-
+  
   #position evaluated after holdDays later
   udlStepNum<-udlStepNum; udlStepPct<-udlStepPct
   udlChgPct<-seq(-udlStepPct*udlStepNum,udlStepPct*udlStepNum,length=(2*udlStepNum)+1)
@@ -66,7 +66,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   #   profit_hdays<-sum((posEvalTbl$Price-thePositionGrk$Price)*weight)
   #   if(isDebug){cat(" :prft_wt",profit_hdays)}  
   #   penalty3<-1
-  c3<-profit_hdays
+  #c3<-profit_hdays
   #cost3<- sigmoid(c3,a=Setting$SigmoidA_Profit,b=0)
   #   if(isDebug){cat(" :c3(Profit)",c3)}
   
@@ -104,6 +104,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   
   ##
   # total cost is weighted sum of each cost.
+  c3=0
   A<-Setting$DrctlEffect_Coef*c6+Setting$AllEffect_Coef*c7
   B<-Setting$AdvEffect_Coef*c5+Setting$Profit_Coef*c3
   
