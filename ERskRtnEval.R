@@ -551,6 +551,7 @@ createCombineCandidatePool<-function(fname,pnum=1000,nrows=-1,skip=0,method=1){
 create_combined_population<-function(popnum,EvalFuncSetting,thresh,plelem,fname,isFileout=FALSE,isDebug=FALSE,maxposn,PosMultip){
   added_num<-0
   total_count<-0
+  start_t<-proc.time()
   while(TRUE) {
     s1<-pools[[ plelem[1] ]][[2]][ceiling(runif(1, min=1e-320, max=nrow(pools[[ plelem[1] ]][[2]]))), ]
     s1_pos<-unlist(s1[1:length(iniPos)]);s1_score<-as.numeric(s1[length(s1)])
@@ -607,7 +608,10 @@ create_combined_population<-function(popnum,EvalFuncSetting,thresh,plelem,fname,
         cat("\n",file=fname,append=TRUE)
       }
     }
-    if(((added_num%%30)==0)){cat(" added num:",added_num,"total count:",total_count,"\n")}
+    if(((added_num%%50)==0)){
+      cat(" added num:",added_num," total_count",total_count," time:",(proc.time()-start_t)[3],"\n")
+      start_t<-proc.time()
+    }
     if(added_num==popnum)
       break
   }

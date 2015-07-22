@@ -181,49 +181,49 @@ st <- "powershell.exe -Command \" del .\\ResultData\\1Cb-.csv \" "
 system(st) ;rm(st)
 
 #creating candidate pool for combined search
-# tmp<-read.table(paste(ResultFiles_Path_G,"1Cb.csv",sep=""),header=F,skipNul=TRUE,sep=",")
-# tmp %>% dplyr::arrange(tmp[,(length(iniPos)+1)]) %>% dplyr::distinct() -> tmp
-# tmp %>% arrange(.[,length(iniPos)+1]) %>% head(TopN_1) -> tmp
-# pools<-list(list(c(1,0,0),tmp)) #No.[[1]]
+ tmp<-read.table(paste(ResultFiles_Path_G,"1Cb.csv",sep=""),header=F,skipNul=TRUE,sep=",")
+ tmp %>% dplyr::arrange(tmp[,(length(iniPos)+1)]) %>% dplyr::distinct() -> tmp
+ tmp %>% arrange(.[,length(iniPos)+1]) %>% head(TopN_1) -> tmp
+ pools<-list(list(c(1,0,0),tmp)) #No.[[1]]
 
 # or when all results are mixed together regardress of the number of Putn and Calln, pools[[1]] should be set as
 # c(1,0,0) <- c(1Cb{=exact}, Putn not spicified, Calln not spicified)
-# rm(tmp)
+ rm(tmp)
 
-#combined population serach --------------
+#combined population serach
 
 ### 2(exact x exact) Combinations (2Cb)
 #
-# create_combined_population(popnum=PopN_1,EvalFuncSetting,thresh=Thresh_1,plelem=c(1,1),fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-#                            isFileout=TRUE,isDebug=FALSE,maxposn=8,PosMultip=PosMultip)
+ create_combined_population(popnum=PopN_1,EvalFuncSetting,thresh=Thresh_1,plelem=c(1,1),fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                            isFileout=TRUE,isDebug=FALSE,maxposn=EvalFuncSetting$Maxposnum,PosMultip=PosMultip)
 
 #2Cb.csv
-# st <- "powershell.exe .\\shell\\cmd3.ps1"
-# system(st)
-# st <- "powershell.exe .\\shell\\cmd4.ps1"
-# system(st)
-# st <- "powershell.exe -Command \" del .\\ResultData\\2Cb-.csv \" "
-# system(st) ;rm(st)
+ st <- "powershell.exe .\\shell\\cmd3.ps1"
+ system(st)
+ st <- "powershell.exe .\\shell\\cmd4.ps1"
+ system(st)
+ st <- "powershell.exe -Command \" del .\\ResultData\\2Cb-.csv \" "
+ system(st) ;rm(st)
 
 ### 3(exact x exact x exact) Combinations (3Cb)
 
 #adjust combined candidate population considering combinational explostion
-# tmp<-read.table(paste(ResultFiles_Path_G,"1Cb.csv",sep=""),header=F,skipNul=TRUE,sep=",")
-# tmp %>% dplyr::arrange(tmp[,(length(iniPos)+1)]) %>% dplyr::distinct() -> tmp
-# tmp %>% arrange(.[,length(iniPos)+1]) %>% head(TopN_2) -> tmp
-# 
-# pools<-list(list(c(1,0,0),tmp)) #No.[[1]] again
-# rm(tmp)
-# 
-# create_combined_population(popnum=PopN_2,EvalFuncSetting,thresh=Thresh_2,plelem=c(1,1,1),fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-#                            isFileout=TRUE,isDebug=FALSE,maxposn=8,PosMultip=PosMultip)
+ tmp<-read.table(paste(ResultFiles_Path_G,"1Cb.csv",sep=""),header=F,skipNul=TRUE,sep=",")
+ tmp %>% dplyr::arrange(tmp[,(length(iniPos)+1)]) %>% dplyr::distinct() -> tmp
+ tmp %>% arrange(.[,length(iniPos)+1]) %>% head(TopN_2) -> tmp
+ 
+ pools<-list(list(c(1,0,0),tmp)) #No.[[1]] again
+ rm(tmp)
+ 
+ create_combined_population(popnum=PopN_2,EvalFuncSetting,thresh=Thresh_2,plelem=c(1,1,1),fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                            isFileout=TRUE,isDebug=FALSE,maxposn=EvalFuncSetting$Maxposnum,PosMultip=PosMultip)
 #3Cb.csv
-# st <- "powershell.exe .\\shell\\cmd5.ps1"
-# system(st)
-# st <- "powershell.exe .\\shell\\cmd6.ps1"
-# system(st)
-# st <- "powershell.exe -Command \" del .\\ResultData\\3Cb-.csv \" "
-# system(st) ;rm(st)
+ st <- "powershell.exe .\\shell\\cmd5.ps1"
+ system(st)
+ st <- "powershell.exe .\\shell\\cmd6.ps1"
+ system(st)
+ st <- "powershell.exe -Command \" del .\\ResultData\\3Cb-.csv \" "
+ system(st) ;rm(st)
 
 
 ### 2x2(2Cbx2Cb) and 3x3(3Cbx3cb) Combinations
@@ -280,11 +280,10 @@ system(st) ;rm(st)
 #HV_IV_Adjust_Ratio
 HV_IV_Adjust_Ratio=as.numeric(ConfigParameters["EvalFnc_HV_IV_Adjust_Ratio",1])
 
-#Threshhold
+#Threshhold 足切りライン
 Thresh_Score1=as.numeric(ConfigParameters["ResultProcess_Thresh_Score1",1])
 Thresh_Score2=as.numeric(ConfigParameters["ResultProcess_Thresh_Score2",1])
 Thresh_Score3=as.numeric(ConfigParameters["ResultProcess_Thresh_Score3",1])
-Thresh_AdvEffect=as.numeric(ConfigParameters["ResultProcess_Thresh_AdvEffect",1])
 
 #ophcain 
 rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep="")
@@ -323,17 +322,43 @@ res1$putn<-unlist(tmp2$putn);res1$calln<-unlist(tmp2$calln);rm(tmp);rm(tmp2)
 res1 -> total_res
 
 ##
-# Exact (1Cb)
-res1<-read.table(paste(ResultFiles_Path_G,"1Cb.csv",sep=""),header=F,skipNul=TRUE,sep=",")
+# 2Cb
+res1<-read.table(paste(ResultFiles_Path_G,"2Cb.csv",sep=""),header=F,skipNul=TRUE,sep=",")
 res1 %>% dplyr::arrange(res1[,(length(iniPos)+1)]) %>% dplyr::distinct() -> res1
+res1 %>% select(0:length(iniPos)+1) -> res1
 #over the specified socre
-res1 %>% filter(.[,length(iniPos)+1]<Thresh_Score1) -> res1
+res1 %>% filter(.[,length(iniPos)+1]<Thresh_1) -> res1
 #posnum put call
 res1[,1:length(iniPos)] %>% rowwise() %>% do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp
 tmp  %>% rowwise() %>% do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp2
 res1$putn<-unlist(tmp2$putn);res1$calln<-unlist(tmp2$calln);rm(tmp);rm(tmp2)
-res1 -> total_res
+
+#full join
+full_join(total_res,res1) %>% arrange(.[,length(iniPos)+1]) %>% distinct() -> total_res
 rm(res1)
+
+##
+#  3Cb
+res1<-read.table(paste(ResultFiles_Path_G,"3Cb.csv",sep=""),header=F,skipNul=TRUE,sep=",")
+res1 %>% dplyr::arrange(res1[,(length(iniPos)+1)]) %>% dplyr::distinct() -> res1
+res1 %>% select(0:length(iniPos)+1) -> res1
+#over the specified socre
+res1 %>% filter(.[,length(iniPos)+1]<Thresh_2) -> res1
+#posnum put call
+res1[,1:length(iniPos)] %>% rowwise() %>% do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp
+tmp  %>% rowwise() %>% do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp2
+res1$putn<-unlist(tmp2$putn);res1$calln<-unlist(tmp2$calln);rm(tmp);rm(tmp2)
+
+#full join
+full_join(total_res,res1) %>% arrange(.[,length(iniPos)+1]) %>% distinct() -> total_res
+rm(res1)
+
+# res1[,1:length(iniPos)] %>% rowwise() %>% do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp
+# tmp  %>% rowwise() %>% do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp2
+# res1$putn<-unlist(tmp2$putn);res1$calln<-unlist(tmp2$calln);rm(tmp);rm(tmp2)
+#factorと認識されたときの変換 #res1$V1<-as.numeric(as.character(res1$V1))
+#full join
+# full_join(total_res,res1) %>% arrange(.[,length(iniPos)+1])  %>% distinct() -> total_res
 
 ##Historical Implied Volatility Data
 rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_IV.csv",sep="") 
@@ -373,21 +398,55 @@ getPositionWithGreeks(tmp_fil) %>% arrange(desc(AdvEffect)) -> tmp_fil
 getPositionWithGreeks(tmp_fil2) %>% arrange(desc(AdvEffect)) -> tmp_fil2
 getPositionWithGreeks(tmp_fil3) %>% arrange(desc(AdvEffect)) -> tmp_fil3
 
-## Filtering
-tmp_fil %>% arrange(desc(AdvEffect)) %>%  filter(Delta>-50,Delta<30) %>% # filter(Delta<30) %>%
-  top_n(100) -> tmp_fil_w ; print(tmp_fil_w)
-tmp_fil %>% arrange(desc(AdvEffect)) %>%  filter(.[,length(iniPos)+1]<1.6) %>% 
-  filter(Delta>-40,Delta<30) %>% top_n(100) -> tmp_fil_w ; print(tmp_fil_w)
+##
+#  Filtering
 
-tmp_fil2 %>% arrange(desc(AdvEffect)) %>%  filter(Delta>-50) %>% filter(Delta<30) %>%
-  top_n(100) -> tmp_fil_w2 ; print(tmp_fil_w2)
-tmp_fil2 %>% arrange(desc(AdvEffect)) %>%  filter(.[,length(iniPos)+1]<1.6) %>% 
-  filter(Delta>-40) %>% filter(Delta<30) %>% top_n(100) -> tmp_fil_w2 ; print(tmp_fil_w2)
+# Thrshhold
 
-tmp_fil3 %>% arrange(desc(AdvEffect)) %>%  filter(Delta>-50) %>% filter(Delta<30) %>%
-  top_n(100) -> tmp_fil_w3 ; print(tmp_fil_w3)
-tmp_fil3 %>% arrange(desc(AdvEffect)) %>%  filter(.[,length(iniPos)+1]<1.6) %>% 
-  filter(Delta>-40) %>% filter(Delta<30) %>% top_n(100) -> tmp_fil_w3 ; print(tmp_fil_w3)
+#read again and again
+ConfigParameters<-read.table(paste(DataFiles_Path_G,ConfigFileName_G,sep=""),
+                             row.names=1, comment.char="#",header=T,stringsAsFactors=F,sep=",")
+Thresh_AdvEffect=as.numeric(ConfigParameters["ResultProcess_Thresh_AdvEffect",1])
+F_Thrsh_Params_Names<-c("Score1","Score2","Score3","Delta1_Minus","Delta2_Minus","Delta3_Minus",
+                        "Delta1_Plus","Delta2_Plus","Delta3_Plus","Thrsh_VegaE1","Thrsh_VegaE2","Thrsh_VegaE3",
+                        "F_TopN1","F_TopN2","F_TopN3")
+F_Thrsh_Params<- vector("list",length(F_Thrsh_Params_Names))
+F_Thrsh_Params[[1]]<-as.numeric(ConfigParameters["ResultProcess_F_Thrsh_Score1",1])
+F_Thrsh_Params[[2]]<-as.numeric(ConfigParameters["ResultProcess_F_Thrsh_Score2",1])
+F_Thrsh_Params[[3]]<-as.numeric(ConfigParameters["ResultProcess_F_Thrsh_Score3",1])
+F_Thrsh_Params[[4]]<-as.numeric(ConfigParameters["ResultProcess_F_Thrsh_Delta1_Minus",1])
+F_Thrsh_Params[[5]]<-as.numeric(ConfigParameters["ResultProcess_F_Thrsh_Delta2_Minus",1])
+F_Thrsh_Params[[6]]<-as.numeric(ConfigParameters["ResultProcess_F_Thrsh_Delta3_Minus",1])
+F_Thrsh_Params[[7]]<-as.numeric(ConfigParameters["ResultProcess_F_Thrsh_Delta1_Plus",1])
+F_Thrsh_Params[[8]]<-as.numeric(ConfigParameters["ResultProcess_F_Thrsh_Delta2_Plus",1])
+F_Thrsh_Params[[9]]<-as.numeric(ConfigParameters["ResultProcess_F_Thrsh_Delta3_Plus",1])
+F_Thrsh_Params[[10]]<-as.numeric(ConfigParameters["ResultProcess_F_Thrsh_VegaE1",1])
+F_Thrsh_Params[[11]]<-as.numeric(ConfigParameters["ResultProcess_F_Thrsh_VegaE2",1])
+F_Thrsh_Params[[12]]<-as.numeric(ConfigParameters["ResultProcess_F_Thrsh_VegaE3",1])
+F_Thrsh_Params[[13]]<-as.numeric(ConfigParameters["ResultProcess_F_TopN1",1])
+F_Thrsh_Params[[14]]<-as.numeric(ConfigParameters["ResultProcess_F_TopN2",1])
+F_Thrsh_Params[[15]]<-as.numeric(ConfigParameters["ResultProcess_F_TopN3",1])
+names(F_Thrsh_Params)<-F_Thrsh_Params_Names ; rm(F_Thrsh_Params_Names) 
+(Thresh_AdvEffect)
+(F_Thrsh_Params)
+
+tmp_fil %>% 
+  #arrange(desc(AdvEffect)) %>% filter(.[,length(iniPos)+1]<F_Thrsh_Params$Score1) %>% 
+  arrange(.[,length(iniPos)+1]) %>% filter(AdvEffect>Thresh_AdvEffect) %>% 
+  filter(Delta>F_Thrsh_Params$Delta1_Minus,Delta<F_Thrsh_Params$Delta1_Plus) %>% 
+  filter(VegaEffect>F_Thrsh_Params$Thrsh_VegaE1) %>% top_n(F_Thrsh_Params$F_TopN1) -> tmp_fil_w ; print(tmp_fil_w)
+
+tmp_fil2 %>% 
+  #arrange(desc(AdvEffect)) %>%  filter(.[,length(iniPos)+1]<F_Thrsh_Params$Score2) %>% 
+  arrange(.[,length(iniPos)+1]) %>% filter(AdvEffect>Thresh_AdvEffect) %>% 
+  filter(Delta>F_Thrsh_Params$Delta2_Minus) %>% filter(Delta<F_Thrsh_Params$Delta2_Plus) %>%
+  filter(VegaEffect>F_Thrsh_Params$Thrsh_VegaE2) %>% top_n(F_Thrsh_Params$F_TopN2) -> tmp_fil_w2 ; print(tmp_fil_w2)
+
+tmp_fil3 %>% 
+  #arrange(desc(AdvEffect)) %>%  filter(.[,length(iniPos)+1]<F_Thrsh_Params$Score3) %>% 
+  arrange(.[,length(iniPos)+1]) %>% filter(AdvEffect>Thresh_AdvEffect) %>% 
+  filter(Delta>F_Thrsh_Params$Delta3_Minus) %>% filter(Delta<F_Thrsh_Params$Delta3_Plus) %>%
+  filter(VegaEffect>F_Thrsh_Params$Thrsh_VegaE3) %>% top_n(F_Thrsh_Params$F_TopN3) -> tmp_fil_w3 ; print(tmp_fil_w3)
 
 ## Save to a file
 write.table(tmp_fil_w,paste(ResultFiles_Path_G,"EvalCnd.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
@@ -403,9 +462,9 @@ rm(iniPos,evaPos)
 rm(holdDays,dviv_caldays,divYld_G,riskFreeRate_G,PosMultip)
 rm(opchain,histIV,position)
 rm(InitialPopCreateLoopNum,InitialPopThresh,TopN_1,PopN_1,Thresh_1,TopN_2,PopN_2,Thresh_2)
-rm(CallIVChgDown,CallIVChgUp,CallVCone,PutIVChgDown,PutIVChgUp,PutVCone,SkewModel)
+rm(CallIVChgDown,CallIVChgUp,CallVCone,PutIVChgDown,PutIVChgUp,PutVCone,SkewModel,F_Thrsh_Params)
 rm(PC1dCtC_IVCF1dCtC,PC3dCtC_IVCF3dCtC,PC5dCtC_IVCF5dCtC,PC7dCtC_IVCF7dCtC)
-rm(ConfigFileName_G,ConfigParameters,EvalFuncSetting)
+rm(ConfigFileName_G,ConfigParameters,EvalFuncSetting,)
 rm(CALENDAR_G,OpType_Call_G,OpType_Put_G,DataFiles_Path_G,ResultFiles_Path_G,TimeToExp_Limit_Closeness_G,Underying_Symbol_G)
 
 rm(tmp_fil,tmp_fil2,tmp_fil3,total_res)
