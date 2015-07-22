@@ -57,6 +57,8 @@ rf<-paste(ResultFiles_Path_G,Underying_Symbol_G,"_EvalPosition.csv",sep="")
 evalPositions<-read.table(rf,header=F,sep=",") ;rm(rf)
 length(opchain$Position)
 evalPositions %>% distinct() -> evalPositions
+#NAを含む行を削除する
+na.omit(evalPositions) -> evalPositions
 write.table(evalPositions,paste(ResultFiles_Path_G,Underying_Symbol_G,"_EvalPosition.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
 
 rm(opchain,evalPositions,histIV,position)
