@@ -97,7 +97,7 @@ MaxStimDay=as.numeric(ConfigParameters["MaxSimDay",1])
 #                      ↓     auto     w12
 #
 # mu_udly(Ntrl)     : (1.0)^(1/252)-1
-# sigma_udly(Ntrl)  : getIV_td(histIV[1,]$IVIDX)/sqrt(252)*0.95 0.95:HVとIVの調整項目。
+# sigma_udly(Ntrl)  : histIV[1,]$IVIDX/sqrt(252)*0.95 0.95:HVとIVの調整項目。
 # mu_iv(Ntrl)       : (1.0)^(1/252)-1
 # sigma_iv(auto cal): VoV*sqrt(1-Co(UDLY,IV)^2)
 # 
@@ -157,11 +157,13 @@ for(Counter in evalPosStart:evalPosEnd){
   ##
   # Creating Pertubation Combination Data Frame
   mu_udly<-c(rep(((1.0)^(1/252)-1),times=6),rep(((1.0-mu_udly_drift_down)^(1/252)-1),times=3),rep(((1.0+mu_udly_drift_up)^(1/252)-1),times=3))
-  sigma_udly<-c(rep(getIV_td(histIV[1,]$IVIDX)/sqrt(252)*HV_IV_Adjust_Ratio,times=3),rep(getIV_td(histIV[1,]$IVIDX)/sqrt(252)*(1.0-sigma_udly_drift_down)*HV_IV_Adjust_Ratio,times=3),
-                rep(getIV_td(histIV[1,]$IVIDX)/sqrt(252)*(1.0+sigma_udly_drift_up)*HV_IV_Adjust_Ratio,times=3),rep(getIV_td(histIV[1,]$IVIDX)/sqrt(252)*HV_IV_Adjust_Ratio,times=3))
+  sigma_udly<-c(rep(histIV[1,]$IVIDX/sqrt(252)*HV_IV_Adjust_Ratio,times=3),
+                rep(histIV[1,]$IVIDX/sqrt(252)*(1.0-sigma_udly_drift_down)*HV_IV_Adjust_Ratio,times=3),
+                rep(histIV[1,]$IVIDX/sqrt(252)*(1.0+sigma_udly_drift_up)*HV_IV_Adjust_Ratio,times=3),
+                rep(histIV[1,]$IVIDX/sqrt(252)*HV_IV_Adjust_Ratio,times=3))
   mu_iv<-c(rep(((1.0)^(1/252)-1),times=1),rep(((1.0+mu_iv_drift_up)^(1/252)-1),times=1),rep(((1.0-mu_iv_drift_down)^(1/252)-1),times=1))
   mu_iv<-rep(mu_iv,times=4)
-  sigma_iv<-rep(annuual.daily.volatility(getIV_td(histIV$IVIDX))$anlzd*sqrt(1-PC1dCtC_IVCF1dCtC$cor*PC1dCtC_IVCF1dCtC$cor)/sqrt(252),
+  sigma_iv<-rep(annuual.daily.volatility(histIV$IVIDX)$anlzd*sqrt(1-PC1dCtC_IVCF1dCtC$cor*PC1dCtC_IVCF1dCtC$cor)/sqrt(252),
                 times=12)
   weight<-scenario_weight
   

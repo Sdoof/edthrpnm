@@ -21,7 +21,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   
   #weighting calculate
   sd_multp<-Setting$holdDays
-  anlzd_sd<-getIV_td(histIV$IVIDX[1])*Setting$HV_IV_Adjust_Ratio
+  anlzd_sd<-histIV$IVIDX[1]*Setting$HV_IV_Adjust_Ratio
   sd_hd<-(anlzd_sd/sqrt(252/sd_multp))
   weight<-dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd / sum(dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd)
   if(isDebug){cat(" :holdDays",Setting$holdDays);cat(" :weight",weight)}
@@ -202,10 +202,10 @@ getPosGreeks<-function(pos,greek,multi=PosMultip){
   pos_greek
 }
 
-getIV_td<-function(ividx_cd){
-  ividx_td <- ividx_cd*sqrt(365/252)
-  ividx_td
-}
+#getIV_td<-function(ividx_cd){
+#  ividx_td <- ividx_cd*sqrt(365/252)
+#  ividx_td
+#}
 
 getThetaEffect<-function(pos,greek,multi=PosMultip,hdd=holdDays){
   theta<-getPosGreeks(pos=pos,greek=greek)
@@ -214,14 +214,14 @@ getThetaEffect<-function(pos,greek,multi=PosMultip,hdd=holdDays){
 }
 
 getDeltaEffect<-function(pos,greek,UDLY,rlzdvol_td,multi=PosMultip,hdd=holdDays){
-  expPriceChange<-mean(UDLY*(exp(rlzdvol_td*sqrt(hdd/365))-1))
+  expPriceChange<-mean(UDLY*(exp(rlzdvol_td*sqrt(hdd/252))-1))
   delta<-getPosGreeks(pos=pos,greek=greek)
   deltaEfct<-(-abs(delta))*expPriceChange
   deltaEfct
 }
 
 getGammaEffect<-function(pos,greek,UDLY,rlzdvol_td,multi=PosMultip,hdd=holdDays){
-  expPriceChange<-mean(UDLY*(exp(rlzdvol_td*sqrt(hdd/365))-1))
+  expPriceChange<-mean(UDLY*(exp(rlzdvol_td*sqrt(hdd/252))-1))
   gamma<-getPosGreeks(pos=pos,greek=greek)
   gammaEfct<-gamma*(expPriceChange^2)/2
   gammaEfct
@@ -230,9 +230,6 @@ getGammaEffect<-function(pos,greek,UDLY,rlzdvol_td,multi=PosMultip,hdd=holdDays)
 #Here we do not care the effect of Volga as we did the Gamma effect, is this really appropriate?
 getVegaEffect<-function(pos,greek,ividx,dviv,multi=PosMultip,hdd=holdDays){
   expIVChange<-mean(ividx*(exp(dviv*sqrt(holdDays))-1))
-  #Or use Annualized Volatility of Impled Volatility. Should be the same result.
-  #  aviv<-annuual.daily.volatility(histIV$IVIDX)$anlzd*sqrt(holdDays/252)
-  #  expIVChange<-mean(ividx*(exp(aviv)-1))
   vega<-getPosGreeks(pos=pos,greek=greek)
   vegaEffect<-(-abs(vega))*(expIVChange*100)
   vegaEffect
@@ -384,18 +381,18 @@ createPositinEvalTable<-function(position,udlStepNum=3,udlStepPct=0.03,days=hold
   #  DeltaEffect
   posEvalTbl %>% rowwise() %>% do(DeltaEffect=getDeltaEffect(pos=.$pos$Position,greek=.$pos$Delta,
                                                              UDLY=.$pos$UDLY,
-                                                             rlzdvol_td=getIV_td(.$pos$IVIDX)*HV_IV_Adjust_Ratio)) -> tmp
+                                                             rlzdvol_td=.$pos$IVIDX*HV_IV_Adjust_Ratio)) -> tmp
   unlist(tmp$DeltaEffect)->tmp ; posEvalTbl$DeltaEffect <- tmp ;rm(tmp)
   #  GammaEffect
   posEvalTbl %>% rowwise() %>% do(GammaEffect=getGammaEffect(pos=.$pos$Position,greek=.$pos$Gamma,
                                                              UDLY=.$pos$UDLY,
-                                                             rlzdvol_td=getIV_td(.$pos$IVIDX)*HV_IV_Adjust_Ratio)) -> tmp
+                                                             rlzdvol_td=.$pos$IVIDX*HV_IV_Adjust_Ratio)) -> tmp
   unlist(tmp$GammaEffect)->tmp ; posEvalTbl$GammaEffect <- tmp ;rm(tmp) 
   #  VegaEffect
   posEvalTbl %>% rowwise() %>% do(VegaEffect=getVegaEffect(pos=.$pos$Position,greek=.$pos$Vega,
-                                                           ividx=getIV_td(.$pos$IVIDX)
+                                                           ividx=.$pos$IVIDX,
                                                            #dviv should be precalulated when optimized
-                                                           ,dviv=annuual.daily.volatility(getIV_td(histIV$IVIDX))$daily)) -> tmp
+                                                           dviv=annuual.daily.volatility(histIV$IVIDX)$daily)) -> tmp
   unlist(tmp$VegaEffect)->tmp ; posEvalTbl$VegaEffect <- tmp ;rm(tmp)
   
   ##
@@ -823,18 +820,18 @@ adjustPosChg<-function(process_df,time_advcd,base_vol_chg=0,HV_IV_Adjust_Ratio){
   # DeltaEffect
   process_df %>% rowwise() %>% do(DeltaEffect=getDeltaEffect(pos=.$pos$Position,greek=.$pos$Delta,
                                                              UDLY=.$pos$UDLY,
-                                                             rlzdvol_td=getIV_td(.$pos$IVIDX)*HV_IV_Adjust_Ratio)) -> tmp
+                                                             rlzdvol_td=.$pos$IVIDX*HV_IV_Adjust_Ratio)) -> tmp
   unlist(tmp$DeltaEffect)->tmp ; process_df$DeltaEffect <- tmp ;rm(tmp)
   # GammaEffect
   process_df %>% rowwise() %>% do(GammaEffect=getGammaEffect(pos=.$pos$Position,greek=.$pos$Gamma,
                                                              UDLY=.$pos$UDLY,
-                                                             rlzdvol_td=getIV_td(.$pos$IVIDX)*HV_IV_Adjust_Ratio)) -> tmp
+                                                             rlzdvol_td=.$pos$IVIDX*HV_IV_Adjust_Ratio)) -> tmp
   unlist(tmp$GammaEffect)->tmp ; process_df$GammaEffect <- tmp ;rm(tmp)
   # VegaEffect
   process_df %>% rowwise() %>% do(VegaEffect=getVegaEffect(pos=.$pos$Position,greek=.$pos$Vega,
-                                                           ividx=getIV_td(.$pos$IVIDX)
+                                                           ividx=.$pos$IVIDX,
                                                            #dviv should be precalulated when optimized
-                                                           ,dviv=annuual.daily.volatility(getIV_td(histIV$IVIDX))$daily)) -> tmp
+                                                           dviv=annuual.daily.volatility(histIV$IVIDX)$daily)) -> tmp
   unlist(tmp$VegaEffect)->tmp ; process_df$VegaEffect <- tmp ;rm(tmp)
   
   return(process_df)
@@ -853,12 +850,12 @@ getPositionGreeks<-function(position,multi=PosMultip,HV_IV_Adjust_Ratio){
   
   thetaEffect<-getThetaEffect(pos=position$Position,greek=position$Theta)
   vegaEffect<-getVegaEffect(pos=position$Position,greek=position$Vega,
-                            ividx=getIV_td(position$IVIDX),dviv=annuual.daily.volatility(getIV_td(histIV$IVIDX))$daily)
+                            ividx=position$IVIDX,dviv=annuual.daily.volatility(histIV$IVIDX)$daily)
   deltaEffect<-getDeltaEffect(pos=position$Position,greek=position$Delta,
-                              UDLY=position$UDLY,rlzdvol_td=getIV_td(position$IVIDX)*HV_IV_Adjust_Ratio)
+                              UDLY=position$UDLY,rlzdvol_td=position$IVIDX*HV_IV_Adjust_Ratio)
   
   gammaEffect<-getGammaEffect(pos=position$Position,greek=position$Gamma,
-                              UDLY=position$UDLY,rlzdvol_td=getIV_td(position$IVIDX)*HV_IV_Adjust_Ratio)
+                              UDLY=position$UDLY,rlzdvol_td=position$IVIDX*HV_IV_Adjust_Ratio)
   
   data.frame(Price=price,Delta=delta,Gamma=gamma,Theta=theta,Vega=vega,UDLY=udly,
              ThetaEffect=thetaEffect,GammaEffect=gammaEffect,DeltaEffect=deltaEffect,VegaEffect=vegaEffect)
