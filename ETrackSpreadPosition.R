@@ -21,7 +21,7 @@ ResultFiles_Path_G=ConfigParameters["ResultFiles_Path_G",1]
 
 #追跡対象のOption Spread。
 rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Hold.csv",sep="")
-opchain<-read.table(rf,header=T,sep=",")
+opchain<-read.table(rf,header=T,sep=",") ; rm(rf)
 #get position where opchain$Position!=0
 opchain %>% dplyr::filter(Position!=0) -> position
 position %>% select(ExpDate,TYPE,Strike,Position) -> position
@@ -31,11 +31,14 @@ rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep="")
 opchain<-read.table(rf,header=T,sep=",")
 opchain %>% select(-(Position)) -> opchain ; head(opchain)
 
-merge(opchain,position,sort=F) -> position_today
-position<-position_today ; rm(position_today)
-
-#列並べ変え。なぜか変な形式
+merge(opchain,position) %>% select(Date,ExpDate,TYPE,Strike,ContactName,Position,UDLY,Price,
+                                   Delta,Gamma,Vega,Theta,Rho,OrigIV,IVIDX,ATMIV,
+                                   HowfarOOM,TimeToExpDate,Moneyness.Nm) %>% arrange(ExpDate,desc(TYPE),Strike) -> position
+position$Position<-ifelse(is.na(position$Position), 0, position$Position)
 
 #savefile or create object
 
-rm(opchain,position)
+#Config File
+rm(ConfigFileName_G,DataFiles_Path_G,ConfigParameters,OpType_Put_G,OpType_Call_G)
+rm(Underying_Symbol_G,ResultFiles_Path_G)
+rm(opchain)
