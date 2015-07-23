@@ -11,22 +11,20 @@ DataFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\MarketData\\data\\"
 ConfigParameters<-read.table(paste(DataFiles_Path_G,ConfigFileName_G,sep=""),
                              row.names=1, comment.char="#",header=T,stringsAsFactors=F,sep=",")
 ###Global 変数及び定数.
+#Definition
+OpType_Put_G=as.numeric(ConfigParameters["OpType_Put_G",1])
+OpType_Call_G=as.numeric(ConfigParameters["OpType_Call_G",1])
+
+#File
+Underying_Symbol_G=ConfigParameters["Underying_Symbol_G",1]
+ResultFiles_Path_G=ConfigParameters["ResultFiles_Path_G",1]
+
 #Calendar
 CALENDAR_G=ConfigParameters["CALENDAR_G",1]
 
 # Possibly read from File
 riskFreeRate_G=as.numeric(ConfigParameters["riskFreeRate_G",1])
 divYld_G=as.numeric(ConfigParameters["divYld_G",1])
-
-#Definition
-OpType_Put_G=as.numeric(ConfigParameters["OpType_Put_G",1])
-OpType_Call_G=as.numeric(ConfigParameters["OpType_Call_G",1])
-
-#Skewness Calculation
-TimeToExp_Limit_Closeness_G=as.numeric(ConfigParameters["TimeToExp_Limit_Closeness_G",1])
-#File
-Underying_Symbol_G=ConfigParameters["Underying_Symbol_G",1]
-ResultFiles_Path_G=ConfigParameters["ResultFiles_Path_G",1]
 
 #Holding Period
 #holdDays<-3*252/365 #Trading Days. This should be correct.
@@ -36,6 +34,9 @@ dviv_caldays=as.numeric(ConfigParameters["dviv_caldays",1])
 #Multipler of Position
 PosMultip=as.numeric(ConfigParameters["PosMultip",1])
 
+#Skewness Calculation
+TimeToExp_Limit_Closeness_G=as.numeric(ConfigParameters["TimeToExp_Limit_Closeness_G",1]
+                                       
 #EvalFuncSetting
 EvalFuncSetting<-list(holdDays)
 EvalFuncSetting<-c(EvalFuncSetting,as.numeric(ConfigParameters["EvalFnc_UdlStepNum",1]))
@@ -69,6 +70,9 @@ TopN_2=as.numeric(ConfigParameters["Optimize_TopN_2",1])
 PopN_2=as.numeric(ConfigParameters["Optimize_PopN_2",1])
 Thresh_2=as.numeric(ConfigParameters["Optimize_Thresh_2",1])
 
+#Search Combined(2Cb,3Cb,etc) Spreads?
+Combined_Spread=FALSE
+
 #Option Chain and Position Data. Here we use UDL_Positions_Pre
 rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep="")
 opchain<-read.table(rf,header=T,sep=",")
@@ -78,7 +82,7 @@ opchain %>% dplyr::select(-(contains('Frac',ignore.case=TRUE)),
 #get position where opchain$Position!=0
 opchain %>% dplyr::filter(Position!=0) -> position
 
-##Historical Implied Volatility Data ---------------
+##Historical Implied Volatility Data
 rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_IV.csv",sep="") 
 histIV<-read.table(rf,header=T,sep=",",nrows=1000);rm(rf)
 #filtering
@@ -180,98 +184,53 @@ system(st)
 st <- "powershell.exe -Command \" del .\\ResultData\\1Cb-.csv \" "
 system(st) ;rm(st)
 
-#creating candidate pool for combined search
- tmp<-read.table(paste(ResultFiles_Path_G,"1Cb.csv",sep=""),header=F,skipNul=TRUE,sep=",")
- tmp %>% dplyr::arrange(tmp[,(length(iniPos)+1)]) %>% dplyr::distinct() -> tmp
- tmp %>% arrange(.[,length(iniPos)+1]) %>% head(TopN_1) -> tmp
- pools<-list(list(c(1,0,0),tmp)) #No.[[1]]
-
-# or when all results are mixed together regardress of the number of Putn and Calln, pools[[1]] should be set as
-# c(1,0,0) <- c(1Cb{=exact}, Putn not spicified, Calln not spicified)
- rm(tmp)
-
 #combined population serach
-
-### 2(exact x exact) Combinations (2Cb)
-#
- create_combined_population(popnum=PopN_1,EvalFuncSetting,thresh=Thresh_1,plelem=c(1,1),fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                            isFileout=TRUE,isDebug=FALSE,maxposn=EvalFuncSetting$Maxposnum,PosMultip=PosMultip)
-
-#2Cb.csv
- st <- "powershell.exe .\\shell\\cmd3.ps1"
- system(st)
- st <- "powershell.exe .\\shell\\cmd4.ps1"
- system(st)
- st <- "powershell.exe -Command \" del .\\ResultData\\2Cb-.csv \" "
- system(st) ;rm(st)
-
-### 3(exact x exact x exact) Combinations (3Cb)
-
-#adjust combined candidate population considering combinational explostion
- tmp<-read.table(paste(ResultFiles_Path_G,"1Cb.csv",sep=""),header=F,skipNul=TRUE,sep=",")
- tmp %>% dplyr::arrange(tmp[,(length(iniPos)+1)]) %>% dplyr::distinct() -> tmp
- tmp %>% arrange(.[,length(iniPos)+1]) %>% head(TopN_2) -> tmp
- 
- pools<-list(list(c(1,0,0),tmp)) #No.[[1]] again
- rm(tmp)
- 
- create_combined_population(popnum=PopN_2,EvalFuncSetting,thresh=Thresh_2,plelem=c(1,1,1),fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                            isFileout=TRUE,isDebug=FALSE,maxposn=EvalFuncSetting$Maxposnum,PosMultip=PosMultip)
-#3Cb.csv
- st <- "powershell.exe .\\shell\\cmd5.ps1"
- system(st)
- st <- "powershell.exe .\\shell\\cmd6.ps1"
- system(st)
- st <- "powershell.exe -Command \" del .\\ResultData\\3Cb-.csv \" "
- system(st) ;rm(st)
-
-
-### 2x2(2Cbx2Cb) and 3x3(3Cbx3cb) Combinations
-###create nested combine candidate pool 
-# poolidx<-length(pools)+1
-# 
-# tmp<-createCombineCandidatePool(fname=paste(".\\ResultData\\2Cb.csv",sep=""),
-#                                             pnum=0,nrows=-1,skip=0,method=1)
-# tmp %>% filter(.[,length(iniPos)+1]<1.2) -> tmp
-# tmp %>% arrange(.[,length(iniPos)+1]) %>% head(3000) -> tmp
-
-###c(2Cb, Putn not spicified, Calln not spicified)
-# pools[poolidx]<-list(list(c(2,0,0),tmp)) ; poolidx<-poolidx+1 #No.[[4]] or No.[[2]]
-# 
-# 
-# tmp<-createCombineCandidatePool(fname=paste(".\\ResultData\\3Cb.csv",sep=""),
-#                                 pnum=0,nrows=-1,skip=0,method=1)
-# tmp %>% filter(.[,length(iniPos)+1]<1.2) -> tmp
-# tmp %>% arrange(.[,length(iniPos)+1]) %>% head(3000) -> tmp
-###c(3Cb, Putn not spicified, Calln not spicified)
-# pools[poolidx]<-list(list(c(3,0,0),tmp)) ; poolidx<-poolidx+1 #No.[[5]] or No.[[3]]
-# rm(poolidx,tmp)
-
-###Creating Population again
-### 2Cbx2cb Combination search
-# create_combined_population(popnum=20000,thresh=2.0,plelem=c(2,2),fname=paste(".\\ResultData\\combine-Result-2Cb(+1Cb+1Cb)2Cb(+1Cb+1Cb)-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-#                            isFileout=TRUE,isDebug=FALSE,maxposn=8) 
-###4Cb.csv
-# st <- "powershell.exe .\\shell\\cmd7.ps1"
-# system(st)
-# st <- "powershell.exe .\\shell\\cmd8.ps1"
-# system(st)
-# st <- "powershell.exe -Command \" del .\\ResultData\\4Cb-.csv \" "
-# system(st) ;rm(st)
-
-### 3Cbx3Cb Combination search
-# create_combined_population(popnum=20000,thresh=2.0,plelem=c(3,3),fname=paste(".\\ResultData\\combine-Result-3Cb(+1Cb+1Cb+1Cb)3Cb(+1Cb+1Cb+1Cb)-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-#                            isFileout=TRUE,isDebug=FALSE,maxposn=8) 
-###6Cb.csv
-# st <- "powershell.exe .\\shell\\cmd9.ps1"
-# system(st)
-# st <- "powershell.exe .\\shell\\cmd10.ps1"
-# system(st)
-# st <- "powershell.exe -Command \" del .\\ResultData\\6Cb-.csv \" "
-# system(st) ;rm(st)
-
-#rm(pools)
-
+if(Combined_Spread){
+  #creating candidate pool for combined search
+  tmp<-read.table(paste(ResultFiles_Path_G,"1Cb.csv",sep=""),header=F,skipNul=TRUE,sep=",")
+  tmp %>% dplyr::arrange(tmp[,(length(iniPos)+1)]) %>% dplyr::distinct() -> tmp
+  tmp %>% arrange(.[,length(iniPos)+1]) %>% head(TopN_1) -> tmp
+  pools<-list(list(c(1,0,0),tmp)) #No.[[1]]
+  
+  # or when all results are mixed together regardress of the number of Putn and Calln, pools[[1]] should be set as
+  # c(1,0,0) <- c(1Cb{=exact}, Putn not spicified, Calln not spicified)
+  rm(tmp)
+  
+  ### 2(exact x exact) Combinations (2Cb)
+  #
+  create_combined_population(popnum=PopN_1,EvalFuncSetting,thresh=Thresh_1,plelem=c(1,1),fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                             isFileout=TRUE,isDebug=FALSE,maxposn=EvalFuncSetting$Maxposnum,PosMultip=PosMultip)
+  
+  #2Cb.csv
+  st <- "powershell.exe .\\shell\\cmd3.ps1"
+  system(st)
+  st <- "powershell.exe .\\shell\\cmd4.ps1"
+  system(st)
+  st <- "powershell.exe -Command \" del .\\ResultData\\2Cb-.csv \" "
+  system(st) ;rm(st)
+  
+  ### 3(exact x exact x exact) Combinations (3Cb)
+  
+  #adjust combined candidate population considering combinational explostion
+  tmp<-read.table(paste(ResultFiles_Path_G,"1Cb.csv",sep=""),header=F,skipNul=TRUE,sep=",")
+  tmp %>% dplyr::arrange(tmp[,(length(iniPos)+1)]) %>% dplyr::distinct() -> tmp
+  tmp %>% arrange(.[,length(iniPos)+1]) %>% head(TopN_2) -> tmp
+  
+  pools<-list(list(c(1,0,0),tmp)) #No.[[1]] again
+  rm(tmp)
+  
+  create_combined_population(popnum=PopN_2,EvalFuncSetting,thresh=Thresh_2,plelem=c(1,1,1),fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                             isFileout=TRUE,isDebug=FALSE,maxposn=EvalFuncSetting$Maxposnum,PosMultip=PosMultip)
+  #3Cb.csv
+  st <- "powershell.exe .\\shell\\cmd5.ps1"
+  system(st)
+  st <- "powershell.exe .\\shell\\cmd6.ps1"
+  system(st)
+  st <- "powershell.exe -Command \" del .\\ResultData\\3Cb-.csv \" "
+  system(st) ;rm(st)
+  
+  rm(pools)
+}
 
 ###
 ##
@@ -321,44 +280,46 @@ tmp  %>% rowwise() %>% do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp2
 res1$putn<-unlist(tmp2$putn);res1$calln<-unlist(tmp2$calln);rm(tmp);rm(tmp2)
 res1 -> total_res
 
-##
-# 2Cb
-res1<-read.table(paste(ResultFiles_Path_G,"2Cb.csv",sep=""),header=F,skipNul=TRUE,sep=",")
-res1 %>% dplyr::arrange(res1[,(length(iniPos)+1)]) %>% dplyr::distinct() -> res1
-res1 %>% select(0:length(iniPos)+1) -> res1
-#over the specified socre
-res1 %>% filter(.[,length(iniPos)+1]<Thresh_1) -> res1
-#posnum put call
-res1[,1:length(iniPos)] %>% rowwise() %>% do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp
-tmp  %>% rowwise() %>% do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp2
-res1$putn<-unlist(tmp2$putn);res1$calln<-unlist(tmp2$calln);rm(tmp);rm(tmp2)
-
-#full join
-full_join(total_res,res1) %>% arrange(.[,length(iniPos)+1]) %>% distinct() -> total_res
-rm(res1)
-
-##
-#  3Cb
-res1<-read.table(paste(ResultFiles_Path_G,"3Cb.csv",sep=""),header=F,skipNul=TRUE,sep=",")
-res1 %>% dplyr::arrange(res1[,(length(iniPos)+1)]) %>% dplyr::distinct() -> res1
-res1 %>% select(0:length(iniPos)+1) -> res1
-#over the specified socre
-res1 %>% filter(.[,length(iniPos)+1]<Thresh_2) -> res1
-#posnum put call
-res1[,1:length(iniPos)] %>% rowwise() %>% do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp
-tmp  %>% rowwise() %>% do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp2
-res1$putn<-unlist(tmp2$putn);res1$calln<-unlist(tmp2$calln);rm(tmp);rm(tmp2)
-
-#full join
-full_join(total_res,res1) %>% arrange(.[,length(iniPos)+1]) %>% distinct() -> total_res
-rm(res1)
-
-# res1[,1:length(iniPos)] %>% rowwise() %>% do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp
-# tmp  %>% rowwise() %>% do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp2
-# res1$putn<-unlist(tmp2$putn);res1$calln<-unlist(tmp2$calln);rm(tmp);rm(tmp2)
-#factorと認識されたときの変換 #res1$V1<-as.numeric(as.character(res1$V1))
-#full join
-# full_join(total_res,res1) %>% arrange(.[,length(iniPos)+1])  %>% distinct() -> total_res
+if(Combined_Spread){
+  ##
+  # 2Cb
+  res1<-read.table(paste(ResultFiles_Path_G,"2Cb.csv",sep=""),header=F,skipNul=TRUE,sep=",")
+  res1 %>% dplyr::arrange(res1[,(length(iniPos)+1)]) %>% dplyr::distinct() -> res1
+  res1 %>% select(0:length(iniPos)+1) -> res1
+  #over the specified socre
+  res1 %>% filter(.[,length(iniPos)+1]<Thresh_1) -> res1
+  #posnum put call
+  res1[,1:length(iniPos)] %>% rowwise() %>% do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp
+  tmp  %>% rowwise() %>% do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp2
+  res1$putn<-unlist(tmp2$putn);res1$calln<-unlist(tmp2$calln);rm(tmp);rm(tmp2)
+  
+  #full join
+  full_join(total_res,res1) %>% arrange(.[,length(iniPos)+1]) %>% distinct() -> total_res
+  rm(res1)
+  
+  ##
+  #  3Cb
+  res1<-read.table(paste(ResultFiles_Path_G,"3Cb.csv",sep=""),header=F,skipNul=TRUE,sep=",")
+  res1 %>% dplyr::arrange(res1[,(length(iniPos)+1)]) %>% dplyr::distinct() -> res1
+  res1 %>% select(0:length(iniPos)+1) -> res1
+  #over the specified socre
+  res1 %>% filter(.[,length(iniPos)+1]<Thresh_2) -> res1
+  #posnum put call
+  res1[,1:length(iniPos)] %>% rowwise() %>% do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp
+  tmp  %>% rowwise() %>% do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp2
+  res1$putn<-unlist(tmp2$putn);res1$calln<-unlist(tmp2$calln);rm(tmp);rm(tmp2)
+  
+  #full join
+  full_join(total_res,res1) %>% arrange(.[,length(iniPos)+1]) %>% distinct() -> total_res
+  rm(res1)
+  
+  # res1[,1:length(iniPos)] %>% rowwise() %>% do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp
+  # tmp  %>% rowwise() %>% do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp2
+  # res1$putn<-unlist(tmp2$putn);res1$calln<-unlist(tmp2$calln);rm(tmp);rm(tmp2)
+  #factorと認識されたときの変換 #res1$V1<-as.numeric(as.character(res1$V1))
+  #full join
+  # full_join(total_res,res1) %>% arrange(.[,length(iniPos)+1])  %>% distinct() -> total_res
+}
 
 ##Historical Implied Volatility Data
 rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_IV.csv",sep="") 
@@ -460,7 +421,7 @@ rm(getPutCallnOfthePosition,getPositionWithGreeks)
 # finally remove these variables
 rm(iniPos,evaPos)
 rm(holdDays,dviv_caldays,divYld_G,riskFreeRate_G,PosMultip)
-rm(opchain,histIV,position)
+rm(opchain,histIV,position,Combined_Spread)
 rm(InitialPopCreateLoopNum,InitialPopThresh,TopN_1,PopN_1,Thresh_1,TopN_2,PopN_2,Thresh_2)
 rm(CallIVChgDown,CallIVChgUp,CallVCone,PutIVChgDown,PutIVChgUp,PutVCone,SkewModel,F_Thrsh_Params)
 rm(PC1dCtC_IVCF1dCtC,PC3dCtC_IVCF3dCtC,PC5dCtC_IVCF5dCtC,PC7dCtC_IVCF7dCtC)
