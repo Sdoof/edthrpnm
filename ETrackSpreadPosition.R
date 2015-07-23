@@ -19,9 +19,18 @@ OpType_Call_G=as.numeric(ConfigParameters["OpType_Call_G",1])
 Underying_Symbol_G=ConfigParameters["Underying_Symbol_G",1]
 ResultFiles_Path_G=ConfigParameters["ResultFiles_Path_G",1]
 
+##if manually set the Position use this
+evaPos<-c(0,0,0)
+
 #追跡対象のOption Spread。
 rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Hold.csv",sep="")
 opchain<-read.table(rf,header=T,sep=",") ; rm(rf)
+
+#読み込まれたopchain$Positionが0であれば、evaPosをPositionとしてセット
+if(sum(opchain$Position!=0)==0){
+  opchain$Position<-evaPos
+}
+
 #get position where opchain$Position!=0
 opchain %>% dplyr::filter(Position!=0) -> position
 position %>% select(ExpDate,TYPE,Strike,Position) -> position
