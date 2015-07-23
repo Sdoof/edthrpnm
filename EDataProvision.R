@@ -172,17 +172,38 @@ makePosition <- function(opch=opchain){
   
 }
 
-filterPosition <- function(opchain){
+# filterPosition <- function(opchain){
+#   ##
+#   #  Filter Target Ranges
+#   
+#   #Only OOM
+#   opchain %>% dplyr::filter(HowfarOOM>=0) -> opchain
+#   
+#   #Calender Spread 
+#   OOM_Limit<-(0.07)
+#   opchain %>%  dplyr::filter(ExpDate=="2015/8/21") %>% dplyr::filter(HowfarOOM<OOM_Limit)  %>% dplyr::filter((Strike%%10)==0) -> opchain_cal1
+#   OOM_Limit<-(0.04)
+#   opchain %>%  dplyr::filter(ExpDate=="2015/9/18") %>% dplyr::filter(HowfarOOM<OOM_Limit)  %>% dplyr::filter((Strike%%10)==0) -> opchain_cal2
+#   
+#   #Join
+#   opchain_cal1 %>%  dplyr::full_join(opchain_cal2) %>% 
+#     dplyr::arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="%Y/%m/%d"),desc(TYPE),Strike) -> opchain
+#   
+#   return(opchain)
+#   
+# }
+
+filterPosition <- function(opchain,HowfarOOM_MIN=0,OOM_Limit_V=c(0.07,0.04)){
   ##
   #  Filter Target Ranges
   
   #Only OOM
-  opchain %>% dplyr::filter(HowfarOOM>=0) -> opchain
+  opchain %>% dplyr::filter(HowfarOOM>=HowfarOOM_MIN) -> opchain
   
   #Calender Spread 
-  OOM_Limit<-(0.07)
+  OOM_Limit<-(OOM_Limit_V[1])
   opchain %>%  dplyr::filter(ExpDate=="2015/8/21") %>% dplyr::filter(HowfarOOM<OOM_Limit)  %>% dplyr::filter((Strike%%10)==0) -> opchain_cal1
-  OOM_Limit<-(0.04)
+  OOM_Limit<-(OOM_Limit_V[1])
   opchain %>%  dplyr::filter(ExpDate=="2015/9/18") %>% dplyr::filter(HowfarOOM<OOM_Limit)  %>% dplyr::filter((Strike%%10)==0) -> opchain_cal2
   
   #Join
