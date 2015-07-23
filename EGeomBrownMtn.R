@@ -6,12 +6,15 @@ annuual.daily.volatility <- function(p){
   #sum(log(p_/p))
   #sum(log(p_/p)^2)
   #sum(log(p_/p)^2)/(length(p)-1-1)
-  #sum(log(p_/p))^2/(length(p)-1)/(length(p)-1-1)
+  #sum(log(p_/p))^2/(length(p)-1)/(length(p)-1-1) 
   daily_<-sqrt(sum(log(p_/p)^2)/(length(p)-1-1)-sum(log(p_/p))^2/(length(p)-1)/(length(p)-1-1))
   vol_<-daily_*sqrt(252)
-  ret_<-list(vol_)
-  ret_<-c(ret_,list(daily_))
-  names(ret_)<-c("anlzd","daily")
+ 
+  ret_names<-c("anlzd","daily")
+  ret_ <- vector("list",length(ret_names))
+  ret_[[1]]<-vol_
+  ret_[[2]]<-daily_
+  names(ret_)<-ret_names
   ret_
 }
 
