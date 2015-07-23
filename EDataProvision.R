@@ -31,6 +31,8 @@ ResultFiles_Path_G=ConfigParameters["ResultFiles_Path_G",1]
 #switch: only for today or multiple days for skew calculation
 ProcessFileName=paste("_OPChain_Pre.csv",sep="")
 isSkewCalc=FALSE
+#set TRUE if this is today's new position, or (already holding position) set FALSE,
+isNewPosition=TRUE
 TargetFileName=paste("_Positions_Pre_",Sys.Date(),".csv",sep="")
 #when isSkewCalc==TRUE, just comment out below
 if(isSkewCalc)
@@ -216,8 +218,14 @@ filterPosition <- function(opchain,HowfarOOM_MIN=0,OOM_Limit_V=c(0.07,0.04)){
 
 opchain<-makePosition(opchain)
 
+opchain %>% dplyr::select(-(contains('Frac',ignore.case=TRUE)),-(IV),-(Change)) -> opchain
+
 if(!isSkewCalc){
-  opchain<-filterPosition(opchain)
+  if(isNewPosition)
+    opchain<-filterPosition(opchain)
+  else {
+    opchain<-filterPosition(opchain,HowfarOOM_MIN=-0.3)
+  }
 }
 
 #Write to a file (RUT_Positions_Pre)
@@ -231,6 +239,6 @@ rm(opchain)
 rm(makeOpchainContainer,makePosition,filterPosition)
 rm(ConfigFileName_G,ConfigParameters)
 rm(CALENDAR_G,riskFreeRate_G,divYld_G,OpType_Put_G,OpType_Call_G,TimeToExp_Limit_Closeness_G)
-rm(Underying_Symbol_G,DataFiles_Path_G,ResultFiles_Path_G,ProcessFileName,TargetFileName,isSkewCalc)
+rm(Underying_Symbol_G,DataFiles_Path_G,ResultFiles_Path_G,ProcessFileName,TargetFileName,isSkewCalc,isNewPosition)
 
 

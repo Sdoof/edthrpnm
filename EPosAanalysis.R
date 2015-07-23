@@ -62,9 +62,6 @@ names(EvalFuncSetting)<-c("UdlStepNum","UdlStepPct","Maxposnum","Tail_rate","Los
 #Option Chain and Position Data. Here we use UDL_Positions_Pre ---------------
 rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep="")
 opchain<-read.table(rf,header=T,sep=",",stringsAsFactors=FALSE)
-#filtering. deleting unnecessary column
-opchain %>% dplyr::select(-(contains('Frac',ignore.case=TRUE)),
-                          -(IV)) %>% as.data.frame() -> opchain
 rm(rf)
 #or below
 #rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pos.csv",sep="")

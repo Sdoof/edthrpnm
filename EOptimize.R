@@ -76,9 +76,7 @@ Combined_Spread=FALSE
 #Option Chain and Position Data. Here we use UDL_Positions_Pre
 rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep="")
 opchain<-read.table(rf,header=T,sep=",")
-#filtering. deleting unnecessary column
-opchain %>% dplyr::select(-(contains('Frac',ignore.case=TRUE)),
-                          -(IV)) %>% as.data.frame() -> opchain
+
 #get position where opchain$Position!=0
 opchain %>% dplyr::filter(Position!=0) -> position
 
@@ -247,9 +245,7 @@ Thresh_Score3=as.numeric(ConfigParameters["ResultProcess_Thresh_Score3",1])
 #ophcain 
 rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep="")
 opchain<-read.table(rf,header=T,sep=",",stringsAsFactors=FALSE)
-#filtering. deleting unnecessary column
-opchain %>% dplyr::select(-(contains('Frac',ignore.case=TRUE)),
-                          -(IV)) %>% as.data.frame() -> opchain
+
 #only OOM targeted
 #opchain %>% dplyr::filter(HowfarOOM>=0) -> opchain
 rm(rf)

@@ -80,16 +80,6 @@ for(SpreadID in SpreadIDs){
 } 
 rm(day,totalstep,total_df)
 
-##
-# Option Chain and Position Data. Here we use UDL_Positions_Pre
-#opchain<-read.table(paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep=""),
-#                    header=T,sep=",",stringsAsFactors=FALSE)
-#filtering. deleting unnecessary column
-#opchain %>% dplyr::select(-(contains('Frac',ignore.case=TRUE)),
-#                          -(IV)) %>% as.data.frame() -> opchain
-#Position reseted to 0
-#opchain$Position<-0
-
 for(SpreadID in SpreadIDs){
   cat("Spred ID:",SpreadID)
   plot_df<-read.table(paste(ResultFiles_Path_G,Underying_Symbol_G,FileChunk,SpreadID,".csv",sep=""),comment.char="#",header=T,sep=",")
