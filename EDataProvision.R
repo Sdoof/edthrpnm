@@ -169,31 +169,8 @@ makePosition <- function(opch=opchain){
   opchain<-opch ; rm(opch)
   rm(atmiv)
   
-  
   return(opchain)
-  
 }
-
-# filterPosition <- function(opchain){
-#   ##
-#   #  Filter Target Ranges
-#   
-#   #Only OOM
-#   opchain %>% dplyr::filter(HowfarOOM>=0) -> opchain
-#   
-#   #Calender Spread 
-#   OOM_Limit<-(0.07)
-#   opchain %>%  dplyr::filter(ExpDate=="2015/8/21") %>% dplyr::filter(HowfarOOM<OOM_Limit)  %>% dplyr::filter((Strike%%10)==0) -> opchain_cal1
-#   OOM_Limit<-(0.04)
-#   opchain %>%  dplyr::filter(ExpDate=="2015/9/18") %>% dplyr::filter(HowfarOOM<OOM_Limit)  %>% dplyr::filter((Strike%%10)==0) -> opchain_cal2
-#   
-#   #Join
-#   opchain_cal1 %>%  dplyr::full_join(opchain_cal2) %>% 
-#     dplyr::arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="%Y/%m/%d"),desc(TYPE),Strike) -> opchain
-#   
-#   return(opchain)
-#   
-# }
 
 filterPosition <- function(opchain,HowfarOOM_MIN=0,OOM_Limit_V=c(0.07,0.04)){
   ##
@@ -205,7 +182,7 @@ filterPosition <- function(opchain,HowfarOOM_MIN=0,OOM_Limit_V=c(0.07,0.04)){
   #Calender Spread 
   OOM_Limit<-(OOM_Limit_V[1])
   opchain %>%  dplyr::filter(ExpDate=="2015/8/21") %>% dplyr::filter(HowfarOOM<OOM_Limit)  %>% dplyr::filter((Strike%%10)==0) -> opchain_cal1
-  OOM_Limit<-(OOM_Limit_V[1])
+  OOM_Limit<-(OOM_Limit_V[2])
   opchain %>%  dplyr::filter(ExpDate=="2015/9/18") %>% dplyr::filter(HowfarOOM<OOM_Limit)  %>% dplyr::filter((Strike%%10)==0) -> opchain_cal2
   
   #Join
@@ -218,7 +195,7 @@ filterPosition <- function(opchain,HowfarOOM_MIN=0,OOM_Limit_V=c(0.07,0.04)){
 
 opchain<-makePosition(opchain)
 
-opchain %>% dplyr::select(-(contains('Frac',ignore.case=TRUE)),-(IV),-(Change)) -> opchain
+#opchain %>% dplyr::select(-(contains('Frac',ignore.case=TRUE)),-(IV),-(Change)) -> opchain
 
 if(!isSkewCalc){
   if(isNewPosition)
@@ -227,6 +204,13 @@ if(!isSkewCalc){
     opchain<-filterPosition(opchain,HowfarOOM_MIN=-0.3)
   }
 }
+
+#select and sort
+opchain %>% select(Date,ExpDate,TYPE,Strike,ContactName,Position,UDLY,Price,
+                   Delta,Gamma,Vega,Theta,Rho,OrigIV,ATMIV,IVIDX,
+                   HowfarOOM,TimeToExpDate,Moneyness.Nm) %>% 
+  arrange(Date,ExpDate,desc(TYPE),Strike) -> opchain
+opchain$Position<-ifelse(is.na(opchain$Position), 0, opchain$Position)
 
 #Write to a file (RUT_Positions_Pre)
 wf_<-paste(DataFiles_Path_G,Underying_Symbol_G,TargetFileName,sep="")
@@ -240,5 +224,4 @@ rm(makeOpchainContainer,makePosition,filterPosition)
 rm(ConfigFileName_G,ConfigParameters)
 rm(CALENDAR_G,riskFreeRate_G,divYld_G,OpType_Put_G,OpType_Call_G,TimeToExp_Limit_Closeness_G)
 rm(Underying_Symbol_G,DataFiles_Path_G,ResultFiles_Path_G,ProcessFileName,TargetFileName,isSkewCalc,isNewPosition)
-
 

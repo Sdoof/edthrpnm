@@ -31,9 +31,12 @@ rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep="")
 opchain<-read.table(rf,header=T,sep=",")
 opchain %>% select(-(Position)) -> opchain ; head(opchain)
 
+#select and sort
 merge(opchain,position) %>% select(Date,ExpDate,TYPE,Strike,ContactName,Position,UDLY,Price,
-                                   Delta,Gamma,Vega,Theta,Rho,OrigIV,IVIDX,ATMIV,
-                                   HowfarOOM,TimeToExpDate,Moneyness.Nm) %>% arrange(ExpDate,desc(TYPE),Strike) -> position
+                                   Delta,Gamma,Vega,Theta,Rho,OrigIV,ATMIV,IVIDX,
+                                   HowfarOOM,TimeToExpDate,Moneyness.Nm) %>% 
+  arrange(Date,ExpDate,desc(TYPE),Strike) -> position
+
 position$Position<-ifelse(is.na(position$Position), 0, position$Position)
 
 #savefile or create object
