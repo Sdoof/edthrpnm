@@ -38,27 +38,29 @@ PosMultip=as.numeric(ConfigParameters["PosMultip",1])
 TimeToExp_Limit_Closeness_G=as.numeric(ConfigParameters["TimeToExp_Limit_Closeness_G",1]
                                        
 #EvalFuncSetting
-EvalFuncSetting<-list(holdDays)
-EvalFuncSetting<-c(EvalFuncSetting,as.numeric(ConfigParameters["EvalFnc_UdlStepNum",1]))
-EvalFuncSetting<-c(EvalFuncSetting,list(as.numeric(ConfigParameters["EvalFnc_UdlStepPct",1])))
-EvalFuncSetting<-c(EvalFuncSetting,list(as.numeric(ConfigParameters["EvalFnc_Maxposnum",1])))
-EvalFuncSetting<-c(EvalFuncSetting,list(as.numeric(ConfigParameters["EvalFnc_Tail_rate",1])))
-EvalFuncSetting<-c(EvalFuncSetting,list(as.numeric(ConfigParameters["EvalFnc_LossLimitPrice",1])))
-EvalFuncSetting<-c(EvalFuncSetting,list(as.numeric(ConfigParameters["EvalFnc_HV_IV_Adjust_Ratio",1])))
-EvalFuncSetting<-c(EvalFuncSetting,list(as.numeric(ConfigParameters["EvalFnc_Delta_Thresh_Minus",1])))
-EvalFuncSetting<-c(EvalFuncSetting,list(as.numeric(ConfigParameters["EvalFnc_Delta_Thresh_Plus",1])))
-EvalFuncSetting<-c(EvalFuncSetting,list(as.numeric(ConfigParameters["EvalFnc_Profit_Coef",1])))
-EvalFuncSetting<-c(EvalFuncSetting,list(as.numeric(ConfigParameters["EvalFnc_AllEffect_Coef",1])))
-EvalFuncSetting<-c(EvalFuncSetting,list(as.numeric(ConfigParameters["EvalFnc_AdvEffect_Coef",1])))
-EvalFuncSetting<-c(EvalFuncSetting,list(as.numeric(ConfigParameters["EvalFnc_DrctlEffect_Coef",1])))
-EvalFuncSetting<-c(EvalFuncSetting,list(as.numeric(ConfigParameters["EvalFnc_SigmoidA_Numerator",1])))
-EvalFuncSetting<-c(EvalFuncSetting,list(as.numeric(ConfigParameters["EvalFnc_SigmoidA_Denominator",1])))
-EvalFuncSetting<-c(EvalFuncSetting,list(ifelse(as.numeric(ConfigParameters["EvalFnc_ThetaEffectPositive",1])==1,TRUE,FALSE)))
-
-names(EvalFuncSetting)<-c("holdDays","UdlStepNum","UdlStepPct","Maxposnum","Tail_rate","LossLimitPrice","HV_IV_Adjust_Ratio",
-                          "Delta_Thresh_Minus","Delta_Thresh_Plus",
-                          "Profit_Coef","AllEffect_Coef","AdvEffect_Coef","DrctlEffect_Coef","SigmoidA_Numerator","SigmoidA_Denominator",
-                          "ThetaEffectPositive")
+EvFNames <- c("holdDays","UdlStepNum","UdlStepPct","Maxposnum","Tail_rate","LossLimitPrice","HV_IV_Adjust_Ratio",
+            "Delta_Thresh_Minus","Delta_Thresh_Plus",
+            "Profit_Coef","AllEffect_Coef","AdvEffect_Coef","DrctlEffect_Coef","SigmoidA_Numerator","SigmoidA_Denominator",
+            "ThetaEffectPositive")
+EvalFuncSetting<-vector("list",length(EvFNames))
+EvalFuncSetting[[1]]<-holdDays
+EvalFuncSetting[[2]]<-as.numeric(ConfigParameters["EvalFnc_UdlStepNum",1])
+EvalFuncSetting[[3]]<-as.numeric(ConfigParameters["EvalFnc_UdlStepPct",1])
+EvalFuncSetting[[4]]<-as.numeric(ConfigParameters["EvalFnc_Maxposnum",1])
+EvalFuncSetting[[5]]<-as.numeric(ConfigParameters["EvalFnc_Tail_rate",1])
+EvalFuncSetting[[6]]<-as.numeric(ConfigParameters["EvalFnc_LossLimitPrice",1])
+EvalFuncSetting[[7]]<-as.numeric(ConfigParameters["EvalFnc_HV_IV_Adjust_Ratio",1])
+EvalFuncSetting[[8]]<-as.numeric(ConfigParameters["EvalFnc_Delta_Thresh_Minus",1])
+EvalFuncSetting[[9]]<-as.numeric(ConfigParameters["EvalFnc_Delta_Thresh_Plus",1])
+EvalFuncSetting[[10]]<-as.numeric(ConfigParameters["EvalFnc_Profit_Coef",1])
+EvalFuncSetting[[11]]<-as.numeric(ConfigParameters["EvalFnc_AllEffect_Coef",1])
+EvalFuncSetting[[12]]<-as.numeric(ConfigParameters["EvalFnc_AdvEffect_Coef",1])
+EvalFuncSetting[[13]]<-as.numeric(ConfigParameters["EvalFnc_DrctlEffect_Coef",1])
+EvalFuncSetting[[14]]<-as.numeric(ConfigParameters["EvalFnc_SigmoidA_Numerator",1])
+EvalFuncSetting[[15]]<-as.numeric(ConfigParameters["EvalFnc_SigmoidA_Denominator",1])
+EvalFuncSetting[[16]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_ThetaEffectPositive",1])==1,TRUE,FALSE)
+names(EvalFuncSetting)<-EvFNames
+rm(EvFNames)
 
 #Parameters for Combinational Optimization
 InitialPopCreateLoopNum<-as.numeric(ConfigParameters["Optimize_InitialPopCreateLoopNum",1])
@@ -245,9 +247,6 @@ Thresh_Score3=as.numeric(ConfigParameters["ResultProcess_Thresh_Score3",1])
 #ophcain 
 rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep="")
 opchain<-read.table(rf,header=T,sep=",",stringsAsFactors=FALSE)
-
-#only OOM targeted
-#opchain %>% dplyr::filter(HowfarOOM>=0) -> opchain
 rm(rf)
 #iniPos
 iniPos<-opchain$Position
@@ -318,7 +317,7 @@ if(Combined_Spread){
 }
 
 ##Historical Implied Volatility Data
-rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_IV.csv",sep="") 
+rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_IV.csv",sep="")
 histIV<-read.table(rf,header=T,sep=",",nrows=1000);rm(rf)
 #filtering
 histIV %>% dplyr::transmute(Date=Date,IVIDX=Close/100) -> histIV
@@ -336,7 +335,7 @@ total_res %>%  filter(posn<=3) %>% filter(.[,length(iniPos)+1]<2.0) ->tmp_fil3
 #create put and call pos num of the specified spread
 getPositionWithGreeks<-function(tmp_fil){
   tmp_fil[,1:length(iniPos)] %>% rowwise() %>% 
-    do(theGreks=getPositionGreeks(hollowNonZeroPosition(unlist(.)),multi=PosMultip,HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio)) -> tmp
+    do(theGreks=getPositionGreeks(hollowNonZeroPosition(unlist(.)),multi=PosMultip,hdd=holdDays,HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio)) -> tmp
   tmp_fil$theGreks<-tmp$theGreks
   tmp_fil %>% rowwise() %>% do(Delta=.$theGreks$Delta,DeltaEffect=.$theGreks$DeltaEffect,VegaEffect=.$theGreks$VegaEffect,
                                ThetaEffect=.$theGreks$ThetaEffect,GammaEffect=.$theGreks$GammaEffect) -> tmp2
@@ -421,8 +420,8 @@ rm(opchain,histIV,position,Combined_Spread)
 rm(InitialPopCreateLoopNum,InitialPopThresh,TopN_1,PopN_1,Thresh_1,TopN_2,PopN_2,Thresh_2)
 rm(CallIVChgDown,CallIVChgUp,CallVCone,PutIVChgDown,PutIVChgUp,PutVCone,SkewModel,F_Thrsh_Params)
 rm(PC1dCtC_IVCF1dCtC,PC3dCtC_IVCF3dCtC,PC5dCtC_IVCF5dCtC,PC7dCtC_IVCF7dCtC)
-rm(ConfigFileName_G,ConfigParameters,EvalFuncSetting,)
-rm(CALENDAR_G,OpType_Call_G,OpType_Put_G,DataFiles_Path_G,ResultFiles_Path_G,TimeToExp_Limit_Closeness_G,Underying_Symbol_G)
+rm(ConfigFileName_G,ConfigParameters,EvalFuncSetting)
+rm(CALENDAR_G,OpType_Call_G,OpType_Put_G,DataFiles_Path_G,ResultFiles_Path_G,Underying_Symbol_G)
 
 rm(tmp_fil,tmp_fil2,tmp_fil3,total_res)
 rm(HV_IV_Adjust_Ratio,Thresh_Score1,Thresh_Score2,Thresh_Score3,Thresh_AdvEffect)

@@ -59,7 +59,7 @@ names(EvalFuncSetting)<-c("UdlStepNum","UdlStepPct","Maxposnum","Tail_rate","Los
                           "HV_IV_Adjust_Ratio","SigmoidA_Profit","SigmoidA_AllEffect","ThetaEffectPositive","holdDays")
 
 #Load opchain object
-#Option Chain and Position Data. Here we use UDL_Positions_Pre ---------------
+#Option Chain and Position Data. Here we use UDL_Positions_Pre
 rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep="")
 opchain<-read.table(rf,header=T,sep=",",stringsAsFactors=FALSE)
 rm(rf)
@@ -135,7 +135,7 @@ opchain$Position<-pos_anlys
 opchain %>% dplyr::filter(Position!=0) -> thePosition
 
 #thePosition's greek df and initial price
-thePositonGrks<-getPositionGreeks(thePosition,HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio)
+thePositonGrks<-getPositionGreeks(thePosition,multi=PosMultip,hdd=holdDays,HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio)
 iniPrice <- thePositonGrks$Price
 iniCredit <- -1*iniPrice
 
@@ -144,18 +144,13 @@ posStepDays<-data.frame(days=evaldays)
 
 #Set data frames as a row value of another data frame.
 posStepDays %>% group_by(days) %>%
-  do(scene=createPositinEvalTable(position=thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,days=stepdays,HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio)) -> posStepDays
+  do(scene=createPositionEvalTable(position=thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,days=stepdays,
+                                   multi=PosMultip,hdd=holdDays,HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio)) -> posStepDays
 posStepDays_vc<-posStepDays
 #We must adjust each position values
-posStepDays %>% group_by(days) %>% rowwise() %>% do(days=.$days,scene2=adjustPosChg(.$scene,.$days-stepdays,base_vol_chg=0,HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio)) -> tmp
+posStepDays %>% group_by(days) %>% rowwise() %>% do(days=.$days,scene2=adjustPosChg(.$scene,.$days-stepdays,base_vol_chg=0,multi=PosMultip,hdd=holdDays,HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio)) -> tmp
 unlist(tmp$days) -> posStepDays$days ; tmp$scene2 -> posStepDays$scene ;rm(tmp)
 #We've got the complete posStepDays.
-
-####volatility change scenario if needed
-# set the percent by which volatility index (IVIDX) changes. Up(%)>0 Down(%)<0
-#vol_chg<-0.2
-#posStepDays_vc %>% group_by(days) %>% rowwise() %>% do(days=.$days,scene2=adjustPosChg(.$scene,.$days-stepdays,base_vol_chg=vol_chg)) -> tmp
-#unlist(tmp$days) -> posStepDays_vc$days ; tmp$scene2 -> posStepDays_vc$scene ;rm(tmp)
 
 #Now drawing
 drawGrktbl<-createAgrregatedGreekTbl(posStepDays,thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,multi=PosMultip,iniCredit=iniCredit)
@@ -239,11 +234,11 @@ gg<-ggplot(drawGrktbl,aes(x=UDLY,y=ThetaEffect,group=day))
 
 rm(gg,drawGrktbl)
 rm(opchain,histIV,evaPos)
-rm(evaldays,stepdays,pos_anlys,totalstep,udlStepNum,udlStepPct,vol_chg,iniPrice,iniCredit,iniDelta)
+rm(evaldays,stepdays,pos_anlys,totalstep,udlStepNum,udlStepPct,iniPrice,iniCredit)
 rm(posStepDays,posStepDays_vc,thePosition,thePositonGrks)
 rm(PC1dCtC_IVCF1dCtC,PC3dCtC_IVCF3dCtC,PC5dCtC_IVCF5dCtC,PC7dCtC_IVCF7dCtC,SkewModel)
 rm(CallIVChgDown,CallIVChgUp,CallVCone,PutIVChgDown,PutIVChgUp,PutVCone)
-rm(ConfigFileName_G,ConfigParameters,EvalFuncSetting)
+rm(ConfigFileName_G,ConfigParameters,EvalFuncSetting,HV_IV_Adjust_Ratio)
 rm(riskFreeRate_G,divYld_G,OpType_Put_G,OpType_Call_G)
 rm(CALENDAR_G,TimeToExp_Limit_Closeness_G,Underying_Symbol_G,DataFiles_Path_G,ResultFiles_Path_G)
 rm(holdDays,dviv_caldays,PosMultip)

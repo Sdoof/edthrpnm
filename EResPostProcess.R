@@ -129,7 +129,7 @@ total_res %>%  filter(posn<=6) %>% filter(.[,length(iniPos)+1]<2.0) ->tmp_fil
 #create put and call pos num of the specified spread
 getPositionWithGreeks<-function(tmp_fil){
   tmp_fil[,1:length(iniPos)] %>% rowwise() %>% 
-    do(theGreks=getPositionGreeks(hollowNonZeroPosition(unlist(.)),multi=PosMultip,HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio)) -> tmp
+    do(theGreks=getPositionGreeks(hollowNonZeroPosition(unlist(.)),multi=PosMultip,hdd=holdDays,HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio)) -> tmp
   tmp_fil$theGreks<-tmp$theGreks
   tmp_fil %>% rowwise() %>% do(Delta=.$theGreks$Delta,DeltaEffect=.$theGreks$DeltaEffect,VegaEffect=.$theGreks$VegaEffect,
                                ThetaEffect=.$theGreks$ThetaEffect,GammaEffect=.$theGreks$GammaEffect) -> tmp2

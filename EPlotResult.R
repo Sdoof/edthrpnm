@@ -78,7 +78,7 @@ for(SpreadID in SpreadIDs){
   }
   write.table(total_df,paste(ResultFiles_Path_G,Underying_Symbol_G,FileChunk,SpreadID,".csv",sep=""),quote=T,row.names=F,append=F,sep=",")
 } 
-rm(day,totalstep,total_df)
+
 
 for(SpreadID in SpreadIDs){
   cat("Spred ID:",SpreadID)
@@ -154,6 +154,7 @@ for(SpreadID in SpreadIDs){
 }
 
 #read files and plot
+rm(total_df)
 rm(day,maxDay,totalstep)
 rm(gg,SpreadID,InitUDLY,plot_df,plot_df_view,opchain)
 rm(modelScenario,modelStimRawlist)

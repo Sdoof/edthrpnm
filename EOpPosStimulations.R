@@ -23,7 +23,11 @@ Simulate <- function (position,
                       #Total Stimulation Num
                       StimultaionNum=1000,
                       #Max Stimulation day.
-                      MaxStimDay,PosMultip=PosMultip,
+                      MaxStimDay,
+                      #Option Multiple
+                      PosMultip,
+                      #holding days to compute Greek Effects
+                      hdd,
                       #underlying daily return for geometic brown motion
                       mu_udly,
                       #underlying initial daily volatility.
@@ -76,7 +80,7 @@ Simulate <- function (position,
     names(StimulationParameters)<-SimparamNames
     
     #First calculate original Position Grks
-    orgPositionGrk<-getPositionGreeks(XTOrig,multi=PosMultip,HV_IV_Adjust_Ratio)
+    orgPositionGrk<-getPositionGreeks(XTOrig,multi=PosMultip,hdd=hdd,HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio)
     #print(orgPositionGrk)
     
     #Push original histIV, later Poped
@@ -123,7 +127,7 @@ Simulate <- function (position,
       histIV %>% slice(-nrow(histIV))->histIV
       
       #Caluculate Greeks 
-      newPositionGrk<-getPositionGreeks(XTStim,multi=PosMultip,HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio)
+      newPositionGrk<-getPositionGreeks(XTStim,multi=PosMultip,hdd=hdd,HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio)
       #print(newPositionGrk)
       
       #Position Profit
