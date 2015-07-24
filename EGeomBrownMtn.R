@@ -29,14 +29,26 @@ annuual.daily.volatility <- function(p){
 #        と一貫性を保つこと
 # Should be Vectorized
 geombrmtn.stimulate <- function(s0,mu,sigma,length){
-  f <- g <- h<- rep(0, times=(length+1))
-  dt<-1
+  f<-rep(0, times=(length+1))
+  g<-rep(0, times=(length+1))
+  h<-rep(0, times=(length+1))
   g[1]<-s0
   for(i in 2:(length+1)){
-    f[i] <- f[i-1]+sqrt(dt)*rnorm(1)
-    g[i] <- g[1]*exp((mu-(sigma^2)/2)*(i-1)*dt+sigma*f[i])
+    f[i] <- f[i-1]+rnorm(1)
+    g[i] <- g[1]*exp((mu-(sigma^2)/2)*(i-1)+sigma*f[i])
   }
   g
+}
+
+#1. Vectorized Geometric Brownian Motion Code
+GBM = function(S0,u,sigma,N){
+  Wt = cumsum(rnorm(N,0,1))
+  dt<-1 #dt<-255, dt<-365
+  t = (1:N)/dt
+  p1 = (u-0.5*(sigma^2))*t
+  p2 = sigma*Wt
+  St = S0*exp(p1 + p2)
+  return (St)
 }
 
 #2変量正規分布の単純な関数
@@ -57,16 +69,6 @@ rnorm2cond <- function(mx, sx, my, sy, r,y0) {
   return(c(x,y))
 }
 
-#1. Vectorized Geometric Brownian Motion Code
-GBM = function(N,sigma,u,S0){
-  Wt = cumsum(rnorm(N,0,1));
-  dt<-1 #dt<-255, dt<-365
-  t = (1:N)/dt;
-  p1 = (u-0.5*(sigma^2))*t;
-  p2 = sigma*Wt;
-  St = S0*exp(p1 + p2);
-  return (St);
-}
 # Geometric Brownian Motion Code with multiply plots
 #P = 5
 #GBMs = matrix(nrow = P, ncol = N)

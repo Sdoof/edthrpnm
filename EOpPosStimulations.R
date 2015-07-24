@@ -51,14 +51,17 @@ Simulate <- function (position,
     stim_days_num<-as.numeric(MaxStimDay<stim_days_num)*(MaxStimDay-stim_days_num)+stim_days_num
     
     #get the underlying changed of all days.
-    udly_prices <- geombrmtn.stimulate(s0=XTStim$UDLY[[1]],mu=mu_udly,sigma=sigma_udly,length=stim_days_num)
+    udly_prices <- GBM(S0=XTStim$UDLY[[1]],u=mu_udly,sigma=sigma_udly,N=stim_days_num)
+                  #geombrmtn.stimulate(s0=XTStim$UDLY[[1]],mu=mu_udly,sigma=sigma_udly,length=stim_days_num)
+                  #udly_prices <- udly_prices[-1]
     #cat(udly_prices,sep=",","\n")
-    udly_prices <- udly_prices[-1]
+    
     #cat(udly_prices,sep=",","\n")
     
     #get and create the IV change percent to base IV
-    iv_chgPercnt <- geombrmtn.stimulate(s0=1.0,mu=mu_iv,sigma=sigma_iv,length=stim_days_num)
-    iv_chgPercnt <- iv_chgPercnt[-1]
+    iv_chgPercnt <- GBM(S0=1.0,u=mu_iv,sigma=sigma_iv,N=stim_days_num)
+                  #geombrmtn.stimulate(s0=1.0,mu=mu_iv,sigma=sigma_iv,length=stim_days_num)
+                  #iv_chgPercnt <- iv_chgPercnt[-1]
     tmp<-replace(iv_chgPercnt,rep(2:length(iv_chgPercnt)),iv_chgPercnt[1:length(iv_chgPercnt)-1])
     tmp[1]<-1
     iv_chgPercnt<-iv_chgPercnt/tmp
