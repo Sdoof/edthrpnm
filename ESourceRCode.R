@@ -1,0 +1,6 @@
+source.with.encoding('./EGeomBrownMtn.R', encoding='UTF-8')
+source('./EOpPosStimulations.R')
+source.with.encoding('./EOptionOpr.R', encoding='UTF-8')
+source('./EOptionOprEurop.R')
+source.with.encoding('./EVolatility.R', encoding='UTF-8')
+source.with.encoding('./ERskRtnEval.R', encoding='UTF-8')
