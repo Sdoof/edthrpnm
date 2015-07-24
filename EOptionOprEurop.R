@@ -6,11 +6,11 @@ set.IVOrig <- function(xT){
     busdays_betwn<-businessDaysBetween(CALENDAR_G,
                                        as.Date(xT$Date[i],format="%Y/%m/%d"),
                                        as.Date(xT$ExpDate[i],format="%Y/%m/%d"))
-    if(xT$TYPE[i] == 1){
+    if(xT$TYPE[i] == OpType_Put_G){
       xT$OrigIV[i]=EuropeanOptionImpliedVolatility(type="put", value=xT$Price[i],underlying=xT$UDLY[i],
                                                    strike=xT$Strike[i],dividendYield=divYld_G,riskFreeRate=riskFreeRate_G,
                                                    maturity=busdays_betwn/252,volatility=0.2)
-    }else if(xT$TYPE[i] == -1){
+    }else if(xT$TYPE[i] == OpType_Call_G){
       xT$OrigIV[i]=EuropeanOptionImpliedVolatility(type="call", value=xT$Price[i],underlying=xT$UDLY[i],
                                                    strike=xT$Strike[i],dividendYield=divYld_G,riskFreeRate=riskFreeRate_G,
                                                    maturity=busdays_betwn/252,volatility=0.2)
@@ -32,11 +32,11 @@ set.EuropeanOptionValueGreeks <- function(xT){
     busdays_betwn<-businessDaysBetween(CALENDAR_G,
                                        as.Date(xT$Date[i],format="%Y/%m/%d"),
                                        as.Date(xT$ExpDate[i],format="%Y/%m/%d"))
-    if(xT$TYPE[i] == 1){
+    if(xT$TYPE[i] == OpType_Put_G){
       C0_tmp<-EuropeanOption(type="put", underlying=xT$UDLY[i], strike=xT$Strike[i],
                              dividendYield=divYld_G, riskFreeRate=riskFreeRate_G, maturity=busdays_betwn/252, volatility=xT$OrigIV[i])
       
-    }else if(xT$TYPE[i] == -1){
+    }else if(xT$TYPE[i] == OpType_Call_G){
       C0_tmp<-EuropeanOption(type="call", underlying=xT$UDLY[i], strike=xT$Strike[i],
                              dividendYield=divYld_G, riskFreeRate=riskFreeRate_G, maturity=busdays_betwn/252, volatility=xT$OrigIV[i])
     }
