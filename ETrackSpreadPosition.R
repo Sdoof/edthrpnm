@@ -53,4 +53,5 @@ position$Position<-ifelse(is.na(position$Position), 0, position$Position)
 #Config File
 rm(ConfigFileName_G,DataFiles_Path_G,ConfigParameters,OpType_Put_G,OpType_Call_G)
 rm(Underying_Symbol_G,ResultFiles_Path_G)
-rm(opchain)
+rm(evaPos,opchain)
+
