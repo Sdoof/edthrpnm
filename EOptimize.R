@@ -104,8 +104,6 @@ load.PC2IV(PC="PC7dCtC",IVC="IVCF7dCtC")
 PC7dCtC_IVCF7dCtC
 load.PC2IV(PC="PC1dCtC",IVC="IVCF1dCtC")
 PC1dCtC_IVCF1dCtC
-#load.PC2IV(PC="PC1dCtO",IVC="IVCF1dCtO")
-#PC1dCtO_IVCF1dCtO
 load.Skew()
 SkewModel
 load.VCone(optype=OpType_Put_G)
@@ -167,13 +165,15 @@ for(tmp in 1:InitialPopCreateLoopNum){
   create_initial_exact_PutCall_polulation(popnum=300,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=0,calln=3,ml=2,
                                           fname=paste(".\\ResultData\\inipop-03P0C3-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
                                           isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-  create_initial_exact_PutCall_polulation(popnum=100,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=2,calln=0,ml=2,
-                                          fname=paste(".\\ResultData\\inipop-02P2C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
-                                          isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-  create_initial_exact_PutCall_polulation(popnum=100,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=0,calln=2,ml=2,
-                                          fname=paste(".\\ResultData\\inipop-02P0C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
-                                          isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-};rm(tmp)
+  if(Combined_Spread){
+    create_initial_exact_PutCall_polulation(popnum=100,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=2,calln=0,ml=2,
+                                            fname=paste(".\\ResultData\\inipop-02P2C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
+                                            isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
+    create_initial_exact_PutCall_polulation(popnum=100,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=0,calln=2,ml=2,
+                                            fname=paste(".\\ResultData\\inipop-02P0C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
+                                            isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
+  }
+} ;rm(tmp)
 
 #1Cb.csv
 st <- "powershell.exe .\\shell\\cmd1.ps1"
@@ -251,30 +251,27 @@ rm(rf)
 iniPos<-opchain$Position
 
 #create put and call pos num of the specified spread
-getPutCallnOfthePosition<-function(x){
-  type<-opchain$TYPE
-  putpos<-as.numeric(type==OpType_Put_G)
-  putn<-sum( as.numeric((putpos*x)!=0) )
-  callpos<-as.numeric(type==OpType_Call_G)
-  calln<-sum( as.numeric((callpos*x)!=0) )
-  return (c(putn,calln))
-}
-
-# Performance improved a little, but may cause side effect if type's encoding rule had changed.
 # getPutCallnOfthePosition<-function(x){
 #   type<-opchain$TYPE
-#   putpos<-(type+OpType_Put_G)
+#   putpos<-as.numeric(type==OpType_Put_G)
 #   putn<-sum( as.numeric((putpos*x)!=0) )
-#   callpos<-(type+OpType_Call_G)
+#   callpos<-as.numeric(type==OpType_Call_G)
 #   calln<-sum( as.numeric((callpos*x)!=0) )
 #   return (c(putn,calln))
 # }
 
+#Performance improved a little, but may cause side effect if type's encoding rule had changed.
+getPutCallnOfthePosition<-function(x){
+  type<-opchain$TYPE
+  putpos<-(type+OpType_Put_G)
+  putn<-sum( as.numeric((putpos*x)!=0) )
+  callpos<-(type+OpType_Call_G)
+  calln<-sum( as.numeric((callpos*x)!=0) )
+  return (c(putn,calln))
+}
 
 ##
 # Exact (1Cb)
-#res1<-createCombineCandidatePool(fname=paste(ResultFiles_Path_G,"1Cb.csv",sep=""),
-#                                pnum=0,nrows=-1,skip=0,method=1)
 res1<-read.table(paste(ResultFiles_Path_G,"1Cb.csv",sep=""),header=F,skipNul=TRUE,sep=",")
 res1 %>% dplyr::arrange(res1[,(length(iniPos)+1)]) %>% dplyr::distinct() -> res1
 #over the specified socre
@@ -347,9 +344,10 @@ getPositionWithGreeks<-function(tmp_fil){
   tmp_fil[,1:length(iniPos)] %>% rowwise() %>% 
     do(theGreks=getPositionGreeks(hollowNonZeroPosition(unlist(.)),multi=PosMultip,hdd=holdDays,HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio)) -> tmp
   tmp_fil$theGreks<-tmp$theGreks
-  tmp_fil %>% rowwise() %>% do(Delta=.$theGreks$Delta,DeltaEffect=.$theGreks$DeltaEffect,VegaEffect=.$theGreks$VegaEffect,
+  tmp_fil %>% rowwise() %>% do(Delta=.$theGreks$Delta,Vega=.$theGreks$Vega,DeltaEffect=.$theGreks$DeltaEffect,VegaEffect=.$theGreks$VegaEffect,
                                ThetaEffect=.$theGreks$ThetaEffect,GammaEffect=.$theGreks$GammaEffect) -> tmp2
   tmp_fil$Delta<-unlist(tmp2$Delta)
+  tmp_fil$Vega<-unlist(tmp2$Vega)
   tmp_fil$DeltaEffect<-unlist(tmp2$DeltaEffect)
   tmp_fil$ThetaEffect<-unlist(tmp2$ThetaEffect)
   tmp_fil$GammaEffect<-unlist(tmp2$GammaEffect)
@@ -400,19 +398,28 @@ tmp_fil %>%
   #arrange(desc(AdvEffect)) %>% filter(.[,length(iniPos)+1]<F_Thrsh_Params$Score1) %>% 
   arrange(.[,length(iniPos)+1]) %>% filter(AdvEffect>Thresh_AdvEffect) %>% 
   filter(Delta>F_Thrsh_Params$Delta1_Minus,Delta<F_Thrsh_Params$Delta1_Plus) %>% 
-  filter(VegaEffect>F_Thrsh_Params$Thrsh_VegaE1) %>% top_n(F_Thrsh_Params$F_TopN1) -> tmp_fil_w ; print(tmp_fil_w)
+  filter(VegaEffect>F_Thrsh_Params$Thrsh_VegaE1) -> tmp_fil_w ; print(tmp_fil_w)
+tmp_fil_w %>% filter(ThetaEffect>0) %>% arrange(.[,length(iniPos)+1]) %>% top_n(F_Thrsh_Params$F_TopN3/2) -> tmp
+tmp_fil_w %>% filter(ThetaEffect<=0) %>% arrange(.[,length(iniPos)+1]) %>% top_n(F_Thrsh_Params$F_TopN3-nrow(tmp)) -> tmp2
+rbind(tmp,tmp2) %>% arrange(.[,length(iniPos)+1]) %>% distinct() -> tmp_fil_w ;rm(tmp,tmp2)
 
 tmp_fil2 %>% 
   #arrange(desc(AdvEffect)) %>%  filter(.[,length(iniPos)+1]<F_Thrsh_Params$Score2) %>% 
   arrange(.[,length(iniPos)+1]) %>% filter(AdvEffect>Thresh_AdvEffect) %>% 
   filter(Delta>F_Thrsh_Params$Delta2_Minus) %>% filter(Delta<F_Thrsh_Params$Delta2_Plus) %>%
-  filter(VegaEffect>F_Thrsh_Params$Thrsh_VegaE2) %>% top_n(F_Thrsh_Params$F_TopN2) -> tmp_fil_w2 ; print(tmp_fil_w2)
+  filter(VegaEffect>F_Thrsh_Params$Thrsh_VegaE2) -> tmp_fil_w2 ; print(tmp_fil_w2)
+tmp_fil_w2 %>% filter(ThetaEffect>0) %>% arrange(.[,length(iniPos)+1]) %>% top_n(F_Thrsh_Params$F_TopN3/2) -> tmp
+tmp_fil_w2 %>% filter(ThetaEffect<=0) %>% arrange(.[,length(iniPos)+1]) %>% top_n(F_Thrsh_Params$F_TopN3-nrow(tmp)) -> tmp2
+rbind(tmp,tmp2) %>% arrange(.[,length(iniPos)+1]) %>% distinct() -> tmp_fil_w2 ;rm(tmp,tmp2)
 
 tmp_fil3 %>% 
   #arrange(desc(AdvEffect)) %>%  filter(.[,length(iniPos)+1]<F_Thrsh_Params$Score3) %>% 
   arrange(.[,length(iniPos)+1]) %>% filter(AdvEffect>Thresh_AdvEffect) %>% 
   filter(Delta>F_Thrsh_Params$Delta3_Minus) %>% filter(Delta<F_Thrsh_Params$Delta3_Plus) %>%
-  filter(VegaEffect>F_Thrsh_Params$Thrsh_VegaE3) %>% top_n(F_Thrsh_Params$F_TopN3) -> tmp_fil_w3 ; print(tmp_fil_w3)
+  filter(VegaEffect>F_Thrsh_Params$Thrsh_VegaE3) -> tmp_fil_w3 ; print(tmp_fil_w3)
+tmp_fil_w3 %>% filter(ThetaEffect>0) %>% arrange(.[,length(iniPos)+1]) %>% top_n(F_Thrsh_Params$F_TopN3/2) -> tmp
+tmp_fil_w3 %>% filter(ThetaEffect<=0) %>% arrange(.[,length(iniPos)+1]) %>% top_n(F_Thrsh_Params$F_TopN3-nrow(tmp)) -> tmp2
+rbind(tmp,tmp2) %>% arrange(.[,length(iniPos)+1]) %>% distinct() -> tmp_fil_w3 ;rm(tmp,tmp2)
 
 ## Save to a file
 write.table(tmp_fil_w,paste(ResultFiles_Path_G,"EvalCnd.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
