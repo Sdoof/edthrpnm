@@ -1,6 +1,5 @@
 library(RQuantLib)
 library(ggplot2)
-library(plyr)
 library(dplyr)
 
 #Config File
@@ -113,7 +112,7 @@ rownames(opchain) <- c(1:nrow(opchain))
 ##
 #  ATMIV IVIDX Moneyness etc. calculation for the opchain to be completed.
 
-makePosition <- function(opch=opchain){
+makePosition <- function(opch){
   rf_<-paste(DataFiles_Path_G,Underying_Symbol_G,"_IV.csv",sep="")
   histIV<-read.table(rf_,header=T,sep=",",nrows=1000)
   rm(rf_)

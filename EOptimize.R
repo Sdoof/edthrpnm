@@ -1,6 +1,5 @@
 library(RQuantLib)
 library(ggplot2)
-library(plyr)
 library(dplyr)
 library(pracma)
 
@@ -35,13 +34,13 @@ dviv_caldays=as.numeric(ConfigParameters["dviv_caldays",1])
 PosMultip=as.numeric(ConfigParameters["PosMultip",1])
 
 #Skewness Calculation
-TimeToExp_Limit_Closeness_G=as.numeric(ConfigParameters["TimeToExp_Limit_Closeness_G",1]
+TimeToExp_Limit_Closeness_G=as.numeric(ConfigParameters["TimeToExp_Limit_Closeness_G",1])
                                        
 #EvalFuncSetting
-EvFNames <- c("holdDays","UdlStepNum","UdlStepPct","Maxposnum","Tail_rate","LossLimitPrice","HV_IV_Adjust_Ratio",
-            "Delta_Thresh_Minus","Delta_Thresh_Plus",
-            "Profit_Coef","AllEffect_Coef","AdvEffect_Coef","DrctlEffect_Coef","SigmoidA_Numerator","SigmoidA_Denominator",
-            "ThetaEffectPositive")
+EvFNames <- c("holdDays","UdlStepNum","UdlStepPct","Maxposnum","Tail_rate","LossLimitPrice",
+              "HV_IV_Adjust_Ratio","Delta_Thresh_Minus","Delta_Thresh_Plus","Profit_Coef","AllEffect_Coef",
+              "AdvEffect_Coef","DrctlEffect_Coef","SigmoidA_Numerator","SigmoidA_Denominator","ThetaEffectPositive")
+
 EvalFuncSetting<-vector("list",length(EvFNames))
 EvalFuncSetting[[1]]<-holdDays
 EvalFuncSetting[[2]]<-as.numeric(ConfigParameters["EvalFnc_UdlStepNum",1])
@@ -273,7 +272,7 @@ res1 %>% filter(.[,length(iniPos)+1]<Thresh_Score1) -> res1
 res1[,1:length(iniPos)] %>% rowwise() %>% do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp
 tmp  %>% rowwise() %>% do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp2
 res1$putn<-unlist(tmp2$putn);res1$calln<-unlist(tmp2$calln);rm(tmp);rm(tmp2)
-res1 -> total_res
+res1 -> total_res ; rm(res1)
 
 if(Combined_Spread){
   ##
@@ -408,10 +407,10 @@ tmp_fil3 %>%
 write.table(tmp_fil_w,paste(ResultFiles_Path_G,"EvalCnd.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
 write.table(tmp_fil_w2,paste(ResultFiles_Path_G,"EvalCnd2.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
 write.table(tmp_fil_w3,paste(ResultFiles_Path_G,"EvalCnd3.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
-rm(tmp_fil_w,tmp_fil_w2,tmp_fil_w3)
+
 
 rm(getPutCallnOfthePosition,getPositionWithGreeks)
-
+rm(tmp_fil_w,tmp_fil_w2,tmp_fil_w3)
 ##
 # finally remove these variables
 rm(iniPos,evaPos)
@@ -421,7 +420,7 @@ rm(InitialPopCreateLoopNum,InitialPopThresh,TopN_1,PopN_1,Thresh_1,TopN_2,PopN_2
 rm(CallIVChgDown,CallIVChgUp,CallVCone,PutIVChgDown,PutIVChgUp,PutVCone,SkewModel,F_Thrsh_Params)
 rm(PC1dCtC_IVCF1dCtC,PC3dCtC_IVCF3dCtC,PC5dCtC_IVCF5dCtC,PC7dCtC_IVCF7dCtC)
 rm(ConfigFileName_G,ConfigParameters,EvalFuncSetting)
-rm(CALENDAR_G,OpType_Call_G,OpType_Put_G,DataFiles_Path_G,ResultFiles_Path_G,Underying_Symbol_G)
+rm(CALENDAR_G,OpType_Call_G,OpType_Put_G,DataFiles_Path_G,ResultFiles_Path_G,Underying_Symbol_G,TimeToExp_Limit_Closeness_G)
 
 rm(tmp_fil,tmp_fil2,tmp_fil3,total_res)
 rm(HV_IV_Adjust_Ratio,Thresh_Score1,Thresh_Score2,Thresh_Score3,Thresh_AdvEffect)

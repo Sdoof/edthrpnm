@@ -7,7 +7,7 @@ Underying_Symbol_G,RUT
 PosMultip,100
 riskFreeRate_G,0.01
 divYld_G,0
-TimeToExp_Limit_Closeness_G,0.3
+TimeToExp_Limit_Closeness_G,0.2
 holdDays,3
 ResultFiles_Path_G,C:\Users\kuby\edthrpnm\ResultData\
 EvalFnc_UdlStepNum,1

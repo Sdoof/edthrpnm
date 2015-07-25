@@ -1,6 +1,5 @@
 library(ggplot2)
 library(RQuantLib)
-library(plyr)
 library(dplyr)
 
 #Config File
