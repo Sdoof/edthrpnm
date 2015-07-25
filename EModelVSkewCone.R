@@ -10,6 +10,9 @@ DataFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\MarketData\\data\\"
 ConfigParameters<-read.table(paste(DataFiles_Path_G,ConfigFileName_G,sep=""),
                              row.names=1, comment.char="#",header=T,stringsAsFactors=F,sep=",")
 
+#MAX ExpToDate for Skew Regression
+SkewRegressionTimeToExpDateMax<-2.2
+
 #Calendar
 CALENDAR_G=ConfigParameters["CALENDAR_G",1]
 
@@ -140,6 +143,11 @@ rm(i,atmiv.vcone.eachDF,atmiv.vcone.bind)
 #Complete Opchain. Using OOM options. By Call-Put parity, ITM IV is supposed to be the same as OOM IV.
 opch %>% dplyr::filter(OrigIV/ATMIV<5.0) %>% dplyr::filter(OrigIV/ATMIV>0.1) %>%
   dplyr::filter(HowfarOOM>=0) %>% dplyr::filter(TimeToExpDate>TimeToExp_Limit_Closeness_G) -> vplot
+
+vplot %>% dplyr::filter(TimeToExpDate<=SkewRegressionTimeToExpDateMax) -> vplot
+
+#vplot %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")>=as.Date("2015/7/1",format="%Y/%m/%d")) -> vplot
+
 (ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV),size=TimeToExpDate/2,colour=Date))+geom_point(alpha=0.2))
 
 #5. smooth splines
@@ -281,7 +289,7 @@ write.table(opch,wf_,quote=T,row.names=F,sep=",")
 rm(wf_)
 
 rm(atmiv.vcone.anal,atmiv,opch)
-rm(ConfigFileName_G,ConfigParameters)
+rm(ConfigFileName_G,ConfigParameters,SkewRegressionTimeToExpDateMax)
 rm(CALENDAR_G,DataFiles_Path_G,OpType_Call_G,OpType_Put_G,OpchainOutFileName)
 rm(TimeToExp_Limit_Closeness_G,Underying_Symbol_G,divYld_G,riskFreeRate_G)
 
