@@ -260,6 +260,17 @@ getPutCallnOfthePosition<-function(x){
   return (c(putn,calln))
 }
 
+# Performance improved a little, but may cause side effect if type's encoding rule had changed.
+# getPutCallnOfthePosition<-function(x){
+#   type<-opchain$TYPE
+#   putpos<-(type+OpType_Put_G)
+#   putn<-sum( as.numeric((putpos*x)!=0) )
+#   callpos<-(type+OpType_Call_G)
+#   calln<-sum( as.numeric((callpos*x)!=0) )
+#   return (c(putn,calln))
+# }
+
+
 ##
 # Exact (1Cb)
 #res1<-createCombineCandidatePool(fname=paste(ResultFiles_Path_G,"1Cb.csv",sep=""),
