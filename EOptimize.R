@@ -35,7 +35,7 @@ PosMultip=as.numeric(ConfigParameters["PosMultip",1])
 
 #Skewness Calculation
 TimeToExp_Limit_Closeness_G=as.numeric(ConfigParameters["TimeToExp_Limit_Closeness_G",1])
-                                       
+
 #EvalFuncSetting
 EvFNames <- c("holdDays","UdlStepNum","UdlStepPct","Maxposnum","Tail_rate","LossLimitPrice",
               "HV_IV_Adjust_Ratio","Delta_Thresh_Minus","Delta_Thresh_Plus","Profit_Coef","AllEffect_Coef",
@@ -141,38 +141,36 @@ for(tmp in 1:InitialPopCreateLoopNum){
   create_initial_exact_PutCall_polulation(popnum=2000,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=4,calln=2,ml=2,
                                           fname=paste(".\\ResultData\\inipop-06P4C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
                                           isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-  create_initial_exact_PutCall_polulation(popnum=1500,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=3,calln=3,ml=2,
+  create_initial_exact_PutCall_polulation(popnum=2000,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=3,calln=3,ml=2,
                                           fname=paste(".\\ResultData\\inipop-06P3C3-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
                                           isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-  create_initial_exact_PutCall_polulation(popnum=1000,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=2,calln=4,ml=2,
+  create_initial_exact_PutCall_polulation(popnum=2000,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=2,calln=4,ml=2,
                                           fname=paste(".\\ResultData\\inipop-06P2C4-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
                                           isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-  create_initial_exact_PutCall_polulation(popnum=2000,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=3,calln=2,ml=2,
+  create_initial_exact_PutCall_polulation(popnum=1500,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=3,calln=2,ml=2,
                                           fname=paste(".\\ResultData\\inipop-05P3C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
                                           isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
   create_initial_exact_PutCall_polulation(popnum=1500,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=2,calln=3,ml=2,
                                           fname=paste(".\\ResultData\\inipop-05P2C3-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
                                           isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-  create_initial_exact_PutCall_polulation(popnum=800,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=4,calln=0,ml=2,
+  create_initial_exact_PutCall_polulation(popnum=300,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=4,calln=0,ml=2,
                                           fname=paste(".\\ResultData\\inipop-04P4C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
                                           isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-  create_initial_exact_PutCall_polulation(popnum=800,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=2,calln=2,ml=2,
+  create_initial_exact_PutCall_polulation(popnum=300,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=2,calln=2,ml=2,
                                           fname=paste(".\\ResultData\\inipop-04P2C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
                                           isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-  create_initial_exact_PutCall_polulation(popnum=500,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=3,calln=0,ml=2,
+  create_initial_exact_PutCall_polulation(popnum=150,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=3,calln=0,ml=2,
                                           fname=paste(".\\ResultData\\inipop-03P3C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
                                           isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-  create_initial_exact_PutCall_polulation(popnum=300,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=0,calln=3,ml=2,
+  create_initial_exact_PutCall_polulation(popnum=100,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=0,calln=3,ml=2,
                                           fname=paste(".\\ResultData\\inipop-03P0C3-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
                                           isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-  if(Combined_Spread){
-    create_initial_exact_PutCall_polulation(popnum=100,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=2,calln=0,ml=2,
-                                            fname=paste(".\\ResultData\\inipop-02P2C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
-                                            isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-    create_initial_exact_PutCall_polulation(popnum=100,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=0,calln=2,ml=2,
-                                            fname=paste(".\\ResultData\\inipop-02P0C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
-                                            isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-  }
+  create_initial_exact_PutCall_polulation(popnum=20,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=2,calln=0,ml=2,
+                                          fname=paste(".\\ResultData\\inipop-02P2C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
+                                          isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
+  create_initial_exact_PutCall_polulation(popnum=20,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=0,calln=2,ml=2,
+                                          fname=paste(".\\ResultData\\inipop-02P0C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
+                                          isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
 } ;rm(tmp)
 
 #1Cb.csv
