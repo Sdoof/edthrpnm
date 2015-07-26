@@ -15,14 +15,15 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   posEvalTbl<-createPositionEvalTable(position=position,udlStepNum=udlStepNum,udlStepPct=udlStepPct,multi=PosMultip,hdd=Setting$holdDays,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)
   
   #At day 0 position price and Greeks.
-  #   thePositionGrk<-getPositionGreeks(position,multi=PosMultip,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)
-  #   if(isDetail){print(posEvalTbl$pos)}
-  #   if(isDetail){print(posEvalTbl)}  
+  thePositionGrk<-getPositionGreeks(position,multi=PosMultip,hdd=Setting$holdDays,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)
+  if(isDetail){print(posEvalTbl$pos)}
+  if(isDetail){print(posEvalTbl)}  
   
   #weighting calculate
   sd_multp<-Setting$holdDays
   anlzd_sd<-histIV$IVIDX[1]*Setting$HV_IV_Adjust_Ratio
   sd_hd<-(anlzd_sd/sqrt(252/sd_multp))
+  #sd_hd<-exp(anlzd_sd*sqrt(sd_multp/252))-1 #exponential expression
   weight<-dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd / sum(dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd)
   if(isDebug){cat(" :holdDays",Setting$holdDays);cat(" :weight",weight)}
   
@@ -60,13 +61,13 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   
   ##
   # cost3 Profit
-  #   if(isDetail){cat(" :price_hld",posEvalTbl$Price);cat(" :price_ini:",getPositionGreeks(position,multi=PosMultip,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)$Price)}
-  #   if(isDetail){cat(" :prft",posEvalTbl$Price-getPositionGreeks(position,multi=PosMultip,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)$Price)}
-  #   
-  #   profit_hdays<-sum((posEvalTbl$Price-thePositionGrk$Price)*weight)
-  #   if(isDebug){cat(" :prft_wt",profit_hdays)}  
+  if(isDetail){cat(" :price_hld",posEvalTbl$Price);cat(" :price_ini:",getPositionGreeks(position,multi=PosMultip,hdd=Setting$holdDays,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)$Price)}
+  if(isDetail){cat(" :prft",posEvalTbl$Price-getPositionGreeks(position,multi=PosMultip,hdd=Setting$holdDays,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)$Price)}
+  
+  profit_hdays<-sum((posEvalTbl$Price-thePositionGrk$Price)*weight)
+  if(isDebug){cat(" :prft_wt",profit_hdays)}  
   #   penalty3<-1
-  #c3<-profit_hdays
+  c3<-profit_hdays
   #cost3<- sigmoid(c3,a=Setting$SigmoidA_Profit,b=0)
   #   if(isDebug){cat(" :c3(Profit)",c3)}
   
@@ -104,7 +105,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   
   ##
   # total cost is weighted sum of each cost.
-  c3=0
+  
   A<-Setting$DrctlEffect_Coef*c6+Setting$AllEffect_Coef*c7
   B<-Setting$AdvEffect_Coef*c5+Setting$Profit_Coef*c3
   
@@ -363,13 +364,13 @@ hollowNonZeroPosition<-function(pos){
   position
 }
 
-createPositionEvalTable<-function(position,udlStepNum,udlStepPct,days,multi,hdd,HV_IV_Adjust_Ratio){
+createPositionEvalTable<-function(position,udlStepNum,udlStepPct,multi,hdd,HV_IV_Adjust_Ratio){
   udlChgPct<-seq(-udlStepPct*udlStepNum,udlStepPct*udlStepNum,length=(2*udlStepNum)+1)
   posEvalTbl<-data.frame(udlChgPct=udlChgPct) ;rm(udlStepNum,udlStepPct)
   #Set data frames as a row value of another data frame.
   posEvalTbl %>% group_by(udlChgPct) %>% do(pos=position) -> posEvalTbl
   #Modify pos based on scenario
-  posEvalTbl %>% group_by(udlChgPct) %>% do(pos=reflectPosChg(.,days)) -> posEvalTbl
+  posEvalTbl %>% group_by(udlChgPct) %>% do(pos=reflectPosChg(.,hdd)) -> posEvalTbl
  
   #cat("HV_IV_Adjust_Ratio (createPositionEvalTable):",HV_IV_Adjust_Ratio)
   
@@ -488,8 +489,8 @@ create_initial_exact_PutCall_polulation<-function(popnum,type,EvalFuncSetting,th
     if(isDebug){ cat(" (:x",x,")") }
     
     tryCatch(
-      #val<-obj_Income_sgmd(x,EvalFuncSetting,isDebug=isDebug,isDetail=isDetail,
-      val<-obj_fixedpt_sgmd(x,EvalFuncSetting,isDebug=isDebug,isDetail=isDetail,
+      val<-obj_Income_sgmd(x,EvalFuncSetting,isDebug=isDebug,isDetail=isDetail,
+      #val<-obj_fixedpt_sgmd(x,EvalFuncSetting,isDebug=isDebug,isDetail=isDetail,
                             udlStepNum=EvalFuncSetting$UdlStepNum,udlStepPct=EvalFuncSetting$UdlStepPct,
                             maxposnum=EvalFuncSetting$Maxposnum,PosMultip=PosMultip,
                             tail_rate=EvalFuncSetting$Tail_rate,lossLimitPrice=EvalFuncSetting$LossLimitPrice),
@@ -583,8 +584,8 @@ create_combined_population<-function(popnum,EvalFuncSetting,thresh,plelem,fname,
     }
     
     #evaluate    
-    tryCatch(#val<-obj_Income_sgmd(x_new,EvalFuncSetting,isDebug=isDebug,isDetail=isDebug,
-      val<-obj_fixedpt_sgmd(x_new,EvalFuncSetting,isDebug=isDebug,isDetail=isDebug,
+    tryCatch(val<-obj_Income_sgmd(x_new,EvalFuncSetting,isDebug=isDebug,isDetail=isDebug,
+      #val<-obj_fixedpt_sgmd(x_new,EvalFuncSetting,isDebug=isDebug,isDetail=isDebug,
                             udlStepNum=EvalFuncSetting$UdlStepNum,udlStepPct=EvalFuncSetting$UdlStepPct,
                             maxposnum=EvalFuncSetting$Maxposnum,PosMultip=PosMultip,
                             tail_rate=EvalFuncSetting$Tail_rate,lossLimitPrice=EvalFuncSetting$LossLimitPrice),
