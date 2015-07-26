@@ -3,7 +3,10 @@ library(RQuantLib)
 library(ggplot2)
 
 #evaluated position or set evaPos manually by copy&paste csv value
-evaPos<-c()
+evaPos<-c(0,0,0,0,0,0,0,0)
+
+#UDLY draw limit. given absolute % value
+UDLY_DrawRange<-0.08
 
 #Config File
 ConfigFileName_G="ConfigParameters.csv"
@@ -32,42 +35,28 @@ ResultFiles_Path_G=ConfigParameters["ResultFiles_Path_G",1]
 stepdays=as.numeric(ConfigParameters["AnalyStepdays",1])
 udlStepNum=as.numeric(ConfigParameters["AnalyStepNum",1])
 udlStepPct=as.numeric(ConfigParameters["AnalyStepPct",1])
+MAX_DAY=as.numeric(ConfigParameters["AnalyMaxDay",1])
 
 #HV_IV_Adjust_Ratio
 HV_IV_Adjust_Ratio=as.numeric(ConfigParameters["EvalFnc_HV_IV_Adjust_Ratio",1])
 
 #Holding Period
-#holdDays<-3*252/365 #Trading Days. This should be correct.
 holdDays=as.numeric(ConfigParameters["holdDays",1])
 #Number of Days for calculating Annualized Daily Volatility of Implied Volatility (DVIV)
 dviv_caldays=as.numeric(ConfigParameters["dviv_caldays",1])
 #Multipler of Position
 PosMultip=as.numeric(ConfigParameters["PosMultip",1])
 
-#EvalFuncSetting
-EvalFuncSetting<-list(as.numeric(ConfigParameters["EvalFnc_UdlStepNum",1]))
-EvalFuncSetting<-c(EvalFuncSetting,list(as.numeric(ConfigParameters["EvalFnc_UdlStepPct",1])))
-EvalFuncSetting<-c(EvalFuncSetting,list(as.numeric(ConfigParameters["EvalFnc_Maxposnum",1])))
-EvalFuncSetting<-c(EvalFuncSetting,list(as.numeric(ConfigParameters["EvalFnc_Tail_rate",1])))
-EvalFuncSetting<-c(EvalFuncSetting,list(as.numeric(ConfigParameters["EvalFnc_LossLimitPrice",1])))
-EvalFuncSetting<-c(EvalFuncSetting,list(as.numeric(ConfigParameters["EvalFnc_HV_IV_Adjust_Ratio",1])))
-EvalFuncSetting<-c(EvalFuncSetting,list(as.numeric(ConfigParameters["EvalFnc_SigmoidA_Profit",1])))
-EvalFuncSetting<-c(EvalFuncSetting,list(as.numeric(ConfigParameters["EvalFnc_SigmoidA_AllEffect",1])))
-EvalFuncSetting<-c(EvalFuncSetting,list(ifelse(as.numeric(ConfigParameters["EvalFnc_ThetaEffectPositive",1])==1,TRUE,FALSE)))
-EvalFuncSetting<-c(EvalFuncSetting,list(holdDays))
-names(EvalFuncSetting)<-c("UdlStepNum","UdlStepPct","Maxposnum","Tail_rate","LossLimitPrice",
-                          "HV_IV_Adjust_Ratio","SigmoidA_Profit","SigmoidA_AllEffect","ThetaEffectPositive","holdDays")
-
-#Load opchain object
-#Option Chain and Position Data. Here we use UDL_Positions_Pre
+#Load opchain if evaPos is already assigned.
+#if(sum(as.numeric(evaPos!=0))==0) {   #means evaPos=0 vector
+# opchain<-theAlreadyCreatedPosition
+#} else {
 rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep="")
 opchain<-read.table(rf,header=T,sep=",",stringsAsFactors=FALSE)
 rm(rf)
-#or below
-#rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pos.csv",sep="")
-#opchain<-read.table(rf,header=T,sep=",") ;rm(rf)
+#} #endOfelse
 
-##Historical Implied Volatility Data ---------------
+##Historical Implied Volatility Data
 rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_IV.csv",sep="") 
 histIV<-read.table(rf,header=T,sep=",",nrows=1000);rm(rf)
 #filtering
@@ -105,30 +94,27 @@ CallIVChgDown
 opchain$Date<-as.character(opchain$Date)
 opchain$ExpDate<-as.character(opchain$ExpDate)
 max_days<-min(get.busdays.between(opchain$Date,opchain$ExpDate))
+if(MAX_DAY<max_days)
+  max_days<-MAX_DAY
 totalstep=max_days%/%stepdays 
 evaldays<-rep(stepdays,times=totalstep)
 evaldays<- cumsum(evaldays)
 #if the lastday is ExpDate, we set the lastday as (lastday-1), 
 # because the ExpDate option price is unstable.
-if(evaldays[length(evaldays)]==max_days){
+if(evaldays[length(evaldays)]==min(get.busdays.between(opchain$Date,opchain$ExpDate))){
   if(stepdays==1){
     evaldays<-evaldays[-length(evaldays)]
   }else{
     evaldays[length(evaldays)]<-evaldays[length(evaldays)]-1
   }
+}else if(evaldays[length(evaldays)]<MAX_DAY) {
+  evaldays[length(evaldays)+1]<-MAX_DAY
 }
 rm(max_days)
 
 #read analyzed positon. here we give by copy and paste
 pos_anlys<-evaPos
- 
-##
-# check optimization function value
-# val<-obj_Income_sgmd(x=evaPos,EvalFuncSetting,isDebug=TRUE,isDetail=TRUE,
-#                 udlStepNum=EvalFuncSetting$UdlStepNum,udlStepPct=EvalFuncSetting$UdlStepPct,
-#                 maxposnum=EvalFuncSetting$Maxposnum,
-#                 tail_rate=EvalFuncSetting$Tail_rate,lossLimitPrice=EvalFuncSetting$LossLimitPrice)
-# rm(val)
+
 
 #note opchain is already instanciated by the proceduces of ERskRtnEval
 opchain$Position<-pos_anlys
@@ -157,17 +143,18 @@ drawGrktbl<-createAgrregatedGreekTbl(posStepDays,thePosition,udlStepNum=udlStepN
 
 ##Delta Hedge Effect
 if(FALSE){
+  drawGrktbl_DltHgd<-drawGrktbl
   #initial Delta
   iniDelta<-getPosGreeks(pos=thePosition$Position,greek=thePosition$Delta,multi=PosMultip)
   #new Profit
-  drawGrktbl$profit<-drawGrktbl$profit-as.numeric(iniDelta)*(drawGrktbl$UDLY-mean(thePosition$UDLY))
+  drawGrktbl_DltHgd$profit<-drawGrktbl_DltHgd$profit-as.numeric(iniDelta)*(drawGrktbl_DltHgd$UDLY-mean(thePosition$UDLY))
   #new DeltaEffect
    #temporal. you shoud get IVIX and calculte #expPriceChange<-mean(UDLY*(exp(ividx_td*sqrt(hdd/365))-1))
-  expPriceChange<-as.numeric(drawGrktbl$Delta!=0)*drawGrktbl$DeltaEffect/(-abs(drawGrktbl$Delta))
-  drawGrktbl$DeltaEffect<-drawGrktbl$DeltaEffect-as.numeric(iniDelta)*expPriceChange
+  expPriceChange<-as.numeric(drawGrktbl_DltHgd$Delta!=0)*drawGrktbl_DltHgd$DeltaEffect/(-abs(drawGrktbl_DltHgd$Delta))
+  drawGrktbl_DltHgd$DeltaEffect<-drawGrktbl_DltHgd$DeltaEffect-as.numeric(iniDelta)*expPriceChange
   rm(expPriceChange)
   #new delta
-  drawGrktbl$Delta<-drawGrktbl$Delta-as.numeric(iniDelta)
+  drawGrktbl_DltHgd$Delta<-drawGrktbl_DltHgd$Delta-as.numeric(iniDelta)
 }
 #Effect Aggregation
 drawGrktbl %>% dplyr::mutate(TotalEffect=ThetaEffect+DeltaEffect+GammaEffect+VegaEffect) -> drawGrktbl
@@ -176,8 +163,8 @@ drawGrktbl %>% dplyr::mutate(DEffect=DeltaEffect+VegaEffect) -> drawGrktbl
 
 ## Drawing profit
 #limit the UDLY range.
-drawGrktbl %>% dplyr::filter(UDLY>mean(thePosition$UDLY)*(1-0.08)) %>% 
-  dplyr::filter(UDLY<mean(thePosition$UDLY)*(1+0.08)) -> drawGrktbl
+drawGrktbl %>% dplyr::filter(UDLY>mean(thePosition$UDLY)*(1-UDLY_DrawRange)) %>% 
+  dplyr::filter(UDLY<mean(thePosition$UDLY)*(1+UDLY_DrawRange)) -> drawGrktbl
 #Profit and Greeks Combined Graph
 gg<-ggplot(drawGrktbl,aes(x=UDLY,y=profit,group=day))
 (
@@ -196,41 +183,41 @@ gg<-ggplot(drawGrktbl,aes(x=UDLY,y=profit,group=day))
 )
 
 #Profit + Directional + Non Didectional(Intrinsic Advantageous) + Total Effect Graph
-gg<-ggplot(drawGrktbl,aes(x=UDLY,y=profit,group=day))
-(
-  gg + geom_line(size=0.9-0.01*round(drawGrktbl$day/stepdays),linetype=round(drawGrktbl$day/stepdays),colour="black")
-  +geom_line(x=drawGrktbl$UDLY,y=drawGrktbl$TotalEffect,size=0.9-0.01*round(drawGrktbl$day/stepdays),linetype=round(drawGrktbl$day/stepdays),colour="darkgreen") 
-  +geom_line(x=drawGrktbl$UDLY,y=drawGrktbl$NdEffect,size=0.9-0.01*round(drawGrktbl$day/stepdays),linetype=round(drawGrktbl$day/stepdays),colour="red")
-  +geom_line(x=drawGrktbl$UDLY,y=drawGrktbl$DEffect,size=0.9-0.01*round(drawGrktbl$day/stepdays),linetype=round(drawGrktbl$day/stepdays),colour="blue")
-  +geom_point(x=thePositonGrks$UDLY,y=0,size=4.0,colour="black")
-  +geom_point(x=thePositonGrks$UDLY,
-              y=thePositonGrks$DeltaEffect+thePositonGrks$VegaEffect+thePositonGrks$GammaEffect+thePositonGrks$ThetaEffect,
-              size=4.0,colour="darkgreen")
-  +geom_point(x=thePositonGrks$UDLY,
-              y=thePositonGrks$GammaEffect+thePositonGrks$ThetaEffect,
-              size=4.0,colour="red")
-  +geom_point(x=thePositonGrks$UDLY,
-              y=thePositonGrks$DeltaEffect+thePositonGrks$VegaEffect,
-              size=4.0,colour="blue")
-  +ylim( 
-    min(c(min(drawGrktbl$TotalEffect),min(drawGrktbl$NdEffect),min(drawGrktbl$DEffect),min(drawGrktbl$profit))), 
-    max(c(max(drawGrktbl$TotalEffect),max(drawGrktbl$NdEffect),max(drawGrktbl$DEffect),max(drawGrktbl$profit))))
-)
+# gg<-ggplot(drawGrktbl,aes(x=UDLY,y=profit,group=day))
+# (
+#   gg + geom_line(size=0.9-0.01*round(drawGrktbl$day/stepdays),linetype=round(drawGrktbl$day/stepdays),colour="black")
+#   +geom_line(x=drawGrktbl$UDLY,y=drawGrktbl$TotalEffect,size=0.9-0.01*round(drawGrktbl$day/stepdays),linetype=round(drawGrktbl$day/stepdays),colour="darkgreen") 
+#   +geom_line(x=drawGrktbl$UDLY,y=drawGrktbl$NdEffect,size=0.9-0.01*round(drawGrktbl$day/stepdays),linetype=round(drawGrktbl$day/stepdays),colour="red")
+#   +geom_line(x=drawGrktbl$UDLY,y=drawGrktbl$DEffect,size=0.9-0.01*round(drawGrktbl$day/stepdays),linetype=round(drawGrktbl$day/stepdays),colour="blue")
+#   +geom_point(x=thePositonGrks$UDLY,y=0,size=4.0,colour="black")
+#   +geom_point(x=thePositonGrks$UDLY,
+#               y=thePositonGrks$DeltaEffect+thePositonGrks$VegaEffect+thePositonGrks$GammaEffect+thePositonGrks$ThetaEffect,
+#               size=4.0,colour="darkgreen")
+#   +geom_point(x=thePositonGrks$UDLY,
+#               y=thePositonGrks$GammaEffect+thePositonGrks$ThetaEffect,
+#               size=4.0,colour="red")
+#   +geom_point(x=thePositonGrks$UDLY,
+#               y=thePositonGrks$DeltaEffect+thePositonGrks$VegaEffect,
+#               size=4.0,colour="blue")
+#   +ylim( 
+#     min(c(min(drawGrktbl$TotalEffect),min(drawGrktbl$NdEffect),min(drawGrktbl$DEffect),min(drawGrktbl$profit))), 
+#     max(c(max(drawGrktbl$TotalEffect),max(drawGrktbl$NdEffect),max(drawGrktbl$DEffect),max(drawGrktbl$profit))))
+# )
 
 #Greeks Only Graph
-gg<-ggplot(drawGrktbl,aes(x=UDLY,y=ThetaEffect,group=day))
-(
-  gg + geom_line(size=0.9-0.01*round(drawGrktbl$day/stepdays),colour="orange",linetype=round(drawGrktbl$day/stepdays))
-  +geom_line(x=drawGrktbl$UDLY,y=drawGrktbl$DeltaEffect,size=0.9-0.01*round(drawGrktbl$day/stepdays),colour="blue",group=drawGrktbl$day,linetype=round(drawGrktbl$day/stepdays))
-  +geom_line(x=drawGrktbl$UDLY,y=drawGrktbl$GammaEffect,size=0.9-0.01*round(drawGrktbl$day/stepdays),colour="red",group=drawGrktbl$day,linetype=round(drawGrktbl$day/stepdays))
-  +geom_line(x=drawGrktbl$UDLY,y=drawGrktbl$VegaEffect,size=0.9-0.01*round(drawGrktbl$day/stepdays),colour="green",group=drawGrktbl$day,linetype=round(drawGrktbl$day/stepdays))
-  +geom_point(x=thePositonGrks$UDLY,y=0,size=4.0,colour="black")
-  +geom_point(x=thePositonGrks$UDLY,y=thePositonGrks$DeltaEffect,size=4.0,colour="blue")+geom_point(x=thePositonGrks$UDLY,y=thePositonGrks$GammaEffect,size=4.0,colour="red")
-  +geom_point(x=thePositonGrks$UDLY,y=thePositonGrks$VegaEffect,size=4.0,colour="green")+geom_point(x=thePositonGrks$UDLY,y=thePositonGrks$ThetaEffect,size=4.0,colour="orange")
-  +ylim(
-    min(c(min(drawGrktbl$ThetaEffect),min(drawGrktbl$DeltaEffect),min(drawGrktbl$GammaEffect),min(drawGrktbl$VegaEffect))),
-    max(c(max(drawGrktbl$ThetaEffect),max(drawGrktbl$DeltaEffect),max(drawGrktbl$GammaEffect),max(drawGrktbl$VegaEffect))))
-)
+# gg<-ggplot(drawGrktbl,aes(x=UDLY,y=ThetaEffect,group=day))
+# (
+#   gg + geom_line(size=0.9-0.01*round(drawGrktbl$day/stepdays),colour="orange",linetype=round(drawGrktbl$day/stepdays))
+#   +geom_line(x=drawGrktbl$UDLY,y=drawGrktbl$DeltaEffect,size=0.9-0.01*round(drawGrktbl$day/stepdays),colour="blue",group=drawGrktbl$day,linetype=round(drawGrktbl$day/stepdays))
+#   +geom_line(x=drawGrktbl$UDLY,y=drawGrktbl$GammaEffect,size=0.9-0.01*round(drawGrktbl$day/stepdays),colour="red",group=drawGrktbl$day,linetype=round(drawGrktbl$day/stepdays))
+#   +geom_line(x=drawGrktbl$UDLY,y=drawGrktbl$VegaEffect,size=0.9-0.01*round(drawGrktbl$day/stepdays),colour="green",group=drawGrktbl$day,linetype=round(drawGrktbl$day/stepdays))
+#   +geom_point(x=thePositonGrks$UDLY,y=0,size=4.0,colour="black")
+#   +geom_point(x=thePositonGrks$UDLY,y=thePositonGrks$DeltaEffect,size=4.0,colour="blue")+geom_point(x=thePositonGrks$UDLY,y=thePositonGrks$GammaEffect,size=4.0,colour="red")
+#   +geom_point(x=thePositonGrks$UDLY,y=thePositonGrks$VegaEffect,size=4.0,colour="green")+geom_point(x=thePositonGrks$UDLY,y=thePositonGrks$ThetaEffect,size=4.0,colour="orange")
+#   +ylim(
+#     min(c(min(drawGrktbl$ThetaEffect),min(drawGrktbl$DeltaEffect),min(drawGrktbl$GammaEffect),min(drawGrktbl$VegaEffect))),
+#     max(c(max(drawGrktbl$ThetaEffect),max(drawGrktbl$DeltaEffect),max(drawGrktbl$GammaEffect),max(drawGrktbl$VegaEffect))))
+# )
 
 rm(gg,drawGrktbl)
 rm(opchain,histIV,evaPos)
