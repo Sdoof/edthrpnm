@@ -180,9 +180,9 @@ filterPosition <- function(opchain,HowfarOOM_MIN=0,OOM_Limit_V=c(0.07,0.04)){
   
   #Calender Spread 
   OOM_Limit<-(OOM_Limit_V[1])
-  opchain %>%  dplyr::filter(ExpDate=="2015/8/21") %>% dplyr::filter(HowfarOOM<OOM_Limit)  %>% dplyr::filter((Strike%%10)==0) -> opchain_cal1
+  opchain %>%  dplyr::filter(ExpDate=="2015/9/18") %>% dplyr::filter(HowfarOOM<OOM_Limit)  %>% dplyr::filter((Strike%%10)==0) -> opchain_cal1
   OOM_Limit<-(OOM_Limit_V[2])
-  opchain %>%  dplyr::filter(ExpDate=="2015/9/18") %>% dplyr::filter(HowfarOOM<OOM_Limit)  %>% dplyr::filter((Strike%%10)==0) -> opchain_cal2
+  opchain %>%  dplyr::filter(ExpDate=="2015/10/16") %>% dplyr::filter(HowfarOOM<OOM_Limit)  %>% dplyr::filter((Strike%%10)==0) -> opchain_cal2
   
   #Join
   opchain_cal1 %>%  dplyr::full_join(opchain_cal2) %>% 
@@ -208,7 +208,7 @@ if(!isSkewCalc){
 opchain %>% select(Date,ExpDate,TYPE,Strike,ContactName,Position,UDLY,Price,
                    Delta,Gamma,Vega,Theta,Rho,OrigIV,ATMIV,IVIDX,
                    HowfarOOM,TimeToExpDate,Moneyness.Nm) %>% 
-  arrange(Date,ExpDate,desc(TYPE),Strike) -> opchain
+  arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="%Y/%m/%d"),desc(TYPE),Strike) -> opchain
 opchain$Position<-ifelse(is.na(opchain$Position), 0, opchain$Position)
 
 #Write to a file (RUT_Positions_Pre)
