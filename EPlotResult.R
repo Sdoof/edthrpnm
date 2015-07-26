@@ -14,7 +14,7 @@ Underying_Symbol_G=ConfigParameters["Underying_Symbol_G",1]
 ResultFiles_Path_G=ConfigParameters["ResultFiles_Path_G",1]
 
 #target spread IDs
-SpreadIDs=c(1)
+SpreadIDs=c(9)
 
 #plot data every this step days
 PlotStepDay=3
@@ -99,25 +99,6 @@ for(SpreadID in SpreadIDs){
     plot_df_view <-plot_df 
   }
   
-  #グラフ表示
-  gg<-ggplot(plot_df_view,aes(x=udly,y=profit,colour=liqDay))+
-    geom_point(alpha=0.3)+
-    geom_point(x=InitUDLY,y=0,size=6.0,colour="red",pch=3)+
-    ylim(min(plot_df_view$profit),max(plot_df_view$profit))
-  print(gg)
-  
-  gg<-ggplot(plot_df_view,aes(x=udly,y=Delta,colour=liqDay))+
-    geom_point(alpha=0.3)+
-    geom_point(x=InitUDLY,y=0,size=6.0,colour="red",pch=4)+
-    ylim(min(plot_df_view$Delta),max(plot_df_view$Delta))
-  print(gg)
-  
-  gg<-ggplot(plot_df_view,aes(x=udly,y=Vega,colour=liqDay))+
-    geom_point(alpha=0.3)+
-    geom_point(x=InitUDLY,y=0,size=6.0,colour="red",pch=4)+
-    ylim(min(plot_df_view$Vega),max(plot_df_view$Vega))
-  print(gg)
-  
   # 5倍plotする事に留意する
   if(nrow(plot_df)>ceiling(PlotMAxPointNum/5)){
     plot_df[sort(sample(nrow(plot_df),size=ceiling(PlotMAxPointNum/5),replace=F)),] -> plot_df_view
@@ -128,6 +109,8 @@ for(SpreadID in SpreadIDs){
   } else{
     plot_df_view <-plot_df 
   }
+  
+  #グラフ表示
   
   gg<-ggplot(plot_df_view,aes(x=udly,y=profit))+
     geom_point(alpha=0.2,size=ceiling(plot_df_view$liqDay/min(plot_df_view$liqDay)))+
@@ -149,6 +132,26 @@ for(SpreadID in SpreadIDs){
             max(plot_df_view$profit)))
     )  
   print(gg)
+#   
+#   gg<-ggplot(plot_df_view,aes(x=udly,y=profit,colour=liqDay))+
+#     geom_point(alpha=0.3)+
+#     geom_point(x=InitUDLY,y=0,size=6.0,colour="red",pch=3)+
+#     ylim(min(plot_df_view$profit),max(plot_df_view$profit))
+#   print(gg)
+#   
+#   gg<-ggplot(plot_df_view,aes(x=udly,y=Delta,colour=liqDay))+
+#     geom_point(alpha=0.3)+
+#     geom_point(x=InitUDLY,y=0,size=6.0,colour="red",pch=4)+
+#     ylim(min(plot_df_view$Delta),max(plot_df_view$Delta))
+#   print(gg)
+#   
+#   gg<-ggplot(plot_df_view,aes(x=udly,y=Vega,colour=liqDay))+
+#     geom_point(alpha=0.3)+
+#     geom_point(x=InitUDLY,y=0,size=6.0,colour="red",pch=4)+
+#     ylim(min(plot_df_view$Vega),max(plot_df_view$Vega))
+#   print(gg)
+  
+ 
   
 }
 
