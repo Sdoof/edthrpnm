@@ -42,10 +42,10 @@ EvalFnc_SigmoidA_Numerator,0.00055
 #Denominator=AdvEffect+Profit More is good.
 EvalFnc_SigmoidA_Denominator,0.007
 EvalFnc_ThetaEffectPositive,0
-EvalFnc_Combined_Spread,0
 ## Optimization
+Optimize_Combined_Spread,1
 Optimize_InitialPopCreateLoopNum,20
-Optimize_InitialPopThresh,2.2
+Optimize_InitialPopThresh,2.0
 Optimize_TopN_1,2000
 Optimize_PopN_1,1
 Optimize_Thresh_1,1.2

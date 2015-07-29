@@ -79,7 +79,7 @@ PopN_2=as.numeric(ConfigParameters["Optimize_PopN_2",1])
 Thresh_2=as.numeric(ConfigParameters["Optimize_Thresh_2",1])
 
 #Search Combined(2Cb,3Cb,etc) Spreads?
-Combined_Spread=ifelse(as.numeric(ConfigParameters["EvalFnc_Combined_Spread",1])==1,TRUE,FALSE)
+Combined_Spread=ifelse(as.numeric(ConfigParameters["Optimize_Combined_Spread",1])==1,TRUE,FALSE)
 
 #Option Chain and Position Data. Here we use UDL_Positions_Pre
 rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep="")
