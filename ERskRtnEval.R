@@ -229,13 +229,21 @@ getGammaEffect<-function(pos,greek,UDLY,rlzdvol_td,multi,hdd){
   gammaEfct
 }
 
-#Here we do not care the effect of Volga as we did the Gamma effect, is this really appropriate?
 getVegaEffect<-function(pos,greek,ividx,dviv,multi,hdd){
   expIVChange<-mean(ividx*(exp(dviv*sqrt(holdDays))-1))
   vega<-getPosGreeks(pos=pos,greek=greek,multi=multi)
   vegaEffect<-(-abs(vega))*(expIVChange*100)
   vegaEffect
 }
+
+getVommaEffect<-function(pos,greek,ividx,dviv,multi,hdd){
+  expIVChange<-mean(ividx*(exp(dviv*sqrt(holdDays))-1))
+  vomma<-getPosGreeks(pos=pos,greek=greek,multi=multi)
+  expIVChange<-expIVChange*100
+  vommaEffect<-vomma*(expIVChange^2)/2
+  vommaEffect
+}
+
 
 #Factory of Volatility Level Regression Result
 get.Volatility.Level.Regression<-function(Days=holdDays,ctoc=TRUE){

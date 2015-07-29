@@ -59,3 +59,43 @@ set.EuropeanOptionValueGreeks <- function(xT){
   names(tmp_ret)<-Grknames
   tmp_ret
 }
+
+##
+# calculate and return of vomma of the spread position.
+# xT : spread postion data frame
+# return value: position vomma as a vector. 
+#   you may use this like this. 
+#   thePosition$vomma <- get.EuropeanOptionvomma(xT=thePosition)
+get.EuropeanOptionVomma <- function(xT){
+  # 1%
+  h <- 10^(-2)
+  #first allocate vector returned.
+  vomma<-rep(0,length(xT$TYPE))
+  for(i in 1:length(xT$TYPE)){
+    ##  Business days
+    busdays_betwn<-businessDaysBetween(CALENDAR_G,
+                                       as.Date(xT$Date[i],format="%Y/%m/%d"),
+                                       as.Date(xT$ExpDate[i],format="%Y/%m/%d"))
+    
+    if(xT$TYPE[i] == OpType_Put_G){
+      tmp<-EuropeanOption(type="put", underlying=xT$UDLY[i], strike=xT$Strike[i],
+                             dividendYield=divYld_G, riskFreeRate=riskFreeRate_G, maturity=busdays_betwn/252, volatility=xT$OrigIV[i]+h)
+      VegaPlus<-tmp$vega/100
+      
+      tmp<-EuropeanOption(type="put", underlying=xT$UDLY[i], strike=xT$Strike[i],
+                             dividendYield=divYld_G, riskFreeRate=riskFreeRate_G, maturity=busdays_betwn/252, volatility=xT$OrigIV[i]-h)
+      VegaMinus<-tmp$vega/100
+      
+    }else if(xT$TYPE[i] == OpType_Call_G){
+      tmp<-EuropeanOption(type="call", underlying=xT$UDLY[i], strike=xT$Strike[i],
+                          dividendYield=divYld_G, riskFreeRate=riskFreeRate_G, maturity=busdays_betwn/252, volatility=xT$OrigIV[i]+h)
+      VegaPlus<-tmp$vega/100
+      
+      tmp<-EuropeanOption(type="call", underlying=xT$UDLY[i], strike=xT$Strike[i],
+                          dividendYield=divYld_G, riskFreeRate=riskFreeRate_G, maturity=busdays_betwn/252, volatility=xT$OrigIV[i]-h)
+      VegaMinus<-tmp$vega/100
+    }
+   vomma[i] <- (VegaPlus - VegaMinus)/2
+  }
+  vomma
+}
