@@ -10,16 +10,31 @@ divYld_G,0
 TimeToExp_Limit_Closeness_G,0.2
 holdDays,3
 ResultFiles_Path_G,C:\Users\kuby\edthrpnm\ResultData\
+####
+## Evaluation Function Related Settings
+#
 EvalFnc_UdlStepNum,1
 EvalFnc_UdlStepPct,0.025
-EvalFnc_Maxposnum,6
+EvalFnc_Posnum,c(2$3$4$5$6)
 EvalFnc_Tail_rate,0.4
 EvalFnc_LossLimitPrice,30000
 EvalFnc_HV_IV_Adjust_Ratio,0.9
+# 0‚©‚ç-30‚Ü‚Å‚ÌDelta‚ÍDrctlEffect‚Ì(dis)advantage‚Æ‚µ‚Ä‰e‹¿‚³‚¹‚È‚¢
+# 0‚©‚ç30‚Ü‚Å‚ÌVega‚ÍDrctlEffect‚Ì(dis)advantage‚Æ‚µ‚Ä‰e‹¿‚³‚¹‚È‚¢
 EvalFnc_Delta_Thresh_Minus,-30
 EvalFnc_Delta_Thresh_Plus,0
-EvalFnc_AdvEffect_Coef,0.7
+EvalFnc_Vega_Thresh_Minus,0
+EvalFnc_Vega_Thresh_Plus,0
+# DRCTAL_Taste:  0:like neutral, 1(>0):like up moves -1(<0):like down moves
+# c(x1$x2$x3, ...) prefernce of posn=1,2,3... is x1,x2,x3....)
+EvalFnc_Delta_Direct_Prf,c(0$0$0$0$0$0$0$0)
+EvalFnc_Vega_Direct_Prf,c(0$0$0$0$0$0$0$0)
+# Delta(Vega)‚ªNeutral‚Æ‚È‚é’l‚ğ0‚©‚ç‚±‚Ì’l‚É•ÏX‚·‚é
+EvalFnc_Delta_Neutral_Offset,c(0$0$0$0$-30$0$0$0)
+EvalFnc_Vega_Neutral_Offset,c(0$0$0$0$0$0$0$0)
+#Coeffeciants
 EvalFnc_Profit_Coef,0.3
+EvalFnc_AdvEffect_Coef,0.7
 EvalFnc_AllEffect_Coef,0
 EvalFnc_DrctlEffect_Coef,1
 #Numerator=DrctlEffect+AllEffect. Less is good. DrctlEffect_Coef and AllEffect_Coef should be exclusive.
@@ -27,7 +42,9 @@ EvalFnc_SigmoidA_Numerator,0.00055
 #Denominator=AdvEffect+Profit More is good.
 EvalFnc_SigmoidA_Denominator,0.007
 EvalFnc_ThetaEffectPositive,0
-Optimize_InitialPopCreateLoopNum,10
+EvalFnc_Combined_Spread,0
+## Optimization
+Optimize_InitialPopCreateLoopNum,20
 Optimize_InitialPopThresh,2.2
 Optimize_TopN_1,2000
 Optimize_PopN_1,1
@@ -36,11 +53,11 @@ Optimize_TopN_2,600
 Optimize_PopN_2,1
 Optimize_Thresh_2,1.1
 #First cutback
-ResultProcess_Thresh_Score1,1.6
-ResultProcess_Thresh_Score2,1.6
-ResultProcess_Thresh_Score3,1.6
+ResultProcess_Thresh_Score1,1.2
+ResultProcess_Thresh_Score2,1.2
+ResultProcess_Thresh_Score3,1.2
 #filtering threshhold
-ResultProcess_Thresh_AdvEffect,20
+ResultProcess_Thresh_AdvEffect,50
 ResultProcess_F_Thrsh_Score1,1.0
 ResultProcess_F_Thrsh_Score2,1.0
 ResultProcess_F_Thrsh_Score3,1.0

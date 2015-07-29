@@ -3,7 +3,9 @@
 
 obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
                             udlStepNum,udlStepPct,maxposnum,PosMultip,
-                            tail_rate,lossLimitPrice){
+                            tail_rate,lossLimitPrice,
+                            Delta_Direct_Prf,Vega_Direct_Prf,
+                            Delta_Neutral_Offset,Vega_Neutral_Offset){
   #gradually change constraint
   unacceptableVal=10
   #position where pos$Position != 0
@@ -25,7 +27,13 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   sd_hd<-(anlzd_sd/sqrt(252/sd_multp))
   #sd_hd<-exp(anlzd_sd*sqrt(sd_multp/252))-1 #exponential expression
   weight<-dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd / sum(dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd)
-  if(isDebug){cat(" :holdDays",Setting$holdDays);cat(" :weight",weight)}
+  
+  if(isDebug){
+    cat(" :Delta_Direct_Prf",Delta_Direct_Prf)
+    cat(" :Vega_Direct_Prf",Vega_Direct_Prf)
+    cat(" :Delta_Neutral_Offset",Delta_Neutral_Offset," :Vega_Neutral_Offset",Vega_Neutral_Offset)
+    cat(" :holdDays",Setting$holdDays);cat(" :weight",weight)
+  }
   
   ##
   # Constraint 1. Position Total Num
@@ -129,10 +137,20 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
 
 #evaluation of the Date and just its greekeffect (not weighted)
 obj_fixedpt_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
-                                         udlStepNum,udlStepPct,maxposnum,PosMultip,
-                                         tail_rate,lossLimitPrice){
+                             udlStepNum,udlStepPct,maxposnum,PosMultip,
+                             tail_rate,lossLimitPrice,
+                             Delta_Direct_Prf,Vega_Direct_Prf,
+                             Delta_Neutral_Offset,Vega_Neutral_Offset){
   #gradually change constraint
   unacceptableVal=10
+  
+  if(isDebug){
+    cat("\n :Delta_Direct_Prf",Delta_Direct_Prf)
+    cat(" :Vega_Direct_Prf",Vega_Direct_Prf)
+    cat(" :Delta_Neutral_Offset",Delta_Neutral_Offset," :Vega_Neutral_Offset",Vega_Neutral_Offset)
+    cat(" :holdDays",Setting$holdDays,"\n")
+  }
+  
   #position where pos$Position != 0
   position<-hollowNonZeroPosition(pos=x)
   if(isDetail){print(position)}
@@ -496,12 +514,15 @@ create_initial_exact_PutCall_polulation<-function(popnum,type,EvalFuncSetting,th
     x<-as.numeric(((putn%%2)==0)*((calln%%2)==0))*ml*x+as.numeric(!((putn%%2)==0)*((calln%%2)==0))*ml*x
     if(isDebug){ cat(" (:x",x,")") }
     
+    posnum<-putn +calln
     tryCatch(
-      val<-obj_Income_sgmd(x,EvalFuncSetting,isDebug=isDebug,isDetail=isDetail,
-      #val<-obj_fixedpt_sgmd(x,EvalFuncSetting,isDebug=isDebug,isDetail=isDetail,
-                            udlStepNum=EvalFuncSetting$UdlStepNum,udlStepPct=EvalFuncSetting$UdlStepPct,
-                            maxposnum=EvalFuncSetting$Maxposnum,PosMultip=PosMultip,
-                            tail_rate=EvalFuncSetting$Tail_rate,lossLimitPrice=EvalFuncSetting$LossLimitPrice),
+      #val<-obj_Income_sgmd(x,EvalFuncSetting,isDebug=isDebug,isDetail=isDetail,
+      val<-obj_fixedpt_sgmd(x,EvalFuncSetting,isDebug=isDebug,isDetail=isDetail,
+                           udlStepNum=EvalFuncSetting$UdlStepNum,udlStepPct=EvalFuncSetting$UdlStepPct,
+                           maxposnum=EvalFuncSetting$Maxposnum,PosMultip=PosMultip,
+                           tail_rate=EvalFuncSetting$Tail_rate,lossLimitPrice=EvalFuncSetting$LossLimitPrice,
+                           Delta_Direct_Prf=EvalFuncSetting$Delta_Direct_Prf[posnum],Vega_Direct_Prf=EvalFuncSetting$Vega_Direct_Prf[posnum],
+                           Delta_Neutral_Offset=EvalFuncSetting$Delta_Neutral_Offset[posnum],Vega_Neutral_Offset=EvalFuncSetting$Vega_Neutral_Offset[posnum]),
       error=function(e){
         message(e)
         val<-(thresh+1.0)
@@ -586,17 +607,19 @@ create_combined_population<-function(popnum,EvalFuncSetting,thresh,plelem,fname,
     if(isDebug){ cat(" x_new :",x_new) }
     total_count<-total_count+1
     
-    if(sum(as.numeric((x_new-iniPos)!=0))>maxposn){
-      if(isDebug){ cat("\n") }
+    posnum<-sum(as.numeric((x_new-iniPos)!=0))
+    if(posnum>maxposn){
+      if(isDebug){ cat("posnum ",posnum,"over maxposn \n") }
       next
     }
-    
     #evaluate    
-    tryCatch(val<-obj_Income_sgmd(x_new,EvalFuncSetting,isDebug=isDebug,isDetail=isDebug,
-      #val<-obj_fixedpt_sgmd(x_new,EvalFuncSetting,isDebug=isDebug,isDetail=isDebug,
+    tryCatch(#val<-obj_Income_sgmd(x_new,EvalFuncSetting,isDebug=isDebug,isDetail=isDebug,
+      val<-obj_fixedpt_sgmd(x_new,EvalFuncSetting,isDebug=isDebug,isDetail=isDebug,
                             udlStepNum=EvalFuncSetting$UdlStepNum,udlStepPct=EvalFuncSetting$UdlStepPct,
                             maxposnum=EvalFuncSetting$Maxposnum,PosMultip=PosMultip,
-                            tail_rate=EvalFuncSetting$Tail_rate,lossLimitPrice=EvalFuncSetting$LossLimitPrice),
+                            tail_rate=EvalFuncSetting$Tail_rate,lossLimitPrice=EvalFuncSetting$LossLimitPrice,
+                            Delta_Direct_Prf=EvalFuncSetting$Delta_Direct_Prf[posnum],Vega_Direct_Prf=EvalFuncSetting$Vega_Direct_Prf[posnum],
+                            Delta_Neutral_Offset=EvalFuncSetting$Delta_Neutral_Offset[posnum],Vega_Neutral_Offset=EvalFuncSetting$Vega_Neutral_Offset[posnum]),
       error=function(e){
         message(e)
         val<-(thresh+1.0)
