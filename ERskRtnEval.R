@@ -92,8 +92,8 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   theDelta<-sum(posEvalTbl$Delta*weight)
   theDeltaEfct<-sum(posEvalTbl$DeltaEffect*weight)
   #DeltaE_comp<-(Delta<0)*(Delta<L1)*DeltaE+(Delta>0)*(Delta>L2)*DeltaE
-  DeltaEffect_Comp<-(theDelta<0)*(theDelta<Setting$Delta_Thresh_Minus)*theDeltaEfct+
-    (theDelta>0)*(theDelta>Setting$Delta_Thresh_Plus)*theDeltaEfct
+  DeltaEffect_Comp<-(theDelta<0)*(theDelta<Setting$Delta_Thresh_Minus[length(position$TYPE)])*theDeltaEfct+
+    (theDelta>0)*(theDelta>Setting$Delta_Thresh_Plus[length(position$TYPE)])*theDeltaEfct
   
   if(isDebug){
     cat(" :(Delta)",theDelta)
@@ -172,12 +172,13 @@ obj_fixedpt_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   theDeltaEfct<-thePositionGrk$DeltaEffect
   
   ###Delta_Thresh_Minus,Delta_Thresh_Plus
-  DeltaEffect_Comp<-(theDelta<0)*(theDelta<Setting$Delta_Thresh_Minus)*theDeltaEfct+
-    (theDelta>0)*(theDelta>Setting$Delta_Thresh_Plus)*theDeltaEfct
+  DeltaEffect_Comp<-(theDelta<0)*(theDelta<Setting$Delta_Thresh_Minus[length(position$TYPE)])*theDeltaEfct+
+    (theDelta>0)*(theDelta>Setting$Delta_Thresh_Plus[length(position$TYPE)])*theDeltaEfct
   ### EOF Delta_Thresh_Minus,Delta_Thresh_Plus
   
   if(isDebug){
-    cat(" :(Delta)",theDelta)
+    cat(" :(Delta)",theDelta," :(Delta_Thresh_Minus)",Setting$Delta_Thresh_Minus[length(position$TYPE)],
+        " :(Delta_Thresh_Plus)",Setting$Delta_Thresh_Plus[length(position$TYPE)])
     cat(" :(DeltaE)",theDeltaEfct," :(Thresh DeltaE)",DeltaEffect_Comp)
   }
   
@@ -197,11 +198,12 @@ obj_fixedpt_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   theVega<-thePositionGrk$Vega
   theVegaEfct<-thePositionGrk$VegaEffect
   ###Delta_Thresh_Minus,Delta_Thresh_Plus
-  VegaEffect_Comp<-(theVega<0)*(theVega<Setting$Vega_Thresh_Minus)*theVegaEfct+
-    (theVega>0)*(theVega>Setting$Vega_Thresh_Plus)*theVegaEfct
+  VegaEffect_Comp<-(theVega<0)*(theVega<Setting$Vega_Thresh_Minus[length(position$TYPE)])*theVegaEfct+
+    (theVega>0)*(theVega>Setting$Vega_Thresh_Plus[length(position$TYPE)])*theVegaEfct
   ### EOF Delta_Thresh_Minus,Delta_Thresh_Plus
   if(isDebug){
-    cat(" :(Vega)",theVega)
+    cat(" :(Vega)",theVega," :(Vega_Thresh_Minus)",Setting$Vega_Thresh_Minus[length(position$TYPE)],
+        " :(Vega_Thresh_Plus)",Setting$Vega_Thresh_Plus[length(position$TYPE)])
     cat(" :(VegaE)",theVegaEfct," :(Thresh VegaE)",VegaEffect_Comp)
   }
   
@@ -566,8 +568,8 @@ create_initial_exact_PutCall_polulation<-function(popnum,type,EvalFuncSetting,th
     
     posnum<-putn +calln
     tryCatch(
-      #val<-obj_Income_sgmd(x,EvalFuncSetting,isDebug=isDebug,isDetail=isDetail,
-      val<-obj_fixedpt_sgmd(x,EvalFuncSetting,isDebug=isDebug,isDetail=isDetail,
+      val<-obj_Income_sgmd(x,EvalFuncSetting,isDebug=isDebug,isDetail=isDetail,
+      #val<-obj_fixedpt_sgmd(x,EvalFuncSetting,isDebug=isDebug,isDetail=isDetail,
                            udlStepNum=EvalFuncSetting$UdlStepNum,udlStepPct=EvalFuncSetting$UdlStepPct,
                            maxposnum=EvalFuncSetting$Maxposnum,PosMultip=PosMultip,
                            tail_rate=EvalFuncSetting$Tail_rate,lossLimitPrice=EvalFuncSetting$LossLimitPrice,

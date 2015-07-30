@@ -25,10 +25,10 @@ EvalFnc_HV_IV_Adjust_Ratio,0.9
 ##
 ###### _Threshの設定と_Neutral_Offsetの項目は排他的に使うこと
 ######  そうでない場合はソースコードを見て本当にやりたい事か判断するべき
-EvalFnc_Delta_Thresh_Minus,0
-EvalFnc_Delta_Thresh_Plus,0
-EvalFnc_Vega_Thresh_Minus,0
-EvalFnc_Vega_Thresh_Plus,0
+EvalFnc_Delta_Thresh_Minus,c(0$0$0$0$0$0$0$0)
+EvalFnc_Delta_Thresh_Plus,c(0$0$0$0$0$0$0$0)
+EvalFnc_Vega_Thresh_Minus,c(0$0$0$0$0$0$0$0)
+EvalFnc_Vega_Thresh_Plus,c(0$0$0$0$0$0$0$0)
 ##### _Direct_Prfと_Neutral_Offsetはobj_fixedpt_sgmdだけ実装(7/30)  
 # DRCTAL_Taste:  0:like neutral, 1(>0):long -1(<0):short
 # c(x1$x2$x3, ...) prefernce of posnum=1,2,3... is x1,x2,x3....)
