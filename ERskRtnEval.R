@@ -568,8 +568,8 @@ create_initial_exact_PutCall_polulation<-function(popnum,type,EvalFuncSetting,th
     
     posnum<-putn +calln
     tryCatch(
-      val<-obj_Income_sgmd(x,EvalFuncSetting,isDebug=isDebug,isDetail=isDetail,
-      #val<-obj_fixedpt_sgmd(x,EvalFuncSetting,isDebug=isDebug,isDetail=isDetail,
+      #val<-obj_Income_sgmd(x,EvalFuncSetting,isDebug=isDebug,isDetail=isDetail,
+      val<-obj_fixedpt_sgmd(x,EvalFuncSetting,isDebug=isDebug,isDetail=isDetail,
                            udlStepNum=EvalFuncSetting$UdlStepNum,udlStepPct=EvalFuncSetting$UdlStepPct,
                            maxposnum=EvalFuncSetting$Maxposnum,PosMultip=PosMultip,
                            tail_rate=EvalFuncSetting$Tail_rate,lossLimitPrice=EvalFuncSetting$LossLimitPrice,
