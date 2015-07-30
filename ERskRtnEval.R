@@ -170,18 +170,68 @@ obj_fixedpt_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   #weight is normalized
   theDelta<-thePositionGrk$Delta
   theDeltaEfct<-thePositionGrk$DeltaEffect
-  #DeltaE_comp<-(Delta<0)*(Delta<L1)*DeltaE+(Delta>0)*(Delta>L2)*DeltaE
+  
+  ###Delta_Thresh_Minus,Delta_Thresh_Plus
   DeltaEffect_Comp<-(theDelta<0)*(theDelta<Setting$Delta_Thresh_Minus)*theDeltaEfct+
     (theDelta>0)*(theDelta>Setting$Delta_Thresh_Plus)*theDeltaEfct
+  ### EOF Delta_Thresh_Minus,Delta_Thresh_Plus
   
   if(isDebug){
     cat(" :(Delta)",theDelta)
-    cat(" :(DeltaE)",theDeltaEfct," :(new DeltaE)",DeltaEffect_Comp)
+    cat(" :(DeltaE)",theDeltaEfct," :(Thresh DeltaE)",DeltaEffect_Comp)
   }
   
-  c6<- ((-1)*thePositionGrk$VegaEffect)-DeltaEffect_Comp
+  ##Delta_Neutral_Offset
+   expPriceChange<-thePositionGrk$UDLY*(exp(position$IVIDX[1]*Setting$HV_IV_Adjust_Ratio*sqrt(Setting$holdDays/252))-1)
+   Delta_revised_offset<-theDelta-Delta_Neutral_Offset
+   Delta_Effect_revised_offset<- (-abs(Delta_revised_offset))*expPriceChange
+  ## Only affected when theDelta does not fall between etting$Delta_Thresh_Minus and etting$Delta_Thresh_Plus
+   DeltaEffect_Comp<-(DeltaEffect_Comp!=0)*Delta_Effect_revised_offset+(DeltaEffect_Comp==0)*DeltaEffect_Comp
+   if(isDebug){
+     cat(" :(expctPrcChg)",expPriceChange,#" :double check(expctPrcChg)",theDeltaEfct/(-abs(theDelta)),
+         " :(Delta_offset)",Delta_revised_offset," :(DeltaE_offset)",
+         Delta_Effect_revised_offset," :(new DeltaE)",DeltaEffect_Comp)
+   }
+  
+  #same as Vega
+  theVega<-thePositionGrk$Vega
+  theVegaEfct<-thePositionGrk$VegaEffect
+  ###Delta_Thresh_Minus,Delta_Thresh_Plus
+  VegaEffect_Comp<-(theVega<0)*(theVega<Setting$Vega_Thresh_Minus)*theVegaEfct+
+    (theVega>0)*(theVega>Setting$Vega_Thresh_Plus)*theVegaEfct
+  ### EOF Delta_Thresh_Minus,Delta_Thresh_Plus
+  if(isDebug){
+    cat(" :(Vega)",theVega)
+    cat(" :(VegaE)",theVegaEfct," :(Thresh VegaE)",VegaEffect_Comp)
+  }
+  
+  ##Vega_Neutral_Offset same as Delta
+  expIVChange<-position$IVIDX[1]*(exp(annuual.daily.volatility(histIV$IVIDX)$daily*sqrt(Setting$holdDays))-1)*100
+  Vega_revised_offset<-theVega-Vega_Neutral_Offset
+  Vega_Effect_revised_offset<- (-abs(Vega_revised_offset))*expIVChange
+  ## Only affected when theDelta does not fall between etting$Delta_Thresh_Minus and etting$Delta_Thresh_Plus
+  VegaEffect_Comp<-(VegaEffect_Comp!=0)*Vega_Effect_revised_offset+(VegaEffect_Comp==0)*VegaEffect_Comp
+  if(isDebug){
+    cat(" :(expIVChange)",expIVChange,#" :double check(expIVChange)",theVegaEfct/(-abs(theVega)),
+        " :(Vega_offset)",Vega_revised_offset," :(VegaE_offset)",
+        Vega_Effect_revised_offset," :(new VegaE)",VegaEffect_Comp)
+  }
+  ###Vega_Direct_Prf,Delta_Direct_Prf
+  dlta_pref_coef<-(Delta_Direct_Prf==0)*(-1)+
+    (Delta_Direct_Prf>0)*(thePositionGrk$Delta>=0)+(Delta_Direct_Prf>0)*(thePositionGrk$Delta<0)*(-1)+
+    (Delta_Direct_Prf<0)*(thePositionGrk$Delta>=0)*(-1)+(Delta_Direct_Prf<0)*(thePositionGrk$Delta<0)
+  
+  vega_pref_coef<-(Vega_Direct_Prf==0)*(-1)+
+    (Vega_Direct_Prf>0)*(thePositionGrk$Vega>=0)+(Vega_Direct_Prf>0)*(thePositionGrk$Vega<0)*(-1)+
+    (Vega_Direct_Prf<0)*(thePositionGrk$Vega>=0)*(-1)+(Vega_Direct_Prf<0)*(thePositionGrk$Vega<0)
+  ### EOF Vega_Direct_Prf,Delta_Direct_Prf
+  
+  c6<- vega_pref_coef*VegaEffect_Comp+dlta_pref_coef*DeltaEffect_Comp
   #cost6<-sigmoid(c5,a=Setting$SigmoidA_AllEffect,b=0)
-  if(isDebug){cat(":VegaE",thePositionGrk$VegaEffect," :c6(DrctlEffect)",c6)}
+  if(isDebug){
+    cat(" (:vega_pref_coef",vega_pref_coef," x :VegaE_new",VegaEffect_Comp,
+        "+ :dlta_pref_coef",dlta_pref_coef," x :DeltaE_new",DeltaEffect_Comp," = :(DrctlEffect)c6 ",c6,")")
+    }
   
   ##
   # cost7 All Effects.
@@ -194,16 +244,16 @@ obj_fixedpt_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   # total cost is weighted sum of each cost.
   c3<-0
   A<-Setting$DrctlEffect_Coef*c6+Setting$AllEffect_Coef*c7
-  B<-Setting$AdvEffect_Coef*c5+Setting$Profit_Coef*c3
+  B<-(Setting$AdvEffect_Coef+Setting$Profit_Coef)*c5+Setting$Profit_Coef*c3
   
-  if(isDebug){cat(" :Coef_Drct",Setting$DrctlEffect_Coef,"x",c6,"+:Coef_AllE",Setting$AllEffect_Coef,"x",c7,"= Numr",A)}
-  if(isDebug){cat(" :Coef_Adv",Setting$AdvEffect_Coef,"x",c5,"+:Coef_Prft",Setting$Profit_Coef,"x",c3,"= Denom",B)}
+  if(isDebug){cat(" (:Coef_Drct",Setting$DrctlEffect_Coef,"x",c6,"+:Coef_AllE",Setting$AllEffect_Coef,"x",c7,"= Numr ",A,")")}
+  if(isDebug){cat(" (:Coef_Adv",Setting$AdvEffect_Coef+Setting$Profit_Coef,"x",c5,"+:Coef_Prft 0 x",c3,"= Denom",B,")")}
   
   sigA<-sigmoid(A,a=Setting$SigmoidA_Numerator,b=0)
   sigB<-sigmoid(B,a=Setting$SigmoidA_Denominator,b=0)
   #cost<-(sigA/(1-sigB))
   cost<-sigA/sigB
-  if(isDebug){cat(" :sigA",sigA,":sigB",sigB,":cost(sigA/sigB)",cost)}
+  if(isDebug){cat(" :a",Setting$SigmoidA_Numerator," :sigA",sigA," :a",Setting$SigmoidA_Denominator," :sigB",sigB," :cost(sigA/sigB)",cost)}
   #if(isDebug){cat(" :cost",cost," ")}
   
   ##
