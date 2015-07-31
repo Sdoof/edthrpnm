@@ -141,7 +141,7 @@ obj_fixedpt_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
                              tail_rate,lossLimitPrice,
                              Delta_Direct_Prf,Vega_Direct_Prf,
                              Delta_Neutral_Offset,Vega_Neutral_Offset){
-  #gradually change constraint
+  #returned when the spread is not appropriate
   unacceptableVal=10
   
   if(isDebug){
@@ -157,17 +157,16 @@ obj_fixedpt_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   
   #At day 0 position price and Greeks.
   thePositionGrk<-getPositionGreeks(position,multi=PosMultip,hdd=Setting$holdDays,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)
-  
   if(isDetail){print(thePositionGrk)}  
   
-  #weight is normalized
+  ##
+  # AdvEffect
   c5<- thePositionGrk$GammaEffect+thePositionGrk$ThetaEffect
-  #cost5<-sigmoid(c5,a=Setting$SigmoidA_AllEffect,b=0)
   if(isDebug){cat(" :c5(AdvEffect)",c5)}
   
   ##
-  # cost6 Directional Effects.
-  #weight is normalized
+  # Directional Effects.
+  ## Delta
   theDelta<-thePositionGrk$Delta
   theDeltaEfct<-thePositionGrk$DeltaEffect
   
@@ -175,6 +174,7 @@ obj_fixedpt_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
    expPriceChange<-thePositionGrk$UDLY*(exp(position$IVIDX[1]*Setting$HV_IV_Adjust_Ratio*sqrt(Setting$holdDays/252))-1)
    Delta_revised_offset<-theDelta-Delta_Neutral_Offset
    Delta_Effect_revised_offset<- (-abs(Delta_revised_offset))*expPriceChange
+   
    if(isDebug){
      cat(" :(expctPrcChg)",expPriceChange,#" :double check(expctPrcChg)",theDeltaEfct/(-abs(theDelta)),
          " :(DeltaE offset)",Delta_Effect_revised_offset," :(Delta offset)",Delta_revised_offset)
@@ -183,7 +183,6 @@ obj_fixedpt_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
    ###Delta_Thresh_Minus,Delta_Thresh_Plus
    DeltaEffect_Comp<-(Delta_revised_offset<0)*(Delta_revised_offset<Setting$Delta_Thresh_Minus[length(position$TYPE)])*Delta_Effect_revised_offset+
      (Delta_revised_offset>0)*(Delta_revised_offset>Setting$Delta_Thresh_Plus[length(position$TYPE)])*Delta_Effect_revised_offset
-   ### EOF Delta_Thresh_Minus,Delta_Thresh_Plus
    
    if(isDebug){
      cat(" :btwn (Delta_Thresh_Minus)",Setting$Delta_Thresh_Minus[length(position$TYPE)],
@@ -191,7 +190,7 @@ obj_fixedpt_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
      cat(" :(new DeltaE)",DeltaEffect_Comp)
    }
   
-  ## same as Vega
+  ## Vega
   theVega<-thePositionGrk$Vega
   theVegaEfct<-thePositionGrk$VegaEffect
   
@@ -199,6 +198,7 @@ obj_fixedpt_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   expIVChange<-position$IVIDX[1]*(exp(annuual.daily.volatility(histIV$IVIDX)$daily*sqrt(Setting$holdDays))-1)*100
   Vega_revised_offset<-theVega-Vega_Neutral_Offset
   Vega_Effect_revised_offset<- (-abs(Vega_revised_offset))*expIVChange
+  
   if(isDebug){
     cat(" :(expIVChange)",expIVChange,#" :double check(expIVChange)",theVegaEfct/(-abs(theVega)),
         " :(VegaE offset)",Vega_Effect_revised_offset," :(Vega offset)",Vega_revised_offset)
@@ -207,7 +207,7 @@ obj_fixedpt_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   ###Delta_Thresh_Minus,Delta_Thresh_Plus
   VegaEffect_Comp<-(Vega_revised_offset<0)*(Vega_revised_offset<Setting$Vega_Thresh_Minus[length(position$TYPE)])*Vega_Effect_revised_offset+
     (Vega_revised_offset>0)*(Vega_revised_offset>Setting$Vega_Thresh_Plus[length(position$TYPE)])*Vega_Effect_revised_offset
-  ### EOF Delta_Thresh_Minus,Delta_Thresh_Plus
+  
   if(isDebug){
     cat(" :btw (Vega_Thresh_Minus)",Setting$Vega_Thresh_Minus[length(position$TYPE)],
         " :and (Vega_Thresh_Plus)",Setting$Vega_Thresh_Plus[length(position$TYPE)])
@@ -222,26 +222,23 @@ obj_fixedpt_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   
   vega_pref_coef<-(Vega_Direct_Prf==0)*(-1)+
     (Vega_Direct_Prf>0)*(thePositionGrk$Vega>=0)+(Vega_Direct_Prf>0)*(thePositionGrk$Vega<0)*(-1)+
-    (Vega_Direct_Prf<0)*(thePositionGrk$Vega>=0)*(-1)+(Vega_Direct_Prf<0)*(thePositionGrk$Vega<0)
-  ### EOF Vega_Direct_Prf,Delta_Direct_Prf
+    (Vega_Direct_Prf<0)*(thePositionGrk$Vega>=0)*(-1)+(Vega_Direct_Prf<0)*(thePositionGrk$Vega<0)f
   
   c6<- vega_pref_coef*VegaEffect_Comp+dlta_pref_coef*DeltaEffect_Comp
-  #cost6<-sigmoid(c5,a=Setting$SigmoidA_AllEffect,b=0)
+  
   if(isDebug){
     cat(" (:vega_pref_coef",vega_pref_coef," x :VegaE_new",VegaEffect_Comp,
         "+ :dlta_pref_coef",dlta_pref_coef," x :DeltaE_new",DeltaEffect_Comp," = :(DrctlEffect)c6 ",c6,")")
     }
   
   ##
-  # cost7 All Effects.
-  #weight is normalized
+  # All Effects
   c7<- c5+c6
-  #cost7<-sigmoid(c5,a=Setting$SigmoidA_AllEffect,b=0)
   if(isDebug){cat(" :c7(AllEffect)",c7)}
   
   ##
   # total cost is weighted sum of each cost.
-  c3<-0
+  c3<-0 #Profit is not valid here.
   A<-Setting$DrctlEffect_Coef*c6+Setting$AllEffect_Coef*c7
   B<-(Setting$AdvEffect_Coef+Setting$Profit_Coef)*c5+Setting$Profit_Coef*c3
   
@@ -250,14 +247,13 @@ obj_fixedpt_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   
   sigA<-sigmoid(A,a=Setting$SigmoidA_Numerator,b=0)
   sigB<-sigmoid(B,a=Setting$SigmoidA_Denominator,b=0)
-  #cost<-(sigA/(1-sigB))
   cost<-sigA/sigB
+  
   if(isDebug){cat(" :a",Setting$SigmoidA_Numerator," :sigA",sigA," :a",Setting$SigmoidA_Denominator," :sigB",sigB," :cost(sigA/sigB)",cost)}
-  #if(isDebug){cat(" :cost",cost," ")}
   
   ##
   # total cost and penalty
-  val<-cost #*penalty2*penalty1*penalty3*penalty4
+  val<-cost
   
   if(isDebug){cat(" :val",val,"\n")}
   return(val)
