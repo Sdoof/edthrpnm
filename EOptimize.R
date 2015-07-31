@@ -81,6 +81,9 @@ Thresh_2=as.numeric(ConfigParameters["Optimize_Thresh_2",1])
 #Search Combined(2Cb,3Cb,etc) Spreads?
 Combined_Spread=ifelse(as.numeric(ConfigParameters["Optimize_Combined_Spread",1])==1,TRUE,FALSE)
 
+##
+# opchain,position,histIV,iniPos must exist as Global Variables.
+
 #Option Chain and Position Data. Here we use UDL_Positions_Pre
 rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep="")
 opchain<-read.table(rf,header=T,sep=",")
@@ -96,10 +99,8 @@ histIV %>% dplyr::transmute(Date=Date,IVIDX=Close/100) -> histIV
 histIV %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")<=max(as.Date(opchain$Date,format="%Y/%m/%d"))) %>%
   dplyr::arrange(desc(as.Date(Date,format="%Y/%m/%d"))) %>% head(n=dviv_caldays) -> histIV
 
-#Initial and evaluation vector
+## iniPos must exist as Global Varibles to get the 
 iniPos<-opchain$Position
-iniPos<-rep(0,length(iniPos))
-evaPos<-opchain$Position
 
 #Data Setup. Provisioning
 #Load Regression and Correlation Parameters

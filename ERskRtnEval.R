@@ -171,54 +171,51 @@ obj_fixedpt_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   theDelta<-thePositionGrk$Delta
   theDeltaEfct<-thePositionGrk$DeltaEffect
   
-  ###Delta_Thresh_Minus,Delta_Thresh_Plus
-  DeltaEffect_Comp<-(theDelta<0)*(theDelta<Setting$Delta_Thresh_Minus[length(position$TYPE)])*theDeltaEfct+
-    (theDelta>0)*(theDelta>Setting$Delta_Thresh_Plus[length(position$TYPE)])*theDeltaEfct
-  ### EOF Delta_Thresh_Minus,Delta_Thresh_Plus
-  
-  if(isDebug){
-    cat(" :(Delta)",theDelta," :(Delta_Thresh_Minus)",Setting$Delta_Thresh_Minus[length(position$TYPE)],
-        " :(Delta_Thresh_Plus)",Setting$Delta_Thresh_Plus[length(position$TYPE)])
-    cat(" :(DeltaE)",theDeltaEfct," :(Thresh DeltaE)",DeltaEffect_Comp)
-  }
-  
   ##Delta_Neutral_Offset
    expPriceChange<-thePositionGrk$UDLY*(exp(position$IVIDX[1]*Setting$HV_IV_Adjust_Ratio*sqrt(Setting$holdDays/252))-1)
    Delta_revised_offset<-theDelta-Delta_Neutral_Offset
    Delta_Effect_revised_offset<- (-abs(Delta_revised_offset))*expPriceChange
-  ## Only affected when theDelta does not fall between etting$Delta_Thresh_Minus and etting$Delta_Thresh_Plus
-   DeltaEffect_Comp<-(DeltaEffect_Comp!=0)*Delta_Effect_revised_offset+(DeltaEffect_Comp==0)*DeltaEffect_Comp
    if(isDebug){
      cat(" :(expctPrcChg)",expPriceChange,#" :double check(expctPrcChg)",theDeltaEfct/(-abs(theDelta)),
-         " :(Delta_offset)",Delta_revised_offset," :(DeltaE_offset)",
-         Delta_Effect_revised_offset," :(new DeltaE)",DeltaEffect_Comp)
+         " :(DeltaE offset)",Delta_Effect_revised_offset," :(Delta offset)",Delta_revised_offset)
+   }
+   
+   ###Delta_Thresh_Minus,Delta_Thresh_Plus
+   DeltaEffect_Comp<-(Delta_revised_offset<0)*(Delta_revised_offset<Setting$Delta_Thresh_Minus[length(position$TYPE)])*Delta_Effect_revised_offset+
+     (Delta_revised_offset>0)*(Delta_revised_offset>Setting$Delta_Thresh_Plus[length(position$TYPE)])*Delta_Effect_revised_offset
+   ### EOF Delta_Thresh_Minus,Delta_Thresh_Plus
+   
+   if(isDebug){
+     cat(" :btwn (Delta_Thresh_Minus)",Setting$Delta_Thresh_Minus[length(position$TYPE)],
+         " :and (Delta_Thresh_Plus)",Setting$Delta_Thresh_Plus[length(position$TYPE)])
+     cat(" :(new DeltaE)",DeltaEffect_Comp)
    }
   
-  #same as Vega
+  ## same as Vega
   theVega<-thePositionGrk$Vega
   theVegaEfct<-thePositionGrk$VegaEffect
-  ###Delta_Thresh_Minus,Delta_Thresh_Plus
-  VegaEffect_Comp<-(theVega<0)*(theVega<Setting$Vega_Thresh_Minus[length(position$TYPE)])*theVegaEfct+
-    (theVega>0)*(theVega>Setting$Vega_Thresh_Plus[length(position$TYPE)])*theVegaEfct
-  ### EOF Delta_Thresh_Minus,Delta_Thresh_Plus
-  if(isDebug){
-    cat(" :(Vega)",theVega," :(Vega_Thresh_Minus)",Setting$Vega_Thresh_Minus[length(position$TYPE)],
-        " :(Vega_Thresh_Plus)",Setting$Vega_Thresh_Plus[length(position$TYPE)])
-    cat(" :(VegaE)",theVegaEfct," :(Thresh VegaE)",VegaEffect_Comp)
-  }
   
-  ##Vega_Neutral_Offset same as Delta
+  ##Vega_Neutral_Offset
   expIVChange<-position$IVIDX[1]*(exp(annuual.daily.volatility(histIV$IVIDX)$daily*sqrt(Setting$holdDays))-1)*100
   Vega_revised_offset<-theVega-Vega_Neutral_Offset
   Vega_Effect_revised_offset<- (-abs(Vega_revised_offset))*expIVChange
-  ## Only affected when theDelta does not fall between etting$Delta_Thresh_Minus and etting$Delta_Thresh_Plus
-  VegaEffect_Comp<-(VegaEffect_Comp!=0)*Vega_Effect_revised_offset+(VegaEffect_Comp==0)*VegaEffect_Comp
   if(isDebug){
     cat(" :(expIVChange)",expIVChange,#" :double check(expIVChange)",theVegaEfct/(-abs(theVega)),
-        " :(Vega_offset)",Vega_revised_offset," :(VegaE_offset)",
-        Vega_Effect_revised_offset," :(new VegaE)",VegaEffect_Comp)
+        " :(VegaE offset)",Vega_Effect_revised_offset," :(Vega offset)",Vega_revised_offset)
   }
-  ###Vega_Direct_Prf,Delta_Direct_Prf
+  
+  ###Delta_Thresh_Minus,Delta_Thresh_Plus
+  VegaEffect_Comp<-(Vega_revised_offset<0)*(Vega_revised_offset<Setting$Vega_Thresh_Minus[length(position$TYPE)])*Vega_Effect_revised_offset+
+    (Vega_revised_offset>0)*(Vega_revised_offset>Setting$Vega_Thresh_Plus[length(position$TYPE)])*Vega_Effect_revised_offset
+  ### EOF Delta_Thresh_Minus,Delta_Thresh_Plus
+  if(isDebug){
+    cat(" :btw (Vega_Thresh_Minus)",Setting$Vega_Thresh_Minus[length(position$TYPE)],
+        " :and (Vega_Thresh_Plus)",Setting$Vega_Thresh_Plus[length(position$TYPE)])
+    cat(" :(new VegaE)",VegaEffect_Comp)
+  }
+  
+  ##
+  # Vega_Direct_Prf,Delta_Direct_Prf reflected as coef
   dlta_pref_coef<-(Delta_Direct_Prf==0)*(-1)+
     (Delta_Direct_Prf>0)*(thePositionGrk$Delta>=0)+(Delta_Direct_Prf>0)*(thePositionGrk$Delta<0)*(-1)+
     (Delta_Direct_Prf<0)*(thePositionGrk$Delta>=0)*(-1)+(Delta_Direct_Prf<0)*(thePositionGrk$Delta<0)
