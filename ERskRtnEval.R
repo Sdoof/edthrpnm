@@ -6,46 +6,38 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
                             tail_rate,lossLimitPrice,
                             Delta_Direct_Prf,Vega_Direct_Prf,
                             Delta_Neutral_Offset,Vega_Neutral_Offset){
-  #gradually change constraint
+  #returned when the spread is not appropriate
   unacceptableVal=10
+  
+  if(isDebug){
+    cat("\n :Delta_Direct_Prf",Delta_Direct_Prf)
+    cat(" :Vega_Direct_Prf",Vega_Direct_Prf)
+    cat(" :Delta_Neutral_Offset",Delta_Neutral_Offset," :Vega_Neutral_Offset",Vega_Neutral_Offset)
+    cat(" :holdDays",Setting$holdDays,"\n")
+  }
+  
   #position where pos$Position != 0
   position<-hollowNonZeroPosition(pos=x)
+  if(isDetail){print(position)}
   
   #position evaluated after holdDays later
   udlStepNum<-udlStepNum; udlStepPct<-udlStepPct
   udlChgPct<-seq(-udlStepPct*udlStepNum,udlStepPct*udlStepNum,length=(2*udlStepNum)+1)
   posEvalTbl<-createPositionEvalTable(position=position,udlStepNum=udlStepNum,udlStepPct=udlStepPct,multi=PosMultip,hdd=Setting$holdDays,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)
+  if(isDetail){print(posEvalTbl)}
+  if(isDetail){print(posEvalTbl$pos)}
   
   #At day 0 position price and Greeks.
   thePositionGrk<-getPositionGreeks(position,multi=PosMultip,hdd=Setting$holdDays,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)
-  if(isDetail){print(posEvalTbl$pos)}
-  if(isDetail){print(posEvalTbl)}  
-  
+  if(isDetail){cat("initail position\n");print(thePositionGrk)}
+    
   #weighting calculate
   sd_multp<-Setting$holdDays
   anlzd_sd<-histIV$IVIDX[1]*Setting$HV_IV_Adjust_Ratio
   sd_hd<-(anlzd_sd/sqrt(252/sd_multp))
-  #sd_hd<-exp(anlzd_sd*sqrt(sd_multp/252))-1 #exponential expression
+  #f.y.i sd_hd<-exp(anlzd_sd*sqrt(sd_multp/252))-1 #exponential expression
   weight<-dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd / sum(dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd)
-  
-  if(isDebug){
-    cat(" :Delta_Direct_Prf",Delta_Direct_Prf)
-    cat(" :Vega_Direct_Prf",Vega_Direct_Prf)
-    cat(" :Delta_Neutral_Offset",Delta_Neutral_Offset," :Vega_Neutral_Offset",Vega_Neutral_Offset)
-    cat(" :holdDays",Setting$holdDays);cat(" :weight",weight)
-  }
-  
-  ##
-  # Constraint 1. Position Total Num
-  #pos_change<-sum(as.numeric((round(x)-iniPos)!=0))
-  #penalty1<-(1+as.numeric((pos_change-maxposnum)>0)*(pos_change-maxposnum))^5
-  #penalty1<-1
-  #if(((1+as.numeric((pos_change-maxposnum)>0)*(pos_change-maxposnum))^5)>2){
-  #  if(isDebug){cat("pos num",pos_change,"\n")}
-  #   return(unacceptableVal)
-  #}
-  #if(isDebug){cat(x," ");cat(" :p1",penalty1)}
-  
+  if(isDetail){cat("weight",weight)}
   ##
   # Constraint 2. Tail Risk
   #   tailPrice<-min(sum(getIntrisicValue(position$UDLY[1]*(1-tail_rate),position)),
@@ -54,7 +46,6 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   #   if(isDebug){cat(" :tlpr",tailPrice);cat(" :lslmt",lossLimitPrice);cat(" :p2",penalty2)}
   #   if(tailPrice<lossLimitPrice)
   #     return(unacceptableVal)
-  penalty2<-1
   
   ##
   # Constraint 4. ThetaEffect. This should be soft constraint
@@ -68,41 +59,97 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   #   }
   
   ##
-  # cost3 Profit
-  if(isDetail){cat(" :price_hld",posEvalTbl$Price);cat(" :price_ini:",getPositionGreeks(position,multi=PosMultip,hdd=Setting$holdDays,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)$Price)}
-  if(isDetail){cat(" :prft",posEvalTbl$Price-getPositionGreeks(position,multi=PosMultip,hdd=Setting$holdDays,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)$Price)}
-  
+  # Profit
   profit_hdays<-sum((posEvalTbl$Price-thePositionGrk$Price)*weight)
-  if(isDebug){cat(" :prft_wt",profit_hdays)}  
-  #   penalty3<-1
+  if(isDetail){
+    cat(" :(prft)",posEvalTbl$Price -
+          getPositionGreeks(position,multi=PosMultip,hdd=Setting$holdDays,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)$Price)
+    cat(" :(prft_wght)",profit_hdays)
+  }
   c3<-profit_hdays
-  #cost3<- sigmoid(c3,a=Setting$SigmoidA_Profit,b=0)
-  #   if(isDebug){cat(" :c3(Profit)",c3)}
   
   ##
-  # cost5 Advantageous Effects.
-  #weight is normalized
+  # Advantageous Effects.
   c5<- sum((posEvalTbl$GammaEffect+posEvalTbl$ThetaEffect)*weight)
-  #cost5<-sigmoid(c5,a=Setting$SigmoidA_AllEffect,b=0)
-  if(isDebug){cat(" :c5(AdvEffect)",c5)}
+  if(isDebug){cat(" :c5(AdvEffect_wght)",c5)}
   
   ##
-  # cost6 Directional Effects.
-  #weight is normalized
-  theDelta<-sum(posEvalTbl$Delta*weight)
-  theDeltaEfct<-sum(posEvalTbl$DeltaEffect*weight)
-  #DeltaE_comp<-(Delta<0)*(Delta<L1)*DeltaE+(Delta>0)*(Delta>L2)*DeltaE
-  DeltaEffect_Comp<-(theDelta<0)*(theDelta<Setting$Delta_Thresh_Minus[length(position$TYPE)])*theDeltaEfct+
-    (theDelta>0)*(theDelta>Setting$Delta_Thresh_Plus[length(position$TYPE)])*theDeltaEfct
+  # Directional Effects.
+  ##Delta
+  #theDelta<-sum(posEvalTbl$Delta*weight)
+  #theDeltaEfct<-sum(posEvalTbl$DeltaEffect*weight)
   
+  ##Delta_Neutral_Offset
+  expPriceChange<-posEvalTbl$UDLY*(exp(posEvalTbl$IVIDX*Setting$HV_IV_Adjust_Ratio*sqrt(Setting$holdDays/252))-1)
+  Delta_revised_offset<-posEvalTbl$Delta-Delta_Neutral_Offset
+  Delta_Effect_revised_offset<- (-abs(Delta_revised_offset))*expPriceChange
   if(isDebug){
-    cat(" :(Delta)",theDelta)
-    cat(" :(DeltaE)",theDeltaEfct," :(new DeltaE)",DeltaEffect_Comp)
+    cat(" :(expPriceChange)",expPriceChange," :(Delta Offset)",Delta_revised_offset," :(DeltaE offset)",Delta_Effect_revised_offset)
+    
+  }
+  Delta_revised_offset<-sum(Delta_revised_offset*weight)
+  Delta_Effect_revised_offset<-sum(Delta_Effect_revised_offset*weight)
+  if(isDebug){
+    cat(" :(DeltaE_wght)",Delta_Effect_revised_offset," :(Delta_wght)",Delta_revised_offset)
   }
   
-  c6<- -sum(posEvalTbl$VegaEffect*weight)-DeltaEffect_Comp
-  #cost6<-sigmoid(c5,a=Setting$SigmoidA_AllEffect,b=0)
-  if(isDebug){cat(":VegaE",sum(posEvalTbl$VegaEffect*weight)," :c6(DrctlEffect)",c6)}
+  ###Delta_Thresh_Minus,Delta_Thresh_Plus
+  DeltaEffect_Comp<-(Delta_revised_offset<0)*(Delta_revised_offset<Setting$Delta_Thresh_Minus[length(position$TYPE)])*Delta_Effect_revised_offset+
+    (Delta_revised_offset>0)*(Delta_revised_offset>Setting$Delta_Thresh_Plus[length(position$TYPE)])*Delta_Effect_revised_offset
+  
+  if(isDebug){
+    cat(" :btwn (Delta_Thresh_Minus)",Setting$Delta_Thresh_Minus[length(position$TYPE)],
+        " :and (Delta_Thresh_Plus)",Setting$Delta_Thresh_Plus[length(position$TYPE)])
+    cat(" :(new DeltaE_wght)",DeltaEffect_Comp)
+  }
+  
+  ##Vega
+  
+  ##Delta
+  #theVega<-sum(posEvalTbl$Vega*weight)
+  #theVegaEfct<-sum(posEvalTbl$VegaEffect*weight)
+  
+  ##Delta_Neutral_Offset
+  expIVChange<-posEvalTbl$IVIDX*(exp(annuual.daily.volatility(histIV$IVIDX)$daily*sqrt(Setting$holdDays))-1)*100
+  Vega_revised_offset<-posEvalTbl$Vega-Vega_Neutral_Offset
+  Vega_Effect_revised_offset<- (-abs(Vega_revised_offset))*expIVChange
+  if(isDebug){
+    cat(" :(expIVChange)",expIVChange," :(Vega Offset)",Vega_revised_offset," :(VegaE offset)",Vega_Effect_revised_offset)
+    
+  }
+  Vega_revised_offset<-sum(Vega_revised_offset*weight)
+  Vega_Effect_revised_offset<-sum(Vega_Effect_revised_offset*weight)
+  
+  if(isDebug){
+    cat(" :(VegaE_Wght)",Vega_Effect_revised_offset," :(Vega_Wght)",Vega_revised_offset)
+  }
+  
+  ###Vega_Thresh_Minus,Vega_Thresh_Plus
+  VegaEffect_Comp<-(Vega_revised_offset<0)*(Vega_revised_offset<Setting$Vega_Thresh_Minus[length(position$TYPE)])*Vega_Effect_revised_offset+
+    (Vega_revised_offset>0)*(Vega_revised_offset>Setting$Vega_Thresh_Plus[length(position$TYPE)])*Vega_Effect_revised_offset
+ 
+   if(isDebug){
+    cat(" :btw (Vega_Thresh_Minus)",Setting$Vega_Thresh_Minus[length(position$TYPE)],
+        " :and (Vega_Thresh_Plus)",Setting$Vega_Thresh_Plus[length(position$TYPE)])
+    cat(" :(new VegaE_wght)",VegaEffect_Comp)
+   }
+  
+  ##
+  # Vega_Direct_Prf,Delta_Direct_Prf reflected as coef
+  dlta_pref_coef<-(Delta_Direct_Prf==0)*(-1)+
+    (Delta_Direct_Prf>0)*(Delta_revised_offset>=0)+(Delta_Direct_Prf>0)*(Delta_revised_offset<0)*(-1)+
+    (Delta_Direct_Prf<0)*(Delta_revised_offset>=0)*(-1)+(Delta_Direct_Prf<0)*(Delta_revised_offset<0)
+  
+  vega_pref_coef<-(Vega_Direct_Prf==0)*(-1)+
+    (Vega_Direct_Prf>0)*(Vega_revised_offset>=0)+(Vega_Direct_Prf>0)*(Vega_revised_offset<0)*(-1)+
+    (Vega_Direct_Prf<0)*(Vega_revised_offset>=0)*(-1)+(Vega_Direct_Prf<0)*(Vega_revised_offset<0)
+  
+  c6<- vega_pref_coef*VegaEffect_Comp+dlta_pref_coef*DeltaEffect_Comp
+  
+  if(isDebug){
+    cat(" (:vega_pref_coef",vega_pref_coef," x :VegaE_new",VegaEffect_Comp,
+        "+ :dlta_pref_coef",dlta_pref_coef," x :DeltaE_new",DeltaEffect_Comp," = :(DrctlEffect)c6 ",c6,")")
+  }
   
   ##
   # cost7 All Effects.
@@ -129,7 +176,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   
   ##
   # total cost and penalty
-  val<-cost #*penalty2*penalty1*penalty3*penalty4
+  val<-cost 
   
   if(isDebug){cat(" :val",val,"\n")}
   return(val)
@@ -216,13 +263,22 @@ obj_fixedpt_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   
   ##
   # Vega_Direct_Prf,Delta_Direct_Prf reflected as coef
+  
   dlta_pref_coef<-(Delta_Direct_Prf==0)*(-1)+
-    (Delta_Direct_Prf>0)*(thePositionGrk$Delta>=0)+(Delta_Direct_Prf>0)*(thePositionGrk$Delta<0)*(-1)+
-    (Delta_Direct_Prf<0)*(thePositionGrk$Delta>=0)*(-1)+(Delta_Direct_Prf<0)*(thePositionGrk$Delta<0)
+    (Delta_Direct_Prf>0)*(Delta_revised_offset>=0)+(Delta_Direct_Prf>0)*(Delta_revised_offset<0)*(-1)+
+    (Delta_Direct_Prf<0)*(Delta_revised_offset>=0)*(-1)+(Delta_Direct_Prf<0)*(Delta_revised_offset<0)
   
   vega_pref_coef<-(Vega_Direct_Prf==0)*(-1)+
-    (Vega_Direct_Prf>0)*(thePositionGrk$Vega>=0)+(Vega_Direct_Prf>0)*(thePositionGrk$Vega<0)*(-1)+
-    (Vega_Direct_Prf<0)*(thePositionGrk$Vega>=0)*(-1)+(Vega_Direct_Prf<0)*(thePositionGrk$Vega<0)f
+    (Vega_Direct_Prf>0)*(Vega_revised_offset>=0)+(Vega_Direct_Prf>0)*(Vega_revised_offset<0)*(-1)+
+    (Vega_Direct_Prf<0)*(Vega_revised_offset>=0)*(-1)+(Vega_Direct_Prf<0)*(Vega_revised_offset<0)
+#   
+#   dlta_pref_coef<-(Delta_Direct_Prf==0)*(-1)+
+#     (Delta_Direct_Prf>0)*(thePositionGrk$Delta>=0)+(Delta_Direct_Prf>0)*(thePositionGrk$Delta<0)*(-1)+
+#     (Delta_Direct_Prf<0)*(thePositionGrk$Delta>=0)*(-1)+(Delta_Direct_Prf<0)*(thePositionGrk$Delta<0)
+#   
+#   vega_pref_coef<-(Vega_Direct_Prf==0)*(-1)+
+#     (Vega_Direct_Prf>0)*(thePositionGrk$Vega>=0)+(Vega_Direct_Prf>0)*(thePositionGrk$Vega<0)*(-1)+
+#     (Vega_Direct_Prf<0)*(thePositionGrk$Vega>=0)*(-1)+(Vega_Direct_Prf<0)*(thePositionGrk$Vega<0)
   
   c6<- vega_pref_coef*VegaEffect_Comp+dlta_pref_coef*DeltaEffect_Comp
   
@@ -489,6 +545,9 @@ createPositionEvalTable<-function(position,udlStepNum,udlStepPct,multi,hdd,HV_IV
   #  Theta
   posEvalTbl %>% rowwise() %>% do(Theta=getPosGreeks(pos=.$pos$Position,greek=.$pos$Theta,multi=multi)) ->tmp
   unlist(tmp$Theta)->tmp ; posEvalTbl$Theta <- tmp ;rm(tmp)
+  # IVIDX
+  posEvalTbl %>% rowwise() %>% do(IVIDX=mean(.$pos$IVIDX)) ->tmp
+  unlist(tmp$IVIDX)->tmp ; posEvalTbl$IVIDX <- tmp ;rm(tmp)
   
   posEvalTbl
   
@@ -658,8 +717,8 @@ create_combined_population<-function(popnum,EvalFuncSetting,thresh,plelem,fname,
       next
     }
     #evaluate    
-    tryCatch(#val<-obj_Income_sgmd(x_new,EvalFuncSetting,isDebug=isDebug,isDetail=isDebug,
-      val<-obj_fixedpt_sgmd(x_new,EvalFuncSetting,isDebug=isDebug,isDetail=isDebug,
+    tryCatch(val<-obj_Income_sgmd(x_new,EvalFuncSetting,isDebug=isDebug,isDetail=isDebug,
+      #val<-obj_fixedpt_sgmd(x_new,EvalFuncSetting,isDebug=isDebug,isDetail=isDebug,
                             udlStepNum=EvalFuncSetting$UdlStepNum,udlStepPct=EvalFuncSetting$UdlStepPct,
                             maxposnum=EvalFuncSetting$Maxposnum,PosMultip=PosMultip,
                             tail_rate=EvalFuncSetting$Tail_rate,lossLimitPrice=EvalFuncSetting$LossLimitPrice,
