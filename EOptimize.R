@@ -86,7 +86,14 @@ Combined_Spread=ifelse(as.numeric(ConfigParameters["Optimize_Combined_Spread",1]
 
 #Option Chain and Position Data. Here we use UDL_Positions_Pre
 rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep="")
-opchain<-read.table(rf,header=T,sep=",")
+#型を厳密に指定して読み込む場合
+# headset <- read.table(rf,header=T,sep=",",stringsAsFactors=F,nrows=1)
+# classes <- sapply(headset, class)
+# classes[names(classes)]<-"numeric"
+# classes[names(classes) %in% c("Date","ExpDate","ContactName")] <- "character"
+# classes[names(classes) %in% c("TYPE","Strike","Position")] <- "integer"
+# opchain<-read.table(rf,header=T,sep=",",stringsAsFactors=F,colClasses=classes) ; rm(headset)
+opchain<-read.table(rf,header=T,sep=",",stringsAsFactors=F)
 
 #get position where opchain$Position!=0
 opchain %>% dplyr::filter(Position!=0) -> position

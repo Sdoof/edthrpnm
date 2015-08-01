@@ -48,7 +48,7 @@ evalPosEnd=as.numeric(ConfigParameters["SimEvalPosEnd",1])
 
 #Option Chain and Position Data. Here we use UDL_Positions_Pre ---------------
 rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep="")
-opchain<-read.table(rf,header=T,sep=",",stringsAsFactors=FALSE)
+opchain<-read.table(rf,header=T,sep=",")
 
 ##Historical Implied Volatility Data
 rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_IV.csv",sep="") 
@@ -61,8 +61,8 @@ histIV %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")<=max(as.Date(opchain$Da
 
 ##Spreads to be evaluated loaded
 rf<-paste(ResultFiles_Path_G,Underying_Symbol_G,"_EvalPosition.csv",sep="")
-evalPositions<-read.table(rf,header=F,sep=",")
-length(opchain$Position)
+evalPositions<-read.table(rf,header=F,sep=",",colClasses="numeric")
+
 if(length(evalPositions)>length(opchain$Position)){
   evalPositions %>% distinct() -> evalPositions 
 };rm(rf)
