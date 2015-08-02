@@ -84,7 +84,7 @@ na.omit(evalPositions) -> evalPositions
 rf<-paste(ResultFiles_Path_G,"EvalCnd-1.csv",sep="")
 tmppos<-read.table(rf,header=F,sep=",",colClasses="numeric") ;rm(rf)
 length(opchain$Position)
-tmppos %>% arrange(evalPositions[,(length(opchain$Position)+1)]) %>% distinct() -> tmppos
+tmppos %>% arrange(tmppos[,(length(opchain$Position)+1)]) %>% distinct() -> tmppos
 #NAを含む行を削除する
 na.omit(tmppos) -> tmppos
 
@@ -94,7 +94,7 @@ evalPositions %>% arrange(evalPositions[,(length(opchain$Position)+1)]) %>% dist
 rf<-paste(ResultFiles_Path_G,"EvalCnd-2.csv",sep="")
 tmppos<-read.table(rf,header=F,sep=",",colClasses="numeric") ;rm(rf)
 length(opchain$Position)
-tmppos %>% arrange(evalPositions[,(length(opchain$Position)+1)]) %>% distinct() -> tmppos
+tmppos %>% arrange(tmppos[,(length(opchain$Position)+1)]) %>% distinct() -> tmppos
 #NAを含む行を削除する
 na.omit(tmppos) -> tmppos
 
