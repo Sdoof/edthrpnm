@@ -13,6 +13,10 @@ ConfigParameters<-read.table(paste(DataFiles_Path_G,ConfigFileName_G,sep=""),
 #MAX ExpToDate for Skew Regression
 SkewRegressionTimeToExpDateMax<-2.2
 
+#We get regression only past this day. Currently reflected on Skew only.
+#should apply Vcone, etc.
+RegressionDateBackDaysMax<-10
+
 #Calendar
 CALENDAR_G=ConfigParameters["CALENDAR_G",1]
 
@@ -143,10 +147,10 @@ rm(i,atmiv.vcone.eachDF,atmiv.vcone.bind)
 #Complete Opchain. Using OOM options. By Call-Put parity, ITM IV is supposed to be the same as OOM IV.
 opch %>% dplyr::filter(OrigIV/ATMIV<5.0) %>% dplyr::filter(OrigIV/ATMIV>0.1) %>%
   dplyr::filter(HowfarOOM>=0) %>% dplyr::filter(TimeToExpDate>TimeToExp_Limit_Closeness_G) -> vplot
-
+#filter by TimeToExpDate
 vplot %>% dplyr::filter(TimeToExpDate<=SkewRegressionTimeToExpDateMax) -> vplot
-
-#vplot %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")>=as.Date("2015/7/1",format="%Y/%m/%d")) -> vplot
+#filter by recent data. Take only past RegressionDateBackDaysMax dats
+vplot %>% filter(as.Date(Date,format="%Y/%m/%d")>= max(as.Date(Date,format="%Y/%m/%d"))-RegressionDateBackDaysMax) -> vplot
 
 (ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV),size=TimeToExpDate/2,colour=Date))+geom_point(alpha=0.2))
 
@@ -166,7 +170,7 @@ rm(SkewModel)
 rm(models,vplot,predict.c)
 
 ##
-# Vcone Regression ------------------------
+# Vcone Regression
 
 #  Put Vcone IV is normalized 
 #Creating vcone.

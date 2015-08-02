@@ -100,7 +100,7 @@ opchain %>% dplyr::filter(Position!=0) -> position
 
 ##Historical Implied Volatility Data
 rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_IV.csv",sep="") 
-histIV<-read.table(rf,header=T,sep=",",nrows=1000);rm(rf)
+histIV<-read.table(rf,header=T,sep=",",stringsAsFactors=F,nrows=100);rm(rf)
 #filtering
 histIV %>% dplyr::transmute(Date=Date,IVIDX=Close/100) -> histIV
 histIV %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")<=max(as.Date(opchain$Date,format="%Y/%m/%d"))) %>%
