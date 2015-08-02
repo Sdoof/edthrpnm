@@ -19,49 +19,99 @@ ResultFiles_Path_G=ConfigParameters["ResultFiles_Path_G",1]
 #combine
 #edthrpnm
 if(length(grep("2", ConfigFileName_G))<1 && length(grep("3", ConfigFileName_G))<1 ){
-  st <- "powershell.exe -Command \" Get-ChildItem ..\\edthrpnm2\\ResultData\\EvalCnd.csv | cat >> .\\ResultData\\EvalCnd.csv \" "
+  st <- "powershell.exe -Command \" Get-ChildItem ..\\edthrpnm2\\ResultData\\EvalCnd.csv | cat >  .\\ResultData\\EvalCnd-.csv  -Encoding default \" "
   system(st) ;rm(st)
-  st <- "powershell.exe -Command \" Get-ChildItem ..\\edthrpnm3\\ResultData\\EvalCnd.csv | cat >> .\\ResultData\\EvalCnd.csv \" "
+  st <- paste("powershell.exe -Command \" Get-Content  .\\ResultData\\EvalCnd-.csv | Out-File -Filepath .\\ResultData\\EvalCnd-1.csv -Encoding default  \"")
+  
   system(st) ;rm(st)
-  st <- paste("powershell.exe -Command \" Get-Content  .\\ResultData\\EvalCnd.csv | Out-File -Filepath ",
-              paste(ResultFiles_Path_G,Underying_Symbol_G,"_EvalPosition.csv",sep="")," -Encoding default  \"")
+  st <- "powershell.exe -Command \" Get-ChildItem ..\\edthrpnm3\\ResultData\\EvalCnd.csv | cat > .\\ResultData\\EvalCnd-.csv  -Encoding default \" "
   system(st) ;rm(st)
+  st <- paste("powershell.exe -Command \" Get-Content  .\\ResultData\\EvalCnd-.csv | Out-File -Filepath .\\ResultData\\EvalCnd-2.csv -Encoding default  \"")
+  #st <- "powershell.exe -Command \" Get-ChildItem ..\\edthrpnm3\\ResultData\\EvalCnd.csv |  Out-File -Filepath  .\\ResultData\\EvalCnd--.csv \" "
+  system(st) ;rm(st)
+ 
+  theCand<-"EvalCnd.csv"
+  
 }
 #edthrpnm2
 if(length(grep("2", ConfigFileName_G))>=1) {
-  st <- "powershell.exe -Command \" Get-ChildItem ..\\edthrpnm\\ResultData\\EvalCnd2.csv | cat >> .\\ResultData\\EvalCnd2.csv \" "
+  
+  st <- "powershell.exe -Command \" Get-ChildItem ..\\edthrpnm\\ResultData\\EvalCnd2.csv | cat >  .\\ResultData\\EvalCnd-.csv  -Encoding default \" "
   system(st) ;rm(st)
-  st <- "powershell.exe -Command \" Get-ChildItem ..\\edthrpnm3\\ResultData\\EvalCnd2.csv | cat >> .\\ResultData\\EvalCnd2.csv \" "
+  st <- paste("powershell.exe -Command \" Get-Content  .\\ResultData\\EvalCnd-.csv | Out-File -Filepath .\\ResultData\\EvalCnd-1.csv -Encoding default  \"")
+  
   system(st) ;rm(st)
-  st <- paste("powershell.exe -Command \" Get-Content  .\\ResultData\\EvalCnd2.csv | Out-File -Filepath ",
-              paste(ResultFiles_Path_G,Underying_Symbol_G,"_EvalPosition.csv",sep="")," -Encoding default  \"")
+  st <- "powershell.exe -Command \" Get-ChildItem ..\\edthrpnm3\\ResultData\\EvalCnd2.csv | cat > .\\ResultData\\EvalCnd-.csv  -Encoding default \" "
   system(st) ;rm(st)
+  
+  st <- paste("powershell.exe -Command \" Get-Content  .\\ResultData\\EvalCnd-.csv | Out-File -Filepath .\\ResultData\\EvalCnd-2.csv -Encoding default  \"")
+  #st <- "powershell.exe -Command \" Get-ChildItem ..\\edthrpnm3\\ResultData\\EvalCnd.csv |  Out-File -Filepath  .\\ResultData\\EvalCnd--.csv \" "
+  system(st) ;rm(st)
+  
+  theCand<-"EvalCnd2.csv"
+
 }
 
 #edthrpnm3
 if(length(grep("3", ConfigFileName_G))>=1){
-  cat("aaa")
-  st <- "powershell.exe -Command \" Get-ChildItem ..\\edthrpnm\\ResultData\\EvalCnd3.csv | cat >> .\\ResultData\\EvalCnd3.csv \" "
+  
+  st <- "powershell.exe -Command \" Get-ChildItem ..\\edthrpnm\\ResultData\\EvalCnd3.csv | cat >  .\\ResultData\\EvalCnd-.csv  -Encoding default \" "
   system(st) ;rm(st)
-  st <- "powershell.exe -Command \" Get-ChildItem ..\\edthrpnm2\\ResultData\\EvalCnd3.csv | cat >> .\\ResultData\\EvalCnd3.csv \" "
+  st <- paste("powershell.exe -Command \" Get-Content  .\\ResultData\\EvalCnd-.csv | Out-File -Filepath .\\ResultData\\EvalCnd-1.csv -Encoding default  \"")
+  
   system(st) ;rm(st)
-  st <- paste("powershell.exe -Command \" Get-Content  .\\ResultData\\EvalCnd3.csv | Out-File -Filepath ",
-              paste(ResultFiles_Path_G,Underying_Symbol_G,"_EvalPosition.csv",sep="")," -Encoding default  \"")
+  st <- "powershell.exe -Command \" Get-ChildItem ..\\edthrpnm2\\ResultData\\EvalCnd3.csv | cat > .\\ResultData\\EvalCnd-.csv  -Encoding default \" "
   system(st) ;rm(st)
+  st <- paste("powershell.exe -Command \" Get-Content  .\\ResultData\\EvalCnd-.csv | Out-File -Filepath .\\ResultData\\EvalCnd-2.csv -Encoding default  \"")
+  #st <- "powershell.exe -Command \" Get-ChildItem ..\\edthrpnm3\\ResultData\\EvalCnd.csv |  Out-File -Filepath  .\\ResultData\\EvalCnd--.csv \" "
+  system(st) ;rm(st)
+  
+  theCand<-"EvalCnd3.csv"
 }
 
 #Option Chain 
 rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep="")
 opchain<-read.table(rf,header=T,sep=",",stringsAsFactors=FALSE)
 
-#EvalPosition
-rf<-paste(ResultFiles_Path_G,Underying_Symbol_G,"_EvalPosition.csv",sep="")
-evalPositions<-read.table(rf,header=F,sep=",") ;rm(rf)
+#join
+rf<-paste(ResultFiles_Path_G,theCand,sep="")
+evalPositions<-read.table(rf,header=F,sep=",",colClasses="numeric") ;rm(rf)
 length(opchain$Position)
-evalPositions %>% distinct() -> evalPositions
+evalPositions %>% arrange(evalPositions[,(length(opchain$Position)+1)]) %>% distinct() -> evalPositions
 #NAを含む行を削除する
 na.omit(evalPositions) -> evalPositions
+
+rf<-paste(ResultFiles_Path_G,"EvalCnd-1.csv",sep="")
+tmppos<-read.table(rf,header=F,sep=",",colClasses="numeric") ;rm(rf)
+length(opchain$Position)
+tmppos %>% arrange(evalPositions[,(length(opchain$Position)+1)]) %>% distinct() -> tmppos
+#NAを含む行を削除する
+na.omit(tmppos) -> tmppos
+
+evalPositions %>% full_join(tmppos) -> evalPositions
+evalPositions %>% arrange(evalPositions[,(length(opchain$Position)+1)]) %>% distinct() -> evalPositions
+
+rf<-paste(ResultFiles_Path_G,"EvalCnd-2.csv",sep="")
+tmppos<-read.table(rf,header=F,sep=",",colClasses="numeric") ;rm(rf)
+length(opchain$Position)
+tmppos %>% arrange(evalPositions[,(length(opchain$Position)+1)]) %>% distinct() -> tmppos
+#NAを含む行を削除する
+na.omit(tmppos) -> tmppos
+
+evalPositions %>% full_join(tmppos) -> evalPositions
+evalPositions %>% arrange(evalPositions[,(length(opchain$Position)+1)]) %>% distinct() -> evalPositions
+
+st <- "powershell.exe -Command \" Remove-Item .\\ResultData\\EvalCnd-.csv  \""
+system(st) ;rm(st)
+st <- "powershell.exe -Command \" Remove-Item .\\ResultData\\EvalCnd-1.csv  \""
+system(st) ;rm(st)
+st <- "powershell.exe -Command \" Remove-Item .\\ResultData\\EvalCnd-2.csv  \""
+system(st) ;rm(st)
+
+#EvalPosition
+
 write.table(evalPositions,paste(ResultFiles_Path_G,Underying_Symbol_G,"_EvalPosition.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
 
 rm(opchain,evalPositions)
 rm(ConfigFileName_G,DataFiles_Path_G,ConfigParameters,Underying_Symbol_G,ResultFiles_Path_G)
+
