@@ -1,6 +1,5 @@
 library(ggplot2)
 library(RQuantLib)
-library(plyr)
 library(dplyr)
 
 #Config File
@@ -14,18 +13,16 @@ ConfigParameters<-read.table(paste(DataFiles_Path_G,ConfigFileName_G,sep=""),
 Underying_Symbol_G=ConfigParameters["Underying_Symbol_G",1]
 ResultFiles_Path_G=ConfigParameters["ResultFiles_Path_G",1]
 
-#Evaluatin Table Position start
-evalPosStart=as.numeric(ConfigParameters["PlaybackPosStart",1])
+#Adjust Trading Target Spreads
+AdjustSpreads=eval(parse(text=gsub("\\$",",",ConfigParameters["PlaybackAdjustSpreads",1])))
 
-#Evaluatin Table Position end
-evalPosEnd=as.numeric(ConfigParameters["PlaybackPosEnd",1])
-
-#Delta Hedge (or Playback Adjust) target spread IDs
-SpreaIDs=c(1)
+#Delta Hedge target spread IDs
+DhSpreads=eval(parse(text=gsub("\\$",",",ConfigParameters["PlaybackDeltaHedgeSpreds",1])))
 
 #ScenarioMode
-ScenarioMode="_modelScenario_"
-#ScenarioMode,_adjustedScenario_
+ScenarioMode=ConfigParameters["PlaybackScenarioMode",1]
+#ScenarioMode="_modelScenario_"
+#ScenarioMode="_adjustedScenario_"
 
 exitDecision<-function(IniEvalScore,EvalScore){
   AllEffect<-EvalScore$DeltaEffect+EvalScore$VegaEffect+EvalScore$ThetaEffect+EvalScore$GammaEffect
@@ -106,7 +103,7 @@ exitDecision<-function(IniEvalScore,EvalScore){
 }
 
 PlaybackAdjust<-function(){
-  for(Counter in evalPosStart:evalPosEnd){
+  for(Counter in AdjustSpreads){
     #load modelStimRawlist and modelScenario.
     #modelStimRawlist and modelScenario correspond to the specific Spread
     fn<-paste(ResultFiles_Path_G,Underying_Symbol_G,"_modelStimRawlist_",Counter,sep="")
@@ -169,7 +166,7 @@ PlaybackAdjust<-function(){
 }
 
 DeltaHedge<-function(){
-  for(SpreadID in SpreadIDs){
+  for(SpreadID in DhSpreads){
     #load modelStimRawlist and modelScenario.
     #modelStimRawlist and modelScenario correspond to the specific Spread
     fn<-paste(ResultFiles_Path_G,Underying_Symbol_G,"_modelStimRawlist_",SpreadID,sep="")
@@ -183,53 +180,54 @@ DeltaHedge<-function(){
     ScenarioNum<-length(modelStimRawlist$stimrslt)
     for(scenario_idx in 1:ScenarioNum){
       start_t<-proc.time()
-      SimuNum<-length(modelStimRawlist$stimrslt[[scenario_idx]])
+      SimNum<-length(modelStimRawlist$stimrslt[[scenario_idx]])
       #process each simulation
-      for(sim_idx in 1:SimuNum){
+      for(sim_idx in 1:SimNum){
         theIniEvalScore<-modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$IniEvalScore
         ExitDay<-modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$AdjustDay
-        IniUDLY<-theIniEvalScore$UDLY
         
         ##
         # prepare data structure for the sim_idx'th simulation
         
         #Hedge score
-        DeltaHedgeScore=data.frame(Day=rep(0,times=ExitDay+1),Payoff=rep(0,times=ExitDay+1),
-                                   HedgedDelta=rep(0,times=ExitDay+1),Last_UDLY=rep(IniUDLY,times=ExitDay+1),)
-        Profit_new<-rep(0,times=ExitDay+1)
+        DeltaHedgeScore=data.frame(Day=rep(1:ExitDay),Payoff=rep(0,times=ExitDay),
+                                   HedgedDelta=rep(0,times=ExitDay))
+      
+        IniDeltaHedgeScore=data.frame(Day=0,Payoff=0,HedgedDelta=theIniEvalScore$Delta)
+        
         ##
         # process each day
         for(ith_day in 1:ExitDay){
           theEvalScore<-modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$EvalScore[[ith_day]]
-          #get Delta
-          theDelta<-theEvalScore$Delta
-          theProfit<-modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$Profit
+          lastEvalScore<-(ith_day>=2)*modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$EvalScore[[ith_day-1]]+
+            (ith_day==1)*theIniEvalScore
           
-          #the day's delta hedged payoff should be calculated.
-          newDeltaHedgedPayoff<-0
-          newDeltaHedged<-DeltaHedgeScore[ith_day,0]$HedgeDelta
-        
           #Delta Hedge causing trigger
-          if(theDelta<DeltThresh_Minus){
-          ##if(theDelta>DeltThresh_Plus && DeltaHedgeScore[ith_day,0]$HedgedDelta>0){
-            
-            newDeltaHedged<-(-1)*theDelta
-            
-            Profit_new[ith_day]<-theProfit+DeltaHedgeScore[ith_day,0]$Payoff
-            
-            #新しいDeltaEffectを計算するために、expPriceChangeを元のEvalScoreから逆算する
-            theExpPriceChange<-(-theEvalScore$DeltaEffect/abs(theEvalScore$Delta))
-            #new Delta and DeltaEffect updated.
-            theEvalScore$Delta<-newDelta<-theEvalScore$Delta+DeltaHedgeScore[ith_day,0]$HedgeDelta
-            theEvalScore$DeltaEffect<-(-abs(newDelta))*theExpPriceChange
-            
-            #theEvalScore$Price should be updated?
-          }
-          DeltaHedgeScore[ith_day,0]<-c(ith_day,theDeltaHedgedPayoff,newDeltaHedged,theEvalScore$UDLY)
+          DeltThresh_Minus<-0
           
+          if( theEvalScore$Delta<DeltThresh_Minus){
+            
+            DeltaHedgeScore[ith_day,]$HedgedDelta<-(-1)*theEvalScore$Delta
+            LastHedgedDelta<-(ith_day>=2)*DeltaHedgeScore[ith_day-1,]$HedgedDelta+(ith_day==1)*IniDeltaHedgeScore$HedgedDelta
+            LastUDLY<-lastEvalScore$UDLY
+            DeltaHedgeScore[ith_day,]$Payoff<-LastHedgedDelta*(theEvalScore$UDLY-lastEvalScore$UDLY)
+            
+            newDelta<-theEvalScore$Delta+DeltaHedgeScore[ith_day,]$HedgeDelta
+            if(theEvalScore$Delta!=0){
+              #新しいDeltaEffectを計算するために、expPriceChangeを元のEvalScoreから逆算する
+              theExpPriceChange<-(-theEvalScore$DeltaEffect/abs(theEvalScore$Delta))
+              #new Delta and DeltaEffect updated.
+              theEvalScore$DeltaEffect<-(-abs(newDelta))*theExpPriceChange
+              theEvalScore$Delta<-newDelta
+            }else{
+              theEvalScore$Delta<-newDelta
+            }
+            
+            theEvalScore$Price <- theEvalScore$Price+DeltaHedgeScore[ith_day,]$Payoff
+          }
           modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$EvalScore[[ith_day]]<-theEvalScore
         }
-        #modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$Profit <- Profit_new
+        modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$Profit <- modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$Profit + DeltaHedgeScore$Payoff
       }
       cat(" scenario ",scenario_idx, " time: ",(proc.time()-start_t)[3])
     }
@@ -266,8 +264,10 @@ DeltaHedge<-function(){
   }
 }
 
-PlaybackAdjust()
+#PlaybackAdjust()
+DeltaHedge()
 
 rm(ConfigFileName_G,ConfigParameters)
 rm(DataFiles_Path_G,ResultFiles_Path_G,Underying_Symbol_G,evalPosStart,evalPosEnd)
 rm(exitDecision,PlaybackAdjust)
+    `
