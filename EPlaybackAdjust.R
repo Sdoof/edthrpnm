@@ -13,6 +13,9 @@ ConfigParameters<-read.table(paste(DataFiles_Path_G,ConfigFileName_G,sep=""),
 Underying_Symbol_G=ConfigParameters["Underying_Symbol_G",1]
 ResultFiles_Path_G=ConfigParameters["ResultFiles_Path_G",1]
 
+#Multipler of Position
+PosMultip=as.numeric(ConfigParameters["PosMultip",1])
+
 #Adjust Trading Target Spreads
 AdjustSpreads=eval(parse(text=gsub("\\$",",",ConfigParameters["PlaybackAdjustSpreads",1])))
 
@@ -174,8 +177,6 @@ DeltaHedge<-function(){
     fn<-paste(ResultFiles_Path_G,Underying_Symbol_G,ScenarioMode,SpreadID,sep="")
     load(file=fn)
     
-    #Hedgetable=data.frame(payoff,delta,last_udly)
-    
     #process each scenario
     ScenarioNum<-length(modelStimRawlist$stimrslt)
     for(scenario_idx in 1:ScenarioNum){
@@ -185,6 +186,7 @@ DeltaHedge<-function(){
       for(sim_idx in 1:SimNum){
         theIniEvalScore<-modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$IniEvalScore
         ExitDay<-modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$AdjustDay
+          
         
         ##
         # prepare data structure for the sim_idx'th simulation
@@ -193,41 +195,44 @@ DeltaHedge<-function(){
         DeltaHedgeScore=data.frame(Day=rep(1:ExitDay),Payoff=rep(0,times=ExitDay),
                                    HedgedDelta=rep(0,times=ExitDay))
       
-        IniDeltaHedgeScore=data.frame(Day=0,Payoff=0,HedgedDelta=theIniEvalScore$Delta)
+        IniDeltaHedgeScore=data.frame(Day=0,Payoff=0,HedgedDelta=-theIniEvalScore$Delta)
+        
+        theProfit<-modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$Profit
+        newEvalScore<-vector("list",ExitDay)
         
         ##
         # process each day
         for(ith_day in 1:ExitDay){
           theEvalScore<-modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$EvalScore[[ith_day]]
-          lastEvalScore<-(ith_day>=2)*modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$EvalScore[[ith_day-1]]+
-            (ith_day==1)*theIniEvalScore
+          lastEvalScore<-(ith_day==1)*theIniEvalScore+(ith_day>=2)*modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$EvalScore[[
+            (ith_day>=2)*(ith_day-1)+(ith_day==1)*1]]
+          lastDeltaHedgeScoreRow<-(ith_day==1)*IniDeltaHedgeScore+(ith_day>=2)*DeltaHedgeScore[(ith_day>=2)*(ith_day-1)+(ith_day==1)*1,]
+          lastHedgedDelta<-lastDeltaHedgeScoreRow$HedgedDelta
+          
+          newEvalScore[[ith_day]]<-theEvalScore
           
           #Delta Hedge causing trigger
-          DeltThresh_Minus<-0
+          DeltaThresh_Minus<-0
           
-          if( theEvalScore$Delta<DeltThresh_Minus){
+          if(theEvalScore$Delta<DeltaThresh_Minus){
             
             DeltaHedgeScore[ith_day,]$HedgedDelta<-(-1)*theEvalScore$Delta
-            LastHedgedDelta<-(ith_day>=2)*DeltaHedgeScore[ith_day-1,]$HedgedDelta+(ith_day==1)*IniDeltaHedgeScore$HedgedDelta
-            LastUDLY<-lastEvalScore$UDLY
-            DeltaHedgeScore[ith_day,]$Payoff<-LastHedgedDelta*(theEvalScore$UDLY-lastEvalScore$UDLY)
+            DeltaHedgeScore[ith_day,]$Payoff<-lastHedgedDelta/100*(theEvalScore$UDLY-lastEvalScore$UDLY)*PosMultip
             
-            newDelta<-theEvalScore$Delta+DeltaHedgeScore[ith_day,]$HedgeDelta
+            newDelta<-theEvalScore$Delta+DeltaHedgeScore[ith_day,]$HedgedDelta
+            newEvalScore[[ith_day]]$Delta<-newDelta
             if(theEvalScore$Delta!=0){
               #新しいDeltaEffectを計算するために、expPriceChangeを元のEvalScoreから逆算する
               theExpPriceChange<-(-theEvalScore$DeltaEffect/abs(theEvalScore$Delta))
-              #new Delta and DeltaEffect updated.
-              theEvalScore$DeltaEffect<-(-abs(newDelta))*theExpPriceChange
-              theEvalScore$Delta<-newDelta
-            }else{
-              theEvalScore$Delta<-newDelta
+              #new Delta and DeltaEffect updatedd
+              newEvalScore[[ith_day]]$DeltaEffect<-(-abs(newDelta))*theExpPriceChange
             }
-            
-            theEvalScore$Price <- theEvalScore$Price+DeltaHedgeScore[ith_day,]$Payoff
-          }
-          modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$EvalScore[[ith_day]]<-theEvalScore
         }
-        modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$Profit <- modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$Profit + DeltaHedgeScore$Payoff
+        #theProfit, DeltaHedgeScore$Payoff,newEvalScore[[ith_day]]$Priceを用いての更新
+          newProfit<-theProfit+cumsum(DeltaHedgeScore$Payoff)
+          for(i in 1:ExitDay){
+            newEvalScore[[i]]$Price<-newProfit[i]+theIniEvalScore$Price
+          }
       }
       cat(" scenario ",scenario_idx, " time: ",(proc.time()-start_t)[3])
     }
