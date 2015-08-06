@@ -27,6 +27,108 @@ ScenarioMode=ConfigParameters["PlaybackScenarioMode",1]
 #ScenarioMode="_modelScenario_"
 #ScenarioMode="_adjustedScenario_"
 
+
+DeltaHedge<-function(){
+  for(SpreadID in DhSpreads){
+    #load modelStimRawlist and modelScenario.
+    #modelStimRawlist and modelScenario correspond to the specific Spread
+    fn<-paste(ResultFiles_Path_G,Underying_Symbol_G,"_modelStimRawlist_",SpreadID,sep="")
+    load(file=fn)
+    fn<-paste(ResultFiles_Path_G,Underying_Symbol_G,ScenarioMode,SpreadID,sep="")
+    load(file=fn)
+    
+    #process each scenario
+    ScenarioNum<-length(modelStimRawlist$stimrslt)
+    for(scenario_idx in 1:ScenarioNum){
+      start_t<-proc.time()
+      SimNum<-length(modelStimRawlist$stimrslt[[scenario_idx]])
+      #process each simulation
+      for(sim_idx in 1:SimNum){
+        theIniEvalScore<-modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$IniEvalScore
+        ExitDay<-modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$AdjustDay
+        ##
+        # prepare data structure for the sim_idx'th simulation
+        DeltaHedgeScore=data.frame(Day=rep(1:ExitDay),Payoff=rep(0,times=ExitDay),
+                                   HedgedDelta=rep(0,times=ExitDay))
+        IniDeltaHedgeScore=data.frame(Day=0,Payoff=0,HedgedDelta=-theIniEvalScore$Delta)
+        theProfit<-modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$Profit
+        newEvalScore<-vector("list",ExitDay)
+        ##
+        # process each day
+        for(ith_day in 1:ExitDay){
+          theEvalScore<-modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$EvalScore[[ith_day]]
+          lastEvalScore<-(ith_day==1)*theIniEvalScore+(ith_day>=2)*modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$EvalScore[[
+            (ith_day>=2)*(ith_day-1)+(ith_day==1)*1]]
+          lastDeltaHedgeScoreRow<-(ith_day==1)*IniDeltaHedgeScore+(ith_day>=2)*DeltaHedgeScore[(ith_day>=2)*(ith_day-1)+(ith_day==1)*1,]
+          lastHedgedDelta<-lastDeltaHedgeScoreRow$HedgedDelta
+          
+          newEvalScore[[ith_day]]<-theEvalScore
+          #Payoff by yesterday's headged delta
+          DeltaHedgeScore[ith_day,]$Payoff<-lastHedgedDelta/100*(theEvalScore$UDLY-lastEvalScore$UDLY)*PosMultip
+          
+          #On ExitDay, do not need to adjust and make new Hedge. Just exit the yesterday's headge.
+          if(ith_day==ExitDay)
+            break
+          
+          #Delta Hedge causing trigger
+          if(theEvalScore$Delta<0){
+            DeltaHedgeScore[ith_day,]$HedgedDelta<-(-1)*theEvalScore$Delta
+            newDelta<-theEvalScore$Delta+DeltaHedgeScore[ith_day,]$HedgedDelta
+            newEvalScore[[ith_day]]$Delta<-newDelta
+            if(theEvalScore$Delta!=0){
+              #新しいDeltaEffectを計算するために、expPriceChangeを元のEvalScoreから逆算する
+              theExpPriceChange<-(-theEvalScore$DeltaEffect/abs(theEvalScore$Delta))
+              #new Delta and DeltaEffect updatedd
+              newEvalScore[[ith_day]]$DeltaEffect<-(-abs(newDelta))*theExpPriceChange
+            }
+          } #END of ith_day
+        }
+        #新しいProfitとEvalScoreの計算と更新
+        newProfit<-theProfit+cumsum(DeltaHedgeScore$Payoff)
+        for(i in 1:ExitDay){ newEvalScore[[i]]$Price<-newProfit[i]+theIniEvalScore$Price }
+        #Update
+        modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$EvalScore<-newEvalScore
+        modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$Profit<-newProfit
+        
+      } #END of sim_idx
+      cat(" scenario ",scenario_idx, " time: ",(proc.time()-start_t)[3])
+    }
+    ##
+    # modefied modelStimRawlist$stimrslt is to be reflected
+    
+    #show the profit profiles before the reflection
+    modelScenario %>% select(min_profit,max_profit,mean_profit,median_profit,profit_sd) %>% print()
+    data.frame(min_profit=min(modelScenario$min_profit),max_profit=max(modelScenario$max_profit),
+               expected_profit=sum(modelScenario$weight*modelScenario$mean_profit)) %>% print()
+    
+    #reflection each-scenario-rowwise()
+    #first resdf
+    modelStimRawlist %>% rowwise() %>% do(resdf=getStimResultDataFrame(.$stimrslt,SimuNum)) -> tmp
+    modelScenario$resdf<-tmp$resdf ; rm(tmp)
+    #second profit profiles
+    modelScenario %>% rowwise() %>% do(min_profit=min(.$resdf$profit),max_profit=max(.$resdf$profit),
+                                       mean_profit=mean(.$resdf$profit),median_profit=median(.$resdf$profit),
+                                       profit_sd=sd(.$resdf$profit)) -> tmp
+    modelScenario$min_profit<-unlist(tmp$min_profit)
+    modelScenario$max_profit<-unlist(tmp$max_profit)
+    modelScenario$mean_profit<-unlist(tmp$mean_profit)
+    modelScenario$median_profit<-unlist(tmp$median_profit)
+    modelScenario$profit_sd<-unlist(tmp$profit_sd)
+    
+    #show the profit profiles after the reflection
+    #modelScenario %>% rowwise() %>% do(.$resdf %>% print()  )
+    modelScenario %>% select(min_profit,max_profit,mean_profit,median_profit,profit_sd) %>% print()
+    data.frame(min_profit=min(modelScenario$min_profit),max_profit=max(modelScenario$max_profit),
+               expected_profit=sum(modelScenario$weight*modelScenario$mean_profit)) %>% print()
+    
+    fn<-paste(ResultFiles_Path_G,Underying_Symbol_G,"_adjustedScenario_",SpreadID,sep="")
+    save(modelScenario,file=fn)
+  }
+}
+
+#PlaybackAdjust()
+DeltaHedge()
+
 exitDecision<-function(IniEvalScore,EvalScore){
   AllEffect<-EvalScore$DeltaEffect+EvalScore$VegaEffect+EvalScore$ThetaEffect+EvalScore$GammaEffect
   Profit<-EvalScore$Price-IniEvalScore$Price
@@ -112,11 +214,11 @@ PlaybackAdjust<-function(){
     fn<-paste(ResultFiles_Path_G,Underying_Symbol_G,"_modelStimRawlist_",Counter,sep="")
     load(file=fn)
     fn<-paste(ResultFiles_Path_G,Underying_Symbol_G,"_modelScenario_",Counter,sep="")
-    load(file=fn) 
+    load(file=fn)
+    
     #process each scenario
-    StimDays<-length(modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$EvalScore)
-    #process each day
-    for(ith_day in 1:StimDays){
+    ScenarioNum<-length(modelStimRawlist$stimrslt)
+    for(scenario_idx in 1:ScenarioNum){
       start_t<-proc.time()
       SimuNum<-length(modelStimRawlist$stimrslt[[scenario_idx]])
       #process each simulation
@@ -156,7 +258,7 @@ PlaybackAdjust<-function(){
     modelScenario$mean_profit<-unlist(tmp$mean_profit)
     modelScenario$median_profit<-unlist(tmp$median_profit)
     modelScenario$profit_sd<-unlist(tmp$profit_sd)
-  
+    
     #show the profit profiles after the reflection
     #modelScenario %>% rowwise() %>% do(.$resdf %>% print()  )
     modelScenario %>% select(min_profit,max_profit,mean_profit,median_profit,profit_sd) %>% print()
@@ -168,111 +270,8 @@ PlaybackAdjust<-function(){
   }
 }
 
-DeltaHedge<-function(){
-  for(SpreadID in DhSpreads){
-    #load modelStimRawlist and modelScenario.
-    #modelStimRawlist and modelScenario correspond to the specific Spread
-    fn<-paste(ResultFiles_Path_G,Underying_Symbol_G,"_modelStimRawlist_",SpreadID,sep="")
-    load(file=fn)
-    fn<-paste(ResultFiles_Path_G,Underying_Symbol_G,ScenarioMode,SpreadID,sep="")
-    load(file=fn)
-    
-    #process each scenario
-    ScenarioNum<-length(modelStimRawlist$stimrslt)
-    for(scenario_idx in 1:ScenarioNum){
-      start_t<-proc.time()
-      SimNum<-length(modelStimRawlist$stimrslt[[scenario_idx]])
-      #process each simulation
-      for(sim_idx in 1:SimNum){
-        theIniEvalScore<-modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$IniEvalScore
-        ExitDay<-modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$AdjustDay
-          
-        
-        ##
-        # prepare data structure for the sim_idx'th simulation
-        
-        #Hedge score
-        DeltaHedgeScore=data.frame(Day=rep(1:ExitDay),Payoff=rep(0,times=ExitDay),
-                                   HedgedDelta=rep(0,times=ExitDay))
-      
-        IniDeltaHedgeScore=data.frame(Day=0,Payoff=0,HedgedDelta=-theIniEvalScore$Delta)
-        
-        theProfit<-modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$Profit
-        newEvalScore<-vector("list",ExitDay)
-        
-        ##
-        # process each day
-        for(ith_day in 1:ExitDay){
-          theEvalScore<-modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$EvalScore[[ith_day]]
-          lastEvalScore<-(ith_day==1)*theIniEvalScore+(ith_day>=2)*modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$EvalScore[[
-            (ith_day>=2)*(ith_day-1)+(ith_day==1)*1]]
-          lastDeltaHedgeScoreRow<-(ith_day==1)*IniDeltaHedgeScore+(ith_day>=2)*DeltaHedgeScore[(ith_day>=2)*(ith_day-1)+(ith_day==1)*1,]
-          lastHedgedDelta<-lastDeltaHedgeScoreRow$HedgedDelta
-          
-          newEvalScore[[ith_day]]<-theEvalScore
-          
-          #Delta Hedge causing trigger
-          DeltaThresh_Minus<-0
-          
-          if(theEvalScore$Delta<DeltaThresh_Minus){
-            
-            DeltaHedgeScore[ith_day,]$HedgedDelta<-(-1)*theEvalScore$Delta
-            DeltaHedgeScore[ith_day,]$Payoff<-lastHedgedDelta/100*(theEvalScore$UDLY-lastEvalScore$UDLY)*PosMultip
-            
-            newDelta<-theEvalScore$Delta+DeltaHedgeScore[ith_day,]$HedgedDelta
-            newEvalScore[[ith_day]]$Delta<-newDelta
-            if(theEvalScore$Delta!=0){
-              #新しいDeltaEffectを計算するために、expPriceChangeを元のEvalScoreから逆算する
-              theExpPriceChange<-(-theEvalScore$DeltaEffect/abs(theEvalScore$Delta))
-              #new Delta and DeltaEffect updatedd
-              newEvalScore[[ith_day]]$DeltaEffect<-(-abs(newDelta))*theExpPriceChange
-            }
-        }
-        #theProfit, DeltaHedgeScore$Payoff,newEvalScore[[ith_day]]$Priceを用いての更新
-          newProfit<-theProfit+cumsum(DeltaHedgeScore$Payoff)
-          for(i in 1:ExitDay){
-            newEvalScore[[i]]$Price<-newProfit[i]+theIniEvalScore$Price
-          }
-      }
-      cat(" scenario ",scenario_idx, " time: ",(proc.time()-start_t)[3])
-    }
-    ##
-    # modefied modelStimRawlist$stimrslt is to be reflected
-    
-    #show the profit profiles before the reflection
-    modelScenario %>% select(min_profit,max_profit,mean_profit,median_profit,profit_sd) %>% print()
-    data.frame(min_profit=min(modelScenario$min_profit),max_profit=max(modelScenario$max_profit),
-               expected_profit=sum(modelScenario$weight*modelScenario$mean_profit)) %>% print()
-    
-    #reflection each-scenario-rowwise()
-    #first resdf
-    modelStimRawlist %>% rowwise() %>% do(resdf=getStimResultDataFrame(.$stimrslt,SimuNum)) -> tmp
-    modelScenario$resdf<-tmp$resdf ; rm(tmp)
-    #second profit profiles
-    modelScenario %>% rowwise() %>% do(min_profit=min(.$resdf$profit),max_profit=max(.$resdf$profit),
-                                       mean_profit=mean(.$resdf$profit),median_profit=median(.$resdf$profit),
-                                       profit_sd=sd(.$resdf$profit)) -> tmp
-    modelScenario$min_profit<-unlist(tmp$min_profit)
-    modelScenario$max_profit<-unlist(tmp$max_profit)
-    modelScenario$mean_profit<-unlist(tmp$mean_profit)
-    modelScenario$median_profit<-unlist(tmp$median_profit)
-    modelScenario$profit_sd<-unlist(tmp$profit_sd)
-    
-    #show the profit profiles after the reflection
-    #modelScenario %>% rowwise() %>% do(.$resdf %>% print()  )
-    modelScenario %>% select(min_profit,max_profit,mean_profit,median_profit,profit_sd) %>% print()
-    data.frame(min_profit=min(modelScenario$min_profit),max_profit=max(modelScenario$max_profit),
-               expected_profit=sum(modelScenario$weight*modelScenario$mean_profit)) %>% print()
-    
-    fn<-paste(ResultFiles_Path_G,Underying_Symbol_G,"_adjustedScenario_",SpreadID,sep="")
-    save(modelScenario,file=fn)
-  }
-}
-
 #PlaybackAdjust()
-DeltaHedge()
 
 rm(ConfigFileName_G,ConfigParameters)
 rm(DataFiles_Path_G,ResultFiles_Path_G,Underying_Symbol_G,evalPosStart,evalPosEnd)
 rm(exitDecision,PlaybackAdjust)
-    `
