@@ -24,5 +24,8 @@ histPrice <-read.xlsx(paste(DataFiles_Path_G,Underying_Symbol_G,".xlsx",sep=""),
                       colNames=T,detectDates=T,skipEmptyRows=T,rows=rep(1:200))
 histPrice$Date<-format(histPrice$Date,"%Y/%b/%d")
 
+Tradesheet<-read.xlsx(paste(DataFiles_Path_G,"TwsDde.xlsm",sep=""),sheet="Tickers",
+          colNames=F,detectDates=F,skipEmptyRows=T,rows=rep(1:100))
+
 rm(Underying_Symbol_G,ResultFiles_Path_G,ConfigParameters,ConfigFileName_G,DataFiles_Path_G)
-rm(histPrice)
+rm(histPrice,Tradesheet)

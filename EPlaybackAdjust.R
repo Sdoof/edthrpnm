@@ -89,10 +89,9 @@ DeltaHedge<-function(){
         #Update
         modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$EvalScore<-newEvalScore
         modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$Profit<-newProfit
-        
       } #END of sim_idx
       cat(" scenario ",scenario_idx, " time: ",(proc.time()-start_t)[3])
-    }
+    } #END of every Scenario
     ##
     # modefied modelStimRawlist$stimrslt is to be reflected
     
