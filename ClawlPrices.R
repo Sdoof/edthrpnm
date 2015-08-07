@@ -70,6 +70,13 @@ tbl_[[2]]["ExpDate"]<-expdate
 write.table(tbl_[[2]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
 tbl_[[3]]["ExpDate"]<-expdate
 write.table(tbl_[[3]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
+#2015/11/20
+tbl_<-readHTMLTable("http://finance.yahoo.com/q/op?s=^SPXPM&date=1447977600")
+expdate<-"2015/11/20"
+tbl_[[2]]["ExpDate"]<-expdate
+write.table(tbl_[[2]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
+tbl_[[3]]["ExpDate"]<-expdate
+write.table(tbl_[[3]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
 #2015/12/19
 tbl_<-readHTMLTable("http://finance.yahoo.com/q/op?s=^SPXPM&date=1450483200")
 expdate<-"2015/12/19"
@@ -92,136 +99,27 @@ write.table(tbl_[[2]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
 tbl_[[3]]["ExpDate"]<-expdate
 write.table(tbl_[[3]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
 
-#SPY
-#quart<-getQuote("SPY")
-#write.table(quart,wfilename_,quote=T,row.names=F,append=T,sep=",")
-#write("Strike,ContactName,Last,Bid,Ask,Change,%Change,Volume,OI,IV,ExpDate",wfilename_,append=T)
-#2015/06/19
-#tbl_<-readHTMLTable("http://finance.yahoo.com/q/op?s=SPY&date=1434672000")
-#expdate<-"2015/6/19"
-#tbl_[[2]]["ExpDate"]<-expdate
-#write.table(tbl_[[2]],wfilename_,row.names=F,append=T,sep=",")
-#tbl_[[3]]["ExpDate"]<-expdate
-#write.table(tbl_[[3]],wfilename_,row.names=F,append=T,sep=",")
-
-#EEM
-quart<-getQuote("EEM")
-write.table(quart,wfilename_,quote=T,row.names=F,col.names=F,append=T,sep=",")
-write("Strike,ContactName,Last,Bid,Ask,Change,%Change,Volume,OI,IV,ExpDate",wfilename_,append=T)
-#2015/08/21
-tbl_<-readHTMLTable("http://finance.yahoo.com/q/op?s=EEM&date=1440115200")
-expdate<-"2015/8/21"
-tbl_[[2]]["ExpDate"]<-expdate
-write.table(tbl_[[2]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
-tbl_[[3]]["ExpDate"]<-expdate
-write.table(tbl_[[3]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
-#2015/09/18
-tbl_<-readHTMLTable("http://finance.yahoo.com/q/op?s=EEM&date=1442534400")
-expdate<-"2015/9/18"
-tbl_[[2]]["ExpDate"]<-expdate
-write.table(tbl_[[2]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
-tbl_[[3]]["ExpDate"]<-expdate
-write.table(tbl_[[3]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
-#2015/12/18
-tbl_<-readHTMLTable("http://finance.yahoo.com/q/op?s=EEM&date=14503968000")
-expdate<-"2015/12/18"
-tbl_[[2]]["ExpDate"]<-expdate
-write.table(tbl_[[2]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
-tbl_[[3]]["ExpDate"]<-expdate
-write.table(tbl_[[3]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
-#2016/01/15
-tbl_<-readHTMLTable("http://finance.yahoo.com/q/op?s=EEM&date=1452816000")
-expdate<-"2016/1/15"
-tbl_[[2]]["ExpDate"]<-expdate
-write.table(tbl_[[2]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
-tbl_[[3]]["ExpDate"]<-expdate
-write.table(tbl_[[3]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
-#2016/03/18
-tbl_<-readHTMLTable("http://finance.yahoo.com/q/op?s=EEM&date=1458259200")
-expdate<-"2016/1/15"
-tbl_[[2]]["ExpDate"]<-expdate
-write.table(tbl_[[2]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
-tbl_[[3]]["ExpDate"]<-expdate
-write.table(tbl_[[3]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
-
-#VWO
-quart<-getQuote("VWO")
-write.table(quart,wfilename_,quote=T,row.names=F,col.names=F,append=T,sep=",")
-write("Strike,ContactName,Last,Bid,Ask,Change,%Change,Volume,OI,IV,ExpDate",wfilename_,append=T)
-#2015/09/18
-tbl_<-readHTMLTable("http://finance.yahoo.com/q/op?s=VWO&date=1442534400")
-expdate<-"2015/7/17"
-tbl_[[2]]["ExpDate"]<-expdate
-write.table(tbl_[[2]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
-tbl_[[3]]["ExpDate"]<-expdate
-write.table(tbl_[[3]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
-
-#GLD
-quart<-getQuote("GLD")
-write.table(quart,wfilename_,quote=T,row.names=F,col.names=F,append=T,sep=",")
-write("Strike,ContactName,Last,Bid,Ask,Change,%Change,Volume,OI,IV,ExpDate",wfilename_,append=T)
-#2015/8/21
-tbl_<-readHTMLTable("http://finance.yahoo.com/q/op?s=GLD&date=1440115200")
-expdate<-"2015/8/21"
-tbl_[[2]]["ExpDate"]<-expdate
-write.table(tbl_[[2]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
-tbl_[[3]]["ExpDate"]<-expdate
-write.table(tbl_[[3]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
-#2015/9/18
-tbl_<-readHTMLTable("http://finance.yahoo.com/q/op?s=GLD&date=1442534400")
-expdate<-"2015/9/18"
-tbl_[[2]]["ExpDate"]<-expdate
-write.table(tbl_[[2]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
-tbl_[[3]]["ExpDate"]<-expdate
-write.table(tbl_[[3]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
-#2015/12/18
-tbl_<-readHTMLTable("http://finance.yahoo.com/q/op?s=GLD&date=1450396800")
-expdate<-"2015/12/18"
-tbl_[[2]]["ExpDate"]<-expdate
-write.table(tbl_[[2]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
-tbl_[[3]]["ExpDate"]<-expdate
-write.table(tbl_[[3]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
-#2016/1/15
-tbl_<-readHTMLTable("http://finance.yahoo.com/q/op?s=GLD&date=1452816000")
-expdate<-"2015/12/18"
-tbl_[[2]]["ExpDate"]<-expdate
-write.table(tbl_[[2]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
-tbl_[[3]]["ExpDate"]<-expdate
-write.table(tbl_[[3]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
-#2016/3/18
-tbl_<-readHTMLTable("http://finance.yahoo.com/q/op?s=GLD&date=1458259200")
-expdate<-"2015/12/18"
-tbl_[[2]]["ExpDate"]<-expdate
-write.table(tbl_[[2]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
-tbl_[[3]]["ExpDate"]<-expdate
-write.table(tbl_[[3]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
-
-#SLV
-quart<-getQuote("SLV")
-write.table(quart,wfilename_,quote=T,row.names=F,col.names=F,append=T,sep=",")
-write("Strike,ContactName,Last,Bid,Ask,Change,%Change,Volume,OI,IV,ExpDate",wfilename_,append=T)
-
 #AUD/USD Future Option
 #2015 Sep
-write("Future,2015-09,Expr,2015-09,",wfilename_,append=T)
-tbl_<-readHTMLTable("http://www.cmegroup.com/trading/fx/g10/australian-dollar_quotes_globex_options.html?optionExpiration=U5#optionProductId=38&strikeRange=ALL")
-write.table(tbl_[[1]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
-write.table(tbl_[[2]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
+# write("Future,2015-09,Expr,2015-09,",wfilename_,append=T)
+# tbl_<-readHTMLTable("http://www.cmegroup.com/trading/fx/g10/australian-dollar_quotes_globex_options.html?optionExpiration=U5#optionProductId=38&strikeRange=ALL")
+# write.table(tbl_[[1]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
+# write.table(tbl_[[2]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
 #2015 Dec Dec
-write("Future,2015-12,Expr,2015-12,",wfilename_,append=T)
-tbl_<-readHTMLTable("http://www.cmegroup.com/trading/fx/g10/australian-dollar_quotes_globex_options.html?optionExpiration=Z5#strikeRange=ALL")
-write.table(tbl_[[1]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
-write.table(tbl_[[2]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
+# write("Future,2015-12,Expr,2015-12,",wfilename_,append=T)
+# tbl_<-readHTMLTable("http://www.cmegroup.com/trading/fx/g10/australian-dollar_quotes_globex_options.html?optionExpiration=Z5#strikeRange=ALL")
+# write.table(tbl_[[1]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
+# write.table(tbl_[[2]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
 
 #JPY/USD Future Option
 #2015 Sep
-write("Future,2015-09,Expr,2015-09,",wfilename_,append=T)
-tbl_<-readHTMLTable("http://www.cmegroup.com/trading/fx/g10/japanese-yen_quotes_globex_options.html?optionExpiration=U5#optionProductId=71&strikeRange=ALL")
-write.table(tbl_[[1]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
-write.table(tbl_[[2]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
+# write("Future,2015-09,Expr,2015-09,",wfilename_,append=T)
+# tbl_<-readHTMLTable("http://www.cmegroup.com/trading/fx/g10/japanese-yen_quotes_globex_options.html?optionExpiration=U5#optionProductId=71&strikeRange=ALL")
+# write.table(tbl_[[1]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
+# write.table(tbl_[[2]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
 #2015 Dec
-write("Future,2015-12,Expr,2015-12,",wfilename_,append=T)
-tbl_<-readHTMLTable("http://www.cmegroup.com/trading/fx/g10/japanese-yen_quotes_globex_options.html?optionExpiration=Z5#optionProductId=71&strikeRange=ALL")
-write.table(tbl_[[1]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
-write.table(tbl_[[2]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
+# write("Future,2015-12,Expr,2015-12,",wfilename_,append=T)
+# tbl_<-readHTMLTable("http://www.cmegroup.com/trading/fx/g10/japanese-yen_quotes_globex_options.html?optionExpiration=Z5#optionProductId=71&strikeRange=ALL")
+# write.table(tbl_[[1]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
+# write.table(tbl_[[2]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
 
