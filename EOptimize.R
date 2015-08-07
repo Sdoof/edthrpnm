@@ -68,6 +68,9 @@ EvalFuncSetting[[22]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_ThetaEffectPo
 names(EvalFuncSetting)<-EvFNames
 rm(EvFNames)
 
+#MuLtipler for creating initial populaitons
+Optimize_ml=as.numeric(ConfigParameters["Optimize_ml",1])
+
 #Parameters for Combinational Optimization
 InitialPopCreateLoopNum<-as.numeric(ConfigParameters["Optimize_InitialPopCreateLoopNum",1])
 InitialPopThresh=as.numeric(ConfigParameters["Optimize_InitialPopThresh",1])
@@ -140,76 +143,76 @@ CallIVChgDown
 for(tmp in 1:InitialPopCreateLoopNum){
   #check if Posnum vector includes value 8
   if(sum(EvalFuncSetting$Posnum==8)!=0){
-    create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=6,calln=2,ml=2,
+    create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=6,calln=2,ml=Optimize_ml,
                                             fname=paste(".\\ResultData\\inipop-08P6C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
                                             isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-    create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=5,calln=3,ml=2,
+    create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=5,calln=3,ml=Optimize_ml,
                                             fname=paste(".\\ResultData\\inipop-08P5C3-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
                                             isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-    create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=4,calln=4,ml=2,
+    create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=4,calln=4,ml=Optimize_ml,
                                             fname=paste(".\\ResultData\\inipop-08P4C4-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
                                             isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-    create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=3,calln=5,ml=2,
+    create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=3,calln=5,ml=Optimize_ml,
                                             fname=paste(".\\ResultData\\inipop-08P3C5-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
                                             isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-    create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=2,calln=6,ml=2,
+    create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=2,calln=6,ml=Optimize_ml,
                                             fname=paste(".\\ResultData\\inipop-08P2C6-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
                                             isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
   }
   if(sum(EvalFuncSetting$Posnum==7)!=0){
-    create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=5,calln=2,ml=2,
+    create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=5,calln=2,ml=Optimize_ml,
                                             fname=paste(".\\ResultData\\inipop-07P5C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
                                             isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-    create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=4,calln=3,ml=2,
+    create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=4,calln=3,ml=Optimize_ml,
                                             fname=paste(".\\ResultData\\inipop-07P4C3-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
                                             isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-    create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=3,calln=4,ml=2,
+    create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=3,calln=4,ml=Optimize_ml,
                                             fname=paste(".\\ResultData\\inipop-07P3C4-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
                                             isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-    create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=2,calln=5,ml=2,
+    create_initial_exact_PutCall_polulation(popnum=3000,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=2,calln=5,ml=Optimize_ml,
                                             fname=paste(".\\ResultData\\inipop-07P2C5-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
                                             isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
   }
   if(sum(EvalFuncSetting$Posnum==6)!=0){
-    create_initial_exact_PutCall_polulation(popnum=2000,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=4,calln=2,ml=2,
+    create_initial_exact_PutCall_polulation(popnum=2000,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=4,calln=2,ml=Optimize_ml,
                                             fname=paste(".\\ResultData\\inipop-06P4C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
                                             isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-    create_initial_exact_PutCall_polulation(popnum=2000,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=3,calln=3,ml=2,
+    create_initial_exact_PutCall_polulation(popnum=2000,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=3,calln=3,ml=Optimize_ml,
                                             fname=paste(".\\ResultData\\inipop-06P3C3-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
                                             isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-    create_initial_exact_PutCall_polulation(popnum=2000,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=2,calln=4,ml=2,
+    create_initial_exact_PutCall_polulation(popnum=2000,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=2,calln=4,ml=Optimize_ml,
                                             fname=paste(".\\ResultData\\inipop-06P2C4-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
                                             isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
   }
   if(sum(EvalFuncSetting$Posnum==5)!=0){
-    create_initial_exact_PutCall_polulation(popnum=1500,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=3,calln=2,ml=2,
+    create_initial_exact_PutCall_polulation(popnum=1500,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=3,calln=2,ml=Optimize_ml,
                                             fname=paste(".\\ResultData\\inipop-05P3C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
                                             isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-    create_initial_exact_PutCall_polulation(popnum=1500,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=2,calln=3,ml=2,
+    create_initial_exact_PutCall_polulation(popnum=1500,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=2,calln=3,ml=Optimize_ml,
                                             fname=paste(".\\ResultData\\inipop-05P2C3-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
                                             isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
   }
   if(sum(EvalFuncSetting$Posnum==4)!=0){
-    create_initial_exact_PutCall_polulation(popnum=300,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=4,calln=0,ml=2,
+    create_initial_exact_PutCall_polulation(popnum=300,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=4,calln=0,ml=Optimize_ml,
                                             fname=paste(".\\ResultData\\inipop-04P4C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
                                             isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-    create_initial_exact_PutCall_polulation(popnum=300,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=2,calln=2,ml=2,
+    create_initial_exact_PutCall_polulation(popnum=300,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=2,calln=2,ml=Optimize_ml,
                                             fname=paste(".\\ResultData\\inipop-04P2C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
                                             isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
   }
   if(sum(EvalFuncSetting$Posnum==3)!=0){
-    create_initial_exact_PutCall_polulation(popnum=150,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=3,calln=0,ml=2,
+    create_initial_exact_PutCall_polulation(popnum=150,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=3,calln=0,ml=Optimize_ml,
                                             fname=paste(".\\ResultData\\inipop-03P3C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
                                             isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-    create_initial_exact_PutCall_polulation(popnum=100,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=0,calln=3,ml=2,
+    create_initial_exact_PutCall_polulation(popnum=100,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=0,calln=3,ml=Optimize_ml,
                                             fname=paste(".\\ResultData\\inipop-03P0C3-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
                                             isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
   }
   if(sum(EvalFuncSetting$Posnum==2)!=0){
-    create_initial_exact_PutCall_polulation(popnum=20,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=2,calln=0,ml=2,
+    create_initial_exact_PutCall_polulation(popnum=20,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=2,calln=0,ml=Optimize_ml,
                                             fname=paste(".\\ResultData\\inipop-02P2C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
                                             isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-    create_initial_exact_PutCall_polulation(popnum=20,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=0,calln=2,ml=2,
+    create_initial_exact_PutCall_polulation(popnum=20,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=0,calln=2,ml=Optimize_ml,
                                             fname=paste(".\\ResultData\\inipop-02P0C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
                                             isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
   }
