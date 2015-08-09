@@ -48,6 +48,9 @@ DeltaHedge<-function(){
         ExitDay<-modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$AdjustDay
         ##
         # prepare data structure for the sim_idx'th simulation
+        # At the end of 'Day'  -> today's 'Payoff' -> new Delta hedged('HeadgedDelta')
+        #   at the end of the Day, the Day's p/l from yesterday is Payoff.
+        #   based on the last value of today's delta, adjust the hedge ratio and the result of the delta is HedgedDelta.
         DeltaHedgeScore=data.frame(Day=rep(1:ExitDay),Payoff=rep(0,times=ExitDay),
                                    HedgedDelta=rep(0,times=ExitDay))
         IniDeltaHedgeScore=data.frame(Day=0,Payoff=0,HedgedDelta=-theIniEvalScore$Delta)
@@ -65,33 +68,49 @@ DeltaHedge<-function(){
           newEvalScore[[ith_day]]<-theEvalScore
           #Payoff by yesterday's headged delta
           DeltaHedgeScore[ith_day,]$Payoff<-lastHedgedDelta/100*(theEvalScore$UDLY-lastEvalScore$UDLY)*PosMultip
+          #First assume the same delta hedged position held.
+          DeltaHedgeScore[ith_day,]$HedgedDelta<-lastHedgedDelta
           
           #On ExitDay, do not need to adjust and make new Hedge. Just exit the yesterday's headge.
-          if(ith_day==ExitDay)
+          if(ith_day==ExitDay){
+            DeltaHedgeScore[ith_day,]$HedgedDelta<-0
             break
+          }
           
-          #Delta Hedge causing trigger
-          if(theEvalScore$Delta<0){
-            DeltaHedgeScore[ith_day,]$HedgedDelta<-(-1)*theEvalScore$Delta
-            newDelta<-theEvalScore$Delta+DeltaHedgeScore[ith_day,]$HedgedDelta
-            newEvalScore[[ith_day]]$Delta<-newDelta
-            if(theEvalScore$Delta!=0){
-              #新しいDeltaEffectを計算するために、expPriceChangeを元のEvalScoreから逆算する
-              theExpPriceChange<-(-theEvalScore$DeltaEffect/abs(theEvalScore$Delta))
-              #new Delta and DeltaEffect updatedd
-              newEvalScore[[ith_day]]$DeltaEffect<-(-abs(newDelta))*theExpPriceChange
-            }
-          } #END of ith_day
-        }
+          #Delta Hedage performed only the Entry day.
+          DeltaHedagedEntrydayOnly<-FALSE
+          if(DeltaHedagedEntrydayOnly)
+            next
+          
+          #Adjust Delta Hedge causing condition
+          DeltaHedgeThresh_Max=0
+          DeltaHedgeThresh_Min=(-80)
+          if(theEvalScore$Delta>DeltaHedgeThresh_Max)
+            next
+          if(theEvalScore$Delta<DeltaHedgeThresh_Min)
+            next
+          
+          #Adjust hedge ratio and new Delta is calculated
+          DeltaHedgeScore[ith_day,]$HedgedDelta<-(-1)*theEvalScore$Delta
+          newDelta<-theEvalScore$Delta+DeltaHedgeScore[ith_day,]$HedgedDelta
+          newEvalScore[[ith_day]]$Delta<-newDelta
+          if(theEvalScore$Delta!=0){
+            #新しいDeltaEffectを計算するために、expPriceChangeを元のEvalScoreから逆算する
+            theExpPriceChange<-(-theEvalScore$DeltaEffect/abs(theEvalScore$Delta))
+            #new Delta and DeltaEffect updatedd
+            newEvalScore[[ith_day]]$DeltaEffect<-(-abs(newDelta))*theExpPriceChange
+          }
+        }#Exit day
+        
         #新しいProfitとEvalScoreの計算と更新
         newProfit<-theProfit+cumsum(DeltaHedgeScore$Payoff)
         for(i in 1:ExitDay){ newEvalScore[[i]]$Price<-newProfit[i]+theIniEvalScore$Price }
         #Update
         modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$EvalScore<-newEvalScore
         modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$Profit<-newProfit
-      } #END of sim_idx
+      } #EOF SimNum
       cat(" scenario ",scenario_idx, " time: ",(proc.time()-start_t)[3])
-    } #END of every Scenario
+    } #EOF every Scenario
     ##
     # modefied modelStimRawlist$stimrslt is to be reflected
     
@@ -122,10 +141,8 @@ DeltaHedge<-function(){
     
     fn<-paste(ResultFiles_Path_G,Underying_Symbol_G,"_adjustedScenario_",SpreadID,sep="")
     save(modelScenario,file=fn)
-  }
+  } #EOF every Spread
 }
-
-#PlaybackAdjust()
 DeltaHedge()
 
 exitDecision<-function(IniEvalScore,EvalScore){
