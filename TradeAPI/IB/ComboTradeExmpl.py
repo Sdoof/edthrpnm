@@ -5,22 +5,39 @@ from ib.ext.ComboLeg import ComboLeg
 from ib.opt import Connection
 from time import sleep
 
-#-- globals  ------------------------------------------------------------------
+# -- globals  ------------------------------------------------------------------
 nextOrderId = -1
 
-#-- message handlers  ---------------------------------------------------------
-def watcher(msg):
+
+# -- message handlers  ---------------------------------------------------------
+def MessageHandler(msg):
     print msg
+
+
+def ErrorHandler(msg):
+    print(str(msg))
+
 
 def NextValidIdHandler(msg):
     global nextOrderId
+    print(str(msg))
     nextOrderId = msg.orderId
+
 
 def ContractDetailsHandler(msg):
     global contractDetails
+    print(str(msg))
     contractDetails = msg.contractDetails
 
-#-- functions  -----------------------------------------------------------------
+
+def OrderStatusHandler(msg):
+    # print msg
+    # print "Status: ", msg.typeName, msg
+    print("<%s:%s:%s:%s:%s:%s:%s>" % (
+        msg.orderId, msg.typeName, msg.status, msg.whyHeld, msg.avgFillPrice, msg.filled, msg.remaining))
+
+
+# -- functions  -----------------------------------------------------------------
 
 def makeOptContract(sym, exp, strike, right):
     newOptContract = Contract()
@@ -34,6 +51,7 @@ def makeOptContract(sym, exp, strike, right):
     newOptContract.m_currency = "USD"
     return newOptContract
 
+
 def makeComboLeg(conId, action):
     newComboLeg = ComboLeg()
     newComboLeg.m_conId = conId
@@ -45,6 +63,7 @@ def makeComboLeg(conId, action):
     newComboLeg.m_designatedLocation = ""
     return newComboLeg
 
+
 def makeBagContract(legs):
     newBagContract = Contract()
     newBagContract.m_symbol = "USD"
@@ -53,6 +72,7 @@ def makeBagContract(legs):
     newBagContract.m_currency = "USD"
     newBagContract.m_comboLegs = legs
     return newBagContract
+
 
 def makeOrder(action, qty, price):
     newOrder = Order()
@@ -66,60 +86,83 @@ def makeOrder(action, qty, price):
     newOrder.m_transmit = False
     return newOrder
 
-#-- main  ---------------------------------------------------------------------
+
+# -- main  ---------------------------------------------------------------------
 
 if __name__ == '__main__':
     con = Connection.create(port=7496, clientId=678)
-    con.registerAll(watcher)
+    # con.registerAll(MessageHandler)
+    con.register(ErrorHandler, 'Error')
     con.register(NextValidIdHandler, 'NextValidId')
     con.register(ContractDetailsHandler, 'ContractDetails')
+    con.register(OrderStatusHandler, 'OrderStatus')
     con.connect()
     con.setServerLogLevel(5)
 
+    # get mext Order Id
+    raw_input('wait for nextOrderId')
+    con.reqIds(1)
+
     # define the contract for each leg
     # first short Leg
-    shortLeg = makeOptContract("IBM", "201509", 155, "C")
+    # shortLeg = makeOptContract("IBM", "201509", 155, "C")
+    Leg = [makeOptContract("IBM", "201509", 155, "C")]
     # get the contract ID for each leg
-    print "order id" + str(nextOrderId)
-    con.reqContractDetails(nextOrderId,shortLeg)
+
+    theOrderId = nextOrderId
+    con.reqContractDetails(theOrderId, Leg[0])
+    print('ContactDetals requested ' + str(theOrderId))
     contractDetails = ContractDetails()
     # wait for TWS message to come back to message handler
-    sleep(2)
-    shortLegContract = contractDetails.m_summary
-    print shortLegContract.m_conId
-    shortLeg.m_conId = shortLegContract.m_conId
+    raw_input('wait for contractDetail')
+    LegContract = [contractDetails.m_summary]
+    print("=> [{0} ({1})] Call/Put: {2} Strike: {3} Expiration: {4}".format(
+        LegContract[0].m_localSymbol, LegContract[0].m_conId,
+        LegContract[0].m_right, LegContract[0].m_strike, LegContract[0].m_expiry))
+    Leg[0].m_conId = LegContract[0].m_conId
+    raw_input('press any to continue conId: ' + str(Leg[0].m_conId))
 
     # second long leg
-    longLeg = makeOptContract("IBM", "201510", 155, "C")
-    print "order id" + str(nextOrderId)
-    con.reqContractDetails(nextOrderId,longLeg)
+    Leg.append(makeOptContract("IBM", "201510", 155, "C"))
+    nextOrderId = nextOrderId + 1
+    theOrderId = nextOrderId
+    con.reqContractDetails(theOrderId, Leg[1])
+    print('ContactDetals requested ' + str(theOrderId))
     contractDetails = ContractDetails()
     # wait for TWS message to come back to message handler
-    sleep(2)
-    longLegContract = contractDetails.m_summary
-    print longLegContract.m_conId
-    longLegContract.m_conId = longLegContract.m_conId
-
-    print shortLegContract.m_conId
-    print longLegContract.m_conId
-
-    shortConId = shortLegContract.m_conId
-    longConId = longLegContract.m_conId
+    raw_input('wait for contractDetail')
+    LegContract.append(contractDetails.m_summary)
+    print("=> [{0} ({1})] Call/Put: {2} Strike: {3} Expiration: {4}".format(
+        LegContract[1].m_localSymbol, LegContract[1].m_conId,
+        LegContract[1].m_right, LegContract[1].m_strike, LegContract[1].m_expiry))
+    Leg[1].m_conId = LegContract[1].m_conId
+    raw_input('press any to continue (conId: ' + str(Leg[1].m_conId))
 
     # instantiate each leg
-    shortLeg = makeComboLeg(shortConId, "SELL")
-    longLeg = makeComboLeg(longConId, "BUY")
-
+    LegsList = [makeComboLeg(Leg[0].m_conId, "SELL")]
+    LegsList.append(makeComboLeg(Leg[1].m_conId, "BUY"))
     # build a bag with these legs
-    BagContract = makeBagContract([shortLeg, longLeg])
-
+    BagContract = makeBagContract(LegsList)
     # build order to buy 1 spread at $1.66
-    comboOrder = makeOrder(action="BUY", qty=1,price=0.2)
+    comboOrder = makeOrder(action="BUY", qty=1, price=0.2)
 
     # place order
-    con.placeOrder(nextOrderId, BagContract, comboOrder)
+    nextOrderId = nextOrderId + 1
+    theOrderId = nextOrderId
+    con.placeOrder(theOrderId, BagContract, comboOrder)
+    print('bag contract order placed ' + str(theOrderId))
 
+    # request Order Status
+    con.reqOpenOrders()
+
+    # opchain info
+    #opchainContract = makeOptContract(sym='MSFT', exp='', strike='', right='')
+    #nextOrderId = nextOrderId + 1
+    #theOrderId = nextOrderId
+    #con.reqContractDetails(theOrderId, opchainContract)
+    #print('ContractDetails for Option Chain requested ' + str(theOrderId))
+
+    # Receive the new OrderId sequence from the IB Server
+    con.reqIds(1)
     # watch the messages for a bit
-    sleep(20)
-
-
+    sleep(10)
