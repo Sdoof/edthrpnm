@@ -1,20 +1,18 @@
 # coding: utf-8
 from ib.ext.Order import Order
 from ib.ext.Contract import Contract
-from ib.ext.ContractDetails import ContractDetails
 from ib.ext.ComboLeg import ComboLeg
 from ib.opt import Connection
 from time import sleep
 
 # -- globals  ------------------------------------------------------------------
 port_G=7496
-clientId_G=679
+clientId_G=678
 
 nextOrderId = -1
-contractDetails = None
+contractDetail = None
 contractRestoreList = None
 orderIdMktReqContractDict = None
-
 
 # -- message handlers  ---------------------------------------------------------
 def MessageHandler(msg):
@@ -29,9 +27,9 @@ def NextValidIdHandler(msg):
     nextOrderId = msg.orderId
 
 def ContractDetailsHandler(msg):
-    global contractDetails
+    global contractDetail
     print(str(msg))
-    contractDetails = msg.contractDetails
+    contractDetail = msg.contractDetails
 
 def MultiContractDetailsHandler(msg):
     global contractRestoreList
@@ -46,8 +44,6 @@ def MultiContractDetailsHandler(msg):
         contractRestoreList = [theContract]
 
 def OrderStatusHandler(msg):
-    # print msg
-    # print "Status: ", msg.typeName, msg
     print('<%s:%s:%s:%s:%s:%s:%s>' % (
         msg.orderId, msg.typeName, msg.status, msg.whyHeld, msg.avgFillPrice, msg.filled, msg.remaining))
 
@@ -121,43 +117,73 @@ if __name__ == '__main__':
     con.reqIds(1)
 
     # define the contract for each leg
-    # first short Leg
-    # shortLeg = makeOptContract("IBM", "201509", 155, "C")
+
+    # first  Leg
     Leg = [makeOptContract("IBM", "201509", 155, "C")]
     # get the contract ID for each leg
-
     theOrderId = nextOrderId
     con.reqContractDetails(theOrderId, Leg[0])
     print('ContactDetals requested ' + str(theOrderId))
-    contractDetails = ContractDetails()
     # wait for TWS message to come back to message handler
     raw_input('wait for contractDetail')
-    LegContract = [contractDetails.m_summary]
+    LegContract = [contractDetail.m_summary]
     print("=> [{0} ({1})] Call/Put: {2} Strike: {3} Expiration: {4}".format(
         LegContract[0].m_localSymbol, LegContract[0].m_conId,
         LegContract[0].m_right, LegContract[0].m_strike, LegContract[0].m_expiry))
     Leg[0].m_conId = LegContract[0].m_conId
     raw_input('press any to continue conId: ' + str(Leg[0].m_conId))
 
-    # second long leg
+    # second leg
     Leg.append(makeOptContract("IBM", "201510", 155, "C"))
     nextOrderId = nextOrderId + 1
     theOrderId = nextOrderId
     con.reqContractDetails(theOrderId, Leg[1])
     print('ContactDetals requested ' + str(theOrderId))
-    contractDetails = ContractDetails()
     # wait for TWS message to come back to message handler
     raw_input('wait for contractDetail')
-    LegContract.append(contractDetails.m_summary)
+    LegContract.append(contractDetail.m_summary)
     print("=> [{0} ({1})] Call/Put: {2} Strike: {3} Expiration: {4}".format(
         LegContract[1].m_localSymbol, LegContract[1].m_conId,
         LegContract[1].m_right, LegContract[1].m_strike, LegContract[1].m_expiry))
     Leg[1].m_conId = LegContract[1].m_conId
     raw_input('press any to continue (conId: ' + str(Leg[1].m_conId))
 
+    # third leg
+    Leg.append(makeOptContract("IBM", "201510", 150, "P"))
+    nextOrderId = nextOrderId + 1
+    theOrderId = nextOrderId
+    con.reqContractDetails(theOrderId, Leg[2])
+    print('ContactDetals requested ' + str(theOrderId))
+    # wait for TWS message to come back to message handler
+    raw_input('wait for contractDetail')
+    LegContract.append(contractDetail.m_summary)
+    print("=> [{0} ({1})] Call/Put: {2} Strike: {3} Expiration: {4}".format(
+        LegContract[2].m_localSymbol, LegContract[2].m_conId,
+        LegContract[2].m_right, LegContract[2].m_strike, LegContract[2].m_expiry))
+    Leg[2].m_conId = LegContract[2].m_conId
+    raw_input('press any to continue (conId: ' + str(Leg[2].m_conId))
+
+    # fourth leg
+    Leg.append(makeOptContract("IBM", "201509", 150, "P"))
+    nextOrderId = nextOrderId + 1
+    theOrderId = nextOrderId
+    con.reqContractDetails(theOrderId, Leg[3])
+    print('ContactDetals requested ' + str(theOrderId))
+    # wait for TWS message to come back to message handler
+    raw_input('wait for contractDetail')
+    LegContract.append(contractDetail.m_summary)
+    print("=> [{0} ({1})] Call/Put: {2} Strike: {3} Expiration: {4}".format(
+        LegContract[3].m_localSymbol, LegContract[3].m_conId,
+        LegContract[3].m_right, LegContract[3].m_strike, LegContract[3].m_expiry))
+    Leg[3].m_conId = LegContract[3].m_conId
+    raw_input('press any to continue (conId: ' + str(Leg[3].m_conId))
+
     # instantiate each leg
     LegsList = [makeComboLeg(Leg[0].m_conId, "SELL")]
     LegsList.append(makeComboLeg(Leg[1].m_conId, "BUY"))
+    LegsList.append(makeComboLeg(Leg[2].m_conId, "SELL"))
+    LegsList.append(makeComboLeg(Leg[3].m_conId, "BUY"))
+
     # build a bag with these legs
     BagContract = makeBagContract(LegsList)
     # build order to buy 1 spread at $1.66
@@ -176,14 +202,16 @@ if __name__ == '__main__':
     raw_input('getting data retrieval press any to continue')
     con.unregister(ContractDetailsHandler, 'ContractDetails')
     con.register(MultiContractDetailsHandler, 'ContractDetails')
-    # option contract list
+
+    # contract list
     # opchainContract = makeOptContract(sym='SPX', exp='201509', strike='', right='')
+
     # just one contract
     opchainContract = makeOptContract(sym='SPX', exp='20150917', strike='2000', right='P')
     nextOrderId = nextOrderId + 1
     theOrderId = nextOrderId
     con.reqContractDetails(theOrderId, opchainContract)
-    raw_input('wait for contractDetails')
+    raw_input('wait for contractDetail')
     print('first conId %s' % (contractRestoreList[0].m_conId))
 
     # Request Data
@@ -193,13 +221,11 @@ if __name__ == '__main__':
     theOrderId = nextOrderId
     # In the case of snapshot, no need to store orderId to the Dict?
     # con.reqMktData(tickerId=theOrderId,contract=contractRestoreList[0],genericTickList='',snapshot=True)
-
     # market data streaming
     con.reqMktData(tickerId=theOrderId, contract=contractRestoreList[0], genericTickList='', snapshot=False)
     # orderIdMktReqContractDict = dict([(theOrderId,contractRestoreList[0])])
     orderIdMktReqContractDict = {theOrderId: contractRestoreList[0]}
-    print('orderIdMktReqContractDict[theOrderId %s] = conId %s' % (theOrderId, orderIdMktReqContractDict[theOrderId].m_conId))
-    raw_input('wait for mktData press any to continue')
+    print('reqMktData[theOrderId %s] = conId %s' % (theOrderId, orderIdMktReqContractDict[theOrderId].m_conId))
 
     # Cancel First Data
     raw_input('cancel first mktData %s press any to continue' % (orderIdMktReqContractDict.keys()[0]))
@@ -211,4 +237,4 @@ if __name__ == '__main__':
 
     #disconnect
     con.disconnect()
-    sleep(5)
+    sleep(3)
