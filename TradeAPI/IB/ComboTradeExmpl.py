@@ -66,10 +66,10 @@ def makeOptContract(sym, exp, strike, right):
     return newOptContract
 
 
-def makeComboLeg(conId, action):
+def makeComboLeg(conId, action,ratio):
     newComboLeg = ComboLeg()
     newComboLeg.m_conId = conId
-    newComboLeg.m_ratio = 1
+    newComboLeg.m_ratio = ratio
     newComboLeg.m_action = action
     newComboLeg.m_exchange = "SMART"
     newComboLeg.m_openClose = 0
@@ -101,8 +101,22 @@ def makeOrder(action, qty, price):
     return newOrder
 
 # -- main  ---------------------------------------------------------------------
+Leg =  [makeOptContract("IBM", "201509", 155, "C"),makeOptContract("IBM", "201510", 155, "C"),
+        makeOptContract("IBM", "201510", 150, "P"),makeOptContract("IBM", "201509", 150, "P")]
+BuySell = ["SELL","BUY","SELL","BUY"]
+ComboRatio = [1,2,2,1]
+LimitPrice_G = 0.2
+QTY_G = 1
+LegContract = None
 
 if __name__ == '__main__':
+    for legitem in range(len(Leg)):
+        print("=> %s %s x [%s] %s Call/Put: %s Strike: %s Expiration: %s" %
+              (BuySell[legitem],ComboRatio[legitem],Leg[legitem].m_secType,Leg[legitem].m_symbol,
+               Leg[legitem].m_right, Leg[legitem].m_strike,Leg[legitem].m_expiry))
+    raw_input('combe leg info correct?')
+
+    #Server Access
     con = Connection.create(port=port_G, clientId=clientId_G)
     # con.registerAll(MessageHandler)
     con.register(ErrorHandler, 'Error')
@@ -118,76 +132,35 @@ if __name__ == '__main__':
 
     # define the contract for each leg
 
-    # first  Leg
-    Leg = [makeOptContract("IBM", "201509", 155, "C")]
-    # get the contract ID for each leg
-    theOrderId = nextOrderId
-    con.reqContractDetails(theOrderId, Leg[0])
-    print('ContactDetals requested ' + str(theOrderId))
-    # wait for TWS message to come back to message handler
-    raw_input('wait for contractDetail')
-    LegContract = [contractDetail.m_summary]
-    print("=> [{0} ({1})] Call/Put: {2} Strike: {3} Expiration: {4}".format(
-        LegContract[0].m_localSymbol, LegContract[0].m_conId,
-        LegContract[0].m_right, LegContract[0].m_strike, LegContract[0].m_expiry))
-    Leg[0].m_conId = LegContract[0].m_conId
-    raw_input('press any to continue conId: ' + str(Leg[0].m_conId))
+    for legitem in range(len(Leg)):
+        theOrderId = nextOrderId
+        con.reqContractDetails(theOrderId, Leg[legitem])
+        print('ContactDetal requested ' + str(theOrderId))
+        # wait for TWS message to come back to message handler
+        raw_input('wait for contractDetail')
+        if LegContract:
+            LegContract.append(contractDetail.m_summary)
+        else:
+            LegContract = [contractDetail.m_summary]
+        print("=> [{0} ({1})] Call/Put: {2} Strike: {3} Expiration: {4}".format(
+            LegContract[legitem].m_localSymbol, LegContract[legitem].m_conId,
+            LegContract[legitem].m_right, LegContract[legitem].m_strike, LegContract[legitem].m_expiry))
+        Leg[legitem].m_conId = LegContract[legitem].m_conId
+        raw_input('press any to continue conId: ' + str(Leg[legitem].m_conId))
 
-    # second leg
-    Leg.append(makeOptContract("IBM", "201510", 155, "C"))
-    nextOrderId = nextOrderId + 1
-    theOrderId = nextOrderId
-    con.reqContractDetails(theOrderId, Leg[1])
-    print('ContactDetals requested ' + str(theOrderId))
-    # wait for TWS message to come back to message handler
-    raw_input('wait for contractDetail')
-    LegContract.append(contractDetail.m_summary)
-    print("=> [{0} ({1})] Call/Put: {2} Strike: {3} Expiration: {4}".format(
-        LegContract[1].m_localSymbol, LegContract[1].m_conId,
-        LegContract[1].m_right, LegContract[1].m_strike, LegContract[1].m_expiry))
-    Leg[1].m_conId = LegContract[1].m_conId
-    raw_input('press any to continue (conId: ' + str(Leg[1].m_conId))
-
-    # third leg
-    Leg.append(makeOptContract("IBM", "201510", 150, "P"))
-    nextOrderId = nextOrderId + 1
-    theOrderId = nextOrderId
-    con.reqContractDetails(theOrderId, Leg[2])
-    print('ContactDetals requested ' + str(theOrderId))
-    # wait for TWS message to come back to message handler
-    raw_input('wait for contractDetail')
-    LegContract.append(contractDetail.m_summary)
-    print("=> [{0} ({1})] Call/Put: {2} Strike: {3} Expiration: {4}".format(
-        LegContract[2].m_localSymbol, LegContract[2].m_conId,
-        LegContract[2].m_right, LegContract[2].m_strike, LegContract[2].m_expiry))
-    Leg[2].m_conId = LegContract[2].m_conId
-    raw_input('press any to continue (conId: ' + str(Leg[2].m_conId))
-
-    # fourth leg
-    Leg.append(makeOptContract("IBM", "201509", 150, "P"))
-    nextOrderId = nextOrderId + 1
-    theOrderId = nextOrderId
-    con.reqContractDetails(theOrderId, Leg[3])
-    print('ContactDetals requested ' + str(theOrderId))
-    # wait for TWS message to come back to message handler
-    raw_input('wait for contractDetail')
-    LegContract.append(contractDetail.m_summary)
-    print("=> [{0} ({1})] Call/Put: {2} Strike: {3} Expiration: {4}".format(
-        LegContract[3].m_localSymbol, LegContract[3].m_conId,
-        LegContract[3].m_right, LegContract[3].m_strike, LegContract[3].m_expiry))
-    Leg[3].m_conId = LegContract[3].m_conId
-    raw_input('press any to continue (conId: ' + str(Leg[3].m_conId))
+    raw_input('now instantiate each leg press to continue')
 
     # instantiate each leg
-    LegsList = [makeComboLeg(Leg[0].m_conId, "SELL")]
-    LegsList.append(makeComboLeg(Leg[1].m_conId, "BUY"))
-    LegsList.append(makeComboLeg(Leg[2].m_conId, "SELL"))
-    LegsList.append(makeComboLeg(Leg[3].m_conId, "BUY"))
-
+    LegsList = None
+    for legitem in range(len(Leg)):
+        if LegsList:
+            LegsList.append(makeComboLeg(Leg[legitem].m_conId, BuySell[legitem],ComboRatio[legitem]))
+        else:
+            LegsList = [makeComboLeg(Leg[legitem].m_conId, BuySell[legitem],ComboRatio[legitem])]
     # build a bag with these legs
     BagContract = makeBagContract(LegsList)
-    # build order to buy 1 spread at $1.66
-    comboOrder = makeOrder(action="BUY", qty=1, price=0.2)
+    # combination legs
+    comboOrder = makeOrder(action="BUY", qty=QTY_G, price=LimitPrice_G)
 
     # place order
     nextOrderId = nextOrderId + 1
