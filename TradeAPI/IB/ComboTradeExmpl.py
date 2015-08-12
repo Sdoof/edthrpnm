@@ -1,3 +1,4 @@
+# coding: utf-8
 from ib.ext.Order import Order
 from ib.ext.Contract import Contract
 from ib.ext.ContractDetails import ContractDetails
@@ -6,36 +7,53 @@ from ib.opt import Connection
 from time import sleep
 
 # -- globals  ------------------------------------------------------------------
+port_G=7496
+clientId_G=679
+
 nextOrderId = -1
+contractDetails = None
+contractRestoreList = None
+orderIdMktReqContractDict = None
 
 
 # -- message handlers  ---------------------------------------------------------
 def MessageHandler(msg):
     print msg
 
-
 def ErrorHandler(msg):
     print(str(msg))
-
 
 def NextValidIdHandler(msg):
     global nextOrderId
     print(str(msg))
     nextOrderId = msg.orderId
 
-
 def ContractDetailsHandler(msg):
     global contractDetails
     print(str(msg))
     contractDetails = msg.contractDetails
 
+def MultiContractDetailsHandler(msg):
+    global contractRestoreList
+    theContractdetail = msg.contractDetails
+    theContract = theContractdetail.m_summary
+    print('<MultiContracts reqid %s conId %s: %s: %s: %s: %s: %s: %s>' % (
+        msg.reqId, theContract.m_conId, theContract.m_localSymbol, theContract.m_right,
+        theContract.m_strike, theContract.m_expiry, theContract.m_exchange, theContract.m_symbol))
+    if contractRestoreList:
+        contractRestoreList.append(theContract)
+    else:
+        contractRestoreList = [theContract]
 
 def OrderStatusHandler(msg):
     # print msg
     # print "Status: ", msg.typeName, msg
-    print("<%s:%s:%s:%s:%s:%s:%s>" % (
+    print('<%s:%s:%s:%s:%s:%s:%s>' % (
         msg.orderId, msg.typeName, msg.status, msg.whyHeld, msg.avgFillPrice, msg.filled, msg.remaining))
 
+def TickPriceHandler(msg):
+    #field: 1 = bid 2 = ask 4 = last 6 = high 7 = low 9 = close
+    print(str(msg))
 
 # -- functions  -----------------------------------------------------------------
 
@@ -86,11 +104,10 @@ def makeOrder(action, qty, price):
     newOrder.m_transmit = False
     return newOrder
 
-
 # -- main  ---------------------------------------------------------------------
 
 if __name__ == '__main__':
-    con = Connection.create(port=7496, clientId=678)
+    con = Connection.create(port=port_G, clientId=clientId_G)
     # con.registerAll(MessageHandler)
     con.register(ErrorHandler, 'Error')
     con.register(NextValidIdHandler, 'NextValidId')
@@ -155,14 +172,43 @@ if __name__ == '__main__':
     # request Order Status
     con.reqOpenOrders()
 
-    # opchain info
-    #opchainContract = makeOptContract(sym='MSFT', exp='', strike='', right='')
-    #nextOrderId = nextOrderId + 1
-    #theOrderId = nextOrderId
-    #con.reqContractDetails(theOrderId, opchainContract)
-    #print('ContractDetails for Option Chain requested ' + str(theOrderId))
+    # Retrieve Option Chain Contract
+    raw_input('getting data retrieval press any to continue')
+    con.unregister(ContractDetailsHandler, 'ContractDetails')
+    con.register(MultiContractDetailsHandler, 'ContractDetails')
+    # option contract list
+    # opchainContract = makeOptContract(sym='SPX', exp='201509', strike='', right='')
+    # just one contract
+    opchainContract = makeOptContract(sym='SPX', exp='20150917', strike='2000', right='P')
+    nextOrderId = nextOrderId + 1
+    theOrderId = nextOrderId
+    con.reqContractDetails(theOrderId, opchainContract)
+    raw_input('wait for contractDetails')
+    print('first conId %s' % (contractRestoreList[0].m_conId))
+
+    # Request Data
+    con.register(TickPriceHandler, 'TickPrice')
+
+    nextOrderId = nextOrderId + 1
+    theOrderId = nextOrderId
+    # In the case of snapshot, no need to store orderId to the Dict?
+    # con.reqMktData(tickerId=theOrderId,contract=contractRestoreList[0],genericTickList='',snapshot=True)
+
+    # market data streaming
+    con.reqMktData(tickerId=theOrderId, contract=contractRestoreList[0], genericTickList='', snapshot=False)
+    # orderIdMktReqContractDict = dict([(theOrderId,contractRestoreList[0])])
+    orderIdMktReqContractDict = {theOrderId: contractRestoreList[0]}
+    print('orderIdMktReqContractDict[theOrderId %s] = conId %s' % (theOrderId, orderIdMktReqContractDict[theOrderId].m_conId))
+    raw_input('wait for mktData press any to continue')
+
+    # Cancel First Data
+    raw_input('cancel first mktData %s press any to continue' % (orderIdMktReqContractDict.keys()[0]))
+    con.cancelMktData(orderIdMktReqContractDict.keys()[0])
 
     # Receive the new OrderId sequence from the IB Server
     con.reqIds(1)
-    # watch the messages for a bit
-    sleep(10)
+    sleep(2)
+
+    #disconnect
+    con.disconnect()
+    sleep(5)

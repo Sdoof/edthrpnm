@@ -1,3 +1,4 @@
+# coding: utf-8
 from ib.opt import Connection, message
 from ib.ext.Contract import Contract
 from ib.ext.Order import Order
