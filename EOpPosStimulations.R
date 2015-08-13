@@ -190,5 +190,55 @@ getStimResultDataFrame <- function (StimRslts,StimultaionNum){
                     Delta=Delta_at_liliquidation,Vega=Vega_at_liliquidation,liqDay=liq_days_))
 }
 
+##
+# write code snap of API to acess IB TWS
+
+writeIbAPITicket <- function(out_text_file,thePosition,sep="$"){
+  thePosition_org<-thePosition
+  
+  #if the legnum >=5, sprit thePisition into 2 parts. Put and Call
+  if(length(thePosition$TYPE)>=5)
+    thePosition %>% filter(TYPE==OpType_Put_G) -> thePosition
+  m_symbol<-rep(Underying_Symbol_G,times=length(thePosition$TYPE))
+  m_expiry<-format(as.Date(thePosition$ExpDate,format="%Y/%m/%d"),"%Y%m%d")
+  m_strike<-thePosition$Strike
+  m_right<-ifelse(thePosition$TYPE==OpType_Put_G, "P","C")
+  buy_sell<-ifelse(thePosition$Position>=0, "BUY","SELL")
+  combo_ratio <- abs(thePosition$Position)
+  limit_price<--30000
+  qty<-1
+  cat("SymbolTicket = [ ",file=out_text_file,append=T);cat(sprintf("\'%s\'",paste(m_symbol)),sep=sep,file=out_text_file,append=T) ; cat(" ]; ",file=out_text_file,append=T)
+  cat("ExpiryTicket = [ ",file=out_text_file,append=T);cat(sprintf("\'%s\'",paste(m_expiry)),sep=sep,file=out_text_file,append=T) ; cat(" ]; ",file=out_text_file,append=T)
+  cat("StrikeTicket = [ ",file=out_text_file,append=T); cat(paste(m_strike),sep=sep,file=out_text_file,append=T) ; cat(" ] ; ",file=out_text_file,append=T)
+  cat("RightTicket = [ ",file=out_text_file,append=T);cat(sprintf("\'%s\'",paste(m_right)),sep=sep,file=out_text_file,append=T) ; cat(" ]; ",file=out_text_file,append=T)
+  cat("BuySell = [ ",file=out_text_file,append=T);cat(sprintf("\'%s\'",paste(buy_sell)),sep=sep,file=out_text_file,append=T) ; cat(" ]; ",file=out_text_file,append=T)
+  cat("ComboRatio = [ ",file=out_text_file,append=T);cat(paste(combo_ratio),sep=sep,file=out_text_file,append=T);cat(" ] ;",file=out_text_file,append=T)
+  cat("LimitPrice_G = ",limit_price," ;",file=out_text_file,append=T)
+  cat("QTY_G = ",qty,"\n",file=out_text_file,append=T)
+  
+  #Second Call, if needed.
+  thePosition<-thePosition_org
+  if(length(thePosition$TYPE)>=5) {
+    thePosition %>% filter(TYPE==OpType_Call_G) -> thePosition
+    m_symbol<-rep(Underying_Symbol_G,times=length(thePosition$TYPE))
+    m_expiry<-format(as.Date(thePosition$ExpDate,format="%Y/%m/%d"),"%Y%m%d")
+    m_strike<-thePosition$Strike
+    m_right<-ifelse(thePosition$TYPE==OpType_Put_G, "P","C")
+    buy_sell<-ifelse(thePosition$Position>=0, "BUY","SELL")
+    combo_ratio <- abs(thePosition$Position)
+    limit_price<--30000
+    qty<-1
+    cat("SymbolTicket = [ ",file=out_text_file,append=T);cat(sprintf("\'%s\'",paste(m_symbol)),sep=sep,file=out_text_file,append=T) ; cat(" ]; ",file=out_text_file,append=T)
+    cat("ExpiryTicket = [ ",file=out_text_file,append=T);cat(sprintf("\'%s\'",paste(m_expiry)),sep=sep,file=out_text_file,append=T) ; cat(" ]; ",file=out_text_file,append=T)
+    cat("StrikeTicket = [ ",file=out_text_file,append=T); cat(paste(m_strike),sep=sep,file=out_text_file,append=T) ; cat(" ] ; ",file=out_text_file,append=T)
+    cat("RightTicket = [ ",file=out_text_file,append=T);cat(sprintf("\'%s\'",paste(m_right)),sep=sep,file=out_text_file,append=T) ; cat(" ]; ",file=out_text_file,append=T)
+    cat("BuySell = [ ",file=out_text_file,append=T);cat(sprintf("\'%s\'",paste(buy_sell)),sep=sep,file=out_text_file,append=T) ; cat(" ]; ",file=out_text_file,append=T)
+    cat("ComboRatio = [ ",file=out_text_file,append=T);cat(paste(combo_ratio),sep=sep,file=out_text_file,append=T);cat(" ] ;",file=out_text_file,append=T)
+    cat("LimitPrice_G = ",limit_price," ;",file=out_text_file,append=T)
+    cat("QTY_G = ",qty,"\n",file=out_text_file,append=T)
+  }
+}
+
+
 ##set.AmericanOptionValueGreeks(xt)
 # to be defined
