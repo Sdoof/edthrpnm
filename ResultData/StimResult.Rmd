@@ -4,6 +4,7 @@ library(RQuantLib)
 library(plyr)
 library(dplyr)
 library(knitr)
+source('../EOpPosStimulations.R',encoding = 'UTF-8')
 ```
 ---
 title: "StimResults"
@@ -103,6 +104,9 @@ for(Counter in evalPosStart:evalPosEnd){
   data.frame(min_profit=min(tmp$min_profit),max_profit=max(tmp$max_profit),expected_profit=sum(tmp$weight*tmp$mean_profit)) %>%
     print() ;cat("\n")
   rm(tmp)
+  
+  #API code chunk
+  writeIbAPITicket(out_text_file="",thePosition=position,sep=",")
   
   #drawing graph images for each scenario
   for(i in 1:nrow(modelScenario) ){
