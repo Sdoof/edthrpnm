@@ -156,9 +156,9 @@ QTY_G = 1
 
 # Second Leg
 Leg2 = [makeOptContract("IBM", "201509", 160, "C"), makeOptContract("IBM", "201510", 160, "C"),
-        makeOptContract("IBM", "201510", 150, "P"), makeOptContract("IBM", "201509", 148, "P")]
-BuySell2 = ["BUY", "SELL", "BUY", "SELL"]
-ComboRatio2 = [2, 1, 1, 2]
+        makeOptContract("IBM", "201509", 148, "P"), makeOptContract("IBM", "201510", 150, "P")]
+BuySell2 = ["BUY", "SELL", "SELL", "BUY"]
+ComboRatio2 = [2, 1, 2, 1]
 LimitPrice2_G = -300.0
 QTY2_G = 1
 
