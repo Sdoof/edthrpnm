@@ -11,8 +11,8 @@ clientId_G = 678
 
 nextOrderId = -1
 contractDetail = None
-contractRestoreList = None
-orderIdMktReqContractDict = None
+#contractRestoreList = None
+#orderIdMktReqContractDict = None
 
 
 # -- message handlers  ---------------------------------------------------------
@@ -127,7 +127,7 @@ def placeSpreadOrder(Leg, BuySell, ComboRatio, LimitPrice, QTY):
             LegContract[legitem].m_localSymbol, LegContract[legitem].m_conId,
             LegContract[legitem].m_right, LegContract[legitem].m_strike, LegContract[legitem].m_expiry))
         Leg[legitem].m_conId = LegContract[legitem].m_conId
-        raw_input('press any to continue conId: ' + str(Leg[legitem].m_conId))
+        raw_input('press any to process next leg (this leg conId: ' + str(Leg[legitem].m_conId))
     raw_input('now instantiate each leg press to continue')
     # instantiate each leg
     LegsList = None
@@ -157,7 +157,7 @@ QTY_G = 1
 
 # Second Leg
 Leg2 = [makeOptContract("IBM", "201509", 160, "C"), makeOptContract("IBM", "201510", 160, "C"),
-       makeOptContract("IBM", "201510", 150, "P"), makeOptContract("IBM", "201509", 148, "P")]
+        makeOptContract("IBM", "201510", 150, "P"), makeOptContract("IBM", "201509", 148, "P")]
 BuySell2 = ["BUY", "SELL", "BUY", "SELL"]
 ComboRatio2 = [2, 1, 1, 2]
 LimitPrice2_G = 0.03
@@ -168,6 +168,11 @@ if __name__ == '__main__':
         print("=> %s %s x [%s] %s Call/Put: %s Strike: %s Expiration: %s" %
               (BuySell[legitem], ComboRatio[legitem], Leg[legitem].m_secType, Leg[legitem].m_symbol,
                Leg[legitem].m_right, Leg[legitem].m_strike, Leg[legitem].m_expiry))
+    print('-------------second leg')
+    for legitem in range(len(Leg2)):
+        print("=> %s %s x [%s] %s Call/Put: %s Strike: %s Expiration: %s" %
+              (BuySell2[legitem], ComboRatio2[legitem], Leg2[legitem].m_secType, Leg2[legitem].m_symbol,
+               Leg2[legitem].m_right, Leg2[legitem].m_strike, Leg2[legitem].m_expiry))
     raw_input('Spread leg info correct?')
 
     # Server Access
@@ -185,56 +190,21 @@ if __name__ == '__main__':
     con.reqIds(1)
 
     # place Spread Order
-    # first spread
+    # first and second spread
     placeSpreadOrder(Leg, BuySell, ComboRatio, LimitPrice_G, QTY_G)
-    # second spread
-    if len(Leg2) != 0 :
-        raw_input('Going into next Leg press to continue')
-        for legitem in range(len(Leg)):
-            print("=> %s %s x [%s] %s Call/Put: %s Strike: %s Expiration: %s" %
-              (BuySell2[legitem], ComboRatio2[legitem], Leg2[legitem].m_secType, Leg2[legitem].m_symbol,
-               Leg2[legitem].m_right, Leg2[legitem].m_strike, Leg2[legitem].m_expiry))
-        raw_input('Spread leg info correct?')
-        placeSpreadOrder(Leg2, BuySell2, ComboRatio2, LimitPrice2_G, QTY2_G)
-    # request Order Status
     con.reqOpenOrders()
-
-    # Retrieve Option Chain Contract
-    raw_input('getting data retrieval press any to continue')
-    con.unregister(ContractDetailsHandler, 'ContractDetails')
-    con.register(MultiContractDetailsHandler, 'ContractDetails')
-
-    # contract list
-    # opchainContract = makeOptContract(sym='SPX', exp='201509', strike='', right='')
-
-    # just one contract
-    opchainContract = makeOptContract(sym='SPX', exp='20150917', strike='2000', right='P')
-    nextOrderId = nextOrderId + 1
-    theOrderId = nextOrderId
-    con.reqContractDetails(theOrderId, opchainContract)
-    raw_input('wait for contractDetail')
-    print('conId %s' % (contractRestoreList[0].m_conId))
-
-    # Request Data
-    con.register(TickPriceHandler, 'TickPrice')
-
-    nextOrderId = nextOrderId + 1
-    theOrderId = nextOrderId
-    # In the case of snapshot, no need to store orderId to the Dict?
-    # con.reqMktData(tickerId=theOrderId,contract=contractRestoreList[0],genericTickList='',snapshot=True)
-    # market data streaming
-    con.reqMktData(tickerId=theOrderId, contract=contractRestoreList[0], genericTickList='', snapshot=False)
-    # orderIdMktReqContractDict = dict([(theOrderId,contractRestoreList[0])])
-    orderIdMktReqContractDict = {theOrderId: contractRestoreList[0]}
-    print('request market data [%s] for conId %s' % (theOrderId, orderIdMktReqContractDict[theOrderId].m_conId))
-
-    # Cancel First Data
-    raw_input('cancel first mktData %s press any to continue' % (orderIdMktReqContractDict.keys()[0]))
-    con.cancelMktData(orderIdMktReqContractDict.keys()[0])
+    Leg=Leg2
+    BuySell=BuySell2
+    ComboRatio=ComboRatio2
+    LimitPrice_G=LimitPrice2_G
+    QTY_G=QTY2_G
+    #placeSpreadOrder(Leg2, BuySell2, ComboRatio2, LimitPrice2_G, QTY2_G)
+    placeSpreadOrder(Leg, BuySell, ComboRatio, LimitPrice_G, QTY_G)
+    con.reqOpenOrders()
 
     # Receive the new OrderId sequence from the IB Server
     con.reqIds(1)
-    sleep(2)
+    sleep(10)
 
     # disconnect
     con.disconnect()
