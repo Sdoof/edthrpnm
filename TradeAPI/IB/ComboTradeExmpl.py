@@ -6,30 +6,35 @@ from ib.opt import Connection
 from time import sleep
 
 # -- globals  ------------------------------------------------------------------
-port_G=7496
-clientId_G=678
+port_G = 7496
+clientId_G = 678
 
 nextOrderId = -1
 contractDetail = None
 contractRestoreList = None
 orderIdMktReqContractDict = None
 
+
 # -- message handlers  ---------------------------------------------------------
 def MessageHandler(msg):
     print msg
 
+
 def ErrorHandler(msg):
     print(str(msg))
+
 
 def NextValidIdHandler(msg):
     global nextOrderId
     print(str(msg))
     nextOrderId = msg.orderId
 
+
 def ContractDetailsHandler(msg):
     global contractDetail
     print(str(msg))
     contractDetail = msg.contractDetails
+
 
 def MultiContractDetailsHandler(msg):
     global contractRestoreList
@@ -43,13 +48,16 @@ def MultiContractDetailsHandler(msg):
     else:
         contractRestoreList = [theContract]
 
+
 def OrderStatusHandler(msg):
+    print(str(msg))
     print('<%s:%s:%s:%s:%s:%s:%s>' % (
         msg.orderId, msg.typeName, msg.status, msg.whyHeld, msg.avgFillPrice, msg.filled, msg.remaining))
 
 def TickPriceHandler(msg):
-    #field: 1 = bid 2 = ask 4 = last 6 = high 7 = low 9 = close
+    # field: 1 = bid 2 = ask 4 = last 6 = high 7 = low 9 = close
     print(str(msg))
+
 
 # -- functions  -----------------------------------------------------------------
 
@@ -66,7 +74,7 @@ def makeOptContract(sym, exp, strike, right):
     return newOptContract
 
 
-def makeComboLeg(conId, action,ratio):
+def makeComboLeg(conId, action, ratio):
     newComboLeg = ComboLeg()
     newComboLeg.m_conId = conId
     newComboLeg.m_ratio = ratio
@@ -100,37 +108,10 @@ def makeOrder(action, qty, price):
     newOrder.m_transmit = False
     return newOrder
 
-# -- main  ---------------------------------------------------------------------
-Leg =  [makeOptContract("IBM", "201509", 155, "C"),makeOptContract("IBM", "201510", 155, "C"),
-        makeOptContract("IBM", "201510", 150, "P"),makeOptContract("IBM", "201509", 150, "P")]
-BuySell = ["SELL","BUY","SELL","BUY"]
-ComboRatio = [1,2,2,1]
-LimitPrice_G = 0.2
-QTY_G = 1
-LegContract = None
 
-if __name__ == '__main__':
-    for legitem in range(len(Leg)):
-        print("=> %s %s x [%s] %s Call/Put: %s Strike: %s Expiration: %s" %
-              (BuySell[legitem],ComboRatio[legitem],Leg[legitem].m_secType,Leg[legitem].m_symbol,
-               Leg[legitem].m_right, Leg[legitem].m_strike,Leg[legitem].m_expiry))
-    raw_input('combe leg info correct?')
-
-    #Server Access
-    con = Connection.create(port=port_G, clientId=clientId_G)
-    # con.registerAll(MessageHandler)
-    con.register(ErrorHandler, 'Error')
-    con.register(NextValidIdHandler, 'NextValidId')
-    con.register(ContractDetailsHandler, 'ContractDetails')
-    con.register(OrderStatusHandler, 'OrderStatus')
-    con.connect()
-    con.setServerLogLevel(5)
-
-    # get mext Order Id
-    raw_input('wait for nextOrderId')
-    con.reqIds(1)
-
-    # define the contract for each leg
+def placeSpreadOrder(Leg, BuySell, ComboRatio, LimitPrice, QTY):
+    global contractDetail, con, nextOrderId
+    LegContract = None
 
     for legitem in range(len(Leg)):
         theOrderId = nextOrderId
@@ -147,27 +128,74 @@ if __name__ == '__main__':
             LegContract[legitem].m_right, LegContract[legitem].m_strike, LegContract[legitem].m_expiry))
         Leg[legitem].m_conId = LegContract[legitem].m_conId
         raw_input('press any to continue conId: ' + str(Leg[legitem].m_conId))
-
     raw_input('now instantiate each leg press to continue')
-
     # instantiate each leg
     LegsList = None
     for legitem in range(len(Leg)):
         if LegsList:
-            LegsList.append(makeComboLeg(Leg[legitem].m_conId, BuySell[legitem],ComboRatio[legitem]))
+            LegsList.append(makeComboLeg(Leg[legitem].m_conId, BuySell[legitem], ComboRatio[legitem]))
         else:
-            LegsList = [makeComboLeg(Leg[legitem].m_conId, BuySell[legitem],ComboRatio[legitem])]
+            LegsList = [makeComboLeg(Leg[legitem].m_conId, BuySell[legitem], ComboRatio[legitem])]
     # build a bag with these legs
     BagContract = makeBagContract(LegsList)
     # combination legs
-    comboOrder = makeOrder(action="BUY", qty=QTY_G, price=LimitPrice_G)
-
+    comboOrder = makeOrder(action="BUY", qty=QTY, price=LimitPrice)
     # place order
     nextOrderId = nextOrderId + 1
     theOrderId = nextOrderId
     con.placeOrder(theOrderId, BagContract, comboOrder)
     print('bag contract order placed ' + str(theOrderId))
 
+# -- main  ---------------------------------------------------------------------
+# First Leg
+Leg = [makeOptContract("IBM", "201509", 155, "C"), makeOptContract("IBM", "201510", 155, "C"),
+       makeOptContract("IBM", "201510", 150, "P"), makeOptContract("IBM", "201509", 150, "P")]
+BuySell = ["SELL", "BUY", "SELL", "BUY"]
+ComboRatio = [1, 2, 2, 1]
+LimitPrice_G = 0.2
+QTY_G = 1
+
+# Second Leg
+Leg2 = [makeOptContract("IBM", "201509", 160, "C"), makeOptContract("IBM", "201510", 160, "C"),
+       makeOptContract("IBM", "201510", 150, "P"), makeOptContract("IBM", "201509", 148, "P")]
+BuySell2 = ["BUY", "SELL", "BUY", "SELL"]
+ComboRatio2 = [2, 1, 1, 2]
+LimitPrice2_G = 0.03
+QTY2_G = 1
+
+if __name__ == '__main__':
+    for legitem in range(len(Leg)):
+        print("=> %s %s x [%s] %s Call/Put: %s Strike: %s Expiration: %s" %
+              (BuySell[legitem], ComboRatio[legitem], Leg[legitem].m_secType, Leg[legitem].m_symbol,
+               Leg[legitem].m_right, Leg[legitem].m_strike, Leg[legitem].m_expiry))
+    raw_input('Spread leg info correct?')
+
+    # Server Access
+    con = Connection.create(port=port_G, clientId=clientId_G)
+    # con.registerAll(MessageHandler)
+    con.register(ErrorHandler, 'Error')
+    con.register(NextValidIdHandler, 'NextValidId')
+    con.register(ContractDetailsHandler, 'ContractDetails')
+    con.register(OrderStatusHandler, 'OrderStatus')
+    con.connect()
+    con.setServerLogLevel(5)
+
+    # get mext Order Id
+    raw_input('wait for nextOrderId')
+    con.reqIds(1)
+
+    # place Spread Order
+    # first spread
+    placeSpreadOrder(Leg, BuySell, ComboRatio, LimitPrice_G, QTY_G)
+    # second spread
+    if len(Leg2) != 0 :
+        raw_input('Going into next Leg press to continue')
+        for legitem in range(len(Leg)):
+            print("=> %s %s x [%s] %s Call/Put: %s Strike: %s Expiration: %s" %
+              (BuySell2[legitem], ComboRatio2[legitem], Leg2[legitem].m_secType, Leg2[legitem].m_symbol,
+               Leg2[legitem].m_right, Leg2[legitem].m_strike, Leg2[legitem].m_expiry))
+        raw_input('Spread leg info correct?')
+        placeSpreadOrder(Leg2, BuySell2, ComboRatio2, LimitPrice2_G, QTY2_G)
     # request Order Status
     con.reqOpenOrders()
 
@@ -185,7 +213,7 @@ if __name__ == '__main__':
     theOrderId = nextOrderId
     con.reqContractDetails(theOrderId, opchainContract)
     raw_input('wait for contractDetail')
-    print('first conId %s' % (contractRestoreList[0].m_conId))
+    print('conId %s' % (contractRestoreList[0].m_conId))
 
     # Request Data
     con.register(TickPriceHandler, 'TickPrice')
@@ -198,7 +226,7 @@ if __name__ == '__main__':
     con.reqMktData(tickerId=theOrderId, contract=contractRestoreList[0], genericTickList='', snapshot=False)
     # orderIdMktReqContractDict = dict([(theOrderId,contractRestoreList[0])])
     orderIdMktReqContractDict = {theOrderId: contractRestoreList[0]}
-    print('reqMktData[theOrderId %s] = conId %s' % (theOrderId, orderIdMktReqContractDict[theOrderId].m_conId))
+    print('request market data [%s] for conId %s' % (theOrderId, orderIdMktReqContractDict[theOrderId].m_conId))
 
     # Cancel First Data
     raw_input('cancel first mktData %s press any to continue' % (orderIdMktReqContractDict.keys()[0]))
@@ -208,6 +236,6 @@ if __name__ == '__main__':
     con.reqIds(1)
     sleep(2)
 
-    #disconnect
+    # disconnect
     con.disconnect()
     sleep(3)
