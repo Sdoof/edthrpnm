@@ -150,6 +150,9 @@ for(Counter in evalPosStart:evalPosEnd){
   opchain$Position<-unlist(evaPos)
   opchain %>% dplyr::filter(Position!=0) -> position
  
+  #API code chunk
+  writeIbAPITicket(out_text_file,position,sep="$")
+  
   ##
   # Creating Pertubation Combination Data Frame
   mu_udly<-c(rep(((1.0)^(1/252)-1),times=6),rep(((1.0-mu_udly_drift_down)^(1/252)-1),times=3),rep(((1.0+mu_udly_drift_up)^(1/252)-1),times=3))
