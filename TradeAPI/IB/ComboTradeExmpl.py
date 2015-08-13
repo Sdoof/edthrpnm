@@ -11,10 +11,6 @@ clientId_G = 678
 
 nextOrderId = -1
 contractDetail = None
-#contractRestoreList = None
-#orderIdMktReqContractDict = None
-
-
 # -- message handlers  ---------------------------------------------------------
 def MessageHandler(msg):
     print msg
@@ -114,9 +110,10 @@ def placeSpreadOrder(Leg, BuySell, ComboRatio, LimitPrice, QTY):
     LegContract = None
 
     for legitem in range(len(Leg)):
+        nextOrderId = nextOrderId + 1
         theOrderId = nextOrderId
         con.reqContractDetails(theOrderId, Leg[legitem])
-        print('ContactDetal requested ' + str(theOrderId))
+        print('ContactDetal requested (orderId: ' + str(theOrderId))
         # wait for TWS message to come back to message handler
         raw_input('wait for contractDetail')
         if LegContract:
@@ -133,9 +130,9 @@ def placeSpreadOrder(Leg, BuySell, ComboRatio, LimitPrice, QTY):
     LegsList = None
     for legitem in range(len(Leg)):
         if LegsList:
-            LegsList.append(makeComboLeg(Leg[legitem].m_conId, BuySell[legitem], ComboRatio[legitem]))
+            LegsList.append(makeComboLeg(LegContract[legitem].m_conId, BuySell[legitem], ComboRatio[legitem]))
         else:
-            LegsList = [makeComboLeg(Leg[legitem].m_conId, BuySell[legitem], ComboRatio[legitem])]
+            LegsList = [makeComboLeg(LegContract[legitem].m_conId, BuySell[legitem], ComboRatio[legitem])]
     # build a bag with these legs
     BagContract = makeBagContract(LegsList)
     # combination legs
@@ -144,7 +141,9 @@ def placeSpreadOrder(Leg, BuySell, ComboRatio, LimitPrice, QTY):
     nextOrderId = nextOrderId + 1
     theOrderId = nextOrderId
     con.placeOrder(theOrderId, BagContract, comboOrder)
-    print('bag contract order placed ' + str(theOrderId))
+    print('sending order ... wait for a moment')
+    sleep(3)
+    print('bag contract order placed (orderId: ' + str(theOrderId))
 
 # -- main  ---------------------------------------------------------------------
 # First Leg
@@ -152,7 +151,7 @@ Leg = [makeOptContract("IBM", "201509", 155, "C"), makeOptContract("IBM", "20151
        makeOptContract("IBM", "201510", 150, "P"), makeOptContract("IBM", "201509", 150, "P")]
 BuySell = ["SELL", "BUY", "SELL", "BUY"]
 ComboRatio = [1, 2, 2, 1]
-LimitPrice_G = 0.2
+LimitPrice_G = -300.0
 QTY_G = 1
 
 # Second Leg
@@ -160,15 +159,16 @@ Leg2 = [makeOptContract("IBM", "201509", 160, "C"), makeOptContract("IBM", "2015
         makeOptContract("IBM", "201510", 150, "P"), makeOptContract("IBM", "201509", 148, "P")]
 BuySell2 = ["BUY", "SELL", "BUY", "SELL"]
 ComboRatio2 = [2, 1, 1, 2]
-LimitPrice2_G = 0.03
+LimitPrice2_G = -300.0
 QTY2_G = 1
 
 if __name__ == '__main__':
+    print('-------------first Spread')
     for legitem in range(len(Leg)):
         print("=> %s %s x [%s] %s Call/Put: %s Strike: %s Expiration: %s" %
               (BuySell[legitem], ComboRatio[legitem], Leg[legitem].m_secType, Leg[legitem].m_symbol,
                Leg[legitem].m_right, Leg[legitem].m_strike, Leg[legitem].m_expiry))
-    print('-------------second leg')
+    print('-------------second Spread')
     for legitem in range(len(Leg2)):
         print("=> %s %s x [%s] %s Call/Put: %s Strike: %s Expiration: %s" %
               (BuySell2[legitem], ComboRatio2[legitem], Leg2[legitem].m_secType, Leg2[legitem].m_symbol,
@@ -193,9 +193,9 @@ if __name__ == '__main__':
     # first and second spread
     placeSpreadOrder(Leg, BuySell, ComboRatio, LimitPrice_G, QTY_G)
     con.reqOpenOrders()
-    Leg=Leg2
-    BuySell=BuySell2
-    ComboRatio=ComboRatio2
+    Leg=list(Leg2)
+    BuySell=list(BuySell2)
+    ComboRatio=list(ComboRatio2)
     LimitPrice_G=LimitPrice2_G
     QTY_G=QTY2_G
     #placeSpreadOrder(Leg2, BuySell2, ComboRatio2, LimitPrice2_G, QTY2_G)
