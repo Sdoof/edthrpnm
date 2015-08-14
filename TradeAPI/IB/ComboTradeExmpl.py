@@ -9,22 +9,18 @@ from time import sleep
 def MessageHandler(msg):
     print msg
 
-
 def ErrorHandler(msg):
     print(str(msg))
-
 
 def NextValidIdHandler(msg):
     global nextOrderId
     print(str(msg))
     nextOrderId = msg.orderId
 
-
 def ContractDetailsHandler(msg):
     global contractDetail
     print(str(msg))
     contractDetail = msg.contractDetails
-
 
 def MultiContractDetailsHandler(msg):
     global contractRestoreList
@@ -38,17 +34,14 @@ def MultiContractDetailsHandler(msg):
     else:
         contractRestoreList = [theContract]
 
-
 def OrderStatusHandler(msg):
     print(str(msg))
     print('<%s:%s:%s:%s:%s:%s:%s>' % (
         msg.orderId, msg.typeName, msg.status, msg.whyHeld, msg.avgFillPrice, msg.filled, msg.remaining))
 
-
 def TickPriceHandler(msg):
     # field: 1 = bid 2 = ask 4 = last 6 = high 7 = low 9 = close
     print(str(msg))
-
 
 # -- functions  -----------------------------------------------------------------
 
@@ -64,7 +57,6 @@ def makeOptContract(sym, exp, strike, right):
     newOptContract.m_currency = "USD"
     return newOptContract
 
-
 def makeComboLeg(conId, action, ratio):
     newComboLeg = ComboLeg()
     newComboLeg.m_conId = conId
@@ -76,7 +68,6 @@ def makeComboLeg(conId, action, ratio):
     newComboLeg.m_designatedLocation = ""
     return newComboLeg
 
-
 def makeBagContract(legs):
     newBagContract = Contract()
     newBagContract.m_symbol = "USD"
@@ -85,7 +76,6 @@ def makeBagContract(legs):
     newBagContract.m_currency = "USD"
     newBagContract.m_comboLegs = legs
     return newBagContract
-
 
 def makeOrder(action, qty, price):
     newOrder = Order()
@@ -99,11 +89,9 @@ def makeOrder(action, qty, price):
     newOrder.m_transmit = False
     return newOrder
 
-
 def placeSpreadOrder(Leg, BuySell, ComboRatio, LimitPrice, QTY):
     global contractDetail, con, nextOrderId
     LegContract = None
-
     for legitem in range(len(Leg)):
         nextOrderId = nextOrderId + 1
         theOrderId = nextOrderId
@@ -185,8 +173,6 @@ def makeLmtPrice(BuySell,bid,ask):
         else:
             lmtPrc = [value]
     return lmtPrc
-
-# -- main  ---------------------------------------------------------------------
 
 # -- globals  ------------------------------------------------------------------
 port_G = 7496
