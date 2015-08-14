@@ -205,7 +205,7 @@ writeIbAPITicket <- function(out_text_file,thePosition,sep="$"){
   m_right<-ifelse(thePosition$TYPE==OpType_Put_G, "P","C")
   buy_sell<-ifelse(thePosition$Position>=0, "BUY","SELL")
   combo_ratio <- abs(thePosition$Position)
-  limit_price<--30000
+  limit_price<-900
   qty<-1
   cat("SymbolTicket = [ ",file=out_text_file,append=T);cat(sprintf("\'%s\'",paste(m_symbol)),sep=sep,file=out_text_file,append=T) ; cat(" ]; ",file=out_text_file,append=T)
   cat("ExpiryTicket = [ ",file=out_text_file,append=T);cat(sprintf("\'%s\'",paste(m_expiry)),sep=sep,file=out_text_file,append=T) ; cat(" ]; ",file=out_text_file,append=T)
@@ -226,16 +226,16 @@ writeIbAPITicket <- function(out_text_file,thePosition,sep="$"){
     m_right<-ifelse(thePosition$TYPE==OpType_Put_G, "P","C")
     buy_sell<-ifelse(thePosition$Position>=0, "BUY","SELL")
     combo_ratio <- abs(thePosition$Position)
-    limit_price<--30000
+    limit_price<--900
     qty<-1
-    cat("SymbolTicket = [ ",file=out_text_file,append=T);cat(sprintf("\'%s\'",paste(m_symbol)),sep=sep,file=out_text_file,append=T) ; cat(" ]; ",file=out_text_file,append=T)
-    cat("ExpiryTicket = [ ",file=out_text_file,append=T);cat(sprintf("\'%s\'",paste(m_expiry)),sep=sep,file=out_text_file,append=T) ; cat(" ]; ",file=out_text_file,append=T)
-    cat("StrikeTicket = [ ",file=out_text_file,append=T); cat(paste(m_strike),sep=sep,file=out_text_file,append=T) ; cat(" ] ; ",file=out_text_file,append=T)
-    cat("RightTicket = [ ",file=out_text_file,append=T);cat(sprintf("\'%s\'",paste(m_right)),sep=sep,file=out_text_file,append=T) ; cat(" ]; ",file=out_text_file,append=T)
-    cat("BuySell = [ ",file=out_text_file,append=T);cat(sprintf("\'%s\'",paste(buy_sell)),sep=sep,file=out_text_file,append=T) ; cat(" ]; ",file=out_text_file,append=T)
-    cat("ComboRatio = [ ",file=out_text_file,append=T);cat(paste(combo_ratio),sep=sep,file=out_text_file,append=T);cat(" ] ;",file=out_text_file,append=T)
-    cat("LimitPrice_G = ",limit_price," ;",file=out_text_file,append=T)
-    cat("QTY_G = ",qty,"\n",file=out_text_file,append=T)
+    cat("SymbolTicket2 = [ ",file=out_text_file,append=T);cat(sprintf("\'%s\'",paste(m_symbol)),sep=sep,file=out_text_file,append=T) ; cat(" ]; ",file=out_text_file,append=T)
+    cat("ExpiryTicket2 = [ ",file=out_text_file,append=T);cat(sprintf("\'%s\'",paste(m_expiry)),sep=sep,file=out_text_file,append=T) ; cat(" ]; ",file=out_text_file,append=T)
+    cat("StrikeTicket2 = [ ",file=out_text_file,append=T); cat(paste(m_strike),sep=sep,file=out_text_file,append=T) ; cat(" ] ; ",file=out_text_file,append=T)
+    cat("RightTicket2 = [ ",file=out_text_file,append=T);cat(sprintf("\'%s\'",paste(m_right)),sep=sep,file=out_text_file,append=T) ; cat(" ]; ",file=out_text_file,append=T)
+    cat("BuySell2 = [ ",file=out_text_file,append=T);cat(sprintf("\'%s\'",paste(buy_sell)),sep=sep,file=out_text_file,append=T) ; cat(" ]; ",file=out_text_file,append=T)
+    cat("ComboRatio2 = [ ",file=out_text_file,append=T);cat(paste(combo_ratio),sep=sep,file=out_text_file,append=T);cat(" ] ;",file=out_text_file,append=T)
+    cat("LimitPrice2_G = ",limit_price," ;",file=out_text_file,append=T)
+    cat("QTY2_G = ",qty,"\n",file=out_text_file,append=T)
   }
 }
 
