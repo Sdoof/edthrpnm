@@ -107,6 +107,55 @@ opch %>% dplyr::arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="
 #
 opch$Moneyness.Nm<-log(opch$Moneyness.Frac)/opch$ATMIV/sqrt(opch$TimeToExpDate)-opch$displace
 
+##
+# Volatility Skew Regression 
+
+# Nmlzd Skew
+getNmlzdSkewVplot<-function(){
+  #Complete Opchain. Using OOM options. By Call-Put parity, ITM IV is supposed to be the same as OOM IV.
+  opch %>% dplyr::filter(OrigIV/ATMIV<5.0) %>% dplyr::filter(OrigIV/ATMIV>0.1) %>%
+    dplyr::filter(HowfarOOM>=0) %>% dplyr::filter(TimeToExpDate>TimeToExp_Limit_Closeness_G) -> vplot
+  #filter by TimeToExpDate
+  vplot %>% dplyr::filter(TimeToExpDate<=SkewRegressionTimeToExpDateMax) %>% dplyr::filter(TimeToExpDate>=SkewRegressionTimeToExpDateMin) -> vplot
+  #filter by recent data. Take only past RegressionDateBackDaysMax dats
+  vplot %>% filter(as.Date(Date,format="%Y/%m/%d")>= max(as.Date(Date,format="%Y/%m/%d"))-RegressionDateBackDaysMax) -> vplot
+  
+  return(vplot)
+}
+
+vplot<-getNmlzdSkewVplot()
+(ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV),size=TimeToExpDate/2,colour=Date))+geom_point(alpha=0.2))
+(ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV)))+geom_point(alpha=0.2))
+models <- (get.skew.regression.Models(vplot,regtype=5,df=7))
+
+#5. (regtype) smooth splines
+get.predicted.skew(models,regtype=5,xmin=-1,x_by=0)
+(predict.c<-get.predicted.skew(models,regtype=5,xmin=-2.0,xmax=1.5))
+(ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV)))+geom_point(alpha=0.2)+
+   geom_line(data=data.frame(Moneyness.Nm=predict.c$x,IV2ATMIV=predict.c$y),aes(Moneyness.Nm,IV2ATMIV),color="red"))
+
+#Optimize Moneyness.Nm using just merged ATMIV
+save.Skew(models)
+#load test
+load.Skew()
+SkewModel
+
+#using SkewModel, adjust ATMIV to reflect the differnce between Strike and UDLY
+adjustATMIV <- function(atmiv){
+  displacement<-log(atmiv$Moneyness.Frac)/atmiv$ATMIV/sqrt(atmiv$TimeToExpDate)
+  smileCurve<-get.predicted.spline.skew(SkewModel,displacement)
+  ATMIV_adjst<-atmiv$ATMIV/smileCurve
+  
+  return(ATMIV_adjst)
+}
+
+#ATMIV adjusted to continue following regressions.
+ATMIV_adj<-adjustATMIV(atmiv)
+atmiv$ATMIV<-ATMIV_adj
+
+#rm(SkewModel)
+rm(models,vplot,predict.c)
+
 
 ##
 # Volatility Cone and ATMIV%Chg/IVIDX%Chg Analysis and Regression.  --------------
@@ -155,66 +204,6 @@ for(i in 1:length(atmiv.vcone.eachDF)){
 atmiv.vcone.anal<-NULL
 atmiv.vcone.anal<-atmiv.vcone.bind
 rm(i,atmiv.vcone.eachDF,atmiv.vcone.bind)
-
-# Now We've got atmiv.vcone.anal data.dframe
-##END Got complete atmiv.vcone.anal
-
-##
-# Volatility Skew Regression 
-
-# Nmlzd Skew
-getNmlzdSkewVplot<-function(){
-  #Complete Opchain. Using OOM options. By Call-Put parity, ITM IV is supposed to be the same as OOM IV.
-  opch %>% dplyr::filter(OrigIV/ATMIV<5.0) %>% dplyr::filter(OrigIV/ATMIV>0.1) %>%
-    dplyr::filter(HowfarOOM>=0) %>% dplyr::filter(TimeToExpDate>TimeToExp_Limit_Closeness_G) -> vplot
-  #filter by TimeToExpDate
-  vplot %>% dplyr::filter(TimeToExpDate<=SkewRegressionTimeToExpDateMax) %>% dplyr::filter(TimeToExpDate>=SkewRegressionTimeToExpDateMin) -> vplot
-  #filter by recent data. Take only past RegressionDateBackDaysMax dats
-  vplot %>% filter(as.Date(Date,format="%Y/%m/%d")>= max(as.Date(Date,format="%Y/%m/%d"))-RegressionDateBackDaysMax) -> vplot
-  
-  return(vplot)
-}
-
-vplot<-getNmlzdSkewVplot()
-(ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV),size=TimeToExpDate/2,colour=Date))+geom_point(alpha=0.2))
-(ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV)))+geom_point(alpha=0.2))
-models <- (get.skew.regression.Models(vplot,regtype=5,df=7))
-
-### just check how chainging time scaling parameter affects regressions models. In the future hope to optimize the parameters.
-# opch$Moneyness.Nm<-log(opch$Moneyness.Frac)/opch$ATMIV/((opch$TimeToExpDate)^0.7)
-# vplot<-getNmlzdSkewVplot()
-# (ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV),size=TimeToExpDate/2,colour=Date))+geom_point(alpha=0.2))
-# (ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV)))+geom_point(alpha=0.2))
-# models2 <- (get.skew.regression.Models(vplot,regtype=5,df=7))
-
-#5. (regtype) smooth splines
-get.predicted.skew(models,regtype=5,xmin=-1,x_by=0)
-(predict.c<-get.predicted.skew(models,regtype=5,xmin=-2.0,xmax=1.5))
-(ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV)))+geom_point(alpha=0.2)+
-   geom_line(data=data.frame(Moneyness.Nm=predict.c$x,IV2ATMIV=predict.c$y),aes(Moneyness.Nm,IV2ATMIV),color="red"))
-
-#Optimize Moneyness.Nm using just merged ATMIV
-save.Skew(models)
-#load test
-load.Skew()
-SkewModel
-
-#using SkewModel, adjust ATMIV to reflect the differnce between Strike and UDLY
-# adjustATMIV <- function(atmiv){
-#   
-#   displacement<-log(atmiv$Moneyness.Frac)/atmiv$ATMIV/sqrt(atmiv$TimeToExpDate)
-#   smileCurve<-get.predicted.spline.skew(SkewModel,displacement)
-#   ATMIV_adjst<-atmiv$ATMIV/smileCurve
-#   
-#   return(ATMIV_adjst)
-# }
-# 
-# ATMIV_adj<-adjustATMIV(atmiv)
-# atmiv$ATMIV<-ATMIV_adj
-
-
-#rm(SkewModel)
-rm(models,vplot,predict.c)
 
 ##
 # Vcone Regression
@@ -339,8 +328,8 @@ wf_<-paste(DataFiles_Path_G,Underying_Symbol_G,OpchainOutFileName,sep="")
 write.table(opch,wf_,quote=T,row.names=F,sep=",")
 rm(wf_)
 
-rm(atmiv.vcone.anal,atmiv,opch,getNmlzdSkewVplot)
-rm(ConfigFileName_G,ConfigParameters,SkewRegressionTimeToExpDateMax)
+rm(atmiv.vcone.anal,atmiv,displace,opch,getNmlzdSkewVplot)
+rm(ConfigFileName_G,ConfigParameters,SkewRegressionTimeToExpDateMax,SkewRegressionTimeToExpDateMin)
 rm(CALENDAR_G,DataFiles_Path_G,OpType_Call_G,OpType_Put_G,OpchainOutFileName)
 rm(TimeToExp_Limit_Closeness_G,Underying_Symbol_G,divYld_G,riskFreeRate_G)
-
+rm(SkewModel,RegressionDateBackDaysMax)

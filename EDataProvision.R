@@ -167,6 +167,10 @@ makePosition <- function(opch){
     as.data.frame() -> atmiv
   atmiv %>% dplyr::select(Date,ExpDate,TYPE,ATMIV,Strike,UDLY,IVIDX,TimeToExpDate,Moneyness.Frac) %>% as.data.frame() -> atmiv
   
+  #sorting
+  atmiv %>% dplyr::arrange(desc(TYPE),as.Date(ExpDate,format="%Y/%m/%d"),as.Date(Date,format="%Y/%m/%d")) -> atmiv
+  opch %>% dplyr::arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="%Y/%m/%d"),desc(TYPE),Strike) -> opch
+  
   #adjust AMTIV
   if(isSkewCalc==FALSE){
     load.Skew()
@@ -191,7 +195,7 @@ makePosition <- function(opch){
   return(opchain)
 }
 
-filterPosition <- function(opchain,HowfarOOM_MIN=0,OOM_Limit_V=c(0.07,0.04)){
+filterPosition <- function(opchain,HowfarOOM_MIN=0,OOM_Limit_V=c(0.07,0.07)){
   ##
   #  Filter Target Ranges
   
@@ -243,4 +247,4 @@ rm(makeOpchainContainer,makePosition,filterPosition)
 rm(ConfigFileName_G,ConfigParameters)
 rm(CALENDAR_G,riskFreeRate_G,divYld_G,OpType_Put_G,OpType_Call_G,TimeToExp_Limit_Closeness_G)
 rm(Underying_Symbol_G,DataFiles_Path_G,ResultFiles_Path_G,ProcessFileName,TargetFileName,isSkewCalc,isNewPosition)
-
+rm(SkewModel,ATMIV_adj)
