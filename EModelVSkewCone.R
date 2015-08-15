@@ -11,6 +11,7 @@ ConfigParameters<-read.table(paste(DataFiles_Path_G,ConfigFileName_G,sep=""),
                              row.names=1, comment.char="#",header=T,stringsAsFactors=F,sep=",")
 
 #MAX ExpToDate for Skew Regression
+SkewRegressionTimeToExpDateMin<-0.9
 SkewRegressionTimeToExpDateMax<-2.2
 
 #We get regression only past this day. Currently reflected on Skew only.
@@ -144,24 +145,37 @@ rm(i,atmiv.vcone.eachDF,atmiv.vcone.bind)
 # Volatility Skew Regression 
 
 # Nmlzd Skew
-#Complete Opchain. Using OOM options. By Call-Put parity, ITM IV is supposed to be the same as OOM IV.
-opch %>% dplyr::filter(OrigIV/ATMIV<5.0) %>% dplyr::filter(OrigIV/ATMIV>0.1) %>%
-  dplyr::filter(HowfarOOM>=0) %>% dplyr::filter(TimeToExpDate>TimeToExp_Limit_Closeness_G) -> vplot
-#filter by TimeToExpDate
-vplot %>% dplyr::filter(TimeToExpDate<=SkewRegressionTimeToExpDateMax) -> vplot
-#filter by recent data. Take only past RegressionDateBackDaysMax dats
-vplot %>% filter(as.Date(Date,format="%Y/%m/%d")>= max(as.Date(Date,format="%Y/%m/%d"))-RegressionDateBackDaysMax) -> vplot
+getNmlzdSkewVplot<-function(){
+  #Complete Opchain. Using OOM options. By Call-Put parity, ITM IV is supposed to be the same as OOM IV.
+  opch %>% dplyr::filter(OrigIV/ATMIV<5.0) %>% dplyr::filter(OrigIV/ATMIV>0.1) %>%
+    dplyr::filter(HowfarOOM>=0) %>% dplyr::filter(TimeToExpDate>TimeToExp_Limit_Closeness_G) -> vplot
+  #filter by TimeToExpDate
+  vplot %>% dplyr::filter(TimeToExpDate<=SkewRegressionTimeToExpDateMax) %>% dplyr::filter(TimeToExpDate>=SkewRegressionTimeToExpDateMin) -> vplot
+  #filter by recent data. Take only past RegressionDateBackDaysMax dats
+  vplot %>% filter(as.Date(Date,format="%Y/%m/%d")>= max(as.Date(Date,format="%Y/%m/%d"))-RegressionDateBackDaysMax) -> vplot
+  
+  return(vplot)
+}
 
+vplot<-getNmlzdSkewVplot()
 (ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV),size=TimeToExpDate/2,colour=Date))+geom_point(alpha=0.2))
-
-#5. smooth splines
+(ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV)))+geom_point(alpha=0.2))
 models <- (get.skew.regression.Models(vplot,regtype=5,df=7))
-#just get one predicted value. wrapped by get.predicted.skew()
+
+### just check how chainging time scaling parameter affects regressions models. In the future hope to optimize the parameters.
+# opch$Moneyness.Nm<-log(opch$Moneyness.Frac)/opch$ATMIV/((opch$TimeToExpDate)^0.7)
+# vplot<-getNmlzdSkewVplot()
+# (ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV),size=TimeToExpDate/2,colour=Date))+geom_point(alpha=0.2))
+# (ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV)))+geom_point(alpha=0.2))
+# models2 <- (get.skew.regression.Models(vplot,regtype=5,df=7))
+
+#5. (regtype) smooth splines
 get.predicted.skew(models,regtype=5,xmin=-1,x_by=0)
 (predict.c<-get.predicted.skew(models,regtype=5,xmin=-2.0,xmax=1.5))
 (ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV)))+geom_point(alpha=0.2)+
    geom_line(data=data.frame(Moneyness.Nm=predict.c$x,IV2ATMIV=predict.c$y),aes(Moneyness.Nm,IV2ATMIV),color="red"))
 
+#Optimize Moneyness.Nm using just merged ATMIV
 save.Skew(models)
 #load test
 load.Skew()
