@@ -71,24 +71,42 @@ opch %>% dplyr::arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="
 
 #Get ATM Implied Volatilities for each option types.
 ##START Create atmiv
+#opch %>% dplyr::group_by(Date,ExpDate,TYPE) %>% dplyr::filter(HowfarOOM>0) %>% 
+  #Get the OrigIV where HowfarOOM is minimum, ie. IV at ATM.
+#  dplyr::summarise(num=n(),OOM=min(abs(HowfarOOM)),min.i=which.min(abs(HowfarOOM)),ATMIV=OrigIV[which.min(abs(HowfarOOM))]
+#                   ,TimeToExpDate=TimeToExpDate[which.min(abs(HowfarOOM))],IVIDX=IVIDX[which.min(abs(HowfarOOM))]) %>% 
+#  as.data.frame() -> atmiv
+#atmiv %>% dplyr::select(Date,ExpDate,TYPE,ATMIV,IVIDX,TimeToExpDate) %>% as.data.frame() -> atmiv
 opch %>% dplyr::group_by(Date,ExpDate,TYPE) %>% dplyr::filter(HowfarOOM>0) %>% 
   #Get the OrigIV where HowfarOOM is minimum, ie. IV at ATM.
-  dplyr::summarise(num=n(),OOM=min(abs(HowfarOOM)),min.i=which.min(abs(HowfarOOM)),ATMIV=OrigIV[which.min(abs(HowfarOOM))]
-                   ,TimeToExpDate=TimeToExpDate[which.min(abs(HowfarOOM))],IVIDX=IVIDX[which.min(abs(HowfarOOM))]) %>% 
+  dplyr::summarise(num=n(),OOM=min(abs(HowfarOOM)),min.i=which.min(abs(HowfarOOM)),ATMIV=OrigIV[which.min(abs(HowfarOOM))],
+                   TimeToExpDate=TimeToExpDate[which.min(abs(HowfarOOM))],IVIDX=IVIDX[which.min(abs(HowfarOOM))],
+                   UDLY=UDLY[which.min(abs(HowfarOOM))],Strike=Strike[which.min(abs(HowfarOOM))],
+                   Moneyness.Frac=Moneyness.Frac[which.min(abs(HowfarOOM))]) %>% 
   as.data.frame() -> atmiv
-atmiv %>% dplyr::select(Date,ExpDate,TYPE,ATMIV,IVIDX,TimeToExpDate) %>% as.data.frame() -> atmiv
-opch <- merge(opch,
-              atmiv %>% dplyr::select(Date,ExpDate,TYPE,ATMIV) %>% as.data.frame(),
-#              by.x=c("Date","ExpDate","TYPE"),by.y=c("Date","ExpDate","TYPE"),all.x=T)
-              by.x=c("Date","ExpDate","TYPE","ATMIV"),by.y=c("Date","ExpDate","TYPE","ATMIV"),all.x=T)
+atmiv %>% dplyr::select(Date,ExpDate,TYPE,ATMIV,Strike,UDLY,IVIDX,TimeToExpDate,Moneyness.Frac) %>% as.data.frame() -> atmiv
+
 #sorting
 atmiv %>% dplyr::arrange(desc(TYPE),as.Date(ExpDate,format="%Y/%m/%d"),as.Date(Date,format="%Y/%m/%d")) -> atmiv
 opch %>% dplyr::arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="%Y/%m/%d"),desc(TYPE),Strike) -> opch
 
 #Calculate Moneyness.Nm using just merged ATMIV
-opch$Moneyness.Nm<-log(opch$Moneyness.Frac)/opch$ATMIV/sqrt(opch$TimeToExpDate)
+displace<-log(atmiv$Moneyness.Frac)/atmiv$ATMIV/sqrt(atmiv$TimeToExpDate)
+atmiv$displace<-displace
 
-##END Got complete atmiv
+#merge
+opch <- merge(opch,
+              atmiv %>% dplyr::select(Date,ExpDate,TYPE,ATMIV,displace) %>% as.data.frame(),
+#              by.x=c("Date","ExpDate","TYPE"),by.y=c("Date","ExpDate","TYPE"),all.x=T)
+              by.x=c("Date","ExpDate","TYPE","ATMIV"),by.y=c("Date","ExpDate","TYPE","ATMIV"),all=T)
+
+#sorting
+atmiv %>% dplyr::arrange(desc(TYPE),as.Date(ExpDate,format="%Y/%m/%d"),as.Date(Date,format="%Y/%m/%d")) -> atmiv
+opch %>% dplyr::arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="%Y/%m/%d"),desc(TYPE),Strike) -> opch
+
+#
+opch$Moneyness.Nm<-log(opch$Moneyness.Frac)/opch$ATMIV/sqrt(opch$TimeToExpDate)-opch$displace
+
 
 ##
 # Volatility Cone and ATMIV%Chg/IVIDX%Chg Analysis and Regression.  --------------
@@ -180,7 +198,22 @@ save.Skew(models)
 #load test
 load.Skew()
 SkewModel
-rm(SkewModel)
+
+#using SkewModel, adjust ATMIV to reflect the differnce between Strike and UDLY
+# adjustATMIV <- function(atmiv){
+#   
+#   displacement<-log(atmiv$Moneyness.Frac)/atmiv$ATMIV/sqrt(atmiv$TimeToExpDate)
+#   smileCurve<-get.predicted.spline.skew(SkewModel,displacement)
+#   ATMIV_adjst<-atmiv$ATMIV/smileCurve
+#   
+#   return(ATMIV_adjst)
+# }
+# 
+# ATMIV_adj<-adjustATMIV(atmiv)
+# atmiv$ATMIV<-ATMIV_adj
+
+
+#rm(SkewModel)
 rm(models,vplot,predict.c)
 
 ##
@@ -306,7 +339,7 @@ wf_<-paste(DataFiles_Path_G,Underying_Symbol_G,OpchainOutFileName,sep="")
 write.table(opch,wf_,quote=T,row.names=F,sep=",")
 rm(wf_)
 
-rm(atmiv.vcone.anal,atmiv,opch)
+rm(atmiv.vcone.anal,atmiv,opch,getNmlzdSkewVplot)
 rm(ConfigFileName_G,ConfigParameters,SkewRegressionTimeToExpDateMax)
 rm(CALENDAR_G,DataFiles_Path_G,OpType_Call_G,OpType_Put_G,OpchainOutFileName)
 rm(TimeToExp_Limit_Closeness_G,Underying_Symbol_G,divYld_G,riskFreeRate_G)

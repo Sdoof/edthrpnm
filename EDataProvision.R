@@ -109,6 +109,16 @@ rownames(opchain) <- c(1:nrow(opchain))
 
 #Option_Chain_Pos file type has been created.
 
+#using SkewModel, adjust ATMIV to reflect the differnce between Strike and UDLY
+adjustATMIV <- function(atmiv){
+  
+  displacement<-log(atmiv$Moneyness.Frac)/atmiv$ATMIV/sqrt(atmiv$TimeToExpDate)
+  smileCurve<-get.predicted.spline.skew(SkewModel,displacement)
+  ATMIV_adjst<-atmiv$ATMIV/smileCurve
+  
+  return(ATMIV_adjst)
+}
+
 ##
 #  ATMIV IVIDX Moneyness etc. calculation for the opchain to be completed.
 
@@ -119,7 +129,7 @@ makePosition <- function(opch){
   
   #
   # volatility and moneyness calculation complete
-  opch<-opchain
+  #opch<-opchain
   
   opch$Last<-opch$Bid<-opch$Ask<-opch$Ask<-opch$Volume<-opch$OI<-NULL
   #Histrical Volatility(Index). VOlatility % to DN. Column name Close to IVIDX
@@ -150,10 +160,21 @@ makePosition <- function(opch){
   ##START Create atmiv
   opch %>% dplyr::group_by(Date,ExpDate,TYPE) %>% dplyr::filter(HowfarOOM>0) %>% 
     #Get the OrigIV where HowfarOOM is minimum, ie. IV at ATM.
-    dplyr::summarise(num=n(),OOM=min(abs(HowfarOOM)),min.i=which.min(abs(HowfarOOM)),ATMIV=OrigIV[which.min(abs(HowfarOOM))]
-                     ,TimeToExpDate=TimeToExpDate[which.min(abs(HowfarOOM))],IVIDX=IVIDX[which.min(abs(HowfarOOM))]) %>% 
+    dplyr::summarise(num=n(),OOM=min(abs(HowfarOOM)),min.i=which.min(abs(HowfarOOM)),ATMIV=OrigIV[which.min(abs(HowfarOOM))],
+                     TimeToExpDate=TimeToExpDate[which.min(abs(HowfarOOM))],IVIDX=IVIDX[which.min(abs(HowfarOOM))],
+                     UDLY=UDLY[which.min(abs(HowfarOOM))],Strike=Strike[which.min(abs(HowfarOOM))],
+                     Moneyness.Frac=Moneyness.Frac[which.min(abs(HowfarOOM))]) %>% 
     as.data.frame() -> atmiv
-  atmiv %>% dplyr::select(Date,ExpDate,TYPE,ATMIV,IVIDX,TimeToExpDate) %>% as.data.frame() -> atmiv
+  atmiv %>% dplyr::select(Date,ExpDate,TYPE,ATMIV,Strike,UDLY,IVIDX,TimeToExpDate,Moneyness.Frac) %>% as.data.frame() -> atmiv
+  
+  #adjust AMTIV
+  if(isSkewCalc==FALSE){
+    load.Skew()
+    SkewModel
+    ATMIV_adj<-adjustATMIV(atmiv)
+    atmiv$ATMIV<-ATMIV_adj
+  }
+  
   opch <- merge(opch,
                 atmiv %>% dplyr::select(Date,ExpDate,TYPE,ATMIV) %>% as.data.frame(),
                 by.x=c("Date","ExpDate","TYPE"),by.y=c("Date","ExpDate","TYPE"),all.x=T)
@@ -167,7 +188,6 @@ makePosition <- function(opch){
   
   opchain<-opch ; rm(opch)
   rm(atmiv)
-  
   return(opchain)
 }
 
