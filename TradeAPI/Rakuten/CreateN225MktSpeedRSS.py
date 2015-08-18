@@ -1,7 +1,7 @@
 # coding: utf-8
 
 # absolute path
-# f = open('C:/Users/hoge/edthrpnm/MarketData/N255MktSpeedCode.txt',mode='r')
+# f = open('C:/Users/kuby/edthrpnm/MarketData/N255MktSpeedCode.txt',mode='r')
 # relative path
 f = open('../../MarketData/N255MktSpeedCode.txt',mode='r')
 
