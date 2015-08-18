@@ -190,6 +190,15 @@ getStimResultDataFrame <- function (StimRslts,StimultaionNum){
                     Delta=Delta_at_liliquidation,Vega=Vega_at_liliquidation,liqDay=liq_days_))
 }
 
+getGCDComboRatio <- function(combo_ratio){
+  combo_ratio<-as.numeric((sum(combo_ratio%%7)!=0))*combo_ratio+as.numeric((sum(combo_ratio%%7)==0))*combo_ratio/7
+  combo_ratio<-as.numeric((sum(combo_ratio%%5)!=0))*combo_ratio+as.numeric((sum(combo_ratio%%5)==0))*combo_ratio/5
+  combo_ratio<-as.numeric((sum(combo_ratio%%4)!=0))*combo_ratio+as.numeric((sum(combo_ratio%%4)==0))*combo_ratio/4
+  combo_ratio<-as.numeric((sum(combo_ratio%%3)!=0))*combo_ratio+as.numeric((sum(combo_ratio%%3)==0))*combo_ratio/3
+  combo_ratio<-as.numeric((sum(combo_ratio%%2)!=0))*combo_ratio+as.numeric((sum(combo_ratio%%2)==0))*combo_ratio/2
+  return(combo_ratio)
+}
+
 ##
 # write code snap of API to acess IB TWS
 
@@ -204,9 +213,11 @@ writeIbAPITicket <- function(out_text_file,thePosition,sep="$"){
   m_strike<-thePosition$Strike
   m_right<-ifelse(thePosition$TYPE==OpType_Put_G, "P","C")
   buy_sell<-ifelse(thePosition$Position>=0, "BUY","SELL")
-  combo_ratio <- abs(thePosition$Position)
-  limit_price<-900
-  qty<-1
+  combo_ratio_raw <- abs(thePosition$Position)
+  combo_ratio <- getGCDComboRatio(combo_ratio_raw)
+  limit_price<-(-9000)
+  qty<-min(combo_ratio_raw/combo_ratio)
+  
   cat("SymbolTicket = [ ",file=out_text_file,append=T);cat(sprintf("\'%s\'",paste(m_symbol)),sep=sep,file=out_text_file,append=T) ; cat(" ]; ",file=out_text_file,append=T)
   cat("ExpiryTicket = [ ",file=out_text_file,append=T);cat(sprintf("\'%s\'",paste(m_expiry)),sep=sep,file=out_text_file,append=T) ; cat(" ]; ",file=out_text_file,append=T)
   cat("StrikeTicket = [ ",file=out_text_file,append=T); cat(paste(m_strike),sep=sep,file=out_text_file,append=T) ; cat(" ] ; ",file=out_text_file,append=T)
@@ -225,9 +236,11 @@ writeIbAPITicket <- function(out_text_file,thePosition,sep="$"){
     m_strike<-thePosition$Strike
     m_right<-ifelse(thePosition$TYPE==OpType_Put_G, "P","C")
     buy_sell<-ifelse(thePosition$Position>=0, "BUY","SELL")
-    combo_ratio <- abs(thePosition$Position)
-    limit_price<--900
-    qty<-1
+    combo_ratio_raw <- abs(thePosition$Position)
+    combo_ratio <- getGCDComboRatio(combo_ratio_raw)
+    limit_price<-(-9000)
+    qty<-min(combo_ratio_raw/combo_ratio)
+    
     cat("SymbolTicket2 = [ ",file=out_text_file,append=T);cat(sprintf("\'%s\'",paste(m_symbol)),sep=sep,file=out_text_file,append=T) ; cat(" ]; ",file=out_text_file,append=T)
     cat("ExpiryTicket2 = [ ",file=out_text_file,append=T);cat(sprintf("\'%s\'",paste(m_expiry)),sep=sep,file=out_text_file,append=T) ; cat(" ]; ",file=out_text_file,append=T)
     cat("StrikeTicket2 = [ ",file=out_text_file,append=T); cat(paste(m_strike),sep=sep,file=out_text_file,append=T) ; cat(" ] ; ",file=out_text_file,append=T)
