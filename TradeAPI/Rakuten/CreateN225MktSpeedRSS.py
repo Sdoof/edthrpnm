@@ -78,7 +78,7 @@ f.close()
 
 # writing to file
 
-f = open('../../MarketData/oppriceN255.csv',mode='w')
+f = open('../../MarketData/N255MktSpeedMktDataReqTemplate.csv',mode='w')
 f.write('Date'.encode('utf8','ignore')+','+'TYPE'.encode('utf8','ignore')+','+'Strike'.encode('utf8','ignore')+',')
 f.write('ContactName'.encode('utf8','ignore')+','+'UDLY'.encode('utf8','ignore')+','+'Last'.encode('utf8','ignore')+',')
 f.write('Chg'.encode('utf8','ignore')+','+'Bid'.encode('utf8','ignore')+','+'Ask'.encode('utf8','ignore')+',')
