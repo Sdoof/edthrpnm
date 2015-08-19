@@ -85,14 +85,8 @@ f.write('Chg'.encode('utf8','ignore')+','+'Bid'.encode('utf8','ignore')+','+'Ask
 f.write('IV'.encode('utf8','ignore')+','+'ContactName_JP'.encode('utf8','ignore')+','+'ExpDate_Code'.encode('utf8','ignore')+'\n')
 for l in range(len(Strike)):
     f.write(Date[l].encode('utf8','ignore')+','+TYPE[l].encode('utf8','ignore')+','+Strike[l].encode('utf8','ignore')+',')
-<<<<<<< HEAD
     f.write(ContactName[l].encode('utf8','ignore')+','+UDLY[l].encode('utf8','ignore')+','+Last[l].encode('utf8','ignore')+',')
     f.write(Chg[l].encode('utf8','ignore')+','+Bid[l].encode('utf8','ignore')+','+Ask[l].encode('utf8','ignore')+',')
     f.write(IV[l].encode('utf8','ignore')+','+ContactName_JP[l].encode('utf8','ignore')+','+ExpDate_Code[l].encode('utf8','ignore')+'\n')
 f.close()
-=======
-    f.write(ContactName[l].encode('utf8','ignore')+','+UDLY[l].encode('utf8','ignore')+Last[l].encode('utf8','ignore')+',')
-    f.write(Chg[l].encode('utf8','ignore')+','+Bid[l].encode('utf8','ignore')+Ask[l].encode('utf8','ignore')+',')
-    f.write(IV[l].encode('utf8','ignore')+','+ContactName_JP[l].encode('utf8','ignore')+ExpDate_Code[l].encode('utf8','ignore')+'\n')
-f.close()
->>>>>>> 7c24778e324aee05067ad1612f5a0b1e05c9b1d7
+
