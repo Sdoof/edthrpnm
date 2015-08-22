@@ -90,7 +90,8 @@ delete<-delete[-1]
 (delete)
 nrow(opchain)
 nrow(opchain[delete,])
-opchain<-opchain[delete,]
+if(length(delete)>0)
+  opchain<-opchain[delete,]
 nrow(opchain)
 rm(delete,N,i,a)
 
@@ -204,9 +205,9 @@ filterPosition <- function(opchain,HowfarOOM_MIN=0,OOM_Limit_V=c(0.07,0.07)){
   
   #Calender Spread 
   OOM_Limit<-(OOM_Limit_V[1])
-  opchain %>%  dplyr::filter(ExpDate=="2015/9/18") %>% dplyr::filter(HowfarOOM<OOM_Limit)  %>% dplyr::filter((Strike%%10)==0) -> opchain_cal1
+  opchain %>%  dplyr::filter(ExpDate=="2015/9/17") %>% dplyr::filter(HowfarOOM<OOM_Limit)  %>% dplyr::filter((Strike%%10)==0) -> opchain_cal1
   OOM_Limit<-(OOM_Limit_V[2])
-  opchain %>%  dplyr::filter(ExpDate=="2015/10/16") %>% dplyr::filter(HowfarOOM<OOM_Limit)  %>% dplyr::filter((Strike%%10)==0) -> opchain_cal2
+  opchain %>%  dplyr::filter(ExpDate=="2015/10/15") %>% dplyr::filter(HowfarOOM<OOM_Limit)  %>% dplyr::filter((Strike%%10)==0) -> opchain_cal2
   
   #Join
   opchain_cal1 %>%  dplyr::full_join(opchain_cal2) %>% 
@@ -247,4 +248,4 @@ rm(makeOpchainContainer,makePosition,filterPosition)
 rm(ConfigFileName_G,ConfigParameters)
 rm(CALENDAR_G,riskFreeRate_G,divYld_G,OpType_Put_G,OpType_Call_G,TimeToExp_Limit_Closeness_G)
 rm(Underying_Symbol_G,DataFiles_Path_G,ResultFiles_Path_G,ProcessFileName,TargetFileName,isSkewCalc,isNewPosition)
-rm(SkewModel,ATMIV_adj)
+rm(SkewModel)
