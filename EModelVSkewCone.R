@@ -16,7 +16,7 @@ SkewRegressionTimeToExpDateMax<-2.2
 
 #We get regression only past this day. Currently reflected on Skew only.
 #should apply Vcone, etc.
-RegressionDateBackDaysMax<-10
+RegressionDateBackDaysMax<-0
 
 #Calendar
 CALENDAR_G=ConfigParameters["CALENDAR_G",1]
