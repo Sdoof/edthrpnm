@@ -54,7 +54,7 @@ makeOpchainContainer<-function(){
   histPrc_<-data.frame(Date=histPrc_$Date,UDLY=histPrc_$Close)
   
   #remove not used row
-  opch_pr_<-subset(opch_pr_,Volume!=0)
+  #opch_pr_<-subset(opch_pr_,Volume!=0)
   opch_pr2<-merge(opch_pr_,histPrc_,all.x=T)
   opch_pr_<-opch_pr2;
   
