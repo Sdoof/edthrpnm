@@ -38,7 +38,7 @@ IVCF5dCtC<-IVCFndCtC(iv=histIV_$Close,n=5)
 
 ##Regression : n day price move(price chg% plus SD(IV)) to IV change fcation(%)
 #Regression from start_day_ ago to num_day_ business days
-start_day_<-1;num_day_<-400
+start_day_<-1;num_day_<-250
 
 ##3d
 PC3dCtC<-histPrc_$PC3dCtC[start_day_:(start_day_+num_day_)]
