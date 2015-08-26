@@ -3,7 +3,7 @@ library(RQuantLib)
 library(ggplot2)
 
 #evaluated position or set evaPos manually by copy&paste csv value
-evaPos<-c(0,0,0,0,0,0,0,0)
+evaPos<-c()
 
 #UDLY draw limit. given absolute % value
 UDLY_DrawRange<-0.08
@@ -130,7 +130,7 @@ posStepDays<-data.frame(days=evaldays)
 
 #Set data frames as a row value of another data frame.
 posStepDays %>% group_by(days) %>%
-  do(scene=createPositionEvalTable(position=thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,days=stepdays,
+  do(scene=createPositionEvalTable(position=thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,
                                    multi=PosMultip,hdd=holdDays,HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio)) -> posStepDays
 posStepDays_vc<-posStepDays
 #We must adjust each position values
