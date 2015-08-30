@@ -229,7 +229,7 @@ system(st) ;rm(st)
 #combined population serach
 if(Combined_Spread){
   #creating candidate pool for combined search
-  tmp<-read.table(paste(ResultFiles_Path_G,"1Cb.csv",sep=""),header=F,skipNul=TRUE,sep=",")
+  tmp<-read.table(paste(ResultFiles_Path_G,"1Cb.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
   tmp %>% dplyr::arrange(tmp[,(length(iniPos)+1)]) %>% dplyr::distinct() -> tmp
   tmp %>% arrange(.[,length(iniPos)+1]) %>% head(TopN_1) -> tmp
   pools<-list(list(c(1,0,0),tmp)) #No.[[1]]
@@ -254,7 +254,7 @@ if(Combined_Spread){
   ### 3(exact x exact x exact) Combinations (3Cb)
   
   #adjust combined candidate population considering combinational explostion
-  tmp<-read.table(paste(ResultFiles_Path_G,"1Cb.csv",sep=""),header=F,skipNul=TRUE,sep=",")
+  tmp<-read.table(paste(ResultFiles_Path_G,"1Cb.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
   tmp %>% dplyr::arrange(tmp[,(length(iniPos)+1)]) %>% dplyr::distinct() -> tmp
   tmp %>% arrange(.[,length(iniPos)+1]) %>% head(TopN_2) -> tmp
   
@@ -315,7 +315,7 @@ getPutCallnOfthePosition<-function(x){
 
 ##
 # Exact (1Cb)
-res1<-read.table(paste(ResultFiles_Path_G,"1Cb.csv",sep=""),header=F,skipNul=TRUE,sep=",")
+res1<-read.table(paste(ResultFiles_Path_G,"1Cb.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
 res1 %>% dplyr::arrange(res1[,(length(iniPos)+1)]) %>% dplyr::distinct() -> res1
 #over the specified socre
 res1 %>% filter(.[,length(iniPos)+1]<Thresh_Score1) -> res1
@@ -328,7 +328,7 @@ res1 -> total_res ; rm(res1)
 if(Combined_Spread){
   ##
   # 2Cb
-  res1<-read.table(paste(ResultFiles_Path_G,"2Cb.csv",sep=""),header=F,skipNul=TRUE,sep=",")
+  res1<-read.table(paste(ResultFiles_Path_G,"2Cb.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep="",sep=",")
   res1 %>% dplyr::arrange(res1[,(length(iniPos)+1)]) %>% dplyr::distinct() -> res1
   res1 %>% select(0:length(iniPos)+1) -> res1
   #over the specified socre
@@ -344,7 +344,7 @@ if(Combined_Spread){
   
   ##
   #  3Cb
-  res1<-read.table(paste(ResultFiles_Path_G,"3Cb.csv",sep=""),header=F,skipNul=TRUE,sep=",")
+  res1<-read.table(paste(ResultFiles_Path_G,"3Cb.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
   res1 %>% dplyr::arrange(res1[,(length(iniPos)+1)]) %>% dplyr::distinct() -> res1
   res1 %>% select(0:length(iniPos)+1) -> res1
   #over the specified socre
@@ -368,7 +368,7 @@ if(Combined_Spread){
 
 ##Historical Implied Volatility Data
 rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_IV.csv",sep="")
-histIV<-read.table(rf,header=T,sep=",",nrows=1000);rm(rf)
+histIV<-read.table(rf,header=T,sep=",",stringsAsFactors=F,nrows=800);rm(rf)
 #filtering
 histIV %>% dplyr::transmute(Date=Date,IVIDX=Close/100) -> histIV
 histIV %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")<=max(as.Date(opchain$Date,format="%Y/%m/%d"))) %>%
