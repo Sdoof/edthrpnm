@@ -156,7 +156,6 @@ atmiv$ATMIV<-ATMIV_adj
 #rm(SkewModel)
 rm(models,vplot,predict.c)
 
-
 ##
 # Volatility Cone and ATMIV%Chg/IVIDX%Chg Analysis and Regression.  --------------
 
@@ -187,7 +186,7 @@ makeVconAnalDF<- function(atmiv){
 #Thay can also be set as a data frame member. 
 #     note . referes to each grouped partial data frame.
 atmiv %>% group_by(ExpDate,TYPE) %>% do(EachDF=makeVconAnalDF(.)) -> atmiv.vcone.anal
-atmiv.vcone.anal %>% dplyr::arrange(desc(TYPE),ExpDate) -> atmiv.vcone.anal
+atmiv.vcone.anal %>% dplyr::arrange(desc(TYPE),as.Date(ExpDate,format="%Y/%m/%d")) -> atmiv.vcone.anal
 atmiv.vcone.eachDF<-atmiv.vcone.anal$EachDF
 atmiv.vcone.bind<-NULL
 for(i in 1:length(atmiv.vcone.eachDF)){
@@ -197,9 +196,7 @@ for(i in 1:length(atmiv.vcone.eachDF)){
   else{
     atmiv.vcone.bind<-rbind(atmiv.vcone.bind,as.data.frame(atmiv.vcone.eachDF[i]))
   }
-  
 }
-
 #atmiv.vcone.anal: from nested data.frame to data.frame: type changed.
 atmiv.vcone.anal<-NULL
 atmiv.vcone.anal<-atmiv.vcone.bind
@@ -211,6 +208,7 @@ rm(i,atmiv.vcone.eachDF,atmiv.vcone.bind)
 #  Put Vcone IV is normalized 
 #Creating vcone.
 vcone<-make.vcone.df(atmiv=atmiv,type=1)
+vcone %>% arrange(Month) -> vcone
 (ggplot(vcone,aes(x=Month,y=IV2IDX.nm,colour=TYPE))+geom_point())
 # Regression of PUT vcone
 #   5.smooth spline
@@ -221,9 +219,7 @@ model.ss<-smooth.spline(vcone$Month,vcone$IV2IDX.nm,df=3)
    geom_line(data=data.frame(Month=predict.c$x,IV2IDX.nm=predict.c$y,TYPE=OpType_Put_G),aes(Month,IV2IDX.nm)))
 
 save.VCone(model=model.ss,optype=OpType_Put_G)
-
 rm(vcone,predict.c,model.ss)
-
 #  Call VCone IV is normalized 
 #Creating vcone.
 vcone<-make.vcone.df(atmiv=atmiv,type=-1)
@@ -242,10 +238,9 @@ load.VCone(optype=OpType_Put_G)
 PutVCone
 load.VCone(optype=OpType_Call_G)
 CallVCone
+
 rm(PutVCone,CallVCone)
-
 rm(vcone,predict.c,model.ss)
-
 ##
 #  Regression of ATM IV Volatility Change to IVIDX as to Time -------
 
@@ -284,7 +279,7 @@ rm(vchg,vchg_mns,vchg_plus,model.ss,predict.c)
 
 #  Call IV Change to IVIDX Up and Down 
 #Up and Down Changes
-vchg<-make.vchg.df(vcone=atmiv.vcone.anal,type=-1)
+  vchg<-make.vchg.df(vcone=atmiv.vcone.anal,type=-1)
 (ggplot(vchg,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point())
 vchg %>% filter(IVIDX.f>=1.0) -> vchg_plus
 (ggplot(vchg_plus,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point())
@@ -325,8 +320,7 @@ rm(vchg,vchg_mns,vchg_plus,model.ss,predict.c)
 
 #Writing to a file
 wf_<-paste(DataFiles_Path_G,Underying_Symbol_G,OpchainOutFileName,sep="")
-write.table(opch,wf_,quote=T,row.names=F,sep=",")
-rm(wf_)
+write.table(opch,wf_,quote=T,row.names=F,sep=",") ; rm(wf_)
 
 rm(atmiv.vcone.anal,atmiv,displace,opch,getNmlzdSkewVplot)
 rm(ConfigFileName_G,ConfigParameters,SkewRegressionTimeToExpDateMax,SkewRegressionTimeToExpDateMin)
