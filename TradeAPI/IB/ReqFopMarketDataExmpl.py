@@ -14,7 +14,6 @@ contractDetail = None
 contractRestoreList = None
 orderIdMktReqContractDict = None
 
-
 # -- message handlers  ---------------------------------------------------------
 def MessageHandler(msg):
     print msg
@@ -72,79 +71,6 @@ def makeOptContract(sym, exp, strike, right):
     newOptContract.m_exchange = "SMART"
     newOptContract.m_currency = "USD"
     return newOptContract
-
-
-def makeComboLeg(conId, action, ratio):
-    newComboLeg = ComboLeg()
-    newComboLeg.m_conId = conId
-    newComboLeg.m_ratio = ratio
-    newComboLeg.m_action = action
-    newComboLeg.m_exchange = "SMART"
-    newComboLeg.m_openClose = 0
-    newComboLeg.m_shortSaleSlot = 0
-    newComboLeg.m_designatedLocation = ""
-    return newComboLeg
-
-
-def makeBagContract(legs):
-    newBagContract = Contract()
-    newBagContract.m_symbol = "USD"
-    newBagContract.m_secType = "BAG"
-    newBagContract.m_exchange = "SMART"
-    newBagContract.m_currency = "USD"
-    newBagContract.m_comboLegs = legs
-    return newBagContract
-
-
-def makeOrder(action, qty, price):
-    newOrder = Order()
-    newOrder.m_action = action
-    newOrder.m_totalQuantity = qty
-    newOrder.m_orderType = "LMT"
-    newOrder.m_lmtPrice = price
-    newOrder.m_tif = ''
-    newOrder.m_parentId = 0
-    newOrder.m_discretionaryAmt = 0
-    newOrder.m_transmit = False
-    return newOrder
-
-
-def placeSpreadOrder(Leg, BuySell, ComboRatio, LimitPrice, QTY):
-    global contractDetail, con, nextOrderId
-    LegContract = None
-
-    for legitem in range(len(Leg)):
-        theOrderId = nextOrderId
-        con.reqContractDetails(theOrderId, Leg[legitem])
-        print('ContactDetal requested ' + str(theOrderId))
-        # wait for TWS message to come back to message handler
-        raw_input('wait for contractDetail')
-        if LegContract:
-            LegContract.append(contractDetail.m_summary)
-        else:
-            LegContract = [contractDetail.m_summary]
-        print("=> [{0} ({1})] Call/Put: {2} Strike: {3} Expiration: {4}".format(
-            LegContract[legitem].m_localSymbol, LegContract[legitem].m_conId,
-            LegContract[legitem].m_right, LegContract[legitem].m_strike, LegContract[legitem].m_expiry))
-        Leg[legitem].m_conId = LegContract[legitem].m_conId
-        raw_input('press any to continue conId: ' + str(Leg[legitem].m_conId))
-    raw_input('now instantiate each leg press to continue')
-    # instantiate each leg
-    LegsList = None
-    for legitem in range(len(Leg)):
-        if LegsList:
-            LegsList.append(makeComboLeg(Leg[legitem].m_conId, BuySell[legitem], ComboRatio[legitem]))
-        else:
-            LegsList = [makeComboLeg(Leg[legitem].m_conId, BuySell[legitem], ComboRatio[legitem])]
-    # build a bag with these legs
-    BagContract = makeBagContract(LegsList)
-    # combination legs
-    comboOrder = makeOrder(action="BUY", qty=QTY, price=LimitPrice)
-    # place order
-    nextOrderId = nextOrderId + 1
-    theOrderId = nextOrderId
-    con.placeOrder(theOrderId, BagContract, comboOrder)
-    print('bag contract order placed ' + str(theOrderId))
 
 # -- main  ---------------------------------------------------------------------
 # First Leg
