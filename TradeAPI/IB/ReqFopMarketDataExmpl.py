@@ -1,7 +1,5 @@
 # coding: utf-8
-from ib.ext.Order import Order
 from ib.ext.Contract import Contract
-from ib.ext.ComboLeg import ComboLeg
 from ib.opt import Connection
 from time import sleep
 
@@ -18,7 +16,6 @@ orderIdMktReqContractDict = None
 def MessageHandler(msg):
     print msg
 
-
 def ErrorHandler(msg):
     print(str(msg))
 
@@ -34,7 +31,6 @@ def ContractDetailsHandler(msg):
     print(str(msg))
     contractDetail = msg.contractDetails
 
-
 def MultiContractDetailsHandler(msg):
     global contractRestoreList
     theContractdetail = msg.contractDetails
@@ -46,7 +42,6 @@ def MultiContractDetailsHandler(msg):
         contractRestoreList.append(theContract)
     else:
         contractRestoreList = [theContract]
-
 
 def OrderStatusHandler(msg):
     print(str(msg))
@@ -72,8 +67,29 @@ def makeOptContract(sym, exp, strike, right):
     newOptContract.m_currency = "USD"
     return newOptContract
 
+def makeFxFutContract(sym, exp, multip):
+    newFutContract = Contract()
+    newFutContract.m_symbol = sym
+    newFutContract.m_secType = "FUT"
+    newFutContract.m_expiry = exp
+    newFutContract.m_multiplier = multip
+    newFutContract.m_exchange = "GLOBEX"
+    newFutContract.m_currency = "USD"
+    return newFutContract
+
+def makeFxFutOptContract(sym, exp, strike, right, multip):
+    newOptContract = Contract()
+    newOptContract.m_symbol = sym
+    newOptContract.m_secType = "FOP"
+    newOptContract.m_expiry = exp
+    newOptContract.m_strike = strike
+    newOptContract.m_right = right
+    newOptContract.m_multiplier = multip
+    newOptContract.m_exchange = "GLOBEX"
+    newOptContract.m_currency = "USD"
+    return newOptContract
+
 # -- main  ---------------------------------------------------------------------
-# First Leg
 
 if __name__ == '__main__':
     # Server Access
@@ -92,20 +108,18 @@ if __name__ == '__main__':
     con.reqIds(1)
 
     # Retrieve Option Chain Contract
-    raw_input('getting data retrieval press any to continue')
+    raw_input('getting Fx Future Option Contract press any to continue')
 
-    # option chain contract
-    # opchainContract = makeOptContract(sym='SPX', exp='201509', strike='', right='')
-
-    # just one contract
-    opchainContract = makeOptContract(sym='SPX', exp='20150917', strike='2000', right='P')
+    # Fx Futre Option Contract
+    fxFutOpContract = makeFxFutOptContract(sym='AUD', exp='20151009', strike='', right='C', multip=100000)
     nextOrderId = nextOrderId + 1
     theOrderId = nextOrderId
-    con.reqContractDetails(theOrderId, opchainContract)
+    con.reqContractDetails(theOrderId, fxFutOpContract)
     raw_input('wait for contractDetail')
     print('conId %s' % (contractRestoreList[0].m_conId))
 
     # Request Data
+    raw_input('requesting Fx Futre Option  press any to continue')
     nextOrderId = nextOrderId + 1
     theOrderId = nextOrderId
     # In the case of snapshot, no need to store orderId to the Dict?
