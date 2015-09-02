@@ -111,7 +111,7 @@ get.predicted.skew<-function(models,regtype=1,xmin=-2.0,xmax=1.5,x_by=0.01){
 # monesness and retuned values are Vectorized.
 get.predicted.spline.skew<-function(models,moneyness){
   skew_nm<-as.numeric(moneyness<=0)*predict(models$model.m,x=moneyness)$y
-  skew_nm<-skew_nm + as.numeric(moneyness>0)*predict(models$model.m,x=moneyness)$y
+  skew_nm<-skew_nm + as.numeric(moneyness>0)*predict(models$model.p,x=moneyness)$y
   skew_nm
 }
 
@@ -145,16 +145,17 @@ get.skew.regression.Models<-function(vplot,regtype=1,moneyness_adjust=0.1,atm_ad
   models
 }
 
-save.Skew<- function(models){
-  reg_saved_fn<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Skew",sep="")
+save.Skew<- function(models,pattern=""){
+  reg_saved_fn<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Skew",pattern,sep="")
   save(models,file=reg_saved_fn)
 }
 
-load.Skew<- function() {
+load.Skew<- function(pattern="") {
   #load file name.
-  reg_load_fn<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Skew",sep="")
+  reg_load_fn<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Skew",pattern,sep="")
   load(reg_load_fn)
-  assign("SkewModel",models,env=.GlobalEnv)
+  #assign("SkewModel",models,env=.GlobalEnv)
+  assign(paste("SkewModel", pattern, sep=""),models,env=.GlobalEnv)
 }
 
 # ATM IV Volatility Change to IVIDX as to Time 

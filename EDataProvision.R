@@ -176,6 +176,10 @@ makePosition <- function(opch){
   if(isSkewCalc==FALSE){
     load.Skew()
     SkewModel
+    #load.Skew("_Put")
+    #SkewModel_Put
+    #load.Skew(pattern="_Call")
+    #SkewModel_Call
     ATMIV_adj<-adjustATMIV(atmiv)
     atmiv$ATMIV<-ATMIV_adj
   }
@@ -196,7 +200,7 @@ makePosition <- function(opch){
   return(opchain)
 }
 
-filterPosition <- function(opchain,HowfarOOM_MIN=0,OOM_Limit_V=c(0.07,0.07)){
+filterPosition <- function(opchain,HowfarOOM_MIN=-0.5,OOM_Limit_V=c(0.08,0.08)){
   ##
   #  Filter Target Ranges
   

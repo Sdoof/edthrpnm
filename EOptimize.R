@@ -124,6 +124,10 @@ load.PC2IV(PC="PC1dCtC",IVC="IVCF1dCtC")
 PC1dCtC_IVCF1dCtC
 load.Skew()
 SkewModel
+load.Skew("_Put")
+SkewModel_Put
+load.Skew("_Call")
+SkewModel_Call
 load.VCone(optype=OpType_Put_G)
 PutVCone
 load.VCone(optype=OpType_Call_G)

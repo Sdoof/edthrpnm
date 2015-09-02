@@ -3,10 +3,13 @@ library(RQuantLib)
 library(ggplot2)
 
 #evaluated position or set evaPos manually by copy&paste csv value
-evaPos<-c(0,0,0,0,0,0,0,-1,2,0,-1,0,0,0,0,0,0,0,0,0,0,0)
+evaPos<-c(0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,-1)
 
 #UDLY draw limit. given absolute % value
 UDLY_DrawRange<-0.08
+
+#Show Graph of Delta Headged Position
+ShowDeltaHedge=TRUE
 
 #Config File
 ConfigFileName_G="ConfigParameters.csv"
@@ -141,21 +144,7 @@ unlist(tmp$days) -> posStepDays$days ; tmp$scene2 -> posStepDays$scene ;rm(tmp)
 #Now drawing
 drawGrktbl<-createAgrregatedGreekTbl(posStepDays,thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,multi=PosMultip,iniCredit=iniCredit)
 
-##Delta Hedge Effect
-if(FALSE){
-  drawGrktbl_DltHgd<-drawGrktbl
-  #initial Delta
-  iniDelta<-getPosGreeks(pos=thePosition$Position,greek=thePosition$Delta,multi=PosMultip)
-  #new Profit
-  drawGrktbl_DltHgd$profit<-drawGrktbl_DltHgd$profit-as.numeric(iniDelta)*(drawGrktbl_DltHgd$UDLY-mean(thePosition$UDLY))
-  #new DeltaEffect
-   #temporal. you shoud get IVIX and calculte #expPriceChange<-mean(UDLY*(exp(ividx_td*sqrt(hdd/365))-1))
-  expPriceChange<-as.numeric(drawGrktbl_DltHgd$Delta!=0)*drawGrktbl_DltHgd$DeltaEffect/(-abs(drawGrktbl_DltHgd$Delta))
-  drawGrktbl_DltHgd$DeltaEffect<-drawGrktbl_DltHgd$DeltaEffect-as.numeric(iniDelta)*expPriceChange
-  rm(expPriceChange)
-  #new delta
-  drawGrktbl_DltHgd$Delta<-drawGrktbl_DltHgd$Delta-as.numeric(iniDelta)
-}
+
 #Effect Aggregation
 drawGrktbl %>% dplyr::mutate(TotalEffect=ThetaEffect+DeltaEffect+GammaEffect+VegaEffect) -> drawGrktbl
 drawGrktbl %>% dplyr::mutate(NdEffect=ThetaEffect+GammaEffect) -> drawGrktbl
@@ -181,6 +170,39 @@ gg<-ggplot(drawGrktbl,aes(x=UDLY,y=profit,group=day))
     min(c(min(drawGrktbl$ThetaEffect),min(drawGrktbl$DeltaEffect),min(drawGrktbl$GammaEffect),min(drawGrktbl$VegaEffect),min(drawGrktbl$profit))),
     max(c(max(drawGrktbl$ThetaEffect),max(drawGrktbl$DeltaEffect),max(drawGrktbl$GammaEffect),max(drawGrktbl$VegaEffect),max(drawGrktbl$profit))))
 )
+
+##Delta Hedge Effect
+
+if(ShowDeltaHedge){
+  drawGrktbl_DltHgd<-drawGrktbl
+  #initial Delta
+  iniDelta<-getPosGreeks(pos=thePosition$Position,greek=thePosition$Delta,multi=PosMultip)
+  #new Profit
+  drawGrktbl_DltHgd$profit<-drawGrktbl_DltHgd$profit-as.numeric(iniDelta)*(drawGrktbl_DltHgd$UDLY-mean(thePosition$UDLY))
+  #new DeltaEffect
+  #temporal. you shoud get IVIX and calculte #expPriceChange<-mean(UDLY*(exp(ividx_td*sqrt(hdd/365))-1))
+  expPriceChange<-as.numeric(drawGrktbl_DltHgd$Delta!=0)*drawGrktbl_DltHgd$DeltaEffect/(-abs(drawGrktbl_DltHgd$Delta))
+  drawGrktbl_DltHgd$DeltaEffect<-drawGrktbl_DltHgd$DeltaEffect-as.numeric(iniDelta)*expPriceChange
+  rm(expPriceChange)
+  #new delta
+  drawGrktbl_DltHgd$Delta<-drawGrktbl_DltHgd$Delta-as.numeric(iniDelta)
+  
+  gg<-ggplot(drawGrktbl_DltHgd,aes(x=UDLY,y=profit,group=day))
+  (
+  gg
+  +geom_line(size=0.9-0.01*round(drawGrktbl_DltHgd$day/stepdays),linetype=round(drawGrktbl_DltHgd$day/stepdays))
+  #+geom_line(x=drawGrktbl_DltHgd$UDLY,y=drawGrktbl_DltHgd$DeltaEffect,colour="blue",size=0.9-0.01*round(drawGrktbl_DltHgd$day/stepdays),linetype=round(drawGrktbl_DltHgd$day/stepdays))
+  +geom_line(x=drawGrktbl_DltHgd$UDLY,y=drawGrktbl_DltHgd$GammaEffect,colour="red",size=0.9-0.01*round(drawGrktbl_DltHgd$day/stepdays),group=drawGrktbl_DltHgd$day,linetype=round(drawGrktbl_DltHgd$day/stepdays))
+  #+geom_line(x=drawGrktbl_DltHgd$UDLY,y=drawGrktbl_DltHgd$VegaEffect,colour="green",size=0.9-0.01*round(drawGrktbl_DltHgd$day/stepdays),group=drawGrktbl_DltHgd$day,linetype=round(drawGrktbl_DltHgd$day/stepdays))
+  +geom_line(x=drawGrktbl_DltHgd$UDLY,y=drawGrktbl_DltHgd$ThetaEffect,colour="orange",size=0.9-0.01*round(drawGrktbl_DltHgd$day/stepdays),group=drawGrktbl_DltHgd$day,linetype=round(drawGrktbl_DltHgd$day/stepdays))
+  +geom_point(x=thePositonGrks$UDLY,y=0,size=4.0,colour="black")
+  #+geom_point(x=thePositonGrks$UDLY,y=thePositonGrks$DeltaEffect,size=4.0,colour="blue")+geom_point(x=thePositonGrks$UDLY,y=thePositonGrks$VegaEffect,size=4.0,colour="green")
+  +geom_point(x=thePositonGrks$UDLY,y=thePositonGrks$GammaEffect,size=4.0,colour="red")+geom_point(x=thePositonGrks$UDLY,y=thePositonGrks$ThetaEffect,size=4.0,colour="orange")
+  +ylim(
+    min(c(min(drawGrktbl_DltHgd$ThetaEffect),min(drawGrktbl_DltHgd$DeltaEffect),min(drawGrktbl_DltHgd$GammaEffect),min(drawGrktbl_DltHgd$VegaEffect),min(drawGrktbl_DltHgd$profit))),
+    max(c(max(drawGrktbl_DltHgd$ThetaEffect),max(drawGrktbl_DltHgd$DeltaEffect),max(drawGrktbl_DltHgd$GammaEffect),max(drawGrktbl_DltHgd$VegaEffect),max(drawGrktbl_DltHgd$profit))))
+  )
+}
 
 #Profit + Directional + Non Didectional(Intrinsic Advantageous) + Total Effect Graph
 # gg<-ggplot(drawGrktbl,aes(x=UDLY,y=profit,group=day))

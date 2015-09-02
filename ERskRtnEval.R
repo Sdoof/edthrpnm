@@ -465,9 +465,10 @@ reflectPosChg<- function(process_df,days,IV_DEVIATION=0){
   pos$Moneyness.Frac<-NULL
   
   #calculate IV_pos(OrigIV) using SkewModel based on model definition formula.
-  get.predicted.spline.skew(SkewModel,pos$Moneyness.Nm)
-  pos$ATMIV*get.predicted.spline.skew(SkewModel,pos$Moneyness.Nm)
-  pos$OrigIV<-pos$ATMIV*get.predicted.spline.skew(SkewModel,pos$Moneyness.Nm)
+  spskew<-(pos$TYPE==OpType_Put_G)*get.predicted.spline.skew(SkewModel_Put,pos$Moneyness.Nm)+
+    (pos$TYPE==OpType_Call_G)*get.predicted.spline.skew(SkewModel_Call,pos$Moneyness.Nm)
+  pos$ATMIV*spskew
+  pos$OrigIV<-pos$ATMIV*spskew
   
   IV_deviation<-rnorm(n=length(pos$OrigIV),mean=0,sd=IV_DEVIATION)
   pos$OrigIV<-pos$OrigIV*(1+IV_deviation)
@@ -903,9 +904,10 @@ adjustPosChgInner<-function(process_df,time_advcd, base_vol_chg=0){
   pos$Moneyness.Frac<-NULL
   
   #calculate IV_pos(OrigIV) using SkewModel based on model definition formula.
-  get.predicted.spline.skew(SkewModel,pos$Moneyness.Nm)
-  pos$ATMIV*get.predicted.spline.skew(SkewModel,pos$Moneyness.Nm)
-  pos$OrigIV<-pos$ATMIV*get.predicted.spline.skew(SkewModel,pos$Moneyness.Nm)
+  spskew<-(pos$TYPE==OpType_Put_G)*get.predicted.spline.skew(SkewModel_Put,pos$Moneyness.Nm)+
+    (pos$TYPE==OpType_Call_G)*get.predicted.spline.skew(SkewModel_Call,pos$Moneyness.Nm)
+  pos$ATMIV*spskew
+  pos$OrigIV<-pos$ATMIV*spskew
   
   #calculate pption price and thier greeks
   vgreeks<-set.EuropeanOptionValueGreeks(pos)

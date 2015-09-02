@@ -16,7 +16,7 @@ SkewRegressionTimeToExpDateMax<-2.2
 
 #We get regression only past this day. Currently reflected on Skew only.
 #should apply Vcone, etc.
-RegressionDateBackDaysMax<-0
+RegressionDateBackDaysMax<-1
 
 #Calendar
 CALENDAR_G=ConfigParameters["CALENDAR_G",1]
@@ -111,10 +111,10 @@ opch$Moneyness.Nm<-log(opch$Moneyness.Frac)/opch$ATMIV/sqrt(opch$TimeToExpDate)-
 # Volatility Skew Regression 
 
 # Nmlzd Skew
-getNmlzdSkewVplot<-function(){
+getNmlzdSkewMoneynessVplot<-function(oom_lim){
   #Complete Opchain. Using OOM options. By Call-Put parity, ITM IV is supposed to be the same as OOM IV.
   opch %>% dplyr::filter(OrigIV/ATMIV<5.0) %>% dplyr::filter(OrigIV/ATMIV>0.1) %>%
-    dplyr::filter(HowfarOOM>=0) %>% dplyr::filter(TimeToExpDate>TimeToExp_Limit_Closeness_G) -> vplot
+    dplyr::filter(HowfarOOM>=oom_lim) %>% dplyr::filter(TimeToExpDate>TimeToExp_Limit_Closeness_G) -> vplot
   #filter by TimeToExpDate
   vplot %>% dplyr::filter(TimeToExpDate<=SkewRegressionTimeToExpDateMax) %>% dplyr::filter(TimeToExpDate>=SkewRegressionTimeToExpDateMin) -> vplot
   #filter by recent data. Take only past RegressionDateBackDaysMax dats
@@ -123,9 +123,71 @@ getNmlzdSkewVplot<-function(){
   return(vplot)
 }
 
-vplot<-getNmlzdSkewVplot()
+getNmlzdSkewTypEVplot<-function(op_right){
+  #Complete Opchain. Using OOM options. By Call-Put parity, ITM IV is supposed to be the same as OOM IV.
+  opch %>% dplyr::filter(OrigIV/ATMIV<5.0) %>% dplyr::filter(OrigIV/ATMIV>0.1) %>%
+    dplyr::filter(TYPE==op_right) %>% dplyr::filter(TimeToExpDate>TimeToExp_Limit_Closeness_G) -> vplot
+  #filter by TimeToExpDate
+  vplot %>% dplyr::filter(TimeToExpDate<=SkewRegressionTimeToExpDateMax) %>% dplyr::filter(TimeToExpDate>=SkewRegressionTimeToExpDateMin) -> vplot
+  #filter by recent data. Take only past RegressionDateBackDaysMax dats
+  vplot %>% filter(as.Date(Date,format="%Y/%m/%d")>= max(as.Date(Date,format="%Y/%m/%d"))-RegressionDateBackDaysMax) -> vplot
+  
+  return(vplot)
+}
+
+#Only OOM for Put/Call
+vplot<-getNmlzdSkewMoneynessVplot(0)
 (ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV),size=TimeToExpDate/2,colour=Date))+geom_point(alpha=0.2))
 (ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV)))+geom_point(alpha=0.2))
+#smooth splines
+models <- (get.skew.regression.Models(vplot,regtype=5,df=7))
+get.predicted.skew(models,regtype=5,xmin=-1,x_by=0)
+(predict.c<-get.predicted.skew(models,regtype=5,xmin=-2.0,xmax=1.5))
+(ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV)))+geom_point(alpha=0.2)+
+  geom_line(data=data.frame(Moneyness.Nm=predict.c$x,IV2ATMIV=predict.c$y),aes(Moneyness.Nm,IV2ATMIV),color="red"))
+#save and load model
+save.Skew(models)
+#load test
+load.Skew()
+SkewModel
+
+#Only Put
+vplot<-getNmlzdSkewTypEVplot(op_right=OpType_Put_G)
+(ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV),size=TimeToExpDate/2,colour=Date))+geom_point(alpha=0.2))
+(ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV)))+geom_point(alpha=0.2))
+models <- (get.skew.regression.Models(vplot,regtype=5,df=7))
+#smooth spline
+get.predicted.skew(models,regtype=5,xmin=-1,x_by=0)
+(predict.c<-get.predicted.skew(models,regtype=5,xmin=-2.0,xmax=1.5))
+(ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV)))+geom_point(alpha=0.2)+
+  geom_line(data=data.frame(Moneyness.Nm=predict.c$x,IV2ATMIV=predict.c$y),aes(Moneyness.Nm,IV2ATMIV),color="red"))
+#save and load model
+save.Skew(models,"_Put")
+#load test
+load.Skew(pattern="_Put")
+SkewModel_Put
+
+#Only Call
+vplot<-getNmlzdSkewTypEVplot(op_right=OpType_Call_G)
+(ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV),size=TimeToExpDate/2,colour=Date))+geom_point(alpha=0.2))
+(ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV)))+geom_point(alpha=0.2))
+#smooth spline
+models <- (get.skew.regression.Models(vplot,regtype=5,df=7))
+get.predicted.skew(models,regtype=5,xmin=-1,x_by=0)
+(predict.c<-get.predicted.skew(models,regtype=5,xmin=-2.0,xmax=1.5))
+(ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV)))+geom_point(alpha=0.2)+
+  geom_line(data=data.frame(Moneyness.Nm=predict.c$x,IV2ATMIV=predict.c$y),aes(Moneyness.Nm,IV2ATMIV),color="red"))
+#save and load model
+save.Skew(models,"_Call")
+#load test
+load.Skew(pattern="_Call")
+SkewModel_Call
+
+#All moneyness Put/Call combined. just for info
+vplot<-getNmlzdSkewMoneynessVplot(-3)
+(ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV),size=TimeToExpDate/2,colour=TYPE))+geom_point(alpha=0.2))
+(ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV)))+geom_point(alpha=0.2))
+
 models <- (get.skew.regression.Models(vplot,regtype=5,df=7))
 
 #5. (regtype) smooth splines
@@ -133,12 +195,6 @@ get.predicted.skew(models,regtype=5,xmin=-1,x_by=0)
 (predict.c<-get.predicted.skew(models,regtype=5,xmin=-2.0,xmax=1.5))
 (ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV)))+geom_point(alpha=0.2)+
    geom_line(data=data.frame(Moneyness.Nm=predict.c$x,IV2ATMIV=predict.c$y),aes(Moneyness.Nm,IV2ATMIV),color="red"))
-
-#Optimize Moneyness.Nm using just merged ATMIV
-save.Skew(models)
-#load test
-load.Skew()
-SkewModel
 
 #using SkewModel, adjust ATMIV to reflect the differnce between Strike and UDLY
 adjustATMIV <- function(atmiv){
