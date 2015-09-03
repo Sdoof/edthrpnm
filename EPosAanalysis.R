@@ -3,7 +3,7 @@ library(RQuantLib)
 library(ggplot2)
 
 #evaluated position or set evaPos manually by copy&paste csv value
-evaPos<-c(0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,-1)
+evaPos<-c(1,0,0,0,0,0,-1,0,0,0,0,0,0,0,0)
 
 #UDLY draw limit. given absolute % value
 UDLY_DrawRange<-0.08
@@ -111,9 +111,9 @@ if(evaldays[length(evaldays)]==min(get.busdays.between(opchain$Date,opchain$ExpD
     evaldays[length(evaldays)]<-evaldays[length(evaldays)]-1
   }
 }else if(evaldays[length(evaldays)]<MAX_DAY) {
-  evaldays[length(evaldays)+1]<-MAX_DAY
+  evaldays[length(evaldays)+1]<-max_days
 }
-rm(max_days)
+
 
 #read analyzed positon. here we give by copy and paste
 pos_anlys<-evaPos
