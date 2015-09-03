@@ -49,14 +49,13 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   
   ##
   # Constraint 4. ThetaEffect. This should be soft constraint
-  #   if(Setting$ThetaEffectPositive){
-  #     theta_ttl<-thePositionGrk$ThetaEffect+sum(posEvalTbl$ThetaEffect*weight)
-  #     penalty4<-(1)
-  #     if(isDetail){cat(" :thta_ttl",theta_ttl)}
-  #     if(isDetail){cat(" :thta_ini",thePositionGrk$ThetaEffect);cat(" :thta_wt",sum(posEvalTbl$ThetaEffect*weight))}
-  #     if(theta_ttl<0)
-  #       return(unacceptableVal)
-  #   }
+  if(Setting$ThetaEffectPositive){
+    theta_ttl<-sum(posEvalTbl$Theta*weight)
+    if(isDetail){cat(" :thta_ttl",theta_ttl)}
+    if(isDetail){cat(" :thta_ini",thePositionGrk$ThetaEffect);cat(" :thta_wt",sum(posEvalTbl$ThetaEffect*weight))}
+    if(theta_ttl<0)
+      return(unacceptableVal)
+  }
   
   ##
   # Profit
@@ -109,7 +108,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   #theVega<-sum(posEvalTbl$Vega*weight)
   #theVegaEfct<-sum(posEvalTbl$VegaEffect*weight)
   
-  ##Delta_Neutral_Offset
+  ##Vega_Neutral_Offset
   expIVChange<-posEvalTbl$IVIDX*(exp(annuual.daily.volatility(histIV$IVIDX)$daily*sqrt(Setting$holdDays))-1)*100
   Vega_revised_offset<-posEvalTbl$Vega-Vega_Neutral_Offset
   Vega_Effect_revised_offset<- (-abs(Vega_revised_offset))*expIVChange
