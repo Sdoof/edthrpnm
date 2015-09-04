@@ -132,30 +132,7 @@ for(SpreadID in SpreadIDs){
             max(plot_df_view$profit)))
     )  
   print(gg)
-#   
-#   gg<-ggplot(plot_df_view,aes(x=udly,y=profit,colour=liqDay))+
-#     geom_point(alpha=0.3)+
-#     geom_point(x=InitUDLY,y=0,size=6.0,colour="red",pch=3)+
-#     ylim(min(plot_df_view$profit),max(plot_df_view$profit))
-#   print(gg)
-#   
-#   gg<-ggplot(plot_df_view,aes(x=udly,y=Delta,colour=liqDay))+
-#     geom_point(alpha=0.3)+
-#     geom_point(x=InitUDLY,y=0,size=6.0,colour="red",pch=4)+
-#     ylim(min(plot_df_view$Delta),max(plot_df_view$Delta))
-#   print(gg)
-#   
-#   gg<-ggplot(plot_df_view,aes(x=udly,y=Vega,colour=liqDay))+
-#     geom_point(alpha=0.3)+
-#     geom_point(x=InitUDLY,y=0,size=6.0,colour="red",pch=4)+
-#     ylim(min(plot_df_view$Vega),max(plot_df_view$Vega))
-#   print(gg)
-  
- 
-  
 }
-
-#read files and plot
 rm(total_df)
 rm(day,maxDay,totalstep)
 rm(gg,SpreadID,InitUDLY,plot_df,plot_df_view,opchain)
@@ -165,4 +142,5 @@ rm(ConfigFileName_G,ConfigParameters,ScenarioMode,PlotMAxPointNum)
 rm(FileChunk,SpreadIDS)
 rm(DataFiles_Path_G,ResultFiles_Path_G,Underying_Symbol_G,evalPosStart,evalPosEnd)
 rm(getPlotDataframe)
+
 
