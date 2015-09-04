@@ -6,7 +6,7 @@ library(ggplot2)
 evaPos<-c(1,0,0,0,0,0,-1,0,0,0,0,0,0,0,0)
 
 #UDLY draw limit. given absolute % value
-UDLY_DrawRange<-0.08
+UDLY_DrawRange<-0.10
 
 #Show Graph of Delta Headged Position
 ShowDeltaHedge=TRUE
@@ -80,6 +80,10 @@ PC1dCtC_IVCF1dCtC
 #PC1dCtO_IVCF1dCtO
 load.Skew()
 SkewModel
+load.Skew("_Put")
+SkewModel_Put
+load.Skew("_Call")
+SkewModel_Call
 load.VCone(optype=OpType_Put_G)
 PutVCone
 load.VCone(optype=OpType_Call_G)
@@ -204,6 +208,17 @@ if(ShowDeltaHedge){
   )
 }
 
+rm(gg,drawGrktbl)
+rm(opchain,histIV,evaPos)
+rm(evaldays,stepdays,pos_anlys,totalstep,udlStepNum,udlStepPct,iniPrice,iniCredit)
+rm(posStepDays,posStepDays_vc,thePosition,thePositonGrks)
+rm(PC1dCtC_IVCF1dCtC,PC3dCtC_IVCF3dCtC,PC5dCtC_IVCF5dCtC,PC7dCtC_IVCF7dCtC,SkewModel)
+rm(CallIVChgDown,CallIVChgUp,CallVCone,PutIVChgDown,PutIVChgUp,PutVCone)
+rm(ConfigFileName_G,ConfigParameters,EvalFuncSetting,HV_IV_Adjust_Ratio)
+rm(riskFreeRate_G,divYld_G,OpType_Put_G,OpType_Call_G)
+rm(CALENDAR_G,TimeToExp_Limit_Closeness_G,Underying_Symbol_G,DataFiles_Path_G,ResultFiles_Path_G)
+rm(holdDays,dviv_caldays,PosMultip)
+
 #Profit + Directional + Non Didectional(Intrinsic Advantageous) + Total Effect Graph
 # gg<-ggplot(drawGrktbl,aes(x=UDLY,y=profit,group=day))
 # (
@@ -240,14 +255,3 @@ if(ShowDeltaHedge){
 #     min(c(min(drawGrktbl$ThetaEffect),min(drawGrktbl$DeltaEffect),min(drawGrktbl$GammaEffect),min(drawGrktbl$VegaEffect))),
 #     max(c(max(drawGrktbl$ThetaEffect),max(drawGrktbl$DeltaEffect),max(drawGrktbl$GammaEffect),max(drawGrktbl$VegaEffect))))
 # )
-
-rm(gg,drawGrktbl)
-rm(opchain,histIV,evaPos)
-rm(evaldays,stepdays,pos_anlys,totalstep,udlStepNum,udlStepPct,iniPrice,iniCredit)
-rm(posStepDays,posStepDays_vc,thePosition,thePositonGrks)
-rm(PC1dCtC_IVCF1dCtC,PC3dCtC_IVCF3dCtC,PC5dCtC_IVCF5dCtC,PC7dCtC_IVCF7dCtC,SkewModel)
-rm(CallIVChgDown,CallIVChgUp,CallVCone,PutIVChgDown,PutIVChgUp,PutVCone)
-rm(ConfigFileName_G,ConfigParameters,EvalFuncSetting,HV_IV_Adjust_Ratio)
-rm(riskFreeRate_G,divYld_G,OpType_Put_G,OpType_Call_G)
-rm(CALENDAR_G,TimeToExp_Limit_Closeness_G,Underying_Symbol_G,DataFiles_Path_G,ResultFiles_Path_G)
-rm(holdDays,dviv_caldays,PosMultip)
