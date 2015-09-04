@@ -322,10 +322,7 @@ getPosGreeks<-function(pos,greek,multi){
   pos_greek
 }
 
-#getIV_td<-function(ividx_cd){
-#  ividx_td <- ividx_cd*sqrt(365/252)
-#  ividx_td
-#}
+#getGreekEffects
 
 getThetaEffect<-function(pos,greek,multi,hdd){
   theta<-getPosGreeks(pos=pos,greek=greek,multi=multi)
@@ -334,6 +331,10 @@ getThetaEffect<-function(pos,greek,multi,hdd){
 }
 
 getDeltaEffect<-function(pos,greek,UDLY,rlzdvol_td,multi,hdd){
+  #deviation_sd2expct_convratio <- integrate(f <- function(x) abs(x)*dnorm(x,0,1),-100,100)
+  deviation_sd2expct_convratio=0.7978846
+  rlzdvol_td <- rlzdvol_td*deviation_sd2expct_convratio
+  
   expPriceChange<-mean(UDLY*(exp(rlzdvol_td*sqrt(hdd/252))-1))
   delta<-getPosGreeks(pos=pos,greek=greek,multi=multi)
   deltaEfct<-(-abs(delta))*expPriceChange
@@ -341,6 +342,10 @@ getDeltaEffect<-function(pos,greek,UDLY,rlzdvol_td,multi,hdd){
 }
 
 getGammaEffect<-function(pos,greek,UDLY,rlzdvol_td,multi,hdd){
+  #deviation_sd2expct_convratio <- integrate(f <- function(x) abs(x)*dnorm(x,0,1),-100,100)
+  deviation_sd2expct_convratio=0.7978846
+  rlzdvol_td <- rlzdvol_td*deviation_sd2expct_convratio
+  
   expPriceChange<-mean(UDLY*(exp(rlzdvol_td*sqrt(hdd/252))-1))
   gamma<-getPosGreeks(pos=pos,greek=greek,multi=multi)
   gammaEfct<-gamma*(expPriceChange^2)/2
@@ -348,6 +353,10 @@ getGammaEffect<-function(pos,greek,UDLY,rlzdvol_td,multi,hdd){
 }
 
 getVegaEffect<-function(pos,greek,ividx,dviv,multi,hdd){
+  #deviation_sd2expct_convratio <- integrate(f <- function(x) abs(x)*dnorm(x,0,1),-100,100)
+  deviation_sd2expct_convratio=0.7978846
+  dviv <- dviv*deviation_sd2expct_convratio
+  
   expIVChange<-mean(ividx*(exp(dviv*sqrt(holdDays))-1))
   vega<-getPosGreeks(pos=pos,greek=greek,multi=multi)
   vegaEffect<-(-abs(vega))*(expIVChange*100)
@@ -355,6 +364,10 @@ getVegaEffect<-function(pos,greek,ividx,dviv,multi,hdd){
 }
 
 getVommaEffect<-function(pos,greek,ividx,dviv,multi,hdd){
+  #deviation_sd2expct_convratio <- integrate(f <- function(x) abs(x)*dnorm(x,0,1),-100,100)
+  deviation_sd2expct_convratio=0.7978846
+  dviv <- dviv*deviation_sd2expct_convratio
+  
   expIVChange<-mean(ividx*(exp(dviv*sqrt(holdDays))-1))
   vomma<-getPosGreeks(pos=pos,greek=greek,multi=multi)
   expIVChange<-expIVChange*100
@@ -560,8 +573,6 @@ getIntrisicValue<-function(udly_price,position,multip){
     (udly_price-position$Strike)*(-position$TYPE)*multip*position$Position
 }
 
-#functions for initial polulation creating  --------
-
 ##
 # Creating initial candidate population of spread positions whose componets of each position are exactly spcicified by the arguments.
 # if the number (putn or calln) is even number, half of the spread`s positions are assigned +1(long), the other half -1(short).
@@ -754,9 +765,8 @@ create_combined_population<-function(popnum,EvalFuncSetting,thresh,plelem,fname,
 }
 
 ##
-# Functions to be loaded from EResPosPricess.R
+# Functions to be loaded from EPosAanalysis.R
 
-#inner functions : graphical related.
 #create Aggregated Price Table for Drawing
 createAgrregatedGreekTbl<-function(posStepDays,thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,multi=PosMultip,iniCredit=iniCredit){
   
