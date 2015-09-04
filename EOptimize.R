@@ -178,10 +178,10 @@ for(tmp in 1:InitialPopCreateLoopNum){
   if(sum(EvalFuncSetting$Posnum==2)!=0){
      create_initial_exact_PutCall_polulation(popnum=20,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=2,calln=0,ml=Optimize_ml,
                                             fname=paste(".\\ResultData\\inipop-02P2C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
-                                            isFileout=TRUE,isDebug=TRUE,isDetail=TRUE)
+                                            isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
      create_initial_exact_PutCall_polulation(popnum=20,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=0,calln=2,ml=Optimize_ml,
                                             fname=paste(".\\ResultData\\inipop-02P0C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
-                                            isFileout=TRUE,isDebug=TRUE,isDetail=TRUE)
+                                            isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
   }
 } ;rm(tmp)
 

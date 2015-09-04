@@ -106,7 +106,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   ##
   #    Vega
   ##Vega_Neutral_Offset
-  expIVChange<-getExpectedValueChange(base=posEvalTbl$IVIDX,sd=annuual.daily.volatility(histIV$IVIDX)$daily,dtime=Setting$holdDays)
+  expIVChange<-getExpectedValueChange(base=posEvalTbl$IVIDX,sd=annuual.daily.volatility(histIV$IVIDX)$daily,dtime=Setting$holdDays)*100
   Vega_revised_offset<-posEvalTbl$Vega-Vega_Neutral_Offset
   Vega_Effect_revised_offset<- (-abs(Vega_revised_offset))*expIVChange
   if(isDebug){
@@ -163,9 +163,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   
   #A<- Setting$DrctlEffect_Coef*c6 + Setting$AllEffaect_Coef*c7 + Setting$MaxLoss_Coef*c8
   A<- Setting$DrctlEffect_Coef*c6 + Setting$AllEffect_Coef*c7 + Setting$MaxLoss_Coef*c8
-  cat(" :A",A)
   B<-Setting$AdvEffect_Coef*c5+Setting$Profit_Coef*c3
-  cat(" :B",B)
   
   if(isDebug){cat(" :Coef_Drct",Setting$DrctlEffect_Coef,"x",c6,"+:Coef_AllE",Setting$AllEffect_Coef,"x",c7,"+ :Coef_MaxLoss",Setting$MaxLoss_Coef,"x",c8,"= Numr",A)}
   if(isDebug){cat(" :Coef_Adv",Setting$AdvEffect_Coef,"x",c5,"+:Coef_Prft",Setting$Profit_Coef,"x",c3,"= Denom",B)}
@@ -448,7 +446,7 @@ get.UDLY.Changed.Price<-function(udly,chg_pct){
 #   3      0.12   <S3:data.frame>
 # <S3:data.frame> is original data frame which only UDLY are modified.
 # This function reflects Date,IV,etc after udlChg% change for the UDLYs in "days" days.
-reflectPosChg<- function(process_df,days,IV_DEVIATION=0){
+reflectPosChg<- function(process_df,days,IV_DEVIATION=0,MIN_IVIDX_CHG=(-0.5)){
   pos<-as.data.frame(process_df$pos[1])
   chg<-as.numeric(process_df$udlChgPct[1])
   # print(chg)
@@ -456,6 +454,8 @@ reflectPosChg<- function(process_df,days,IV_DEVIATION=0){
   # get (IVIDX_pre/IVIDX_pos)/(UDLY_pre/UDLY_pos)
   regression<-get.Volatility.Level.Regression(Days=days)
   ividx_chg_pct<-get.predicted.IVIDXChange(model=regression$model,xmin=chg,xmax=100,x_by=0)$IVIDXC
+  #if ividx_chg_pct < MIN_IVIDX_CHG, ividx_chg_pct=MIN_IVIDX_CHG
+  ividx_chg_pct<-(ividx_chg_pct<MIN_IVIDX_CHG)*MIN_IVIDX_CHG+(ividx_chg_pct>=MIN_IVIDX_CHG)*ividx_chg_pct
   pos$IVIDX<-pos$IVIDX*(1+ividx_chg_pct)
   
   # ATM IV change
