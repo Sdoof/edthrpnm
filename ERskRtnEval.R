@@ -10,7 +10,8 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   unacceptableVal=10
   
   if(isDebug){
-    cat("\n :Delta_Direct_Prf",Delta_Direct_Prf)
+    cat("\n###################### eval func start\n")
+    cat(":Delta_Direct_Prf",Delta_Direct_Prf)
     cat(" :Vega_Direct_Prf",Vega_Direct_Prf)
     cat(" :Delta_Neutral_Offset",Delta_Neutral_Offset," :Vega_Neutral_Offset",Vega_Neutral_Offset)
     cat(" :holdDays",Setting$holdDays,"\n")
@@ -60,10 +61,10 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   ##
   # Profit
   profit_hdays<-sum((posEvalTbl$Price-thePositionGrk$Price)*weight)
+  profit_vector<-(posEvalTbl$Price-thePositionGrk$Price)
+  maxLoss<-min(profit_vector)
   if(isDetail){
-    cat(" :(prft)",posEvalTbl$Price -
-          getPositionGreeks(position,multi=PosMultip,hdd=Setting$holdDays,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)$Price)
-    cat(" :(prft_wght)",profit_hdays)
+    cat(" :(prft_vec)",profit_vector); cat(" :(prft_wght)",profit_hdays); cat(" :(max_loss)",maxLoss)
   }
   c3<-profit_hdays
   
@@ -74,12 +75,13 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   
   ##
   # Directional Effects.
-  ##Delta
-  #theDelta<-sum(posEvalTbl$Delta*weight)
-  #theDeltaEfct<-sum(posEvalTbl$DeltaEffect*weight)
-  
+  ##
+  #   Delta
   ##Delta_Neutral_Offset
-  expPriceChange<-posEvalTbl$UDLY*(exp(posEvalTbl$IVIDX*Setting$HV_IV_Adjust_Ratio*sqrt(Setting$holdDays/252))-1)
+  #expPriceChange<-posEvalTbl$UDLY*(exp(posEvalTbl$IVIDX*Setting$HV_IV_Adjust_Ratio*sqrt(Setting$holdDays/252))-1)
+  expPriceChange <- getExpectedValueChange(base=posEvalTbl$UDLY,sd=posEvalTbl$IVIDX*Setting$HV_IV_Adjust_Ratio, dtime=Setting$holdDays/252)
+  
+  
   Delta_revised_offset<-posEvalTbl$Delta-Delta_Neutral_Offset
   Delta_Effect_revised_offset<- (-abs(Delta_revised_offset))*expPriceChange
   if(isDebug){
@@ -91,25 +93,20 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   if(isDebug){
     cat(" :(DeltaE_wght)",Delta_Effect_revised_offset," :(Delta_wght)",Delta_revised_offset)
   }
-  
   ###Delta_Thresh_Minus,Delta_Thresh_Plus
   DeltaEffect_Comp<-(Delta_revised_offset<0)*(Delta_revised_offset<Setting$Delta_Thresh_Minus[length(position$TYPE)])*Delta_Effect_revised_offset+
     (Delta_revised_offset>0)*(Delta_revised_offset>Setting$Delta_Thresh_Plus[length(position$TYPE)])*Delta_Effect_revised_offset
   
   if(isDebug){
-    cat(" :btwn (Delta_Thresh_Minus)",Setting$Delta_Thresh_Minus[length(position$TYPE)],
-        " :and (Delta_Thresh_Plus)",Setting$Delta_Thresh_Plus[length(position$TYPE)])
+    cat(" :betwn (Delta_Thresh_Minus)",Setting$Delta_Thresh_Minus[length(position$TYPE)],
+        " and (Delta_Thresh_Plus)",Setting$Delta_Thresh_Plus[length(position$TYPE)])
     cat(" :(new DeltaE_wght)",DeltaEffect_Comp)
   }
   
-  ##Vega
-  
-  ##Delta
-  #theVega<-sum(posEvalTbl$Vega*weight)
-  #theVegaEfct<-sum(posEvalTbl$VegaEffect*weight)
-  
+  ##
+  #    Vega
   ##Vega_Neutral_Offset
-  expIVChange<-posEvalTbl$IVIDX*(exp(annuual.daily.volatility(histIV$IVIDX)$daily*sqrt(Setting$holdDays))-1)*100
+  expIVChange<-getExpectedValueChange(base=posEvalTbl$IVIDX,sd=annuual.daily.volatility(histIV$IVIDX)$daily,dtime=Setting$holdDays)
   Vega_revised_offset<-posEvalTbl$Vega-Vega_Neutral_Offset
   Vega_Effect_revised_offset<- (-abs(Vega_revised_offset))*expIVChange
   if(isDebug){
@@ -118,18 +115,15 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   }
   Vega_revised_offset<-sum(Vega_revised_offset*weight)
   Vega_Effect_revised_offset<-sum(Vega_Effect_revised_offset*weight)
-  
   if(isDebug){
     cat(" :(VegaE_Wght)",Vega_Effect_revised_offset," :(Vega_Wght)",Vega_revised_offset)
   }
-  
-  ###Vega_Thresh_Minus,Vega_Thresh_Plus
+  ##Vega_Thresh_Minus,Vega_Thresh_Plus
   VegaEffect_Comp<-(Vega_revised_offset<0)*(Vega_revised_offset<Setting$Vega_Thresh_Minus[length(position$TYPE)])*Vega_Effect_revised_offset+
     (Vega_revised_offset>0)*(Vega_revised_offset>Setting$Vega_Thresh_Plus[length(position$TYPE)])*Vega_Effect_revised_offset
- 
    if(isDebug){
-    cat(" :btw (Vega_Thresh_Minus)",Setting$Vega_Thresh_Minus[length(position$TYPE)],
-        " :and (Vega_Thresh_Plus)",Setting$Vega_Thresh_Plus[length(position$TYPE)])
+    cat(" :betwn (Vega_Thresh_Minus)",Setting$Vega_Thresh_Minus[length(position$TYPE)],
+        " and (Vega_Thresh_Plus)",Setting$Vega_Thresh_Plus[length(position$TYPE)])
     cat(" :(new VegaE_wght)",VegaEffect_Comp)
    }
   
@@ -143,12 +137,19 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
     (Vega_Direct_Prf>0)*(Vega_revised_offset>=0)+(Vega_Direct_Prf>0)*(Vega_revised_offset<0)*(-1)+
     (Vega_Direct_Prf<0)*(Vega_revised_offset>=0)*(-1)+(Vega_Direct_Prf<0)*(Vega_revised_offset<0)
   
+  ##
+  # Directional Effect
   c6<- vega_pref_coef*VegaEffect_Comp+dlta_pref_coef*DeltaEffect_Comp
   
   if(isDebug){
     cat(" (:vega_pref_coef",vega_pref_coef," x :VegaE_new",VegaEffect_Comp,
         "+ :dlta_pref_coef",dlta_pref_coef," x :DeltaE_new",DeltaEffect_Comp," = :(DrctlEffect)c6 ",c6,")")
   }
+  
+  ##
+  # max Loss
+  c8<- (-1)*maxLoss
+  if(isDebug){cat(" :c8(maxLoss)",c8)}
   
   ##
   # cost7 All Effects.
@@ -160,10 +161,13 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   ##
   # total cost is weighted sum of each cost.
   
-  A<-Setting$DrctlEffect_Coef*c6+Setting$AllEffect_Coef*c7
+  #A<- Setting$DrctlEffect_Coef*c6 + Setting$AllEffaect_Coef*c7 + Setting$MaxLoss_Coef*c8
+  A<- Setting$DrctlEffect_Coef*c6 + Setting$AllEffect_Coef*c7 + Setting$MaxLoss_Coef*c8
+  cat(" :A",A)
   B<-Setting$AdvEffect_Coef*c5+Setting$Profit_Coef*c3
+  cat(" :B",B)
   
-  if(isDebug){cat(" :Coef_Drct",Setting$DrctlEffect_Coef,"x",c6,"+:Coef_AllE",Setting$AllEffect_Coef,"x",c7,"= Numr",A)}
+  if(isDebug){cat(" :Coef_Drct",Setting$DrctlEffect_Coef,"x",c6,"+:Coef_AllE",Setting$AllEffect_Coef,"x",c7,"+ :Coef_MaxLoss",Setting$MaxLoss_Coef,"x",c8,"= Numr",A)}
   if(isDebug){cat(" :Coef_Adv",Setting$AdvEffect_Coef,"x",c5,"+:Coef_Prft",Setting$Profit_Coef,"x",c3,"= Denom",B)}
   
   sigA<-sigmoid(A,a=Setting$SigmoidA_Numerator,b=0)
@@ -217,7 +221,7 @@ obj_fixedpt_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   theDeltaEfct<-thePositionGrk$DeltaEffect
   
   ##Delta_Neutral_Offset
-   expPriceChange<-thePositionGrk$UDLY*(exp(position$IVIDX[1]*Setting$HV_IV_Adjust_Ratio*sqrt(Setting$holdDays/252))-1)
+   expPriceChange <- getExpectedValueChange(base=posEvalTbl$UDLY,sd=position$IVIDX[1]*Setting$HV_IV_Adjust_Ratio, dtime=Setting$holdDays/252)
    Delta_revised_offset<-theDelta-Delta_Neutral_Offset
    Delta_Effect_revised_offset<- (-abs(Delta_revised_offset))*expPriceChange
    
@@ -241,7 +245,7 @@ obj_fixedpt_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   theVegaEfct<-thePositionGrk$VegaEffect
   
   ##Vega_Neutral_Offset
-  expIVChange<-position$IVIDX[1]*(exp(annuual.daily.volatility(histIV$IVIDX)$daily*sqrt(Setting$holdDays))-1)*100
+  expIVChange<-getExpectedValueChange(base=position$IVIDX[1],sd=annuual.daily.volatility(histIV$IVIDX)$daily,dtime=Setting$holdDays)
   Vega_revised_offset<-theVega-Vega_Neutral_Offset
   Vega_Effect_revised_offset<- (-abs(Vega_revised_offset))*expIVChange
   
@@ -339,6 +343,16 @@ getDeltaEffect<-function(pos,greek,UDLY,rlzdvol_td,multi,hdd){
   delta<-getPosGreeks(pos=pos,greek=greek,multi=multi)
   deltaEfct<-(-abs(delta))*expPriceChange
   deltaEfct
+}
+
+getExpectedValueChange <- function(base,sd,dtime){
+  #deviation_sd2expct_convratio <- integrate(f <- function(x) abs(x)*dnorm(x,0,1),-100,100)
+  deviation_sd2expct_convratio=0.7978846
+  sd <- sd*deviation_sd2expct_convratio
+  
+  valueChange<- base*(exp(sd*sqrt(dtime))-1)
+  
+  valueChange
 }
 
 getGammaEffect<-function(pos,greek,UDLY,rlzdvol_td,multi,hdd){
@@ -588,46 +602,58 @@ create_initial_exact_PutCall_polulation<-function(popnum,type,EvalFuncSetting,th
     #Put   
     idxy<-as.numeric(type==OpType_Put_G)*rep(1:length(iniPos),length=length(iniPos))
     if(isDebug){ cat(" put pos:",idxy) }
-    idxy<-idxy[idxy!=0]
-    if(isDebug){ cat(" put pos cand :",idxy) }
-    idxy<-sample(idxy,size=putn,replace=FALSE,prob=NULL)
-    if(isDebug){ cat(" put idxy:",idxy) }
     y<-rep(0,times=length(iniPos))
-    y_shift<-0
-    putn_shift<-putn
-    if((putn%%2)!=0){
-      y[idxy[1:2]]<-(-1)
-      y[idxy[3]]<-2
-      putn_shift<-putn-3
-      y_shift<-3
-    }
-    if(putn_shift>=2){
-      y[idxy[(1+y_shift):(y_shift+(putn_shift/2))]]<-1
-      y[idxy[(putn_shift/2+1+y_shift):putn]]<-(-1)
+    if(sum(idxy)>0){
+      idxy<-idxy[idxy!=0]
+      #if(isDebug){ cat(" put pos cand :",idxy) }
+      idxy<-sample(idxy,size=putn,replace=FALSE,prob=NULL)
+      if(isDebug){ cat(" put idxy:",idxy) }
+      #y<-rep(0,times=length(iniPos))
+      y_shift<-0
+      putn_shift<-putn
+      if((putn%%2)!=0){
+        y[idxy[1:2]]<-(-1)
+        y[idxy[3]]<-2
+        putn_shift<-putn-3
+        y_shift<-3
+      }
+      if(putn_shift>=2){
+        y[idxy[(1+y_shift):(y_shift+(putn_shift/2))]]<-1
+        y[idxy[(putn_shift/2+1+y_shift):putn]]<-(-1)
+      }
     }
     #Call
     idxy<-as.numeric(type==OpType_Call_G)*rep(1:length(iniPos),length=length(iniPos))
-    idxy<-idxy[idxy!=0]
-    idxy<-sample(idxy,size=calln,replace=FALSE,prob=NULL)
-    if(isDebug){ cat(" call idxy:",idxy) }
+    if(isDebug){ cat(" call pos:",idxy) }
     z<-rep(0,times=length(iniPos))
-    z_shift<-0
-    calln_shift<-calln
-    if((calln%%2)!=0){
-      z[idxy[1:2]]<-(-1)
-      z[idxy[3]]<-2
-      calln_shift<-calln-3
-      z_shift<-3
-    }
-    if(calln_shift>=2){    
-      z[idxy[1+z_shift:(z_shift+(calln_shift/2))]]<-1
-      z[idxy[(calln_shift/2+1+z_shift):calln]]<-(-1)
+    if(sum(idxy)>0){
+      idxy<-idxy[idxy!=0]
+      idxy<-sample(idxy,size=calln,replace=FALSE,prob=NULL)
+      if(isDebug){ cat(" call idxy:",idxy) }
+      #z<-rep(0,times=length(iniPos))
+      z_shift<-0
+      calln_shift<-calln
+      if((calln%%2)!=0){
+        z[idxy[1:2]]<-(-1)
+        z[idxy[3]]<-2
+        calln_shift<-calln-3
+        z_shift<-3
+      }
+      if(calln_shift>=2){    
+        z[idxy[1+z_shift:(z_shift+(calln_shift/2))]]<-1
+        z[idxy[(calln_shift/2+1+z_shift):calln]]<-(-1)
+      }
     }
     if(isDebug){ cat(" (:y",y,")") }
     if(isDebug){ cat(" (:z",z,") :x(y+z) ") }
     x<-y+z
     x<-as.numeric(((putn%%2)==0)*((calln%%2)==0))*ml*x+as.numeric(!((putn%%2)==0)*((calln%%2)==0))*ml*x
     if(isDebug){ cat(" (:x",x,")") }
+    
+    ##
+    # x==0 means no position to search that match the putn and calln
+    if(sum((x!=0))==0)
+      break
     
     posnum<-putn +calln
     tryCatch(

@@ -39,7 +39,8 @@ TimeToExp_Limit_Closeness_G=as.numeric(ConfigParameters["TimeToExp_Limit_Closene
 EvFNames <- c("holdDays","UdlStepNum","UdlStepPct","Posnum","Tail_rate","LossLimitPrice",
               "HV_IV_Adjust_Ratio","Delta_Thresh_Minus","Delta_Thresh_Plus","Vega_Thresh_Minus","Vega_Thresh_Plus",
               "Delta_Direct_Prf","Vega_Direct_Prf","Delta_Neutral_Offset","Vega_Neutral_Offset",
-              "Profit_Coef","AdvEffect_Coef","AllEffect_Coef","DrctlEffect_Coef","SigmoidA_Numerator","SigmoidA_Denominator","ThetaEffectPositive")
+              "Profit_Coef","AdvEffect_Coef","AllEffect_Coef","DrctlEffect_Coef","MaxLoss_Coef",
+              "SigmoidA_Numerator","SigmoidA_Denominator","ThetaEffectPositive")
 EvalFuncSetting<-vector("list",length(EvFNames))
 
 EvalFuncSetting[[1]]<-holdDays
@@ -60,10 +61,11 @@ EvalFuncSetting[[15]]<-eval(parse(text=gsub("\\$",",",ConfigParameters["EvalFnc_
 EvalFuncSetting[[16]]<-as.numeric(ConfigParameters["EvalFnc_Profit_Coef",1])
 EvalFuncSetting[[17]]<-as.numeric(ConfigParameters["EvalFnc_AdvEffect_Coef",1])
 EvalFuncSetting[[18]]<-as.numeric(ConfigParameters["EvalFnc_AllEffect_Coef",1]) 
-EvalFuncSetting[[19]]<-as.numeric(ConfigParameters["EvalFnc_DrctlEffect_Coef",1]) 
-EvalFuncSetting[[20]]<-as.numeric(ConfigParameters["EvalFnc_SigmoidA_Numerator",1])
-EvalFuncSetting[[21]]<-as.numeric(ConfigParameters["EvalFnc_SigmoidA_Denominator",1])
-EvalFuncSetting[[22]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_ThetaEffectPositive",1])==1,TRUE,FALSE)
+EvalFuncSetting[[19]]<-as.numeric(ConfigParameters["EvalFnc_DrctlEffect_Coef",1])
+EvalFuncSetting[[20]]<-as.numeric(ConfigParameters["EvalFnc_MaxLoss_Coef",1])
+EvalFuncSetting[[21]]<-as.numeric(ConfigParameters["EvalFnc_SigmoidA_Numerator",1])
+EvalFuncSetting[[22]]<-as.numeric(ConfigParameters["EvalFnc_SigmoidA_Denominator",1])
+EvalFuncSetting[[23]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_ThetaEffectPositive",1])==1,TRUE,FALSE)
 
 names(EvalFuncSetting)<-EvFNames
 rm(EvFNames)
@@ -174,12 +176,12 @@ for(tmp in 1:InitialPopCreateLoopNum){
                                             isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
   }
   if(sum(EvalFuncSetting$Posnum==2)!=0){
-    create_initial_exact_PutCall_polulation(popnum=20,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=2,calln=0,ml=Optimize_ml,
+     create_initial_exact_PutCall_polulation(popnum=20,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=2,calln=0,ml=Optimize_ml,
                                             fname=paste(".\\ResultData\\inipop-02P2C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
-                                            isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-    create_initial_exact_PutCall_polulation(popnum=20,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=0,calln=2,ml=Optimize_ml,
+                                            isFileout=TRUE,isDebug=TRUE,isDetail=TRUE)
+     create_initial_exact_PutCall_polulation(popnum=20,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=0,calln=2,ml=Optimize_ml,
                                             fname=paste(".\\ResultData\\inipop-02P0C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
-                                            isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
+                                            isFileout=TRUE,isDebug=TRUE,isDetail=TRUE)
   }
 } ;rm(tmp)
 
