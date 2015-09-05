@@ -11,12 +11,12 @@ ConfigParameters<-read.table(paste(DataFiles_Path_G,ConfigFileName_G,sep=""),
                              row.names=1, comment.char="#",header=T,stringsAsFactors=F,sep=",")
 
 #MAX ExpToDate for Skew Regression
-SkewRegressionTimeToExpDateMin<-0.9
-SkewRegressionTimeToExpDateMax<-2.2
+SkewRegressionTimeToExpDateMin<-0.8
+SkewRegressionTimeToExpDateMax<-2.6
 
 #We get regression only past this day. Currently reflected on Skew only.
 #should apply Vcone, etc.
-RegressionDateBackDaysMax<-1
+RegressionDateBackDaysMax<-0
 
 #Calendar
 CALENDAR_G=ConfigParameters["CALENDAR_G",1]
@@ -265,7 +265,7 @@ rm(i,atmiv.vcone.eachDF,atmiv.vcone.bind)
 #Creating vcone.
 vcone<-make.vcone.df(atmiv=atmiv,type=1)
 vcone %>% arrange(Month) -> vcone
-(ggplot(vcone,aes(x=Month,y=IV2IDX.nm,colour=TYPE))+geom_point())
+(ggplot(vcone,aes(x=Month,y=IV2IDX.nm,colour=Month))+geom_point())
 # Regression of PUT vcone
 #   5.smooth spline
 #(predict(smooth.spline(vcone$Month,vcone$IV2IDX.nm,df=3),x=2))
@@ -382,4 +382,4 @@ rm(atmiv.vcone.anal,atmiv,displace,opch,getNmlzdSkewVplot)
 rm(ConfigFileName_G,ConfigParameters,SkewRegressionTimeToExpDateMax,SkewRegressionTimeToExpDateMin)
 rm(CALENDAR_G,DataFiles_Path_G,OpType_Call_G,OpType_Put_G,OpchainOutFileName)
 rm(TimeToExp_Limit_Closeness_G,Underying_Symbol_G,divYld_G,riskFreeRate_G)
-rm(SkewModel,RegressionDateBackDaysMax)
+rm(SkewModel,SkewModel_Put,SkewModel_Call,RegressionDateBackDaysMax)
