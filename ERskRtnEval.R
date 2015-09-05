@@ -11,10 +11,10 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   
   if(isDebug){
     cat("\n###################### eval func start\n")
-    cat(":Delta_Direct_Prf",Delta_Direct_Prf)
-    cat(" :Vega_Direct_Prf",Vega_Direct_Prf)
-    cat(" :Delta_Neutral_Offset",Delta_Neutral_Offset," :Vega_Neutral_Offset",Vega_Neutral_Offset)
-    cat(" :holdDays",Setting$holdDays,"\n")
+    cat(":(Delta_Direct_Prf)",Delta_Direct_Prf)
+    cat(" :(Vega_Direct_Prf)",Vega_Direct_Prf)
+    cat(" :(Delta_Neutral_Offset)",Delta_Neutral_Offset," :Vega_Neutral_Offset",Vega_Neutral_Offset)
+    cat(" :(holdDays)",Setting$holdDays,"\n")
   }
   
   #position where pos$Position != 0
@@ -38,7 +38,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   sd_hd<-(anlzd_sd/sqrt(252/sd_multp))
   #f.y.i sd_hd<-exp(anlzd_sd*sqrt(sd_multp/252))-1 #exponential expression
   weight<-dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd / sum(dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd)
-  if(isDetail){cat("weight",weight)}
+  if(isDetail){cat(":(weight)",weight)}
   ##
   # Constraint 2. Tail Risk
   #   tailPrice<-min(sum(getIntrisicValue(position$UDLY[1]*(1-tail_rate),position)),
@@ -52,8 +52,8 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   # Constraint 4. ThetaEffect. This should be soft constraint
   if(Setting$ThetaEffectPositive){
     theta_ttl<-sum(posEvalTbl$Theta*weight)
-    if(isDetail){cat(" :thta_ttl",theta_ttl)}
-    if(isDetail){cat(" :thta_ini",thePositionGrk$ThetaEffect);cat(" :thta_wt",sum(posEvalTbl$ThetaEffect*weight))}
+    if(isDetail){cat(" :(thta_ttl)",theta_ttl)}
+    if(isDetail){cat(" :(thta_ini)",thePositionGrk$ThetaEffect);cat(" :(thta_wt)",sum(posEvalTbl$ThetaEffect*weight))}
     if(theta_ttl<0)
       return(unacceptableVal)
   }
@@ -63,10 +63,19 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   profit_hdays<-sum((posEvalTbl$Price-thePositionGrk$Price)*weight)
   profit_vector<-(posEvalTbl$Price-thePositionGrk$Price)
   maxLoss<-min(profit_vector)
-  if(isDetail){
-    cat(" :(prft_vec)",profit_vector); cat(" :(prft_wght)",profit_hdays); cat(" :(max_loss)",maxLoss)
-  }
+
   c3<-profit_hdays
+  
+  ## profit sd
+  weight_times = round(weight*100)
+  #if(isDetail){cat(" :(weight_times)",weight_times)}
+  pdist = rep(profit_vector,times=weight_times)
+  #if(isDetail){cat(" :(profit_dist)",pdist)}
+  profit_sd<-sd(pdist)
+  #if(isDetail){ cat("profit_sd",profit_sd)}
+  if(isDetail){
+    cat(" :(prft_vec)",profit_vector); cat(" :(prft_wght)",profit_hdays);cat(" :(profit_sd)",profit_sd);cat(" :(max_loss)",maxLoss)
+  }
   
   ##
   # Advantageous Effects.
@@ -148,8 +157,8 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   
   ##
   # max Loss
-  c8<- (-1)*maxLoss
-  if(isDebug){cat(" :c8(maxLoss)",c8)}
+  c8<- profit_sd
+  if(isDebug){cat(" :c8(profit_sd)",c8)}
   
   ##
   # cost7 All Effects.
@@ -161,11 +170,10 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   ##
   # total cost is weighted sum of each cost.
   
-  #A<- Setting$DrctlEffect_Coef*c6 + Setting$AllEffaect_Coef*c7 + Setting$MaxLoss_Coef*c8
   A<- Setting$DrctlEffect_Coef*c6 + Setting$AllEffect_Coef*c7 + Setting$MaxLoss_Coef*c8
   B<-Setting$AdvEffect_Coef*c5+Setting$Profit_Coef*c3
   
-  if(isDebug){cat(" :Coef_Drct",Setting$DrctlEffect_Coef,"x",c6,"+:Coef_AllE",Setting$AllEffect_Coef,"x",c7,"+ :Coef_MaxLoss",Setting$MaxLoss_Coef,"x",c8,"= Numr",A)}
+  if(isDebug){cat(" :Coef_Drct",Setting$DrctlEffect_Coef,"x",c6,"+:Coef_AllE",Setting$AllEffect_Coef,"x",c7,"+ :Coef_MaxLoss(SD)",Setting$MaxLoss_Coef,"x",c8,"= Numr",A)}
   if(isDebug){cat(" :Coef_Adv",Setting$AdvEffect_Coef,"x",c5,"+:Coef_Prft",Setting$Profit_Coef,"x",c3,"= Denom",B)}
   
   sigA<-sigmoid(A,a=Setting$SigmoidA_Numerator,b=0)
