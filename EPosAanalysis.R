@@ -3,7 +3,7 @@ library(RQuantLib)
 library(ggplot2)
 
 #evaluated position or set evaPos manually by copy&paste csv value
-evaPos<-c(-1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0) #No. 7
+evaPos<-c(0,0,0,0,0,-1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0) #No. 3
 
 #UDLY draw limit. given absolute % value
 UDLY_DrawRange<-0.10
@@ -217,8 +217,8 @@ gg<-ggplot(drawGrktbl,aes(x=UDLY,y=profit,group=day))
   +geom_point(x=thePositonGrks$UDLY,y=thePositonGrks$Delta,size=4.0,colour="blue")+geom_point(x=thePositonGrks$UDLY,y=thePositonGrks$GammaEffect,size=4.0,colour="red")
   +geom_point(x=thePositonGrks$UDLY,y=thePositonGrks$Vega,size=4.0,colour="green")+geom_point(x=thePositonGrks$UDLY,y=thePositonGrks$ThetaEffect,size=4.0,colour="orange")
   +ylim(
-    min(c(min(drawGrktbl$ThetaEffect),min(draw_DeltaE_with_sign),min(drawGrktbl$GammaEffect),min(draw_VegaE_with_sign),min(drawGrktbl$profit))),
-    max(c(max(drawGrktbl$ThetaEffect),max(draw_DeltaE_with_sign),max(drawGrktbl$GammaEffect),max(draw_VegaE_with_sign),max(drawGrktbl$profit))))
+    min(c(min(drawGrktbl$ThetaEffect),min(drawGrktbl$Delta),min(drawGrktbl$GammaEffect),min(drawGrktbl$Vega),min(drawGrktbl$profit))),
+    max(c(max(drawGrktbl$ThetaEffect),max(drawGrktbl$Delta),max(drawGrktbl$GammaEffect),max(drawGrktbl$Vega),max(drawGrktbl$profit))))
 )
 
 ##
@@ -263,8 +263,8 @@ if(VolSensitivityCheck){
   (
   gg
   +geom_line(size=draw_line_size,linetype=draw_line_type)
-  +geom_line(x=drawGrktbl_vc_plus$UDLY,y=drawGrktbl_vc_plus$profit,colour="blue",size=draw_line_size,group=drawGrktbl_DltHgd$day,linetype=draw_line_type)
-  +geom_line(x=drawGrktbl_vc_mnus$UDLY,y=drawGrktbl_vc_mnus$profit,colour="red",size=draw_line_size,group=drawGrktbl_DltHgd$day,linetype=draw_line_type)
+  +geom_line(x=drawGrktbl_vc_plus$UDLY,y=drawGrktbl_vc_plus$profit,colour="blue",size=draw_line_size,group=drawGrktbl_vc_plus$day,linetype=draw_line_type)
+  +geom_line(x=drawGrktbl_vc_mnus$UDLY,y=drawGrktbl_vc_mnus$profit,colour="red",size=draw_line_size,group=drawGrktbl_vc_plus$day,linetype=draw_line_type)
   +ylim(
     min(c(min(drawGrktbl$profit),min(drawGrktbl_vc_plus$profit),min(drawGrktbl_vc_mnus$profit))),
     max(c(max(drawGrktbl$profit),max(drawGrktbl_vc_plus$profit),max(drawGrktbl_vc_mnus$profit))))
