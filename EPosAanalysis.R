@@ -119,7 +119,6 @@ if(evaldays[length(evaldays)]==min(get.busdays.between(opchain$Date,opchain$ExpD
   evaldays[length(evaldays)+1]<-max_days
 }
 
-
 #read analyzed positon. here we give by copy and paste
 pos_anlys<-evaPos
 
@@ -138,13 +137,13 @@ posStepDays<-data.frame(days=evaldays)
 #Set data frames as a row value of another data frame.
 posStepDays %>% group_by(days) %>%
   do(scene=createPositionEvalTable(position=thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,
-                                   multi=PosMultip,hdd=stepdays,HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio)) -> posStepDays
+                                   multi=PosMultip,hdd=1,HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio)) -> posStepDays
 
 #Use for checking volatility sensitivity
 posStepDays_vc<-posStepDays
 
 #We must adjust each position values
-posStepDays %>% group_by(days) %>% rowwise() %>% do(days=.$days,scene2=adjustPosChg(.$scene,.$days-stepdays,base_vol_chg=0,multi=PosMultip,hdd=holdDays,HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio)) -> tmp
+posStepDays %>% group_by(days) %>% rowwise() %>% do(days=.$days,scene2=adjustPosChg(.$scene,.$days-1,base_vol_chg=0,multi=PosMultip,hdd=holdDays,HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio)) -> tmp
 unlist(tmp$days) -> posStepDays$days ; tmp$scene2 -> posStepDays$scene ;rm(tmp)
 
 #Now drawing
@@ -180,7 +179,6 @@ if(VolSensitivityCheck){
   
   drawGrktbl_vc_mnus %>% dplyr::filter(UDLY>mean(thePosition$UDLY)*(1-UDLY_DrawRange)) %>% 
     dplyr::filter(UDLY<mean(thePosition$UDLY)*(1+UDLY_DrawRange)) -> drawGrktbl_vc_mnus
-  
 }
 
 ##
@@ -197,7 +195,7 @@ draw_line_step_size=(draw_line_size_max-draw_line_size_min)/(draw_line_steps-1)
 #thin to thick
 draw_line_size=draw_line_size_min + draw_line_step_size*(ceiling(drawGrktbl$day/stepdays)-1)
 #line_type
-draw_line_type=(max(evaldays)-ceiling(drawGrktbl$day/stepdays))+1
+draw_line_type=(length(evaldays)-ceiling(drawGrktbl$day/stepdays))+1
 
 #if draw Delta and Vega Effect with sign
 #draw_DeltaE_with_sign=(drawGrktbl$Delta>=0)*abs(drawGrktbl$DeltaEffect)+(drawGrktbl$Delta<0)*(-1)*abs(drawGrktbl$DeltaEffect)
@@ -231,9 +229,8 @@ if(ShowDeltaHedge){
   #initial Delta
   iniDelta<-getPosGreeks(pos=thePosition$Position,greek=thePosition$Delta,multi=PosMultip)
   #adjustment to initial delta
-  Delta_Adjust = -1
+  Delta_Adjust = 0
   headgedDelta = iniDelta + Delta_Adjust
-  
   #new Profit
   drawGrktbl_DltHgd$profit<-drawGrktbl_DltHgd$profit-as.numeric(headgedDelta)*(drawGrktbl_DltHgd$UDLY-mean(thePosition$UDLY))
   #new delta
@@ -266,6 +263,7 @@ if(VolSensitivityCheck){
   +geom_line(size=draw_line_size,linetype=draw_line_type)
   +geom_line(x=drawGrktbl_vc_plus$UDLY,y=drawGrktbl_vc_plus$profit,colour="blue",size=draw_line_size,group=drawGrktbl_vc_plus$day,linetype=draw_line_type)
   +geom_line(x=drawGrktbl_vc_mnus$UDLY,y=drawGrktbl_vc_mnus$profit,colour="red",size=draw_line_size,group=drawGrktbl_vc_plus$day,linetype=draw_line_type)
+  +geom_point(x=thePositonGrks$UDLY,y=0,size=4.0,colour="black")
   +ylim(
     min(c(min(drawGrktbl$profit),min(drawGrktbl_vc_plus$profit),min(drawGrktbl_vc_mnus$profit))),
     max(c(max(drawGrktbl$profit),max(drawGrktbl_vc_plus$profit),max(drawGrktbl_vc_mnus$profit))))
