@@ -22,9 +22,22 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   if(isDetail){print(position)}
   
   #position evaluated after holdDays later
-  udlStepNum<-udlStepNum; udlStepPct<-udlStepPct
+  udlStepNum<-udlStepNum
+  udlStepPct<-udlStepPct
   udlChgPct<-seq(-udlStepPct*udlStepNum,udlStepPct*udlStepNum,length=(2*udlStepNum)+1)
-  posEvalTbl<-createPositionEvalTable(position=position,udlStepNum=udlStepNum,udlStepPct=udlStepPct,multi=PosMultip,hdd=Setting$holdDays,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)
+  
+  #dATMIV/dIVIDX 1 day regression result
+  posStepDays<-data.frame(days=c(1,Setting$holdDays))
+  posStepDays %>% group_by(days) %>%
+    do(scene=createPositionEvalTable(position=position,udlStepNum=udlStepNum,udlStepPct=udlStepPct,
+                                    multi=PosMultip,hdd=1,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)) -> posStepDays
+  posStepDays %>% group_by(days) %>% rowwise() %>%
+    do(days=.$days,scene2=adjustPosChg(.$scene,.$days-1,base_vol_chg=0,multi=PosMultip,hdd=Setting$holdDays,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)) -> tmp
+  unlist(tmp$days) -> posStepDays$days ; tmp$scene2 -> posStepDays$scene ;rm(tmp)
+  
+  #last day
+  posEvalTbl<-posStepDays$scene[[length(posStepDays)]]
+  
   if(isDetail){print(posEvalTbl)}
   if(isDetail){print(posEvalTbl$pos)}
   
@@ -964,9 +977,12 @@ adjustPosChgInner<-function(process_df,time_advcd, base_vol_chg=0){
   pos
 }
 
-adjustPosChg<-function(process_df,time_advcd,base_vol_chg=0,multi,hdd,HV_IV_Adjust_Ratio){
-  print(process_df)
-  print(time_advcd)
+adjustPosChg<-function(process_df,time_advcd,base_vol_chg=0,multi,hdd,HV_IV_Adjust_Ratio,isDebug=FALSE){
+ 
+   if(isDebug){
+    print(process_df)
+    print(time_advcd)
+  }
   
   process_df %>% group_by(udlChgPct) %>% do(pos=adjustPosChgInner(.,time_advcd,base_vol_chg=base_vol_chg)) -> process_df
   
@@ -993,6 +1009,9 @@ adjustPosChg<-function(process_df,time_advcd,base_vol_chg=0,multi,hdd,HV_IV_Adju
   #  Theta
   process_df %>% rowwise() %>% do(Theta=getPosGreeks(pos=.$pos$Position,greek=.$pos$Theta,multi=multi)) ->tmp
   unlist(tmp$Theta)->tmp ; process_df$Theta <- tmp ;rm(tmp)
+  #  IVIDX
+  process_df %>% rowwise() %>% do(IVIDX=mean(.$pos$IVIDX)) ->tmp
+  unlist(tmp$IVIDX)->tmp ; process_df$IVIDX <- tmp ;rm(tmp)
   
   ##
   # Greek Effects
