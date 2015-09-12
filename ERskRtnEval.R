@@ -21,30 +21,15 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   position<-hollowNonZeroPosition(pos=x)
   if(isDetail){print(position)}
   
-  #position evaluated after holdDays later
+  #At day 0 position price and Greeks.
+  thePositionGrk<-getPositionGreeks(position,multi=PosMultip,hdd=Setting$holdDays,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)
+  if(isDetail){cat("initail position\n");print(thePositionGrk)}
+  
+  #posEvalTble after 1 day and holdDay
   udlStepNum<-udlStepNum
   udlStepPct<-udlStepPct
   udlChgPct<-seq(-udlStepPct*udlStepNum,udlStepPct*udlStepNum,length=(2*udlStepNum)+1)
   
-  #dATMIV/dIVIDX 1 day regression result
-  posStepDays<-data.frame(days=c(1,Setting$holdDays))
-  posStepDays %>% group_by(days) %>%
-    do(scene=createPositionEvalTable(position=position,udlStepNum=udlStepNum,udlStepPct=udlStepPct,
-                                    multi=PosMultip,hdd=1,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)) -> posStepDays
-  posStepDays %>% group_by(days) %>% rowwise() %>%
-    do(days=.$days,scene2=adjustPosChg(.$scene,.$days-1,base_vol_chg=0,multi=PosMultip,hdd=Setting$holdDays,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)) -> tmp
-  unlist(tmp$days) -> posStepDays$days ; tmp$scene2 -> posStepDays$scene ;rm(tmp)
-  
-  #last day
-  posEvalTbl<-posStepDays$scene[[length(posStepDays)]]
-  
-  if(isDetail){print(posEvalTbl)}
-  if(isDetail){print(posEvalTbl$pos)}
-  
-  #At day 0 position price and Greeks.
-  thePositionGrk<-getPositionGreeks(position,multi=PosMultip,hdd=Setting$holdDays,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)
-  if(isDetail){cat("initail position\n");print(thePositionGrk)}
-    
   #weighting calculate
   sd_multp<-Setting$holdDays
   anlzd_sd<-histIV$IVIDX[1]*Setting$HV_IV_Adjust_Ratio
@@ -52,6 +37,28 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   #f.y.i sd_hd<-exp(anlzd_sd*sqrt(sd_multp/252))-1 #exponential expression
   weight<-dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd / sum(dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd)
   if(isDetail){cat(":(weight)",weight)}
+  
+  #dATMIV/dIVIDX 1 day regression result
+  posStepDays<-data.frame(days=c(1,Setting$holdDays))
+  posStepDays %>% group_by(days) %>%
+    do(scene=createPositionEvalTable(position=position,udlStepNum=udlStepNum,udlStepPct=udlStepPct,
+                                    multi=PosMultip,hdd=1,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)) -> posStepDays
+  #holdDay changes
+  posStepDays %>% group_by(days) %>% rowwise() %>%
+    do(days=.$days,scene2=adjustPosChg(.$scene,.$days-1,base_vol_chg=0,multi=PosMultip,hdd=Setting$holdDays,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)) -> tmp
+  unlist(tmp$days) -> posStepDays$days ; tmp$scene2 -> posStepDays$scene ;rm(tmp)
+  
+  if(isDetail){cat("\n(:after 1st day evalTble)\n");print(posStepDays$scene[[1]])}
+  if(isDetail){print(posStepDays$scene[[1]]$pos)}
+  if(isDetail){cat("(:after holdDay evalTble)\n");print(posStepDays$scene[[length(posStepDays)]])}
+  if(isDetail){print(posStepDays$scene[[length(posStepDays)]]$pos)}
+  
+  ##
+  # Greek Effects calculations. Forward looking indicator. Use first day's posEvalTble.
+  
+  #first day
+  posEvalTbl<-posStepDays$scene[[1]]
+  
   ##
   # Constraint 2. Tail Risk
   #   tailPrice<-min(sum(getIntrisicValue(position$UDLY[1]*(1-tail_rate),position)),
@@ -72,25 +79,6 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   }
   
   ##
-  # Profit
-  profit_hdays<-sum((posEvalTbl$Price-thePositionGrk$Price)*weight)
-  profit_vector<-(posEvalTbl$Price-thePositionGrk$Price)
-  maxLoss<-min(profit_vector)
-
-  c3<-profit_hdays
-  
-  ## profit sd
-  weight_times = round(weight*100)
-  #if(isDetail){cat(" :(weight_times)",weight_times)}
-  pdist = rep(profit_vector,times=weight_times)
-  #if(isDetail){cat(" :(profit_dist)",pdist)}
-  profit_sd<-sd(pdist)
-  #if(isDetail){ cat("profit_sd",profit_sd)}
-  if(isDetail){
-    cat(" :(prft_vec)",profit_vector); cat(" :(prft_wght)",profit_hdays);cat(" :(profit_sd)",profit_sd);cat(" :(max_loss)",maxLoss)
-  }
-  
-  ##
   # Advantageous Effects.
   c5<- sum((posEvalTbl$GammaEffect+posEvalTbl$ThetaEffect)*weight)
   if(isDebug){cat(" :c5(AdvEffect_wght)",c5)}
@@ -99,22 +87,19 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   # Directional Effects.
   ##
   #   Delta
+  
   ##Delta_Neutral_Offset
-  #expPriceChange<-posEvalTbl$UDLY*(exp(posEvalTbl$IVIDX*Setting$HV_IV_Adjust_Ratio*sqrt(Setting$holdDays/252))-1)
   expPriceChange <- getExpectedValueChange(base=posEvalTbl$UDLY,sd=posEvalTbl$IVIDX*Setting$HV_IV_Adjust_Ratio, dtime=Setting$holdDays/252)
-  
-  
   Delta_revised_offset<-posEvalTbl$Delta-Delta_Neutral_Offset
   Delta_Effect_revised_offset<- (-abs(Delta_revised_offset))*expPriceChange
   if(isDebug){
-    cat(" :(expPriceChange)",expPriceChange," :(Delta Offset)",Delta_revised_offset," :(DeltaE offset)",Delta_Effect_revised_offset)
-    
-  }
+    cat(" :(expPriceChange)",expPriceChange," :(Delta Offset)",Delta_revised_offset," :(DeltaE offset)",Delta_Effect_revised_offset)}
+  
   Delta_revised_offset<-sum(Delta_revised_offset*weight)
   Delta_Effect_revised_offset<-sum(Delta_Effect_revised_offset*weight)
   if(isDebug){
-    cat(" :(DeltaE_wght)",Delta_Effect_revised_offset," :(Delta_wght)",Delta_revised_offset)
-  }
+    cat(" :(DeltaE_wght)",Delta_Effect_revised_offset," :(Delta_wght)",Delta_revised_offset)}
+  
   ###Delta_Thresh_Minus,Delta_Thresh_Plus
   DeltaEffect_Comp<-(Delta_revised_offset<0)*(Delta_revised_offset<Setting$Delta_Thresh_Minus[length(position$TYPE)])*Delta_Effect_revised_offset+
     (Delta_revised_offset>0)*(Delta_revised_offset>Setting$Delta_Thresh_Plus[length(position$TYPE)])*Delta_Effect_revised_offset
@@ -162,22 +147,40 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   ##
   # Directional Effect
   c6<- vega_pref_coef*VegaEffect_Comp+dlta_pref_coef*DeltaEffect_Comp
-  
   if(isDebug){
     cat(" (:vega_pref_coef",vega_pref_coef," x :VegaE_new",VegaEffect_Comp,
         "+ :dlta_pref_coef",dlta_pref_coef," x :DeltaE_new",DeltaEffect_Comp," = :(DrctlEffect)c6 ",c6,")")
   }
   
   ##
-  # max Loss
+  # Profit
+  
+  #last day (holdDay)
+  posEvalTbl<-posStepDays$scene[[length(posStepDays)]]
+  
+  ## profit weighted on holdDay
+  profit_hdays<-sum((posEvalTbl$Price-thePositionGrk$Price)*weight)
+  profit_vector<-(posEvalTbl$Price-thePositionGrk$Price)
+  maxLoss<-min(profit_vector)
+  
+  c3<-profit_hdays
+  
+  ## profit sd
+  weight_times = round(weight*100)
+  #if(isDetail){cat(" :(weight_times)",weight_times)}
+  pdist = rep(profit_vector,times=weight_times)
+  #if(isDetail){cat(" :(profit_dist)",pdist)}
+  profit_sd<-sd(pdist)
+  #if(isDetail){ cat("profit_sd",profit_sd)}
+  if(isDetail){
+    cat(" :(prft_vec)",profit_vector); cat(" :(prft_wght)",profit_hdays);cat(" :(profit_sd)",profit_sd);cat(" :(max_loss)",maxLoss)
+  }
   c8<- profit_sd
   if(isDebug){cat(" :c8(profit_sd)",c8)}
   
   ##
   # cost7 All Effects.
-  #weight is normalized
   c7<- c5+c6
-  #cost7<-sigmoid(c5,a=Setting$SigmoidA_AllEffect,b=0)
   if(isDebug){cat(" :c7(AllEffect)",c7)}
   
   ##
@@ -191,10 +194,9 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   
   sigA<-sigmoid(A,a=Setting$SigmoidA_Numerator,b=0)
   sigB<-sigmoid(B,a=Setting$SigmoidA_Denominator,b=0)
-  #cost<-(sigA/(1-sigB))
+  
   cost<-sigA/sigB
   if(isDebug){cat(" :sigA",sigA,":sigB",sigB,":cost(sigA/sigB)",cost)}
-  #if(isDebug){cat(" :cost",cost," ")}
   
   ##
   # total cost and penalty
