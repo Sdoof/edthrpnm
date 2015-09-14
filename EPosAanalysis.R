@@ -3,7 +3,7 @@ library(RQuantLib)
 library(ggplot2)
 
 #evaluated position or set evaPos manually by copy&paste csv value
-evaPos<-c(0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,-1,0,0) 
+evaPos<-c(0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,-1,0,0,0,0,0,0,0,0,0,0) 
 
 #UDLY draw limit. given absolute % value
 UDLY_DrawRange<-0.10
@@ -125,6 +125,8 @@ pos_anlys<-evaPos
 #note opchain is already instanciated by the proceduces of ERskRtnEval
 opchain$Position<-pos_anlys
 opchain %>% dplyr::filter(Position!=0) -> thePosition
+
+###If needed, change thePositon's Date,Price,UDLY and re-calc the Greeks
 
 #thePosition's greek df and initial price
 thePositonGrks<-getPositionGreeks(thePosition,multi=PosMultip,hdd=holdDays,HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio)
