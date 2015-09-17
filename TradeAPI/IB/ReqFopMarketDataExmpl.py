@@ -111,12 +111,22 @@ if __name__ == '__main__':
     raw_input('getting Fx Future Option Contract press any to continue')
 
     # Fx Futre Option Contract
-    fxFutOpContract = makeFxFutOptContract(sym='AUD', exp='20151009', strike='', right='C', multip=100000)
+    fxFutOpContract = makeFxFutOptContract(sym='JPY', exp='201511', strike='', right='', multip='')
     nextOrderId = nextOrderId + 1
     theOrderId = nextOrderId
     con.reqContractDetails(theOrderId, fxFutOpContract)
     raw_input('wait for contractDetail')
     print('conId %s' % (contractRestoreList[0].m_conId))
+    raw_input('show contractList press any to continue')
+
+    for con_item in range(len(contractRestoreList)):
+        con_each = contractRestoreList[con_item]
+        print('retrieved conid %s \"%s\" %s %s %s %s %s x %s on %s' %
+              (con_each.m_conId, con_each.m_localSymbol, con_each.m_secType, con_each.m_right,con_each.m_strike,
+               con_each.m_expiry, con_each.m_symbol, con_each.m_multiplier, con_each.m_exchange))
+        # Contract member variables:
+        # m_conId, m_symbol, m_secType, m_expiry, m_strike, m_right, m_multiplier, m_exchange, m_currency, m_localSymbol,
+        # m_tradingClass,m_primaryExch, m_includeExpired, m_secIdType, m_secId
 
     # Request Data
     raw_input('requesting Fx Futre Option  press any to continue')
