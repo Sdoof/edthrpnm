@@ -130,15 +130,21 @@ if __name__ == '__main__':
 
     # Request Data
     raw_input('requesting Fx Futre Option  press any to continue')
-    nextOrderId = nextOrderId + 1
-    theOrderId = nextOrderId
-    # In the case of snapshot, no need to store orderId to the Dict?
-    # con.reqMktData(tickerId=theOrderId,contract=contractRestoreList[0],genericTickList='',snapshot=True)
-    # market data streaming
-    con.reqMktData(tickerId=theOrderId, contract=contractRestoreList[0], genericTickList='', snapshot=False)
-    # orderIdMktReqContractDict = dict([(theOrderId,contractRestoreList[0])])
-    orderIdMktReqContractDict = {theOrderId: contractRestoreList[0]}
-    print('request market data [%s] for conId %s' % (theOrderId, orderIdMktReqContractDict[theOrderId].m_conId))
+
+    for con_item in range(len(contractRestoreList)):
+        nextOrderId = nextOrderId + 1
+        theOrderId = nextOrderId
+        con_each = contractRestoreList[con_item]
+        sleep(1)
+        # In the case of snapshot, no need to store orderId to the Dict?
+        # con.reqMktData(tickerId=theOrderId,contract=contractRestoreList[0],genericTickList='',snapshot=True)
+        # market data streaming
+        if orderIdMktReqContractDict:
+            orderIdMktReqContractDict = {theOrderId: con_each}
+        else:
+            orderIdMktReqContractDict = dict([(theOrderId,con_each)])
+        con.reqMktData(tickerId=theOrderId, contract=con_each, genericTickList='', snapshot=False)
+        print('request market data [%s] for conId %s' % (theOrderId, orderIdMktReqContractDict[theOrderId].m_conId))
 
     # Cancel First Data
     raw_input('cancel first mktData %s press any to continue' % (orderIdMktReqContractDict.keys()[0]))
