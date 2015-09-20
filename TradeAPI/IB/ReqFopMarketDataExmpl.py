@@ -2,6 +2,8 @@
 from ib.ext.Contract import Contract
 from ib.opt import Connection
 from time import sleep
+import datetime
+import csv
 
 # -- globals  ------------------------------------------------------------------
 port_G = 7496
@@ -13,6 +15,7 @@ contractRestoreList = None
 orderIdMktReqContractDict = None
 priceInfoDict = {}
 
+
 class ContractPrice:
     def __init__(self):
         self.bid = ""
@@ -23,9 +26,12 @@ class ContractPrice:
         self.close = ""
         self.Contract = ""
 
+
 # -- message handlers  ---------------------------------------------------------
+
 def MessageHandler(msg):
     print msg
+
 
 def ErrorHandler(msg):
     print(str(msg))
@@ -42,6 +48,7 @@ def ContractDetailsHandler(msg):
     print(str(msg))
     contractDetail = msg.contractDetails
 
+
 def MultiContractDetailsHandler(msg):
     global contractRestoreList
     theContractdetail = msg.contractDetails
@@ -54,40 +61,68 @@ def MultiContractDetailsHandler(msg):
     else:
         contractRestoreList = [theContract]
 
+
 def OrderStatusHandler(msg):
     print(str(msg))
     print('<%s:%s:%s:%s:%s:%s:%s>' % (
         msg.orderId, msg.typeName, msg.status, msg.whyHeld, msg.avgFillPrice, msg.filled, msg.remaining))
+
 
 def TickPriceHandler(msg):
     global orderIdMktReqContractDict
     global priceInfoDict
     # field: 1 = bid, 2 = ask, 4 = last, 6 = high, 7 = low, 9 = close
     print(str(msg))
-    #print(orderIdMktReqContractDict.keys())
+    # print(orderIdMktReqContractDict.keys())
     contRtrvd = orderIdMktReqContractDict[msg.tickerId]
     print('Ticker reqid %s con_id %s \"%s\" %s %s' % (msg.tickerId, contRtrvd.m_conId, contRtrvd.m_localSymbol,
-                                               contRtrvd.m_strike, contRtrvd.m_expiry))
+                                                      contRtrvd.m_strike, contRtrvd.m_expiry))
     contract_price = priceInfoDict.get(contRtrvd.m_localSymbol)
     if contract_price == None:
         contract_price = ContractPrice()
     contract_price.Contract = contRtrvd
     if msg.field == 1:
         contract_price.bid = msg.price
-    if  msg.field == 2:
+    if msg.field == 2:
         contract_price.ask = msg.price
     if msg.field == 4:
         contract_price.last = msg.price
     if msg.field == 9:
         contract_price.close = msg.price
     priceInfoDict[contRtrvd.m_localSymbol] = contract_price
-    print('\"%s\" expDate %s bid %s ask %s last %s close %s' % (contRtrvd.m_localSymbol,contRtrvd.m_expiry,
+    print('\"%s\" expDate %s bid %s ask %s last %s close %s' % (contRtrvd.m_localSymbol, contRtrvd.m_expiry,
                                                                 priceInfoDict[contRtrvd.m_localSymbol].bid,
                                                                 priceInfoDict[contRtrvd.m_localSymbol].ask,
                                                                 priceInfoDict[contRtrvd.m_localSymbol].last,
                                                                 priceInfoDict[contRtrvd.m_localSymbol].close))
 
-# -- functions  -----------------------------------------------------------------
+
+def writeToFile(symbol):
+    global priceInfoDict
+    fname = "../../MarketData/" + symbol + datetime.datetime.today().strftime("%Y-%m-%d") + ".csv"
+    file = open(fname, mode='w')
+    writer_csv = csv.writer(file, lineterminator="\n",quoting=csv.QUOTE_NONNUMERIC)
+    writer_csv.writerow(["Strike","ContactName","Last","Bid","Ask","ExpDate","TYPE"])
+    for priceInfo_key in priceInfoDict.iterkeys():
+        print('priceInfoKey %s' % (priceInfo_key))
+        contract_price = priceInfoDict[priceInfo_key]
+        contract = contract_price.Contract
+        print('Strike %s ContactName %s last %s bid %s ask %s ExpDate %s TYPE_S %s' %
+              (contract.m_strike, contract.m_localSymbol, contract_price.last,
+               contract_price.bid, contract_price.ask, contract.m_expiry, contract.m_right))
+        if contract_price.last == '':
+            contract_price.last = contract_price.bid
+        if contract_price.bid < 0 or contract_price.ask < 0 :
+            continue
+        contract.m_expiry = datetime.datetime.strptime(contract.m_expiry,'%Y%m%d').strftime('%Y/%m/%d')
+        writer_csv.writerow(
+           # ['\"'+str(contract.m_strike)+'\"', contract.m_localSymbol, contract_price.last, contract_price.bid,
+           [str(contract.m_strike), contract.m_localSymbol, str(contract_price.last), str(contract_price.bid),
+             str(contract_price.ask), contract.m_expiry, contract.m_right])
+    file.close()
+
+
+# -- factory functions  -----------------------------------------------------------------
 
 def makeOptContract(sym, exp, strike, right):
     newOptContract = Contract()
@@ -101,6 +136,7 @@ def makeOptContract(sym, exp, strike, right):
     newOptContract.m_currency = "USD"
     return newOptContract
 
+
 def makeFxFutContract(sym, exp, multip):
     newFutContract = Contract()
     newFutContract.m_symbol = sym
@@ -110,6 +146,7 @@ def makeFxFutContract(sym, exp, multip):
     newFutContract.m_exchange = "GLOBEX"
     newFutContract.m_currency = "USD"
     return newFutContract
+
 
 def makeFxFutOptContract(sym, exp, strike, right, multip):
     newOptContract = Contract()
@@ -122,6 +159,7 @@ def makeFxFutOptContract(sym, exp, strike, right, multip):
     newOptContract.m_exchange = "GLOBEX"
     newOptContract.m_currency = "USD"
     return newOptContract
+
 
 # -- main  ---------------------------------------------------------------------
 
@@ -157,12 +195,12 @@ if __name__ == '__main__':
     for con_item in range(len(contractRestoreList)):
         con_each = contractRestoreList[con_item]
         print('retrieved conid %s \"%s\" %s %s %s %s %s x %s on %s' %
-              (con_each.m_conId, con_each.m_localSymbol, con_each.m_secType, con_each.m_right,con_each.m_strike,
+              (con_each.m_conId, con_each.m_localSymbol, con_each.m_secType, con_each.m_right, con_each.m_strike,
                con_each.m_expiry, con_each.m_symbol, con_each.m_multiplier, con_each.m_exchange))
         # Need just 6J
         if 'XJX' in con_each.m_localSymbol:
             contractRemoveList.append(con_each)
-    #Remove XJX
+    # Remove XJX
     for con_rmv_item in range(len(contractRemoveList)):
         con_rmv = contractRemoveList[con_rmv_item]
         contractRestoreList.remove(con_rmv)
@@ -179,18 +217,18 @@ if __name__ == '__main__':
         # con.reqMktData(tickerId=theOrderId,contract=contractRestoreList[0],genericTickList='',snapshot=True)
         # market data streaming
         orderIdMktReqContractDict[theOrderId] = con_each
-        print('dict %s %s' % (theOrderId,orderIdMktReqContractDict[theOrderId].m_conId))
-        #sleep(1)
+        print('dict %s %s' % (theOrderId, orderIdMktReqContractDict[theOrderId].m_conId))
+        # sleep(1)
         con.reqMktData(tickerId=theOrderId, contract=con_each, genericTickList='', snapshot=False)
-        #print('request market data [%s] for conId %s' % (theOrderId, orderIdMktReqContractDict[theOrderId].m_conId))
+        # print('request market data [%s] for conId %s' % (theOrderId, orderIdMktReqContractDict[theOrderId].m_conId))
 
     raw_input('examing orderIdMktReqContractDict press any to continue')
-    for req_order_id  in orderIdMktReqContractDict.iterkeys():
-        print('req_order_id ',req_order_id)
+    for req_order_id in orderIdMktReqContractDict.iterkeys():
+        print('req_order_id ', req_order_id)
 
     # Cancel Data
     raw_input('cancel mktData %s press any to continue' % (orderIdMktReqContractDict.keys()))
-    for req_order_id  in orderIdMktReqContractDict.iterkeys():
+    for req_order_id in orderIdMktReqContractDict.iterkeys():
         con.cancelMktData(req_order_id)
 
     # Receive the new OrderId sequence from the IB Server
@@ -199,6 +237,8 @@ if __name__ == '__main__':
 
     # Writ to files
     raw_input('Price data writing to file press to continue')
+
+    writeToFile('JPY')
 
     # disconnect
     con.disconnect()
