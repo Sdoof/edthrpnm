@@ -39,17 +39,16 @@ ScenarioMode=ConfigParameters["SimReportScenarioMode",1]
 rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep="")
 opchain<-read.table(rf,header=T,sep=",",stringsAsFactors=FALSE)
 
-#only OOM targeted
-opchain %>% dplyr::filter(HowfarOOM>=0) -> opchain
-
 ##Spreads to be evaluated loaded
 rf<-paste(ResultFiles_Path_G,Underying_Symbol_G,"_EvalPosition.csv",sep="")
-evalPositions<-read.table(rf,header=F,sep=",")
+evalPositions<-read.table(rf,header=F,sep=",",colClasses="numeric")
+
 if(length(evalPositions)>length(opchain$Position)){
-  evalPositions %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% distinct() -> evalPositions 
-}
+  evalPositions %>% distinct() -> evalPositions 
+};rm(rf)
+
 # Top n Spreads
-evalPositions %>% arrange(.[,length(opchain$Position)+1]) %>% slice(evalPosStart:evalPosEnd) -> evalPositions
+evalPositions %>% slice(evalPosStart:evalPosEnd) -> evalPositions
 
 ```
 ##Scenario Table description
