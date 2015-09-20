@@ -114,11 +114,14 @@ def writeToFile(symbol):
             contract_price.last = contract_price.bid
         if contract_price.bid < 0 or contract_price.ask < 0 :
             continue
+        if contract.m_right == 'P':
+            contract.m_right = '1'
+        elif contract.m_right == 'C':
+             contract.m_right = '-1'
         contract.m_expiry = datetime.datetime.strptime(contract.m_expiry,'%Y%m%d').strftime('%Y/%m/%d')
         writer_csv.writerow(
-           # ['\"'+str(contract.m_strike)+'\"', contract.m_localSymbol, contract_price.last, contract_price.bid,
-           [str(contract.m_strike), contract.m_localSymbol, str(contract_price.last), str(contract_price.bid),
-             str(contract_price.ask), contract.m_expiry, contract.m_right])
+             [str(contract.m_strike), contract.m_localSymbol, str(format(contract_price.last,'.10f')), str(format(contract_price.bid,'.10f')),
+             str(format(contract_price.ask,'.10f')), contract.m_expiry, contract.m_right])
     file.close()
 
 
