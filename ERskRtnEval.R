@@ -183,8 +183,13 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   if(isDetail){
     cat(" :(prft_vec)",profit_vector); cat(" :(prft_wght)",profit_hdays);cat(" :(profit_sd)",profit_sd);cat(" :(max_loss)",maxLoss)
   }
+  
   c8<- profit_sd
-  if(isDebug){cat(" :c8(profit_sd)",c8)}
+  if(Setting$EvalConvex)
+    c8<- (-1)*maxLoss
+  else
+    c8<- profit_sd
+  if(isDebug){cat(" :c8(profit_sd or max_loss) ",c8)}
   
   ##
   # cost7 All Effects.

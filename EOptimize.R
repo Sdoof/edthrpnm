@@ -40,7 +40,7 @@ EvFNames <- c("holdDays","UdlStepNum","UdlStepPct","Posnum","Tail_rate","LossLim
               "HV_IV_Adjust_Ratio","Delta_Thresh_Minus","Delta_Thresh_Plus","Vega_Thresh_Minus","Vega_Thresh_Plus",
               "Delta_Direct_Prf","Vega_Direct_Prf","Delta_Neutral_Offset","Vega_Neutral_Offset",
               "Profit_Coef","AdvEffect_Coef","AllEffect_Coef","DrctlEffect_Coef","MaxLoss_Coef",
-              "SigmoidA_Numerator","SigmoidA_Denominator","ThetaEffectPositive")
+              "SigmoidA_Numerator","SigmoidA_Denominator","ThetaEffectPositive","EvalConvex")
 EvalFuncSetting<-vector("list",length(EvFNames))
 
 EvalFuncSetting[[1]]<-holdDays
@@ -66,6 +66,7 @@ EvalFuncSetting[[20]]<-as.numeric(ConfigParameters["EvalFnc_MaxLoss_Coef",1])
 EvalFuncSetting[[21]]<-as.numeric(ConfigParameters["EvalFnc_SigmoidA_Numerator",1])
 EvalFuncSetting[[22]]<-as.numeric(ConfigParameters["EvalFnc_SigmoidA_Denominator",1])
 EvalFuncSetting[[23]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_ThetaEffectPositive",1])==1,TRUE,FALSE)
+EvalFuncSetting[[24]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_EvalConvex",1])==1,TRUE,FALSE)
 
 names(EvalFuncSetting)<-EvFNames
 rm(EvFNames)
