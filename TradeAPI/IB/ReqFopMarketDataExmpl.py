@@ -230,6 +230,9 @@ if __name__ == '__main__':
     raw_input('getting Fx Future Option Contract press any to continue')
 
     for fxFutOpContract_item in range(len(fxFutOpContractList)):
+        contractRestoreList = []
+        orderIdMktReqContractDict = {}
+        priceInfoDict = {}
         fxFutOpContract = fxFutOpContractList[fxFutOpContract_item]
         subscribeContractList(fxFutOpContract,con)
         raw_input('requesting Fx Futre Option length press any to continue ')
