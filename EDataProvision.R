@@ -29,7 +29,7 @@ ResultFiles_Path_G=ConfigParameters["ResultFiles_Path_G",1]
 
 #switch: only for today or multiple days for skew calculation
 ProcessFileName=paste("_OPChain_Pre.csv",sep="")
-isSkewCalc=FALSE
+isSkewCalc=TRUE
 #set TRUE if this is today's new position, or (already holding position) set FALSE,
 isNewPosition=TRUE
 TargetFileName=paste("_Positions_Pre_",Sys.Date(),".csv",sep="")
@@ -209,9 +209,9 @@ filterPosition <- function(opchain,HowfarOOM_MIN=-0.5,OOM_Limit_V=c(0.08,0.08)){
   
   #Calender Spread 
   OOM_Limit<-(OOM_Limit_V[1])
-  opchain %>%  dplyr::filter(ExpDate=="2015/9/17") %>% dplyr::filter(HowfarOOM<OOM_Limit)  %>% dplyr::filter((Strike%%10)==0) -> opchain_cal1
+  opchain %>%  dplyr::filter(ExpDate=="2015/10/15") %>% dplyr::filter(HowfarOOM<OOM_Limit)  %>% dplyr::filter((Strike%%10)==0) -> opchain_cal1
   OOM_Limit<-(OOM_Limit_V[2])
-  opchain %>%  dplyr::filter(ExpDate=="2015/10/15") %>% dplyr::filter(HowfarOOM<OOM_Limit)  %>% dplyr::filter((Strike%%10)==0) -> opchain_cal2
+  opchain %>%  dplyr::filter(ExpDate=="2015/11/19") %>% dplyr::filter(HowfarOOM<OOM_Limit)  %>% dplyr::filter((Strike%%10)==0) -> opchain_cal2
   
   #Join
   opchain_cal1 %>%  dplyr::full_join(opchain_cal2) %>% 

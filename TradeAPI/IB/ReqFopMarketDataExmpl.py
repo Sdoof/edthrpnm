@@ -244,27 +244,9 @@ if __name__ == '__main__':
 
     raw_input('About to exit press any to continue')
 
-    # Fx Futre Option Contract
-    #fxFutOpContract = makeFxFutOptContract(sym='JPY', exp='201511', strike='', right='', multip='')
-    #subscribeContractList(fxFutOpContract,con)
-
-    # Request Data
-    #raw_input('requesting Fx Futre Option length press any to continue ')
-    #subscribeDataRequest(con)
-
-    # Cancel Data
-    #raw_input('cancel mktData %s press any to continue' % (orderIdMktReqContractDict.keys()))
-    #for req_order_id in orderIdMktReqContractDict.iterkeys():
-    #    con.cancelMktData(req_order_id)
-
     # Receive the new OrderId sequence from the IB Server
     con.reqIds(1)
     sleep(2)
-
-    # Writ to files
-    #raw_input('Price data writing to file press to continue')
-
-    #writeToFile('JPY')
 
     # disconnect
     con.disconnect()
