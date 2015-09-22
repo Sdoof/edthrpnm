@@ -15,6 +15,10 @@ contractRestoreList = None
 orderIdMktReqContractDict = None
 priceInfoDict = {}
 
+SPX_Strike_Max=2450
+SPX_Strike_Min=1410
+RUT_Strike_Max=1500
+RUT_Strike_Min=700
 
 class ContractPrice:
     def __init__(self):
@@ -138,6 +142,7 @@ def makeFxFutOptContract(sym, exp, strike, right, multip):
 
 def subscribeContractList(opCont,con):
     global nextOrderId
+    global SPX_Strike_Max, SPX_Strike_Min, RUT_Strike_Max,RUT_Strike_Min
     nextOrderId = nextOrderId + 1
     theOrderId = nextOrderId
     con.reqContractDetails(theOrderId, opCont)
@@ -148,12 +153,18 @@ def subscribeContractList(opCont,con):
         print('retrieved conid %s \"%s\" %s %s %s %s %s x %s on %s' %
               (con_each.m_conId, con_each.m_localSymbol, con_each.m_secType, con_each.m_right, con_each.m_strike,
                con_each.m_expiry, con_each.m_symbol, con_each.m_multiplier, con_each.m_exchange))
-        # Need just 6J
-        if 'XJX' in con_each.m_localSymbol:
+        # exclude condition
+        if (con_each.m_strike % 10) != 0:
             contractRemoveList.append(con_each)
-        if 'XTX' in con_each.m_localSymbol:
+        elif con_each.m_symbol == 'SPX' and con_each.m_strike < SPX_Strike_Min:
             contractRemoveList.append(con_each)
-    # Remove XJX
+        elif con_each.m_symbol == 'SPX' and con_each.m_strike > SPX_Strike_Max:
+            contractRemoveList.append(con_each)
+        elif con_each.m_symbol == 'RUT' and con_each.m_strike < RUT_Strike_Min:
+            contractRemoveList.append(con_each)
+        elif con_each.m_symbol == 'RUT' and con_each.m_strike > RUT_Strike_Max:
+            contractRemoveList.append(con_each)
+    # Remove
     for con_rmv_item in range(len(contractRemoveList)):
         con_rmv = contractRemoveList[con_rmv_item]
         contractRestoreList.remove(con_rmv)
@@ -192,7 +203,7 @@ def writeToFile(symbol):
               (contract.m_strike, contract.m_localSymbol, contract_price.last,
                contract_price.bid, contract_price.ask, contract.m_expiry, contract.m_right))
         if contract_price.last == '':
-            contract_price.last = contract_price.bid
+            contract_price.last = (contract_price.bid + contract_price.ask)/2.0
         if contract_price.bid < 0 or contract_price.ask < 0 :
             continue
         if contract.m_right == 'P':
@@ -229,11 +240,11 @@ if __name__ == '__main__':
     # Retrieve Option Chain Contract
     raw_input('getting Fx Future Option Contract press any to continue')
 
-    for fxFutOpContract_item in range(len(opContractList)):
+    for opContract_item in range(len(opContractList)):
         contractRestoreList = []
         orderIdMktReqContractDict = {}
         priceInfoDict = {}
-        OpContract = opContractList[fxFutOpContract_item]
+        OpContract = opContractList[opContract_item]
         subscribeContractList(OpContract,con)
         raw_input('requesting Fx Futre Option length press any to continue ')
         subscribeDataRequest(con)
@@ -243,7 +254,7 @@ if __name__ == '__main__':
         raw_input('Price data writing to file press to continue')
         con.reqIds(1)
         sleep(2)
-        writeToFile(fxFutOpContract.m_symbol)
+        writeToFile(OpContract.m_symbol)
 
     raw_input('About to exit press any to continue')
 
