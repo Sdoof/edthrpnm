@@ -146,14 +146,15 @@ def subscribeContractList(opCont,con):
     nextOrderId = nextOrderId + 1
     theOrderId = nextOrderId
     con.reqContractDetails(theOrderId, opCont)
-    raw_input('wait for contractDetail press to continue')
+    #raw_input('wait for contractDetail press to continue')
+    sleep(2)
     contractRemoveList = []
     for con_item in range(len(contractRestoreList)):
         con_each = contractRestoreList[con_item]
-        print('retrieved conid %s \"%s\" %s %s %s %s %s x %s on %s' %
-              (con_each.m_conId, con_each.m_localSymbol, con_each.m_secType, con_each.m_right, con_each.m_strike,
-               con_each.m_expiry, con_each.m_symbol, con_each.m_multiplier, con_each.m_exchange))
-        # exclude condition
+        #print('retrieved conid %s \"%s\" %s %s %s %s %s x %s on %s' %
+        #      (con_each.m_conId, con_each.m_localSymbol, con_each.m_secType, con_each.m_right, con_each.m_strike,
+        #       con_each.m_expiry, con_each.m_symbol, con_each.m_multiplier, con_each.m_exchange))
+        ### exclude condition
         if (con_each.m_strike % 10) != 0:
             contractRemoveList.append(con_each)
         elif con_each.m_symbol == 'SPX' and con_each.m_strike < SPX_Strike_Min:
@@ -181,13 +182,13 @@ def subscribeDataRequest(con):
         # con.reqMktData(tickerId=theOrderId,contract=contractRestoreList[0],genericTickList='',snapshot=True)
         # market data streaming
         orderIdMktReqContractDict[theOrderId] = con_each
-        print('dict %s %s' % (theOrderId, orderIdMktReqContractDict[theOrderId].m_conId))
+        #print('dict %s %s' % (theOrderId, orderIdMktReqContractDict[theOrderId].m_conId))
         # sleep(1)
         con.reqMktData(tickerId=theOrderId, contract=con_each, genericTickList='', snapshot=False)
         # print('request market data [%s] for conId %s' % (theOrderId, orderIdMktReqContractDict[theOrderId].m_conId))
-    raw_input('examing orderIdMktReqContractDict press any to continue')
-    for req_order_id in orderIdMktReqContractDict.iterkeys():
-        print('req_order_id ', req_order_id)
+    #print('examing orderIdMktReqContractDict press any to continue')
+    #for req_order_id in orderIdMktReqContractDict.iterkeys():
+    #    print('req_order_id ', req_order_id)
 
 def writeToFile(symbol):
     global priceInfoDict
@@ -219,7 +220,36 @@ def writeToFile(symbol):
 
 # -- main  ---------------------------------------------------------------------
 opContractList = [makeOptContract(sym='SPX', exp='20151015', strike='', right='P'),
-                  makeOptContract(sym='SPX', exp='20151015', strike='', right='C')]
+                  makeOptContract(sym='SPX', exp='20151015', strike='', right='C'),
+                  makeOptContract(sym='SPX', exp='20151106', strike='', right='P'),
+                  makeOptContract(sym='SPX', exp='20151106', strike='', right='C'),
+                  makeOptContract(sym='SPX', exp='20151119', strike='', right='P'),
+                  makeOptContract(sym='SPX', exp='20151119', strike='', right='C'),
+                  makeOptContract(sym='SPX', exp='20151204', strike='', right='P'),
+                  makeOptContract(sym='SPX', exp='20151204', strike='', right='C'),
+                  makeOptContract(sym='SPX', exp='20151217', strike='', right='P'),
+                  makeOptContract(sym='SPX', exp='20151217', strike='', right='C'),
+                  makeOptContract(sym='SPX', exp='20151231', strike='', right='P'),
+                  makeOptContract(sym='SPX', exp='20151231', strike='', right='C'),
+                  makeOptContract(sym='SPX', exp='20160114', strike='', right='P'),
+                  makeOptContract(sym='SPX', exp='20160114', strike='', right='C'),
+                  makeOptContract(sym='SPX', exp='20160129', strike='', right='P'),
+                  makeOptContract(sym='SPX', exp='20160129', strike='', right='C'),
+                  makeOptContract(sym='SPX', exp='20160317', strike='', right='P'),
+                  makeOptContract(sym='SPX', exp='20160317', strike='', right='C'),
+                  makeOptContract(sym='RUT', exp='20151015', strike='', right='P'),
+                  makeOptContract(sym='RUT', exp='20151015', strike='', right='C'),
+                  makeOptContract(sym='RUT', exp='20151029', strike='', right='P'),
+                  makeOptContract(sym='RUT', exp='20151029', strike='', right='C'),
+                  makeOptContract(sym='RUT', exp='20151119', strike='', right='P'),
+                  makeOptContract(sym='RUT', exp='20151119', strike='', right='C'),
+                  makeOptContract(sym='RUT', exp='20151217', strike='', right='P'),
+                  makeOptContract(sym='RUT', exp='20151217', strike='', right='C'),
+                  makeOptContract(sym='RUT', exp='20160114', strike='', right='P'),
+                  makeOptContract(sym='RUT', exp='20160114', strike='', right='C'),
+                  makeOptContract(sym='RUT', exp='20160317', strike='', right='P'),
+                  makeOptContract(sym='RUT', exp='20160317', strike='', right='C')
+                  ]
 
 if __name__ == '__main__':
     # Server Access
@@ -234,11 +264,13 @@ if __name__ == '__main__':
     con.setServerLogLevel(5)
 
     # get mext Order Id
-    raw_input('wait for nextOrderId')
+    #raw_input('wait for nextOrderId')
     con.reqIds(1)
+    sleep(1)
 
     # Retrieve Option Chain Contract
-    raw_input('getting Fx Future Option Contract press any to continue')
+    #raw_input('getting Fx Future Option Contract press any to continue')
+    print('getting Fx Future Option Contract press any to continue')
 
     for opContract_item in range(len(opContractList)):
         contractRestoreList = []
@@ -246,17 +278,20 @@ if __name__ == '__main__':
         priceInfoDict = {}
         OpContract = opContractList[opContract_item]
         subscribeContractList(OpContract,con)
-        raw_input('requesting Fx Futre Option length press any to continue ')
+        #raw_input('requesting Fx Futre Option length press any to continue ')
         subscribeDataRequest(con)
-        raw_input('cancel mktData %s press any to continue' % (orderIdMktReqContractDict.keys()))
+        #raw_input('cancel mktData %s press any to continue' % (orderIdMktReqContractDict.keys()))
+        sleep(15)
         for req_order_id in orderIdMktReqContractDict.iterkeys():
             con.cancelMktData(req_order_id)
-        raw_input('Price data writing to file press to continue')
-        con.reqIds(1)
+        #raw_input('Price data writing to file press to continue')
+        print('Price data writing to file press to continue')
         sleep(2)
+        con.reqIds(1)
         writeToFile(OpContract.m_symbol)
 
-    raw_input('About to exit press any to continue')
+    #raw_input('About to exit press any to continue')
+    print('About to exit press any to continue')
 
     # Receive the new OrderId sequence from the IB Server
     con.reqIds(1)
