@@ -192,7 +192,7 @@ def subscribeDataRequest(con):
 
 def writeToFile(symbol):
     global priceInfoDict
-    fname = "../../MarketData/" + symbol + datetime.datetime.today().strftime("%Y-%m-%d") + ".csv"
+    fname = "C:/Users/kuby/edthrpnm/MarketData/" + symbol + datetime.datetime.today().strftime("%Y-%m-%d") + ".csv"
     file = open(fname, mode='a')
     writer_csv = csv.writer(file, lineterminator="\n",quoting=csv.QUOTE_NONNUMERIC)
     writer_csv.writerow(["Strike","ContactName","Last","Bid","Ask","ExpDate","TYPE"])
