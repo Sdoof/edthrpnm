@@ -141,13 +141,14 @@ def subscribeContractList(opCont,con):
     nextOrderId = nextOrderId + 1
     theOrderId = nextOrderId
     con.reqContractDetails(theOrderId, opCont)
-    raw_input('wait for contractDetail press to continue')
+    #raw_input('wait for contractDetail press to continue')
+    sleep(2)
     contractRemoveList = []
     for con_item in range(len(contractRestoreList)):
         con_each = contractRestoreList[con_item]
-        print('retrieved conid %s \"%s\" %s %s %s %s %s x %s on %s' %
-              (con_each.m_conId, con_each.m_localSymbol, con_each.m_secType, con_each.m_right, con_each.m_strike,
-               con_each.m_expiry, con_each.m_symbol, con_each.m_multiplier, con_each.m_exchange))
+        #print('retrieved conid %s \"%s\" %s %s %s %s %s x %s on %s' %
+        #      (con_each.m_conId, con_each.m_localSymbol, con_each.m_secType, con_each.m_right, con_each.m_strike,
+        #       con_each.m_expiry, con_each.m_symbol, con_each.m_multiplier, con_each.m_exchange))
         # Need just 6J
         if 'XJX' in con_each.m_localSymbol:
             contractRemoveList.append(con_each)
@@ -170,45 +171,64 @@ def subscribeDataRequest(con):
         # con.reqMktData(tickerId=theOrderId,contract=contractRestoreList[0],genericTickList='',snapshot=True)
         # market data streaming
         orderIdMktReqContractDict[theOrderId] = con_each
-        print('dict %s %s' % (theOrderId, orderIdMktReqContractDict[theOrderId].m_conId))
+        #print('dict %s %s' % (theOrderId, orderIdMktReqContractDict[theOrderId].m_conId))
         # sleep(1)
         con.reqMktData(tickerId=theOrderId, contract=con_each, genericTickList='', snapshot=False)
         # print('request market data [%s] for conId %s' % (theOrderId, orderIdMktReqContractDict[theOrderId].m_conId))
-    raw_input('examing orderIdMktReqContractDict press any to continue')
-    for req_order_id in orderIdMktReqContractDict.iterkeys():
-        print('req_order_id ', req_order_id)
+    #raw_input('examing orderIdMktReqContractDict press any to continue')
+    #for req_order_id in orderIdMktReqContractDict.iterkeys():
+    #    print('req_order_id ', req_order_id)
 
-def writeToFile(symbol):
+def writeToFile(sectype,symbol):
     global priceInfoDict
-    fname = "../../MarketData/" + symbol + datetime.datetime.today().strftime("%Y-%m-%d") + ".csv"
-    file = open(fname, mode='w')
+    if sectype == 'FOP':
+        fname = "../../MarketData/" + symbol + sectype + datetime.datetime.today().strftime("%Y-%m-%d") + ".csv"
+    elif sectype == 'FUT':
+        fname = "../../MarketData/" + symbol + sectype + ".csv"
+    else:
+        fname = "../../MarketData/" + symbol + sectype + ".csv"
+
+    file = open(fname, mode='a')
     writer_csv = csv.writer(file, lineterminator="\n",quoting=csv.QUOTE_NONNUMERIC)
-    writer_csv.writerow(["Strike","ContactName","Last","Bid","Ask","ExpDate","TYPE"])
+    if sectype == 'FOP':
+        writer_csv.writerow(["Strike","ContactName","Last","Bid","Ask","ExpDate","TYPE"])
+    #if sectype == 'FUT':
+    #    writer_csv.writerow(["ContactName","Last","Bid","Ask","ExpDate","Date"])
     for priceInfo_key in priceInfoDict.iterkeys():
         print('priceInfoKey %s' % (priceInfo_key))
         contract_price = priceInfoDict[priceInfo_key]
         contract = contract_price.Contract
-        print('Strike %s ContactName %s last %s bid %s ask %s ExpDate %s TYPE_S %s' %
+        print('Strike %s ContactName %s last %s bid %s ask %s ExpDate %s TYPE %s' %
               (contract.m_strike, contract.m_localSymbol, contract_price.last,
                contract_price.bid, contract_price.ask, contract.m_expiry, contract.m_right))
         if contract_price.last == '':
-            contract_price.last = contract_price.bid
+            contract_price.last = (contract_price.bid + contract_price.ask)/2.0
         if contract_price.bid < 0 or contract_price.ask < 0 :
             continue
-        if contract.m_right == 'P':
-            contract.m_right = '1'
-        elif contract.m_right == 'C':
-             contract.m_right = '-1'
+        if sectype == 'FOP':
+            if contract.m_right == 'P':
+                contract.m_right = '1'
+            elif contract.m_right == 'C':
+                contract.m_right = '-1'
         #contract.m_expiry = datetime.datetime.strptime(contract.m_expiry,'%Y%m%d').strftime('%Y/%m/%d')
-        if symbol == contract.m_symbol:
+        if sectype == 'FOP' and symbol == contract.m_symbol:
             writer_csv.writerow(
                 [str(contract.m_strike), contract.m_localSymbol, str(format(contract_price.last,'.10f')), str(format(contract_price.bid,'.10f')),
                  str(format(contract_price.ask,'.10f')), datetime.datetime.strptime(contract.m_expiry,'%Y%m%d').strftime('%Y/%m/%d'), contract.m_right])
+        elif sectype == 'FUT' and symbol == contract.m_symbol:
+            writer_csv.writerow(
+                [contract.m_localSymbol, str(format(contract_price.last,'.10f')), str(format(contract_price.bid,'.10f')), str(format(contract_price.ask,'.10f')),
+                 datetime.datetime.strptime(contract.m_expiry,'%Y%m%d').strftime('%Y/%m/%d'),(datetime.date.today() -datetime.timedelta(1)).strftime('%Y/%m/%d')])
     file.close()
 
 # -- main  ---------------------------------------------------------------------
 fxFutOpContractList = [makeFxFutOptContract(sym='JPY', exp='201511', strike='', right='', multip=''),
-                       makeFxFutOptContract(sym='EUR', exp='201511', strike='', right='', multip='')]
+                       makeFxFutOptContract(sym='EUR', exp='201511', strike='', right='', multip='')
+                       ]
+
+fxFutContractList = [makeFxFutContract(sym='JPY', exp='201512', multip=''),
+                     makeFxFutContract(sym='EUR', exp='201512', multip='')
+                     ]
 
 if __name__ == '__main__':
     # Server Access
@@ -223,29 +243,50 @@ if __name__ == '__main__':
     con.setServerLogLevel(5)
 
     # get mext Order Id
-    raw_input('wait for nextOrderId')
+    #raw_input('wait for nextOrderId')
     con.reqIds(1)
+    sleep(1)
 
-    # Retrieve Option Chain Contract
-    raw_input('getting Fx Future Option Contract press any to continue')
+    #raw_input('getting Fx Future Option Contract press any to continue')
 
-    for fxFutOpContract_item in range(len(fxFutOpContractList)):
+    # Fx Future Option Contract Data
+   # for fxFutOpContract_item in range(len(fxFutOpContractList)):
+   #     contractRestoreList = []
+   #     orderIdMktReqContractDict = {}
+   #     priceInfoDict = {}
+   #     fxFutOpContract = fxFutOpContractList[fxFutOpContract_item]
+   #     subscribeContractList(fxFutOpContract,con)
+        #raw_input('requesting Fx Futre Option length press any to continue ')
+   #     subscribeDataRequest(con)
+   #     sleep(15)
+        #raw_input('cancel mktData %s press any to continue' % (orderIdMktReqContractDict.keys()))
+   #     for req_order_id in orderIdMktReqContractDict.iterkeys():
+   #         con.cancelMktData(req_order_id)
+        #raw_input('Price data writing to file press to continue')
+   #     sleep(2)
+   #     con.reqIds(1)
+   #     writeToFile(fxFutOpContract.m_secType,fxFutOpContract.m_symbol)
+
+    # Fx Future Contract Data
+    sleep(3)
+    for fxFutContract_item in range(len(fxFutContractList)):
         contractRestoreList = []
         orderIdMktReqContractDict = {}
         priceInfoDict = {}
-        fxFutOpContract = fxFutOpContractList[fxFutOpContract_item]
-        subscribeContractList(fxFutOpContract,con)
-        raw_input('requesting Fx Futre Option length press any to continue ')
+        fxFutContract = fxFutContractList[fxFutContract_item]
+        subscribeContractList(fxFutContract,con)
+        #raw_input('requesting Fx Futre Option length press any to continue ')
         subscribeDataRequest(con)
-        raw_input('cancel mktData %s press any to continue' % (orderIdMktReqContractDict.keys()))
+        sleep(15)
+        #raw_input('cancel mktData %s press any to continue' % (orderIdMktReqContractDict.keys()))
         for req_order_id in orderIdMktReqContractDict.iterkeys():
             con.cancelMktData(req_order_id)
-        raw_input('Price data writing to file press to continue')
-        con.reqIds(1)
+        #raw_input('Price data writing to file press to continue')
         sleep(2)
-        writeToFile(fxFutOpContract.m_symbol)
+        con.reqIds(1)
+        writeToFile(fxFutContract.m_secType,fxFutContract.m_symbol)
 
-    raw_input('About to exit press any to continue')
+    print('About to exit press any to continue')
 
     # Receive the new OrderId sequence from the IB Server
     con.reqIds(1)
