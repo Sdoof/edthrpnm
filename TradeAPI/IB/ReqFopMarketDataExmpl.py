@@ -2,7 +2,7 @@
 from ib.ext.Contract import Contract
 from ib.opt import Connection
 from time import sleep
-import datetime
+from datetime import date, datetime, timedelta
 import csv
 
 # -- globals  ------------------------------------------------------------------
@@ -15,6 +15,12 @@ contractRestoreList = None
 orderIdMktReqContractDict = None
 priceInfoDict = {}
 
+EUR_Strike_Max=1.5
+EUR_Strike_Min=0.7
+JPY_Strike_Max=0.010
+JPY_Strike_Min=0.006
+GBP_Strike_Max=1.8
+GBP_Strike_Min=1.3
 
 class ContractPrice:
     def __init__(self):
@@ -25,7 +31,6 @@ class ContractPrice:
         self.low = ""
         self.close = ""
         self.Contract = ""
-
 
 # -- message handlers  ---------------------------------------------------------
 
@@ -184,7 +189,7 @@ def subscribeDataRequest(con):
 def writeToFile(sectype,symbol):
     global priceInfoDict
     if sectype == 'FOP':
-        fname = "C:/Users/kuby/edthrpnm/MarketData/" + symbol + sectype + datetime.datetime.today().strftime("%Y-%m-%d") + ".csv"
+        fname = "C:/Users/kuby/edthrpnm/MarketData/" + symbol + sectype + datetime.now().strftime("%Y-%m-%d") + ".csv"
     elif sectype == 'FUT':
         fname = "C:/Users/kuby/edthrpnm/MarketData/" + symbol + sectype + ".csv"
     else:
@@ -216,11 +221,11 @@ def writeToFile(sectype,symbol):
         if sectype == 'FOP' and symbol == contract.m_symbol:
             writer_csv.writerow(
                 [str(contract.m_strike), contract.m_localSymbol, str(format(contract_price.last,'.10f')), str(format(contract_price.bid,'.10f')),
-                 str(format(contract_price.ask,'.10f')), datetime.datetime.strptime(contract.m_expiry,'%Y%m%d').strftime('%Y/%m/%d'), contract.m_right])
+                 str(format(contract_price.ask,'.10f')), datetime.strptime(contract.m_expiry,'%Y%m%d').strftime('%Y/%m/%d'), contract.m_right])
         elif sectype == 'FUT' and symbol == contract.m_symbol:
             writer_csv.writerow(
                 [contract.m_localSymbol, str(format(contract_price.last,'.10f')), str(format(contract_price.bid,'.10f')), str(format(contract_price.ask,'.10f')),
-                 datetime.datetime.strptime(contract.m_expiry,'%Y%m%d').strftime('%Y/%m/%d'),(datetime.date.today() -datetime.timedelta(1)).strftime('%Y/%m/%d')])
+                 datetime.strptime(contract.m_expiry,'%Y%m%d').strftime('%Y/%m/%d'),(datetime.now() - timedelta(1)).strftime('%Y/%m/%d')])
     file.close()
 
 # -- main  ---------------------------------------------------------------------

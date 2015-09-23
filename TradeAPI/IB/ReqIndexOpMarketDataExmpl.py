@@ -2,7 +2,7 @@
 from ib.ext.Contract import Contract
 from ib.opt import Connection
 from time import sleep
-import datetime
+from datetime import date, datetime, timedelta
 import csv
 
 # -- globals  ------------------------------------------------------------------
@@ -140,6 +140,17 @@ def makeFxFutOptContract(sym, exp, strike, right, multip):
     newOptContract.m_currency = "USD"
     return newOptContract
 
+def makeIndexContract(sym, exchange):
+    newOptContract = Contract()
+    newOptContract.m_symbol = sym
+    newOptContract.m_secType = "IND"
+    newOptContract.m_expiry = ""
+    newOptContract.m_strike = ""
+    newOptContract.m_right = ""
+    newOptContract.m_exchange = exchange
+    newOptContract.m_currency = "USD"
+    return newOptContract
+
 def subscribeContractList(opCont,con):
     global nextOrderId
     global SPX_Strike_Max, SPX_Strike_Min, RUT_Strike_Max,RUT_Strike_Min
@@ -157,13 +168,13 @@ def subscribeContractList(opCont,con):
         ### exclude condition
         if (con_each.m_strike % 10) != 0:
             contractRemoveList.append(con_each)
-        elif con_each.m_symbol == 'SPX' and con_each.m_strike < SPX_Strike_Min:
+        elif con_each.m_secType == 'OPT' and con_each.m_symbol == 'SPX' and con_each.m_strike < SPX_Strike_Min:
             contractRemoveList.append(con_each)
-        elif con_each.m_symbol == 'SPX' and con_each.m_strike > SPX_Strike_Max:
+        elif con_each.m_secType == 'OPT' and con_each.m_symbol == 'SPX' and con_each.m_strike > SPX_Strike_Max:
             contractRemoveList.append(con_each)
-        elif con_each.m_symbol == 'RUT' and con_each.m_strike < RUT_Strike_Min:
+        elif con_each.m_secType == 'OPT' and con_each.m_symbol == 'RUT' and con_each.m_strike < RUT_Strike_Min:
             contractRemoveList.append(con_each)
-        elif con_each.m_symbol == 'RUT' and con_each.m_strike > RUT_Strike_Max:
+        elif con_each.m_secType == 'OPT' and con_each.m_symbol == 'RUT' and con_each.m_strike > RUT_Strike_Max:
             contractRemoveList.append(con_each)
     # Remove
     for con_rmv_item in range(len(contractRemoveList)):
@@ -190,12 +201,18 @@ def subscribeDataRequest(con):
     #for req_order_id in orderIdMktReqContractDict.iterkeys():
     #    print('req_order_id ', req_order_id)
 
-def writeToFile(symbol):
+def writeToFile(sectype,symbol):
     global priceInfoDict
-    fname = "C:/Users/kuby/edthrpnm/MarketData/" + symbol + datetime.datetime.today().strftime("%Y-%m-%d") + ".csv"
+    if sectype == 'OPT':
+        fname = "C:/Users/kuby/edthrpnm/MarketData/" + symbol + sectype + datetime.now().strftime("%Y-%m-%d") + ".csv"
+    elif sectype == 'IND':
+        fname = "C:/Users/kuby/edthrpnm/MarketData/" + symbol + sectype + ".csv"
+    else:
+        fname = "C:/Users/kuby/edthrpnm/MarketData/" + symbol + sectype + ".csv"
     file = open(fname, mode='a')
     writer_csv = csv.writer(file, lineterminator="\n",quoting=csv.QUOTE_NONNUMERIC)
-    writer_csv.writerow(["Strike","ContactName","Last","Bid","Ask","ExpDate","TYPE"])
+    if sectype == 'OPT':
+        writer_csv.writerow(["Strike","ContactName","Last","Bid","Ask","ExpDate","TYPE"])
     for priceInfo_key in priceInfoDict.iterkeys():
         print('priceInfoKey %s' % (priceInfo_key))
         contract_price = priceInfoDict[priceInfo_key]
@@ -203,23 +220,27 @@ def writeToFile(symbol):
         print('Strike %s ContactName %s last %s bid %s ask %s ExpDate %s TYPE_S %s' %
               (contract.m_strike, contract.m_localSymbol, contract_price.last,
                contract_price.bid, contract_price.ask, contract.m_expiry, contract.m_right))
-        if contract_price.last == '':
+        if sectype == 'OPT' and contract_price.last == '':
             contract_price.last = (contract_price.bid + contract_price.ask)/2.0
-        if contract_price.bid < 0 or contract_price.ask < 0 :
+        if sectype == 'OPT' and (contract_price.bid < 0 or contract_price.ask < 0) :
             continue
-        if contract.m_right == 'P':
+        if sectype == 'OPT' and contract.m_right == 'P':
             contract.m_right = '1'
-        elif contract.m_right == 'C':
+        elif sectype == 'OPT' and contract.m_right == 'C':
              contract.m_right = '-1'
         #contract.m_expiry = datetime.datetime.strptime(contract.m_expiry,'%Y%m%d').strftime('%Y/%m/%d')
-        if symbol == contract.m_symbol:
+        if sectype == 'OPT' and symbol == contract.m_symbol:
             writer_csv.writerow(
                 [str(contract.m_strike), contract.m_localSymbol, str(format(contract_price.last,'.10f')), str(format(contract_price.bid,'.10f')),
-                 str(format(contract_price.ask,'.10f')), datetime.datetime.strptime(contract.m_expiry,'%Y%m%d').strftime('%Y/%m/%d'), contract.m_right])
+                 str(format(contract_price.ask,'.10f')), datetime.strptime(contract.m_expiry,'%Y%m%d').strftime('%Y/%m/%d'), contract.m_right])
+        elif sectype == 'IND' and symbol == contract.m_symbol:
+            writer_csv.writerow(
+                [str(contract_price.last),str(contract_price.close),datetime.now().strftime('%Y/%m/%d %H:%M:%S')])
     file.close()
 
 # -- main  ---------------------------------------------------------------------
-opContractList = [makeOptContract(sym='SPX', exp='20151015', strike='', right='P'),
+opContractList = [
+                  makeOptContract(sym='SPX', exp='20151015', strike='', right='P'),
                   makeOptContract(sym='SPX', exp='20151015', strike='', right='C'),
                   makeOptContract(sym='SPX', exp='20151106', strike='', right='P'),
                   makeOptContract(sym='SPX', exp='20151106', strike='', right='C'),
@@ -251,6 +272,13 @@ opContractList = [makeOptContract(sym='SPX', exp='20151015', strike='', right='P
                   makeOptContract(sym='RUT', exp='20160317', strike='', right='C')
                   ]
 
+idxContractList = [
+                   makeIndexContract(sym='SPX',exchange='CBOE'),
+                   makeIndexContract(sym='RUT',exchange='RUSSELL'),
+                   makeIndexContract(sym='VIX',exchange='CBOE'),
+                   makeIndexContract(sym='RVX',exchange='CBOE')
+                   ]
+
 if __name__ == '__main__':
     # Server Access
     con = Connection.create(port=port_G, clientId=clientId_G)
@@ -268,10 +296,10 @@ if __name__ == '__main__':
     con.reqIds(1)
     sleep(1)
 
-    # Retrieve Option Chain Contract
     #raw_input('getting Fx Future Option Contract press any to continue')
-    print('getting Fx Future Option Contract press any to continue')
+    print('getting Fx Future Option Contract')
 
+    #Option Contract
     for opContract_item in range(len(opContractList)):
         contractRestoreList = []
         orderIdMktReqContractDict = {}
@@ -288,9 +316,26 @@ if __name__ == '__main__':
         print('Price data writing to file press to continue')
         sleep(2)
         con.reqIds(1)
-        writeToFile(OpContract.m_symbol)
+        writeToFile(OpContract.m_secType,OpContract.m_symbol)
 
-    #raw_input('About to exit press any to continue')
+    # INDEX
+    sleep(3)
+    for idxContractList_item in range(len(idxContractList)):
+        contractRestoreList = []
+        orderIdMktReqContractDict = {}
+        priceInfoDict = {}
+        idxContract = idxContractList[idxContractList_item]
+        subscribeContractList(idxContract,con)
+        #raw_input('requesting Fx Futre Option length press any to continue ')
+        subscribeDataRequest(con)
+        sleep(15)
+        #raw_input('cancel mktData %s press any to continue' % (orderIdMktReqContractDict.keys()))
+        for req_order_id in orderIdMktReqContractDict.iterkeys():
+            con.cancelMktData(req_order_id)
+        #raw_input('Price data writing to file press to continue')
+        sleep(2)
+        con.reqIds(1)
+        writeToFile(idxContract.m_secType,idxContract.m_symbol)
     print('About to exit press any to continue')
 
     # Receive the new OrderId sequence from the IB Server
