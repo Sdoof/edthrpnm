@@ -150,9 +150,11 @@ def subscribeContractList(opCont,con):
         #      (con_each.m_conId, con_each.m_localSymbol, con_each.m_secType, con_each.m_right, con_each.m_strike,
         #       con_each.m_expiry, con_each.m_symbol, con_each.m_multiplier, con_each.m_exchange))
         # Need just 6J
-        if 'XJX' in con_each.m_localSymbol:
+        if 'XJ' in con_each.m_localSymbol:
             contractRemoveList.append(con_each)
-        if 'XTX' in con_each.m_localSymbol:
+        elif 'XT' in con_each.m_localSymbol:
+            contractRemoveList.append(con_each)
+        elif 'XB' in con_each.m_localSymbol:
             contractRemoveList.append(con_each)
     # Remove XJX
     for con_rmv_item in range(len(contractRemoveList)):
@@ -182,11 +184,11 @@ def subscribeDataRequest(con):
 def writeToFile(sectype,symbol):
     global priceInfoDict
     if sectype == 'FOP':
-        fname = "../../MarketData/" + symbol + sectype + datetime.datetime.today().strftime("%Y-%m-%d") + ".csv"
+        fname = "C:/Users/kuby/edthrpnm/MarketData/" + symbol + sectype + datetime.datetime.today().strftime("%Y-%m-%d") + ".csv"
     elif sectype == 'FUT':
-        fname = "../../MarketData/" + symbol + sectype + ".csv"
+        fname = "C:/Users/kuby/edthrpnm/MarketData/" + symbol + sectype + ".csv"
     else:
-        fname = "../../MarketData/" + symbol + sectype + ".csv"
+        fname = "C:/Users/kuby/edthrpnm/MarketData/" + symbol + sectype + ".csv"
 
     file = open(fname, mode='a')
     writer_csv = csv.writer(file, lineterminator="\n",quoting=csv.QUOTE_NONNUMERIC)
@@ -222,12 +224,34 @@ def writeToFile(sectype,symbol):
     file.close()
 
 # -- main  ---------------------------------------------------------------------
-fxFutOpContractList = [makeFxFutOptContract(sym='JPY', exp='201511', strike='', right='', multip=''),
-                       makeFxFutOptContract(sym='EUR', exp='201511', strike='', right='', multip='')
+fxFutOpContractList = [
+                       makeFxFutOptContract(sym='JPY', exp='201511', strike='', right='C', multip=''),
+                       makeFxFutOptContract(sym='JPY', exp='201511', strike='', right='P', multip=''),
+                       makeFxFutOptContract(sym='EUR', exp='201511', strike='', right='C', multip=''),
+                       makeFxFutOptContract(sym='EUR', exp='201511', strike='', right='P', multip=''),
+                       makeFxFutOptContract(sym='GBP', exp='201511', strike='', right='C', multip=''),
+                       makeFxFutOptContract(sym='GBP', exp='201511', strike='', right='P', multip=''),
+                       makeFxFutOptContract(sym='JPY', exp='201512', strike='', right='C', multip=''),
+                       makeFxFutOptContract(sym='JPY', exp='201512', strike='', right='P', multip=''),
+                       makeFxFutOptContract(sym='EUR', exp='201512', strike='', right='C', multip=''),
+                       makeFxFutOptContract(sym='EUR', exp='201512', strike='', right='P', multip=''),
+                       makeFxFutOptContract(sym='GBP', exp='201512', strike='', right='C', multip=''),
+                       makeFxFutOptContract(sym='GBP', exp='201512', strike='', right='P', multip=''),
+                       makeFxFutOptContract(sym='JPY', exp='201603', strike='', right='C', multip=''),
+                       makeFxFutOptContract(sym='JPY', exp='201603', strike='', right='P', multip=''),
+                       makeFxFutOptContract(sym='EUR', exp='201603', strike='', right='C', multip=''),
+                       makeFxFutOptContract(sym='EUR', exp='201603', strike='', right='P', multip=''),
+                       makeFxFutOptContract(sym='GBP', exp='201603', strike='', right='C', multip=''),
+                       makeFxFutOptContract(sym='GBP', exp='201603', strike='', right='P', multip='')
                        ]
 
-fxFutContractList = [makeFxFutContract(sym='JPY', exp='201512', multip=''),
-                     makeFxFutContract(sym='EUR', exp='201512', multip='')
+fxFutContractList = [
+                     makeFxFutContract(sym='JPY', exp='201512', multip=''),
+                     makeFxFutContract(sym='EUR', exp='201512', multip=''),
+                     makeFxFutContract(sym='GBP', exp='201512', multip=''),
+                     makeFxFutContract(sym='JPY', exp='201603', multip=''),
+                     makeFxFutContract(sym='EUR', exp='201603', multip=''),
+                     makeFxFutContract(sym='GBP', exp='201603', multip='')
                      ]
 
 if __name__ == '__main__':
@@ -250,22 +274,22 @@ if __name__ == '__main__':
     #raw_input('getting Fx Future Option Contract press any to continue')
 
     # Fx Future Option Contract Data
-   # for fxFutOpContract_item in range(len(fxFutOpContractList)):
-   #     contractRestoreList = []
-   #     orderIdMktReqContractDict = {}
-   #     priceInfoDict = {}
-   #     fxFutOpContract = fxFutOpContractList[fxFutOpContract_item]
-   #     subscribeContractList(fxFutOpContract,con)
+    for fxFutOpContract_item in range(len(fxFutOpContractList)):
+        contractRestoreList = []
+        orderIdMktReqContractDict = {}
+        priceInfoDict = {}
+        fxFutOpContract = fxFutOpContractList[fxFutOpContract_item]
+        subscribeContractList(fxFutOpContract,con)
         #raw_input('requesting Fx Futre Option length press any to continue ')
-   #     subscribeDataRequest(con)
-   #     sleep(15)
+        subscribeDataRequest(con)
+        sleep(15)
         #raw_input('cancel mktData %s press any to continue' % (orderIdMktReqContractDict.keys()))
-   #     for req_order_id in orderIdMktReqContractDict.iterkeys():
-   #         con.cancelMktData(req_order_id)
+        for req_order_id in orderIdMktReqContractDict.iterkeys():
+            con.cancelMktData(req_order_id)
         #raw_input('Price data writing to file press to continue')
-   #     sleep(2)
-   #     con.reqIds(1)
-   #     writeToFile(fxFutOpContract.m_secType,fxFutOpContract.m_symbol)
+        sleep(2)
+        con.reqIds(1)
+        writeToFile(fxFutOpContract.m_secType,fxFutOpContract.m_symbol)
 
     # Fx Future Contract Data
     sleep(3)
