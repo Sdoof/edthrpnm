@@ -29,7 +29,7 @@ ResultFiles_Path_G=ConfigParameters["ResultFiles_Path_G",1]
 
 #switch: only for today or multiple days for skew calculation
 ProcessFileName=paste("_OPChain_Pre.csv",sep="")
-isSkewCalc=TRUE
+isSkewCalc=FALSE
 #set TRUE if this is today's new position, or (already holding position) set FALSE,
 isNewPosition=TRUE
 TargetFileName=paste("_Positions_Pre_",Sys.Date(),".csv",sep="")
@@ -41,7 +41,10 @@ makeOpchainContainer<-function(){
   #read data file
   rf_<-paste(DataFiles_Path_G,Underying_Symbol_G,ProcessFileName,sep="")
   opch_pr_<-read.table(rf_,header=T,sep=",")
-  opch_pr_$X.Change<-NULL
+  
+  opch_pr_ %>% select(Strike,ContactName,TYPE,Date,ExpDate,Last,Bid,Ask) %>% 
+    arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="%Y/%m/%d"),desc(TYPE),Strike) -> opch_pr_
+
   opch_pr_$Position<-0
   opch_pr_$Price<-(opch_pr_$Bid+opch_pr_$Ask)/2
   
@@ -112,11 +115,9 @@ rownames(opchain) <- c(1:nrow(opchain))
 
 #using SkewModel, adjust ATMIV to reflect the differnce between Strike and UDLY
 adjustATMIV <- function(atmiv){
-  
   displacement<-log(atmiv$Moneyness.Frac)/atmiv$ATMIV/sqrt(atmiv$TimeToExpDate)
   smileCurve<-get.predicted.spline.skew(SkewModel,displacement)
   ATMIV_adjst<-atmiv$ATMIV/smileCurve
-  
   return(ATMIV_adjst)
 }
 
