@@ -161,6 +161,18 @@ def subscribeContractList(opCont,con):
             contractRemoveList.append(con_each)
         elif 'XB' in con_each.m_localSymbol:
             contractRemoveList.append(con_each)
+        elif con_each.m_secType == 'FOP' and con_each.m_symbol == 'JPY' and con_each.m_strike < JPY_Strike_Min:
+            contractRemoveList.append(con_each)
+        elif con_each.m_secType == 'FOP' and con_each.m_symbol == 'JPY' and con_each.m_strike > JPY_Strike_Max:
+            contractRemoveList.append(con_each)
+        elif con_each.m_secType == 'FOP' and con_each.m_symbol == 'EUR' and con_each.m_strike < EUR_Strike_Min:
+            contractRemoveList.append(con_each)
+        elif con_each.m_secType == 'FOP' and con_each.m_symbol == 'EUR' and con_each.m_strike > EUR_Strike_Max:
+            contractRemoveList.append(con_each)
+        elif con_each.m_secType == 'FOP' and con_each.m_symbol == 'GBP' and con_each.m_strike < GBP_Strike_Min:
+            contractRemoveList.append(con_each)
+        elif con_each.m_secType == 'FOP' and con_each.m_symbol == 'GBP' and con_each.m_strike > GBP_Strike_Max:
+            contractRemoveList.append(con_each)
     # Remove XJX
     for con_rmv_item in range(len(contractRemoveList)):
         con_rmv = contractRemoveList[con_rmv_item]
