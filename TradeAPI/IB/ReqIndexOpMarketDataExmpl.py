@@ -158,7 +158,7 @@ def subscribeContractList(opCont,con):
     theOrderId = nextOrderId
     con.reqContractDetails(theOrderId, opCont)
     #raw_input('wait for contractDetail press to continue')
-    sleep(2)
+    sleep(2.5)
     contractRemoveList = []
     for con_item in range(len(contractRestoreList)):
         con_each = contractRestoreList[con_item]
@@ -309,12 +309,12 @@ if __name__ == '__main__':
         #raw_input('requesting Fx Futre Option length press any to continue ')
         subscribeDataRequest(con)
         #raw_input('cancel mktData %s press any to continue' % (orderIdMktReqContractDict.keys()))
-        sleep(15)
+        sleep(8)
         for req_order_id in orderIdMktReqContractDict.iterkeys():
             con.cancelMktData(req_order_id)
         #raw_input('Price data writing to file press to continue')
         print('Price data writing to file press to continue')
-        sleep(2)
+        sleep(1)
         con.reqIds(1)
         writeToFile(OpContract.m_secType,OpContract.m_symbol)
 
@@ -328,7 +328,7 @@ if __name__ == '__main__':
         subscribeContractList(idxContract,con)
         #raw_input('requesting Fx Futre Option length press any to continue ')
         subscribeDataRequest(con)
-        sleep(15)
+        sleep(5)
         #raw_input('cancel mktData %s press any to continue' % (orderIdMktReqContractDict.keys()))
         for req_order_id in orderIdMktReqContractDict.iterkeys():
             con.cancelMktData(req_order_id)
