@@ -299,12 +299,12 @@ if __name__ == '__main__':
         subscribeContractList(fxFutOpContract,con)
         #raw_input('requesting Fx Futre Option length press any to continue ')
         subscribeDataRequest(con)
-        sleep(15)
+        sleep(10)
         #raw_input('cancel mktData %s press any to continue' % (orderIdMktReqContractDict.keys()))
         for req_order_id in orderIdMktReqContractDict.iterkeys():
             con.cancelMktData(req_order_id)
         #raw_input('Price data writing to file press to continue')
-        sleep(2)
+        sleep(1)
         con.reqIds(1)
         writeToFile(fxFutOpContract.m_secType,fxFutOpContract.m_symbol)
 
