@@ -166,13 +166,19 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   weight<-dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd / sum(dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd)
   if(isDetail){cat(":(weight hld)",weight)}
   
-  ## profit weighted on holdDay
-  profit_hdays<-sum((posEvalTbl$Price-thePositionGrk$Price)*weight)
+  ## Profit profile delta hedged or not
   profit_vector<-(posEvalTbl$Price-thePositionGrk$Price)
+  profit_hdays<-sum(profit_vector*weight)
+  if(isDetail){cat(" (:prft_vec)",profit_vector);cat(" :(prft_wght)",profit_hdays)}
+  
+  if(abs(DeltaEffect_Comp)<0.1){
+    iniDelta <- thePositionGrk$Delta
+    profit_vector<-profit_vector-as.numeric(iniDelta)*(posEvalTbl$UDLY-mean(thePositionGrk$UDLY))
+    profit_hdays<-sum(profit_vector*weight)
+    if(isDetail){cat(" (:iniDelta)",iniDelta);cat(" (:prft_vec_dh)",profit_vector);cat(" :(prft_wght_dh)",profit_hdays)}
+  }
+  #sd and max_loss before delta hedge
   maxLoss<-min(profit_vector)
-  
-  c3<-profit_hdays
-  
   ## profit sd
   weight_times = round(weight*100)
   #if(isDetail){cat(" :(weight_times)",weight_times)}
@@ -181,9 +187,12 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   profit_sd<-sd(pdist)
   #if(isDetail){ cat("profit_sd",profit_sd)}
   if(isDetail){
-    cat(" :(prft_vec)",profit_vector); cat(" :(prft_wght)",profit_hdays);cat(" :(profit_sd)",profit_sd);cat(" :(max_loss)",maxLoss)
+    cat(" :(profit_sd)",profit_sd);cat(" :(max_loss)",maxLoss)
   }
   
+  #c3 profit
+  c3<-profit_hdays
+  #c8 metric
   c8<- profit_sd
   if(Setting$EvalConvex)
     c8<- (-1)*maxLoss
