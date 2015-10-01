@@ -117,8 +117,6 @@ DeltaHedge<-function(isDebug=FALSE){
             #new Delta and DeltaEffect updatedd
             newEvalScore[[ith_day]]$DeltaEffect<-(-abs(newDelta))*theExpPriceChange
           }
-         
-          
         }#Exit day
         #新しいProfitとEvalScoreの計算と更新
         newProfit<-theProfit+cumsum(DeltaHedgeScore$Payoff)
@@ -126,28 +124,29 @@ DeltaHedge<-function(isDebug=FALSE){
         if(isDebug){cat(" :orig profit ");cat(theProfit,sep=",");cat(" :new profit ");cat(newProfit,sep=",");cat("\n")}
         
         for(i in 1:ExitDay){ newEvalScore[[i]]$Price<-newProfit[i]+theIniEvalScore$Price }
-        
-       # cat(" :orig EvalScore ",modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$EvalScore);print(newEvalScore)
         if(isDebug){cat(" :orig EvalScore\n");print(modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$EvalScore);cat(" :new EvalScore\n");print(newEvalScore)}
-        
-        #Update
+     
+           #Update
         modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$EvalScore<-newEvalScore
         modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$Profit<-newProfit
         modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$IniDeltaHedgeScore<-IniDeltaHedgeScore
         modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$DeltaHedgeScore<-DeltaHedgeScore
       } #EOF SimNum
-      
       cat(" scenario ",scenario_idx, " time: ",(proc.time()-start_t)[3])
     } #EOF every Scenario
     ##
     # modefied modelStimRawlist$stimrslt is to be reflected
-    
+    cat("\n :Initial Delta",theIniEvalScore$Delta, " :hgdDelta",calcHedgedDelta(theIniEvalScore$Delta),"\n")
+    cat(":Initial Delta",theIniEvalScore$Delta, " :hgdDelta",calcHedgedDelta(theIniEvalScore$Delta),file=out_text_file,append=T)
+    cat("\n",file=out_text_file,append=T)
     #show the profit profiles before the reflection
     modelScenario %>% select(min_profit,max_profit,mean_profit,median_profit,profit_sd) -> tmp
     print(tmp)
     write.table(tmp,out_text_file,quote=T,row.names=F,append=T,sep=",")
     data.frame(min_profit=min(modelScenario$min_profit),max_profit=max(modelScenario$max_profit),
-              expected_profit=sum(modelScenario$weight*modelScenario$mean_profit)) -> tmp
+               expected_profit=sum(modelScenario$weight*modelScenario$mean_profit),
+               sharp_ratio=sum(modelScenario$weight*modelScenario$mean_profit)/sum(modelScenario$weight*modelScenario$profit_sd),
+               exp_to_min_profit=sum(modelScenario$weight*modelScenario$mean_profit)+sum(modelScenario$weight*modelScenario$min_profit)) -> tmp
     print(tmp)
     write.table(tmp,out_text_file,quote=T,row.names=F,append=T,sep=",")
     
@@ -170,7 +169,9 @@ DeltaHedge<-function(isDebug=FALSE){
     write.table(tmp,out_text_file,quote=T,row.names=F,append=T,sep=",")
     print(tmp)
     data.frame(min_profit=min(modelScenario$min_profit),max_profit=max(modelScenario$max_profit),
-               expected_profit=sum(modelScenario$weight*modelScenario$mean_profit)) -> tmp
+               expected_profit=sum(modelScenario$weight*modelScenario$mean_profit),
+               sharp_ratio=sum(modelScenario$weight*modelScenario$mean_profit)/sum(modelScenario$weight*modelScenario$profit_sd),
+               exp_to_min_profit=sum(modelScenario$weight*modelScenario$mean_profit)+sum(modelScenario$weight*modelScenario$min_profit)) -> tmp
     print(tmp)
     write.table(tmp,out_text_file,quote=T,row.names=F,append=T,sep=",")
     
@@ -326,7 +327,7 @@ DeltaHedge(isDebug=FALSE)
 # }
 
 #PlaybackAdjust()
+#rm(exitDecision,PlaybackAdjust)
 
 rm(ConfigFileName_G,ConfigParameters)
-rm(DataFiles_Path_G,ResultFiles_Path_G,Underying_Symbol_G,evalPosStart,evalPosEnd)
-rm(exitDecision,PlaybackAdjust)
+rm(DataFiles_Path_G,ResultFiles_Path_G,Underying_Symbol_G)
