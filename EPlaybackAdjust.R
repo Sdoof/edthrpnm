@@ -53,7 +53,7 @@ DeltaHedge<-function(isDebug=FALSE){
     fn<-paste(ResultFiles_Path_G,Underying_Symbol_G,ScenarioMode,SpreadID,sep="")
     load(file=fn)
     
-    if(isDebug){cat(" :SpreadID",SpreadID, "delta headge start\n")}
+    cat(" :SpreadID",SpreadID, "\n")
     write(SpreadID,out_text_file,append=T)
     
     #process each scenario
