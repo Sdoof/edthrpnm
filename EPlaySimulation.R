@@ -58,7 +58,7 @@ histIV %>% dplyr::transmute(Date=Date,IVIDX=Close/100) -> histIV
 histIV %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")<=max(as.Date(opchain$Date,format="%Y/%m/%d"))) %>%
   dplyr::arrange(desc(as.Date(Date,format="%Y/%m/%d"))) %>% head(n=dviv_caldays) -> histIV
 
-
+source('./EPlaybackAdjust.R',encoding = 'UTF-8')
 ##Spreads to be evaluated loaded
 rf<-paste(ResultFiles_Path_G,Underying_Symbol_G,"_EvalPosition.csv",sep="")
 evalPositions<-read.table(rf,header=F,sep=",",colClasses="numeric")
@@ -239,4 +239,6 @@ rm(PC1dCtC_IVCF1dCtC,PC3dCtC_IVCF3dCtC,PC5dCtC_IVCF5dCtC,PC7dCtC_IVCF7dCtC,SkewM
 rm(ConfigFileName_G,ConfigParameters)
 rm(riskFreeRate_G,divYld_G,OpType_Put_G,OpType_Call_G,TimeToExp_Limit_Closeness_G)
 rm(CALENDAR_G,Underying_Symbol_G,DataFiles_Path_G,ResultFiles_Path_G,holdDays,dviv_caldays,PosMultip)
+
+source('./EPlaybackAdjust.R',encoding = 'UTF-8')
 
