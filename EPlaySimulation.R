@@ -60,7 +60,6 @@ histIV %>% dplyr::transmute(Date=Date,IVIDX=Close/100) -> histIV
 histIV %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")<=max(as.Date(opchain$Date,format="%Y/%m/%d"))) %>%
   dplyr::arrange(desc(as.Date(Date,format="%Y/%m/%d"))) %>% head(n=dviv_caldays) -> histIV
 
-source('./EPlaybackAdjust.R',encoding = 'UTF-8')
 ##Spreads to be evaluated loaded
 rf<-paste(ResultFiles_Path_G,Underying_Symbol_G,"_EvalPosition.csv",sep="")
 evalPositions<-read.table(rf,header=F,sep=",",colClasses="numeric")
