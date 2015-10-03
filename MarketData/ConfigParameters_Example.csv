@@ -104,6 +104,6 @@ AnalyStepNum,80
 AnalyStepPct,0.005
 AnalyMaxDay,8
 PlaybackAdjustSpreads,c(3$5)
-PlaybackDeltaHedgeSpreds,c(3)
+PlaybackDeltaHedgeSpreds,c(1:60)
 PlaybackScenarioMode,_modelScenario_
 #PlaybackScenarioMode,_adjustedScenario_

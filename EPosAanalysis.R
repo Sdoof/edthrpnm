@@ -1,6 +1,8 @@
 library(dplyr)
 library(RQuantLib)
 library(ggplot2)
+rm(list=ls())
+source('./ESourceRCode.R',encoding = 'UTF-8')
 
 #evaluated position or set evaPos manually by copy&paste csv value
 evaPos<-c(0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,-1,0,0,0,0,0,0,0,0,0,0) 

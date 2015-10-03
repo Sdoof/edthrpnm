@@ -1,6 +1,8 @@
 library(ggplot2)
 library(RQuantLib)
 library(dplyr)
+rm(list=ls())
+source('./ESourceRCode.R',encoding = 'UTF-8')
 
 #Config File
 ConfigFileName_G="ConfigParameters.csv"

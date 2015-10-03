@@ -2,6 +2,8 @@ library(RQuantLib)
 library(ggplot2)
 library(plyr)
 library(dplyr)
+rm(list=ls())
+source('./ESourceRCode.R',encoding = 'UTF-8')
 
 #Config File
 ConfigFileName_G="ConfigParameters.csv"
@@ -11,8 +13,8 @@ ConfigParameters<-read.table(paste(DataFiles_Path_G,ConfigFileName_G,sep=""),
                              row.names=1, comment.char="#",header=T,stringsAsFactors=F,sep=",")
 
 #MAX ExpToDate for Skew Regression
-SkewRegressionTimeToExpDateMin<-0.8
-SkewRegressionTimeToExpDateMax<-2.6
+SkewRegressionTimeToExpDateMin<-0.9
+SkewRegressionTimeToExpDateMax<-3.0
 
 #We get regression only past this day. Currently reflected on Skew only.
 #should apply Vcone, etc.
@@ -201,7 +203,6 @@ adjustATMIV <- function(atmiv){
   displacement<-log(atmiv$Moneyness.Frac)/atmiv$ATMIV/sqrt(atmiv$TimeToExpDate)
   smileCurve<-get.predicted.spline.skew(SkewModel,displacement)
   ATMIV_adjst<-atmiv$ATMIV/smileCurve
-  
   return(ATMIV_adjst)
 }
 
