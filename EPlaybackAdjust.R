@@ -46,6 +46,74 @@ calcHedgedDelta <- function (currentDelta,headgeOffset=0){
   return(hedgedDelta)
 }
 
+
+
+DeltaHedgeSimple<-function(isDebug=FALSE){
+  for(SpreadID in DhSpreads){
+    #load modelStimRawlist and modelScenario.
+    #modelStimRawlist and modelScenario correspond to the specific Spread
+    cat("\n :SpreadID",SpreadID, "\n")
+    write(SpreadID,out_text_file,append=T)
+    start_t<-proc.time()
+    fn<-paste(ResultFiles_Path_G,Underying_Symbol_G,"_modelStimRawlist_",SpreadID,sep="")
+    load(file=fn)
+    fn<-paste(ResultFiles_Path_G,Underying_Symbol_G,ScenarioMode,SpreadID,sep="")
+    load(file=fn)
+    
+
+    #process each scenario
+    ScenarioNum<-length(modelStimRawlist$stimrslt)
+    theIniEvalScore<-modelStimRawlist$stimrslt[[1]][[1]]$IniEvalScore
+    if(isDebug){cat(" :Initial Delta",theIniEvalScore$Delta, " :hgdDelta",calcHedgedDelta(theIniEvalScore$Delta))}
+    cat(":Initial Delta",theIniEvalScore$Delta, " :hgdDelta",calcHedgedDelta(theIniEvalScore$Delta),"\n",file=out_text_file,append=T)
+    modelScenario %>% select(min_profit,max_profit,mean_profit,median_profit,profit_sd) -> tmp
+    print(tmp)
+    write.table(tmp,out_text_file,quote=T,col.names=T,row.names=F,append=T,sep=",")
+    data.frame(min_profit=min(modelScenario$min_profit),max_profit=max(modelScenario$max_profit),
+               expected_profit=sum(modelScenario$weight*modelScenario$mean_profit),
+               sharp_ratio=sum(modelScenario$weight*modelScenario$mean_profit)/sum(modelScenario$weight*modelScenario$profit_sd),
+               exp_to_min_profit=sum(modelScenario$weight*modelScenario$mean_profit)+sum(modelScenario$weight*modelScenario$min_profit)) -> tmp
+    print(tmp)
+    write.table(tmp,out_text_file,quote=T,col.names=T,row.names=F,append=T,sep=",")
+    
+    if(theIniEvalScore$Delta>DeltaHedgeThresh_Max)
+      next
+    if(theIniEvalScore$Delta<DeltaHedgeThresh_Min)
+      next
+    
+    for(scenario_idx in 1:ScenarioNum){
+      headgedPayoff<-(modelScenario$resdf[[scenario_idx]]$udly - theIniEvalScore$UDLY)*calcHedgedDelta(theIniEvalScore$Delta)
+      modelScenario$resdf[[scenario_idx]]$profit <- modelScenario$resdf[[scenario_idx]]$profit + headgedPayoff
+    } #EOF every Scenario
+     modelScenario %>% rowwise() %>% do(min_profit=min(.$resdf$profit),max_profit=max(.$resdf$profit),
+                                        mean_profit=mean(.$resdf$profit),median_profit=median(.$resdf$profit),
+                                        profit_sd=sd(.$resdf$profit)) -> tmp
+     modelScenario$min_profit<-unlist(tmp$min_profit)
+     modelScenario$max_profit<-unlist(tmp$max_profit)
+     modelScenario$mean_profit<-unlist(tmp$mean_profit)
+     modelScenario$median_profit<-unlist(tmp$median_profit)
+     modelScenario$profit_sd<-unlist(tmp$profit_sd)
+    
+    #show the profit profiles after the reflection
+    modelScenario %>% select(min_profit,max_profit,mean_profit,median_profit,profit_sd) -> tmp
+    write.table(tmp,out_text_file,quote=T,col.names=T,row.names=F,append=T,sep=",")
+    print(tmp)
+    data.frame(min_profit=min(modelScenario$min_profit),max_profit=max(modelScenario$max_profit),
+               expected_profit=sum(modelScenario$weight*modelScenario$mean_profit),
+               sharp_ratio=sum(modelScenario$weight*modelScenario$mean_profit)/sum(modelScenario$weight*modelScenario$profit_sd),
+               exp_to_min_profit=sum(modelScenario$weight*modelScenario$mean_profit)+sum(modelScenario$weight*modelScenario$min_profit)) -> tmp
+    print(tmp)
+    write.table(tmp,out_text_file,quote=T,col.names=T,row.names=F,append=T,sep=",")
+    
+    fn<-paste(ResultFiles_Path_G,Underying_Symbol_G,"_dltahgdScenario_",SpreadID,sep="")
+    save(modelScenario,file=fn)
+    
+    cat(" :End of SpreadID ",SpreadID, " time: ",(proc.time()-start_t)[3])
+  } #EOF every Spread
+}
+
+DeltaHedgeSimple(isDebug=FALSE)
+
 DeltaHedge<-function(isDebug=FALSE){
   for(SpreadID in DhSpreads){
     #load modelStimRawlist and modelScenario.
@@ -127,8 +195,8 @@ DeltaHedge<-function(isDebug=FALSE){
         
         for(i in 1:ExitDay){ newEvalScore[[i]]$Price<-newProfit[i]+theIniEvalScore$Price }
         if(isDebug){cat(" :orig EvalScore\n");print(modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$EvalScore);cat(" :new EvalScore\n");print(newEvalScore)}
-     
-           #Update
+        
+        #Update
         modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$EvalScore<-newEvalScore
         modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$Profit<-newProfit
         modelStimRawlist$stimrslt[[scenario_idx]][[sim_idx]]$IniDeltaHedgeScore<-IniDeltaHedgeScore
@@ -184,9 +252,6 @@ DeltaHedge<-function(isDebug=FALSE){
     #save(modelStimRawlist,file=fn)
   } #EOF every Spread
 }
-
-DeltaHedge(isDebug=FALSE)
-
 # exitDecision<-function(IniEvalScore,EvalScore){
 #   AllEffect<-EvalScore$DeltaEffect+EvalScore$VegaEffect+EvalScore$ThetaEffect+EvalScore$GammaEffect
 #   Profit<-EvalScore$Price-IniEvalScore$Price
@@ -331,5 +396,5 @@ DeltaHedge(isDebug=FALSE)
 #PlaybackAdjust()
 #rm(exitDecision,PlaybackAdjust)
 
-rm(ConfigFileName_G,ConfigParameters)
+rm(ConfigFileName_G,ConfigParameters,DeltaHedgeSimple,DeltaHedge)
 rm(DataFiles_Path_G,ResultFiles_Path_G,Underying_Symbol_G)
