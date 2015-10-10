@@ -28,8 +28,8 @@ DhSpreads=eval(parse(text=gsub("\\$",",",ConfigParameters["PlaybackDeltaHedgeSpr
 DeltaHedagedEntrydayOnly=TRUE
 
 #Delta Hedge trigger conditoins
-DeltaHedgeThresh_Max=30
-DeltaHedgeThresh_Min=(-30)
+DeltaHedgeThresh_Max=400
+DeltaHedgeThresh_Min=(-400)
 
 #ScenarioMode
 ScenarioMode=ConfigParameters["PlaybackScenarioMode",1]
