@@ -203,6 +203,8 @@ makePosition <- function(opch){
   return(opchain)
 }
 
+opchain<-makePosition(opchain)
+
 filterPosition <- function(opchain,HowfarOOM_MIN=-0.5,OOM_Limit_V=c(0.08,0.08)){
   ##
   #  Filter Target Ranges
@@ -221,12 +223,7 @@ filterPosition <- function(opchain,HowfarOOM_MIN=-0.5,OOM_Limit_V=c(0.08,0.08)){
     dplyr::arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="%Y/%m/%d"),desc(TYPE),Strike) -> opchain
   
   return(opchain)
-  
 }
-
-opchain<-makePosition(opchain)
-
-#opchain %>% dplyr::select(-(contains('Frac',ignore.case=TRUE)),-(IV),-(Change)) -> opchain
 
 if(!isSkewCalc){
   if(isNewPosition)
@@ -256,3 +253,4 @@ rm(ConfigFileName_G,ConfigParameters)
 rm(CALENDAR_G,riskFreeRate_G,divYld_G,OpType_Put_G,OpType_Call_G,TimeToExp_Limit_Closeness_G)
 rm(Underying_Symbol_G,DataFiles_Path_G,ResultFiles_Path_G,ProcessFileName,TargetFileName,isSkewCalc,isNewPosition)
 rm(SkewModel)
+
