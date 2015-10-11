@@ -93,6 +93,7 @@ Sim_IV_DEVIATION,0
 SimReportPosStart,1
 SimReportPosEnd,100
 SimReportScenarioMode,_modelScenario_
+#SimReportScenarioMode,_dltahgdScenario_
 #SimReportScenarioMode,_adjustedScenario_
 SimInspct.Spread,1
 SimInspct.Scenario,1
@@ -104,6 +105,6 @@ AnalyStepNum,80
 AnalyStepPct,0.005
 AnalyMaxDay,8
 PlaybackAdjustSpreads,c(3$5)
-PlaybackDeltaHedgeSpreds,c(1:60)
+PlaybackDeltaHedgeSpreds,c(1:100)
 PlaybackScenarioMode,_modelScenario_
 #PlaybackScenarioMode,_adjustedScenario_
