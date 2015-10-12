@@ -1,7 +1,7 @@
 library(dplyr)
 library(RQuantLib)
 library(ggplot2)
-rm(list=ls())
+#rm(list=ls())
 source('./ESourceRCode.R',encoding = 'UTF-8')
 
 #evaluated position or set evaPos manually by copy&paste csv value
@@ -103,7 +103,7 @@ CallIVChgDown
 #get evaluation days vector, evaldays
 opchain$Date<-as.character(opchain$Date)
 opchain$ExpDate<-as.character(opchain$ExpDate)
-max_days<-min(get.busdays.between(opchain$Date,opchain$ExpDate))
+max_days<- min(get.busdays.between(opchain$Date,opchain$ExpDate))-1
 if(MAX_DAY<max_days)
   max_days<-MAX_DAY
 totalstep=max_days%/%stepdays 
