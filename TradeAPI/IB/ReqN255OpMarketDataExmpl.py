@@ -6,7 +6,7 @@ from datetime import date, datetime, timedelta
 import csv
 
 # -- globals  ------------------------------------------------------------------
-port_G = 7496
+port_G = 4001
 clientId_G = 678
 
 nextOrderId = -1
@@ -15,10 +15,9 @@ contractRestoreList = None
 orderIdMktReqContractDict = None
 priceInfoDict = {}
 
-SPX_Strike_Max=2450
-SPX_Strike_Min=1410
-RUT_Strike_Max=1500
-RUT_Strike_Min=700
+N255_Strike_Max=30000
+N255_Strike_Min=10000
+
 
 class ContractPrice:
     def __init__(self):
@@ -166,15 +165,11 @@ def subscribeContractList(opCont,con):
         #      (con_each.m_conId, con_each.m_localSymbol, con_each.m_secType, con_each.m_right, con_each.m_strike,
         #       con_each.m_expiry, con_each.m_symbol, con_each.m_multiplier, con_each.m_exchange))
         ### exclude condition
-        if (con_each.m_strike % 10) != 0:
+        if (con_each.m_strike % 100) != 0:
             contractRemoveList.append(con_each)
-        elif con_each.m_secType == 'OPT' and con_each.m_symbol == 'SPX' and con_each.m_strike < SPX_Strike_Min:
+        elif con_each.m_secType == 'OPT' and con_each.m_symbol == 'N255' and con_each.m_strike < N255_Strike_Min:
             contractRemoveList.append(con_each)
-        elif con_each.m_secType == 'OPT' and con_each.m_symbol == 'SPX' and con_each.m_strike > SPX_Strike_Max:
-            contractRemoveList.append(con_each)
-        elif con_each.m_secType == 'OPT' and con_each.m_symbol == 'RUT' and con_each.m_strike < RUT_Strike_Min:
-            contractRemoveList.append(con_each)
-        elif con_each.m_secType == 'OPT' and con_each.m_symbol == 'RUT' and con_each.m_strike > RUT_Strike_Max:
+        elif con_each.m_secType == 'OPT' and con_each.m_symbol == 'N255' and con_each.m_strike > N255_Strike_Max:
             contractRemoveList.append(con_each)
     # Remove
     for con_rmv_item in range(len(contractRemoveList)):
@@ -240,7 +235,10 @@ def writeToFile(sectype,symbol):
 
 # -- main  ---------------------------------------------------------------------
 opContractList = [
-                  makeOptContract(sym='N225', exp='20151112', strike='', right='C')
+                  makeOptContract(sym='N225', exp='20151112', strike='', right='C'),
+                  makeOptContract(sym='N225', exp='20151112', strike='', right='P'),
+                  makeOptContract(sym='N225', exp='20151210', strike='', right='C'),
+                  makeOptContract(sym='N225', exp='20151210', strike='', right='P')
                   ]
 
 idxContractList = [
