@@ -15,8 +15,8 @@ contractRestoreList = None
 orderIdMktReqContractDict = None
 priceInfoDict = {}
 
-N255_Strike_Max=30000
-N255_Strike_Min=10000
+N225_Strike_Max=30000
+N225_Strike_Min=10000
 
 
 class ContractPrice:
@@ -167,9 +167,9 @@ def subscribeContractList(opCont,con):
         ### exclude condition
         if (con_each.m_strike % 100) != 0:
             contractRemoveList.append(con_each)
-        elif con_each.m_secType == 'OPT' and con_each.m_symbol == 'N255' and con_each.m_strike < N255_Strike_Min:
+        elif con_each.m_secType == 'OPT' and con_each.m_symbol == 'N225' and con_each.m_strike < N225_Strike_Min:
             contractRemoveList.append(con_each)
-        elif con_each.m_secType == 'OPT' and con_each.m_symbol == 'N255' and con_each.m_strike > N255_Strike_Max:
+        elif con_each.m_secType == 'OPT' and con_each.m_symbol == 'N225' and con_each.m_strike > N225_Strike_Max:
             contractRemoveList.append(con_each)
     # Remove
     for con_rmv_item in range(len(contractRemoveList)):
