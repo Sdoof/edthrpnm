@@ -1,11 +1,11 @@
 library(dplyr)
 library(RQuantLib)
 library(ggplot2)
-#rm(list=ls())
+rm(list=ls())
 source('./ESourceRCode.R',encoding = 'UTF-8')
 
 #evaluated position or set evaPos manually by copy&paste csv value
-evaPos<-c(0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,-1,0,0,0,0,0,0,0,0,0,0) 
+evaPos<-c(0,0,0,0,0,0,0,0,0,0,2,0,0,0,-2,0,0,0,0,-1,0,-2,0,0,4,0,0,0,0,0,-1) 
 
 #UDLY draw limit. given absolute % value
 UDLY_DrawRange<-0.10
@@ -224,6 +224,24 @@ gg<-ggplot(drawGrktbl,aes(x=UDLY,y=profit,group=day))
     #max(c(max(drawGrktbl$ThetaEffect),max(drawGrktbl$Delta),max(drawGrktbl$GammaEffect),max(drawGrktbl$Vega),max(drawGrktbl$profit))))
 )
 
+
+##
+# Draw Implied Volaility Sensitivity Hedge Effect
+
+if(VolSensitivityCheck){
+  gg<-ggplot(drawGrktbl,aes(x=UDLY,y=profit,group=day))
+  (
+  gg
+  +geom_line(size=draw_line_size,linetype=draw_line_type)
+  +geom_line(x=drawGrktbl_vc_plus$UDLY,y=drawGrktbl_vc_plus$profit,colour="blue",size=draw_line_size,group=drawGrktbl_vc_plus$day,linetype=draw_line_type)
+  +geom_line(x=drawGrktbl_vc_mnus$UDLY,y=drawGrktbl_vc_mnus$profit,colour="red",size=draw_line_size,group=drawGrktbl_vc_plus$day,linetype=draw_line_type)
+  +geom_point(x=thePositonGrks$UDLY,y=0,size=4.0,colour="black")
+  +ylim(
+    min(c(min(drawGrktbl$profit),min(drawGrktbl_vc_plus$profit),min(drawGrktbl_vc_mnus$profit))),
+    max(c(max(drawGrktbl$profit),max(drawGrktbl_vc_plus$profit),max(drawGrktbl_vc_mnus$profit))))
+  )
+}
+
 ##
 # Draw Delta Hedge Effect
 
@@ -258,32 +276,35 @@ if(ShowDeltaHedge){
 }
 
 ##
-# Draw Implied Volaility Sensitivity Hedge Effect
+# Draw Delta Hedged Spread's Implied Volaility Sensitivity
 
-if(VolSensitivityCheck){
-  gg<-ggplot(drawGrktbl,aes(x=UDLY,y=profit,group=day))
+if(ShowDeltaHedge && VolSensitivityCheck){
+  #data frame for delta headge
+  drawGrktbl_DltHgd_vc_plus<-drawGrktbl_vc_plus
+  drawGrktbl_DltHgd_vc_mnus<-drawGrktbl_vc_mnus
+  
+  #new Profit
+  drawGrktbl_DltHgd_vc_plus$profit<-drawGrktbl_DltHgd_vc_plus$profit - as.numeric(headgedDelta)*(drawGrktbl_DltHgd_vc_plus$UDLY-mean(thePosition$UDLY))
+  drawGrktbl_DltHgd_vc_mnus$profit<-drawGrktbl_DltHgd_vc_mnus$profit - as.numeric(headgedDelta)*(drawGrktbl_DltHgd_vc_mnus$UDLY-mean(thePosition$UDLY))
+  
+  #new delta
+  drawGrktbl_DltHgd_vc_plus$Delta<-drawGrktbl_DltHgd_vc_plus$Delta-as.numeric(headgedDelta)
+  drawGrktbl_DltHgd_vc_mnus$Delta<-drawGrktbl_DltHgd_vc_mnus$Delta-as.numeric(headgedDelta)
+  
+  gg<-ggplot(drawGrktbl_DltHgd,aes(x=UDLY,y=profit,group=day))
   (
   gg
   +geom_line(size=draw_line_size,linetype=draw_line_type)
-  +geom_line(x=drawGrktbl_vc_plus$UDLY,y=drawGrktbl_vc_plus$profit,colour="blue",size=draw_line_size,group=drawGrktbl_vc_plus$day,linetype=draw_line_type)
-  +geom_line(x=drawGrktbl_vc_mnus$UDLY,y=drawGrktbl_vc_mnus$profit,colour="red",size=draw_line_size,group=drawGrktbl_vc_plus$day,linetype=draw_line_type)
+  +geom_line(x=drawGrktbl_DltHgd_vc_plus$UDLY,y=drawGrktbl_DltHgd_vc_plus$profit,colour="blue",size=draw_line_size,group=drawGrktbl_DltHgd_vc_plus$day,linetype=draw_line_type)
+  +geom_line(x=drawGrktbl_DltHgd_vc_mnus$UDLY,y=drawGrktbl_DltHgd_vc_mnus$profit,colour="red",size=draw_line_size,group=drawGrktbl_DltHgd_vc_plus$day,linetype=draw_line_type)
   +geom_point(x=thePositonGrks$UDLY,y=0,size=4.0,colour="black")
   +ylim(
-    min(c(min(drawGrktbl$profit),min(drawGrktbl_vc_plus$profit),min(drawGrktbl_vc_mnus$profit))),
-    max(c(max(drawGrktbl$profit),max(drawGrktbl_vc_plus$profit),max(drawGrktbl_vc_mnus$profit))))
+    min(c(min(drawGrktbl_DltHgd$profit),min(drawGrktbl_DltHgd_vc_plus$profit),min(drawGrktbl_DltHgd_vc_mnus$profit))),
+    max(c(max(drawGrktbl_DltHgd$profit),max(drawGrktbl_DltHgd_vc_plus$profit),max(drawGrktbl_DltHgd_vc_mnus$profit))))
   )
 }
 
-rm(gg,drawGrktbl)
-rm(opchain,histIV,evaPos)
-rm(evaldays,stepdays,pos_anlys,totalstep,udlStepNum,udlStepPct,iniPrice,iniCredit)
-rm(posStepDays,posStepDays_vc,thePosition,thePositonGrks)
-rm(PC1dCtC_IVCF1dCtC,PC3dCtC_IVCF3dCtC,PC5dCtC_IVCF5dCtC,PC7dCtC_IVCF7dCtC,SkewModel)
-rm(CallIVChgDown,CallIVChgUp,CallVCone,PutIVChgDown,PutIVChgUp,PutVCone)
-rm(ConfigFileName_G,ConfigParameters,EvalFuncSetting,HV_IV_Adjust_Ratio)
-rm(riskFreeRate_G,divYld_G,OpType_Put_G,OpType_Call_G)
-rm(CALENDAR_G,TimeToExp_Limit_Closeness_G,Underying_Symbol_G,DataFiles_Path_G,ResultFiles_Path_G)
-rm(holdDays,dviv_caldays,PosMultip)
+rm(list=ls())
 
 #Profit + Directional + Non Didectional(Intrinsic Advantageous) + Total Effect Graph
 # gg<-ggplot(drawGrktbl,aes(x=UDLY,y=profit,group=day))
