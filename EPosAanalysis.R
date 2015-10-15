@@ -5,7 +5,7 @@ rm(list=ls())
 source('./ESourceRCode.R',encoding = 'UTF-8')
 
 #evaluated position or set evaPos manually by copy&paste csv value
-evaPos<-c(0,0,0,0,0,0,0,0,0,0,2,0,0,0,-2,0,0,0,0,-1,0,-2,0,0,4,0,0,0,0,0,-1) 
+evaPos<-c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,-2,0,1,0,0,0,0,0,0,0) 
 
 #UDLY draw limit. given absolute % value
 UDLY_DrawRange<-0.10
@@ -109,6 +109,8 @@ if(MAX_DAY<max_days)
 totalstep=max_days%/%stepdays 
 evaldays<-rep(stepdays,times=totalstep)
 evaldays<- cumsum(evaldays)
+if(stepdays!=1)
+  evaldays<-append(evaldays, c(1), after=0)
 #if the lastday is ExpDate, we set the lastday as (lastday-1), 
 # because the ExpDate option price is unstable.
 if(evaldays[length(evaldays)]==min(get.busdays.between(opchain$Date,opchain$ExpDate))){
@@ -132,8 +134,8 @@ opchain %>% dplyr::filter(Position!=0) -> thePosition
 
 #thePosition's greek df and initial price
 thePositonGrks<-getPositionGreeks(thePosition,multi=PosMultip,hdd=holdDays,HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio)
-iniPrice <- thePositonGrks$Price
-iniCredit <- -1*iniPrice
+#iniPrice <- thePositonGrks$Price
+#iniCredit <- -1*iniPrice
 
 #total data frame
 posStepDays<-data.frame(days=evaldays)
@@ -142,6 +144,8 @@ posStepDays<-data.frame(days=evaldays)
 posStepDays %>% group_by(days) %>%
   do(scene=createPositionEvalTable(position=thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,
                                    multi=PosMultip,hdd=1,HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio)) -> posStepDays
+
+iniCredit <- -1*posStepDays$scene[[1]]$Price
 
 #Use for checking volatility sensitivity
 posStepDays_vc<-posStepDays
@@ -188,8 +192,8 @@ if(VolSensitivityCheck){
 ##
 # Drawing Profit and Greeks Combined Graph
 
-draw_line_size_max=0.9
-draw_line_size_min=0.1
+draw_line_size_max=1.2
+draw_line_size_min=0
 draw_line_steps=max(max(ceiling(drawGrktbl$day/stepdays)),2)
 draw_line_step_size=(draw_line_size_max-draw_line_size_min)/(draw_line_steps-1)
 
@@ -199,7 +203,7 @@ draw_line_step_size=(draw_line_size_max-draw_line_size_min)/(draw_line_steps-1)
 #thin to thick
 draw_line_size=draw_line_size_min + draw_line_step_size*(ceiling(drawGrktbl$day/stepdays)-1)
 #line_type
-draw_line_type=(length(evaldays)-ceiling(drawGrktbl$day/stepdays))+1
+draw_line_type=(length(evaldays)-ceiling(drawGrktbl$day/stepdays))
 
 #if draw Delta and Vega Effect with sign
 #draw_DeltaE_with_sign=(drawGrktbl$Delta>=0)*abs(drawGrktbl$DeltaEffect)+(drawGrktbl$Delta<0)*(-1)*abs(drawGrktbl$DeltaEffect)
