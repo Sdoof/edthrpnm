@@ -6,7 +6,7 @@ from datetime import date, datetime, timedelta
 import csv
 
 # -- globals  ------------------------------------------------------------------
-port_G = 4001
+port_G = 7496
 clientId_G = 678
 
 nextOrderId = -1
