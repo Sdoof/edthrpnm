@@ -66,6 +66,8 @@ DeltaHedgeSimple<-function(isDebug=FALSE){
     theIniEvalScore<-modelStimRawlist$stimrslt[[1]][[1]]$IniEvalScore
     if(isDebug){cat(" :Initial Delta",theIniEvalScore$Delta, " :hgdDelta",calcHedgedDelta(theIniEvalScore$Delta))}
     cat(":Initial Delta",theIniEvalScore$Delta, " :hgdDelta",calcHedgedDelta(theIniEvalScore$Delta),"\n",file=out_text_file,append=T)
+    
+    #write initial model scenario data to output file.
     modelScenario %>% select(min_profit,max_profit,mean_profit,median_profit,profit_sd) -> tmp
     print(tmp)
     write.table(tmp,out_text_file,quote=T,col.names=T,row.names=F,append=T,sep=",")
@@ -84,10 +86,12 @@ DeltaHedgeSimple<-function(isDebug=FALSE){
     for(scenario_idx in 1:ScenarioNum){
       simNum<-nrow(modelScenario$resdf[[scenario_idx]])
       iniUDLY_for_Scenario<-rep(theIniEvalScore$UDLY,times=simNum)
-      for(simnum_idx in 1:simNum)
+      iniDelta_for_Scenario<-rep(theIniEvalScore$Delta,times=simNum)
+      for(simnum_idx in 1:simNum){
         iniUDLY_for_Scenario[simnum_idx]<- modelStimRawlist$stimrslt[[scenario_idx]][[simnum_idx]]$EvalScore[[1]]$UDLY
-        
-      headgedPayoff<-(modelScenario$resdf[[scenario_idx]]$udly - iniUDLY_for_Scenario)*calcHedgedDelta(theIniEvalScore$Delta)
+        iniDelta_for_Scenario[simnum_idx]<- modelStimRawlist$stimrslt[[scenario_idx]][[simnum_idx]]$EvalScore[[1]]$Delta
+      }
+      headgedPayoff<-(modelScenario$resdf[[scenario_idx]]$udly - iniUDLY_for_Scenario)*calcHedgedDelta(iniDelta_for_Scenario)
       modelScenario$resdf[[scenario_idx]]$profit <- modelScenario$resdf[[scenario_idx]]$profit + headgedPayoff
     } #EOF every Scenario
      modelScenario %>% rowwise() %>% do(min_profit=min(.$resdf$profit),max_profit=max(.$resdf$profit),
