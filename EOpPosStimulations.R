@@ -141,6 +141,8 @@ Simulate <- function (position,
       
     }
     
+    positionProfit <- positionProfit - positionProfit[1]
+    
     histIV<-histIVOrig
     #the ith_stim iteration finished
     content_names<-c("Parameter","IniValueGreek","IniEvalScore","AdjustDay","Profit","EvalScore","ValueGreek")

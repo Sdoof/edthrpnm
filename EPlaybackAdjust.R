@@ -82,7 +82,12 @@ DeltaHedgeSimple<-function(isDebug=FALSE){
       next
     
     for(scenario_idx in 1:ScenarioNum){
-      headgedPayoff<-(modelScenario$resdf[[scenario_idx]]$udly - theIniEvalScore$UDLY)*calcHedgedDelta(theIniEvalScore$Delta)
+      simNum<-nrow(modelScenario$resdf[[scenario_idx]])
+      iniUDLY_for_Scenario<-rep(theIniEvalScore$UDLY,times=simNum)
+      for(simnum_idx in 1:simNum)
+        iniUDLY_for_Scenario[simnum_idx]<- modelStimRawlist$stimrslt[[scenario_idx]][[simnum_idx]]$EvalScore[[1]]$UDLY
+        
+      headgedPayoff<-(modelScenario$resdf[[scenario_idx]]$udly - iniUDLY_for_Scenario)*calcHedgedDelta(theIniEvalScore$Delta)
       modelScenario$resdf[[scenario_idx]]$profit <- modelScenario$resdf[[scenario_idx]]$profit + headgedPayoff
     } #EOF every Scenario
      modelScenario %>% rowwise() %>% do(min_profit=min(.$resdf$profit),max_profit=max(.$resdf$profit),
