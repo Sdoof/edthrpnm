@@ -168,9 +168,9 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   
   ## Profit profile delta hedged or not
   #profit_vector<-(posEvalTbl$Price-thePositionGrk$Price)
-  profit_vector<-(posEvalTbl$Price-posStepDays$scene[[1]]$Price)
+  profit_vector<-(posEvalTbl$Price-posStepDays$scene[[1]]$Price[udlStepNum + 1])
   profit_hdays<-sum(profit_vector*weight)
-  if(isDetail){cat(" (:prft_vec)",profit_vector);cat(" :(prft_wght)",profit_hdays)}
+  if(isDetail){cat(" (:1stD price",posStepDays$scene[[1]]$Price[udlStepNum + 1]);cat(" (:prft_vec)",profit_vector);cat(" :(prft_wght)",profit_hdays)}
   
   if(abs(DeltaEffect_Comp)<0.1){
     iniDelta <- posStepDays$scene[[1]]$Delta[udlStepNum + 1]
