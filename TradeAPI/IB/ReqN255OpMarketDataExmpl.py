@@ -29,7 +29,6 @@ class ContractPrice:
         self.close = ""
         self.Contract = ""
 
-
 # -- message handlers  ---------------------------------------------------------
 
 def MessageHandler(msg):
@@ -98,8 +97,6 @@ def TickPriceHandler(msg):
                                                                 priceInfoDict[contRtrvd.m_localSymbol].ask,
                                                                 priceInfoDict[contRtrvd.m_localSymbol].last,
                                                                 priceInfoDict[contRtrvd.m_localSymbol].close))
-
-
 
 # -- factory functions  -----------------------------------------------------------------
 
@@ -217,8 +214,8 @@ def writeToFile(sectype,symbol):
                contract_price.bid, contract_price.ask, contract.m_expiry, contract.m_right))
         if sectype == 'OPT' and contract_price.last == '':
             contract_price.last = (contract_price.bid + contract_price.ask)/2.0
-        if sectype == 'OPT' and (contract_price.bid < 0 or contract_price.ask < 0) :
-            continue
+        #if sectype == 'OPT' and (contract_price.bid < 0 or contract_price.ask < 0) :
+        #    continue
         if sectype == 'OPT' and contract.m_right == 'P':
             contract.m_right = '1'
         elif sectype == 'OPT' and contract.m_right == 'C':
@@ -234,18 +231,13 @@ def writeToFile(sectype,symbol):
     file.close()
 
 # -- main  ---------------------------------------------------------------------
-opContractList = [
-                  makeOptContract(sym='N225', exp='20151112', strike='', right='C'),
+opContractList = [makeOptContract(sym='N225', exp='20151112', strike='', right='C'),
                   makeOptContract(sym='N225', exp='20151112', strike='', right='P'),
                   makeOptContract(sym='N225', exp='20151210', strike='', right='C'),
                   makeOptContract(sym='N225', exp='20151210', strike='', right='P'),
                   makeOptContract(sym='N225', exp='20160107', strike='', right='C'),
-                  makeOptContract(sym='N225', exp='20160107', strike='', right='P')
-                  ]
-
-idxContractList = [
-                   makeIndexContract(sym='N225',exchange='OSE.JPN')
-                   ]
+                  makeOptContract(sym='N225', exp='20160107', strike='', right='P')]
+idxContractList = [makeIndexContract(sym='N225',exchange='OSE.JPN')]
 
 if __name__ == '__main__':
     # Server Access
@@ -265,7 +257,7 @@ if __name__ == '__main__':
     sleep(1)
 
     #raw_input('getting Fx Future Option Contract press any to continue')
-    print('getting Fx Future Option Contract')
+    print('getting N225 Option Contract')
 
     #Option Contract
     for opContract_item in range(len(opContractList)):
@@ -283,7 +275,9 @@ if __name__ == '__main__':
         #raw_input('Price data writing to file press to continue')
         print('Price data writing to file press to continue')
         sleep(2)
+        writeToFile(OpContract.m_secType,OpContract.m_symbol)
         con.disconnect()
+        sleep(3)
         con = Connection.create(port=port_G, clientId=clientId_G)
         # con.registerAll(MessageHandler)
         con.register(ErrorHandler, 'Error')
@@ -294,7 +288,6 @@ if __name__ == '__main__':
         con.connect()
         con.setServerLogLevel(5)
         con.reqIds(1)
-        writeToFile(OpContract.m_secType,OpContract.m_symbol)
 
     # INDEX
     sleep(3)
@@ -312,7 +305,9 @@ if __name__ == '__main__':
             con.cancelMktData(req_order_id)
         #raw_input('Price data writing to file press to continue')
         sleep(2)
+        writeToFile(idxContract.m_secType,idxContract.m_symbol)
         con.disconnect()
+        sleep(3)
         con = Connection.create(port=port_G, clientId=clientId_G)
         # con.registerAll(MessageHandler)
         con.register(ErrorHandler, 'Error')
@@ -323,7 +318,7 @@ if __name__ == '__main__':
         con.connect()
         con.setServerLogLevel(5)
         con.reqIds(1)
-        writeToFile(idxContract.m_secType,idxContract.m_symbol)
+
     print('About to exit press any to continue')
 
     # Receive the new OrderId sequence from the IB Server

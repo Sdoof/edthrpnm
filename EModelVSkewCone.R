@@ -14,7 +14,7 @@ ConfigParameters<-read.table(paste(DataFiles_Path_G,ConfigFileName_G,sep=""),
 
 #MAX ExpToDate for Skew Regression
 SkewRegressionTimeToExpDateMin<-0.9
-SkewRegressionTimeToExpDateMax<-3.0
+SkewRegressionTimeToExpDateMax<-2.5
 
 #We get regression only past this day. Currently reflected on Skew only.
 #should apply Vcone, etc.
@@ -272,7 +272,7 @@ vcone %>% arrange(Month) -> vcone
 #(predict(smooth.spline(vcone$Month,vcone$IV2IDX.nm,df=3),x=2))
 model.ss<-smooth.spline(vcone$Month,vcone$IV2IDX.nm,df=3)
 (predict.c <- predict(model.ss,x=seq(0,max(vcone$Month),by=0.1)))
-(ggplot(vcone,aes(x=Month,y=IV2IDX.nm,colour=TYPE))+geom_point()+
+(ggplot(vcone,aes(x=Month,y=IV2IDX.nm,colour=Month))+geom_point()+
    geom_line(data=data.frame(Month=predict.c$x,IV2IDX.nm=predict.c$y,TYPE=OpType_Put_G),aes(Month,IV2IDX.nm)))
 
 save.VCone(model=model.ss,optype=OpType_Put_G)
@@ -280,13 +280,13 @@ rm(vcone,predict.c,model.ss)
 #  Call VCone IV is normalized 
 #Creating vcone.
 vcone<-make.vcone.df(atmiv=atmiv,type=-1)
-(ggplot(vcone,aes(x=Month,y=IV2IDX.nm,colour=TYPE))+geom_point())
+(ggplot(vcone,aes(x=Month,y=IV2IDX.nm,colour=Month))+geom_point())
 # Regression of Call vcone
 #   5.smooth spline
 #(predict(smooth.spline(vcone$Month,vcone$IV2IDX.nm,df=3),x=2))
 model.ss<-smooth.spline(vcone$Month,vcone$IV2IDX.nm,df=3)
 (predict.c <- predict(model.ss,x=seq(0,max(vcone$Month),by=0.1)))
-(ggplot(vcone,aes(x=Month,y=IV2IDX.nm,colour=TYPE))+geom_point()+
+(ggplot(vcone,aes(x=Month,y=IV2IDX.nm,colour=Month))+geom_point()+
    geom_line(data=data.frame(Month=predict.c$x,IV2IDX.nm=predict.c$y,TYPE=-1),aes(Month,IV2IDX.nm)))
 
 save.VCone(model=model.ss,optype=OpType_Call_G)
@@ -304,15 +304,15 @@ rm(vcone,predict.c,model.ss)
 #  Put IV Change to IVIDX Up and Down
 #Up and Down change
 vchg<-make.vchg.df(vcone=atmiv.vcone.anal,type=1)
-(ggplot(vchg,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point())
+(ggplot(vchg,aes(x=TimeToExpDate,y=VC.f,colour=Date))+geom_point())
 
 vchg %>% filter(IVIDX.f>=1.0) -> vchg_plus
-(ggplot(vchg_plus,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point())
+(ggplot(vchg_plus,aes(x=TimeToExpDate,y=VC.f,colour=Date))+geom_point())
 
 vchg %>% filter(IVIDX.f<1.0) -> vchg_mns
 #filter outlier
 vchg_mns %>% dplyr::filter(VC.f>0.90) -> vchg_mns
-(ggplot(vchg_mns,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point())
+(ggplot(vchg_mns,aes(x=TimeToExpDate,y=VC.f,colour=Date))+geom_point())
 
 #Regression
 #    5.smooth spline
