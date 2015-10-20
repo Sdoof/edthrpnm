@@ -1,3 +1,7 @@
+library(RQuantLib)
+library(ggplot2)
+library(dplyr)
+library(pracma)
 ##
 # Before Running this routine, 1. Create UDLY_AdjustPosition.csv file.
 # 2. Make ConfigParameters file's SimEvalPosStart and SimEvalPosEnd appropriate values to immediately continue MC Simulation.
@@ -43,6 +47,7 @@ getPutCallnOfthePosition<-function(x){
 
 #calculate Orig Spread's evaluation score.
 x<-origPosition[1,]
+val<-1.0
 posnum<-sum(getPutCallnOfthePosition(x))
 val<-obj_Income_sgmd(x,EvalFuncSetting,isDebug=F,isDetail=F,
                      udlStepNum=EvalFuncSetting$UdlStepNum,udlStepPct=EvalFuncSetting$UdlStepPct,
@@ -55,6 +60,7 @@ orig_score<-val
 
 #calculate target Spreads's evaluation Score
 score_v<-rep(1,nrow(evalPositions))
+posnums_v<-rep(0,nrow(evalPositions))
 for(ithPos in 1:nrow(evalPositions)) {
   x<-evalPositions[ithPos,]
   posnum<-sum(getPutCallnOfthePosition(x))
@@ -66,17 +72,17 @@ for(ithPos in 1:nrow(evalPositions)) {
                        Delta_Neutral_Offset=EvalFuncSetting$Delta_Neutral_Offset[posnum],Vega_Neutral_Offset=EvalFuncSetting$Vega_Neutral_Offset[posnum])
   cat(ithPos,"pos",x,":score",val,"\n")
   score_v[ithPos] <- val
+  posnums_v[ithPos] <- posnum
 }
 
-(score_v)
+(score_v);(posnums_v)
 
 #Write to the UDL_EvalPosition.csv. The table has 2 more columns.
 #One Each target Spread's evaluation score. The Other Original Spread's evaluation score. 
-write.table(cbind(evalPositions,score_v),paste(ResultFiles_Path_G,Underying_Symbol_G,"_EvalPosition.csv",sep=""),sep=",",
+write.table(cbind(evalPositions,score_v,orig_score,posnums_v),paste(ResultFiles_Path_G,Underying_Symbol_G,"_EvalPosition.csv",sep=""),sep=",",
             quote=T,col.names=F,row.names=F,append=F)
 
 source('./EPlaySimulation.R',encoding = 'UTF-8')
-
 source('./ResultData/StimResult.Rmd',encoding = 'UTF-8')
 
 rm(list=ls())
