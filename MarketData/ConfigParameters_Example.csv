@@ -34,13 +34,13 @@ EvalFnc_Vega_Neutral_Offset,c(0$0$0$0$0)
 EvalFnc_Profit_Coef,0.7
 EvalFnc_AdvEffect_Coef,0.3
 EvalFnc_AllEffect_Coef,0
-EvalFnc_DrctlEffect_Coef,0.4
+EvalFnc_DrctlEffect_Coef,0.5
 # Concave uses sd as cost, Convex uses maxloss as cost
-EvalFnc_MaxLoss_Coef,0.6
+EvalFnc_MaxLoss_Coef,0.5
 #Numerator=DrctlEffect+AllEffect. Less is good. DrctlEffect_Coef and AllEffect_Coef should be exclusive.
-EvalFnc_SigmoidA_Numerator,0.0009
+EvalFnc_SigmoidA_Numerator,0.0008
 #Denominator=AdvEffect+Profit More is good.
-EvalFnc_SigmoidA_Denominator,0.008
+EvalFnc_SigmoidA_Denominator,0.0018
 EvalFnc_ThetaEffectPositive,0
 # 0:Flase(Concave) 1:True(Convex) (Concave uses sd as cost, Convex uses maxloss as cost)
 EvalFnc_EvalConvex,0
