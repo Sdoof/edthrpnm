@@ -389,7 +389,7 @@ ConfigParameters<-read.table(paste(DataFiles_Path_G,ConfigFileName_G,sep=""),
 Thresh_AdvEffect=as.numeric(ConfigParameters["ResultProcess_Thresh_AdvEffect",1])
 F_Thrsh_Params_Names<-c("Score1","Score2","Score3","Delta1_Minus","Delta2_Minus","Delta3_Minus",
                         "Delta1_Plus","Delta2_Plus","Delta3_Plus","Thrsh_VegaE1","Thrsh_VegaE2","Thrsh_VegaE3",
-                        "F_TopN1","F_TopN2","F_TopN3","Thrsh_ThetaE1","Thrsh_ThetaE2","Thrsh_ThetaE3")
+                        "F_TopN1","F_TopN2","F_TopN3")
 F_Thrsh_Params<- vector("list",length(F_Thrsh_Params_Names))
 F_Thrsh_Params[[1]]<-as.numeric(ConfigParameters["ResultProcess_F_Thrsh_Score1",1])
 F_Thrsh_Params[[2]]<-as.numeric(ConfigParameters["ResultProcess_F_Thrsh_Score2",1])
@@ -406,9 +406,6 @@ F_Thrsh_Params[[12]]<-as.numeric(ConfigParameters["ResultProcess_F_Thrsh_VegaE3"
 F_Thrsh_Params[[13]]<-as.numeric(ConfigParameters["ResultProcess_F_TopN1",1])
 F_Thrsh_Params[[14]]<-as.numeric(ConfigParameters["ResultProcess_F_TopN2",1])
 F_Thrsh_Params[[15]]<-as.numeric(ConfigParameters["ResultProcess_F_TopN3",1])
-F_Thrsh_Params[[16]]<-as.numeric(ConfigParameters["ResultProcess_F_Thrsh_ThetaE1",1])
-F_Thrsh_Params[[17]]<-as.numeric(ConfigParameters["ResultProcess_F_Thrsh_Theta2",1])
-F_Thrsh_Params[[18]]<-as.numeric(ConfigParameters["ResultProcess_F_Thrsh_Theta3",1])
 names(F_Thrsh_Params)<-F_Thrsh_Params_Names ; rm(F_Thrsh_Params_Names) 
 (Thresh_AdvEffect)
 (F_Thrsh_Params)
@@ -450,10 +447,10 @@ tmp_fil_w4 %>% filter(ThetaEffect<=0) %>% arrange(.[,length(iniPos)+1]) %>% top_
 rbind(tmp,tmp2) %>% arrange(.[,length(iniPos)+1]) %>% distinct() -> tmp_fil_w4 ;rm(tmp,tmp2)
 
 ## Save to a file
-write.table(tmp_fil_w,paste(ResultFiles_Path_G,"EvalCnd.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
-write.table(tmp_fil_w2,paste(ResultFiles_Path_G,"EvalCnd2.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
-write.table(tmp_fil_w3,paste(ResultFiles_Path_G,"EvalCnd3.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
-write.table(tmp_fil_w4,paste(ResultFiles_Path_G,"EvalCnd4.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
+write.table(tmp_fil_w,paste(ResultFiles_Path_G,"EvalCnd.csv",sep=""),row.names = F,col.names=T,sep=",",append=F)
+write.table(tmp_fil_w2,paste(ResultFiles_Path_G,"EvalCnd2.csv",sep=""),row.names = F,col.names=T,sep=",",append=F)
+write.table(tmp_fil_w3,paste(ResultFiles_Path_G,"EvalCnd3.csv",sep=""),row.names = F,col.names=T,sep=",",append=F)
+write.table(tmp_fil_w4,paste(ResultFiles_Path_G,"EvalCnd4.csv",sep=""),row.names = F,col.names=T,sep=",",append=F)
 
 rm(getPutCallnOfthePosition,getPositionWithGreeks)
 rm(tmp_fil_w,tmp_fil_w2,tmp_fil_w3,tmp_fil_w4)
