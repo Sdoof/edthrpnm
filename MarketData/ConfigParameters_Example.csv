@@ -8,28 +8,28 @@ PosMultip,100
 riskFreeRate_G,0.01
 divYld_G,0
 TimeToExp_Limit_Closeness_G,0.2
-holdDays,5
+holdDays,7
 ResultFiles_Path_G,C:\Users\kuby\edthrpnm\ResultData\
 ## Evaluation Function Related Settings
 EvalFnc_UdlStepNum,5
 EvalFnc_UdlStepPct,0.018
-EvalFnc_Posnum,c(2$3)
+EvalFnc_Posnum,c(3$4)
 EvalFnc_Tail_rate,0.4
 EvalFnc_LossLimitPrice,30000
-EvalFnc_HV_IV_Adjust_Ratio,0.95
+EvalFnc_HV_IV_Adjust_Ratio,0.7
 ## _Thresh_Minus|Plus
-EvalFnc_Delta_Thresh_Minus,c(-30$-30$-30$-30$-30)
-EvalFnc_Delta_Thresh_Plus,c(30$30$30$30$30)
-EvalFnc_Vega_Thresh_Minus,c(-100$-100$-100$-100$-100)
-EvalFnc_Vega_Thresh_Plus,c(100$100$100$100$100) 
+EvalFnc_Delta_Thresh_Minus,c(-30$-30$-30$-30$-30$-30$-30$-30)
+EvalFnc_Delta_Thresh_Plus,c(30$30$30$30$30$30$30$30)
+EvalFnc_Vega_Thresh_Minus,c(0$0$0$0$0$0$0$0)
+EvalFnc_Vega_Thresh_Plus,c(0$0$0$0$0$0$0$0) 
 # DRCTAL_Taste:  0:like neutral, 1(>0):long -1(<0):short
 # c(x1$x2$x3, ...) prefernce of posnum=1,2,3... is x1,x2,x3....)
-EvalFnc_Delta_Direct_Prf,c(0$0$0$0$0)
-EvalFnc_Vega_Direct_Prf,c(0$0$0$0$0)
+EvalFnc_Delta_Direct_Prf,c(0$0$0$0$0$0$0$0)
+EvalFnc_Vega_Direct_Prf,c(0$0$0$0$0$0$0$0)
 # Delta(Vega)がNeutralとなる値を0からこの値に変更する
 # Vega_Neutral_Offsetは未実装。
-EvalFnc_Delta_Neutral_Offset,c(0$0$0$0$0)
-EvalFnc_Vega_Neutral_Offset,c(0$0$0$0$0)
+EvalFnc_Delta_Neutral_Offset,c(0$0$0$0$0$0$0$0)
+EvalFnc_Vega_Neutral_Offset,c(0$0$0$0$0$0$0$0)
 #Coeffeciants
 EvalFnc_Profit_Coef,0.7
 EvalFnc_AdvEffect_Coef,0.3
@@ -38,20 +38,22 @@ EvalFnc_DrctlEffect_Coef,0.5
 # Concave uses sd as cost, Convex uses maxloss as cost
 EvalFnc_MaxLoss_Coef,0.5
 #Numerator=DrctlEffect+AllEffect. Less is good. DrctlEffect_Coef and AllEffect_Coef should be exclusive.
-EvalFnc_SigmoidA_Numerator,0.0008
+EvalFnc_SigmoidA_Numerator,0.0007
 #Denominator=AdvEffect+Profit More is good.
-EvalFnc_SigmoidA_Denominator,0.0018
+EvalFnc_SigmoidA_Denominator,0.003
 EvalFnc_ThetaEffectPositive,0
-# 0:Flase(Concave) 1:True(Convex) (Concave uses sd as cost, Convex uses maxloss as cost)
+# 0:Flase(Concave) 1:True(Convex) (Concave uses sd as cost, Convex uses maxloss as cost)		
 EvalFnc_EvalConvex,0
+# 0:False (No Dela Hedge to evalulate Profit) 1:True(Delta Headge to evaluate Profit)
+EvalFnc_DeltaHedgeToEvalProfit,1
 ## Optimization
 # 0:Flase 1:True
-Optimize_Combined_Spread,0
-Optimize_InitialPopCreateLoopNum,100
+Optimize_Combined_Spread,1
+Optimize_InitialPopCreateLoopNum,10
 Optimize_InitialPopThresh,2.5
 Optimize_ml,1
-Optimize_TopN_1,2000
-Optimize_PopN_1,5
+Optimize_TopN_1,800
+Optimize_PopN_1,5000
 Optimize_Thresh_1,1.1
 Optimize_TopN_2,600
 Optimize_PopN_2,1
@@ -65,15 +67,15 @@ ResultProcess_Thresh_AdvEffect,10
 ResultProcess_F_Thrsh_Score1,4.0
 ResultProcess_F_Thrsh_Score2,4.0
 ResultProcess_F_Thrsh_Score3,4.0
-ResultProcess_F_Thrsh_Delta1_Minus,-40
-ResultProcess_F_Thrsh_Delta2_Minus,-40
-ResultProcess_F_Thrsh_Delta3_Minus,-40
-ResultProcess_F_Thrsh_Delta1_Plus,40
-ResultProcess_F_Thrsh_Delta2_Plus,40
-ResultProcess_F_Thrsh_Delta3_Plus,40
-ResultProcess_F_Thrsh_VegaE1,-500000
-ResultProcess_F_Thrsh_VegaE2,-500000
-ResultProcess_F_Thrsh_VegaE3,-500000
+ResultProcess_F_Thrsh_Delta1_Minus,-200
+ResultProcess_F_Thrsh_Delta2_Minus,-200
+ResultProcess_F_Thrsh_Delta3_Minus,-200
+ResultProcess_F_Thrsh_Delta1_Plus,200
+ResultProcess_F_Thrsh_Delta2_Plus,200
+ResultProcess_F_Thrsh_Delta3_Plus,200
+ResultProcess_F_Thrsh_VegaE1,-50000000
+ResultProcess_F_Thrsh_VegaE2,-50000000
+ResultProcess_F_Thrsh_VegaE3,-50000000
 ResultProcess_F_TopN1,200
 ResultProcess_F_TopN2,200
 ResultProcess_F_TopN3,200
@@ -86,14 +88,14 @@ Sim_Mu_udly_drift_up,0.15
 Sim_Mu_udly_drift_down,0.15
 Sim_Sigma_udly_drift_up,0.3
 Sim_Sigma_udly_drift_down,0.2
-Sim_HV_IV_Adjust_Ratio,0.95
+Sim_HV_IV_Adjust_Ratio,0.7
 Sim_Mu_iv_drift_up,0.25
 Sim_Mu_iv_drift_down,0.25
 Sim_IV_DEVIATION,0
 SimReportPosStart,1
 SimReportPosEnd,100
-SimReportScenarioMode,_modelScenario_
-#SimReportScenarioMode,_dltahgdScenario_
+#SimReportScenarioMode,_modelScenario_
+SimReportScenarioMode,_dltahgdScenario_
 #SimReportScenarioMode,_adjustedScenario_
 SimInspct.Spread,1
 SimInspct.Scenario,1
