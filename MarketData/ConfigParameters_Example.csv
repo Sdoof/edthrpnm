@@ -49,7 +49,7 @@ EvalFnc_DeltaHedgeToEvalProfit,1
 ## Optimization
 # 0:Flase 1:True
 Optimize_Combined_Spread,1
-Optimize_InitialPopCreateLoopNum,10
+Optimize_InitialPopCreateLoopNum,100
 Optimize_InitialPopThresh,2.5
 Optimize_ml,1
 Optimize_TopN_1,800
