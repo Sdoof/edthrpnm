@@ -42,7 +42,7 @@ EvFNames <- c("holdDays","UdlStepNum","UdlStepPct","Posnum","Tail_rate","LossLim
               "HV_IV_Adjust_Ratio","Delta_Thresh_Minus","Delta_Thresh_Plus","Vega_Thresh_Minus","Vega_Thresh_Plus",
               "Delta_Direct_Prf","Vega_Direct_Prf","Delta_Neutral_Offset","Vega_Neutral_Offset",
               "Profit_Coef","AdvEffect_Coef","AllEffect_Coef","DrctlEffect_Coef","MaxLoss_Coef",
-              "SigmoidA_Numerator","SigmoidA_Denominator","ThetaEffectPositive","EvalConvex")
+              "SigmoidA_Numerator","SigmoidA_Denominator","ThetaEffectPositive","EvalConvex","DeltaHedge")
 EvalFuncSetting<-vector("list",length(EvFNames))
 
 EvalFuncSetting[[1]]<-holdDays
@@ -69,6 +69,8 @@ EvalFuncSetting[[21]]<-as.numeric(ConfigParameters["EvalFnc_SigmoidA_Numerator",
 EvalFuncSetting[[22]]<-as.numeric(ConfigParameters["EvalFnc_SigmoidA_Denominator",1])
 EvalFuncSetting[[23]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_ThetaEffectPositive",1])==1,TRUE,FALSE)
 EvalFuncSetting[[24]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_EvalConvex",1])==1,TRUE,FALSE)
+EvalFuncSetting[[25]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_DeltaHedgeToEvalProfit",1])==1,TRUE,FALSE)
+
 
 names(EvalFuncSetting)<-EvFNames
 rm(EvFNames)
@@ -88,6 +90,9 @@ Thresh_2=as.numeric(ConfigParameters["Optimize_Thresh_2",1])
 
 #Search Combined(2Cb,3Cb,etc) Spreads?
 Combined_Spread=ifelse(as.numeric(ConfigParameters["Optimize_Combined_Spread",1])==1,TRUE,FALSE)
+
+#Filtering
+EvalPosition_ThetaPlus=ifelse(as.numeric(ConfigParameters["Filter_EvalPosition_ThetaPlus",1])==1,TRUE,FALSE)
 
 ##
 # opchain,position,histIV,iniPos must exist as Global Variables.
@@ -200,8 +205,8 @@ system(st) ;rm(st)
 if(Combined_Spread){
   #creating candidate pool for combined search
   tmp<-read.table(paste(ResultFiles_Path_G,"1Cb.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
-  tmp %>% dplyr::arrange(tmp[,(length(iniPos)+1)]) %>% dplyr::distinct() -> tmp
-  tmp %>% arrange(.[,length(iniPos)+1]) %>% head(TopN_1) -> tmp
+  tmp %>% dplyr::arrange(tmp[,(length(opchain$Position)+1)]) %>% dplyr::distinct() -> tmp
+  tmp %>% arrange(.[,length(opchain$Position)+1]) %>% head(TopN_1) -> tmp
   pools<-list(list(c(1,0,0),tmp)) #No.[[1]]
   
   # or when all results are mixed together regardress of the number of Putn and Calln, pools[[1]] should be set as
@@ -211,7 +216,7 @@ if(Combined_Spread){
   ### 2(exact x exact) Combinations (2Cb)
   #
   create_combined_population(popnum=PopN_1,EvalFuncSetting,thresh=Thresh_1,plelem=c(1,1),fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                             isFileout=TRUE,isDebug=FALSE,maxposn=max(EvalFuncSetting$Posnum),PosMultip=PosMultip)
+                             isFileout=TRUE,isDebug=FALSE,maxposn=length(EvalFuncSetting$Delta_Direct_Prf),PosMultip=PosMultip)
   
   #2Cb.csv
   st <- "powershell.exe .\\shell\\cmd3.ps1"
@@ -232,7 +237,7 @@ if(Combined_Spread){
   rm(tmp)
   
   create_combined_population(popnum=PopN_2,EvalFuncSetting,thresh=Thresh_2,plelem=c(1,1,1),fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                             isFileout=TRUE,isDebug=FALSE,maxposn=max(EvalFuncSetting$Posnum),PosMultip=PosMultip)
+                             isFileout=TRUE,isDebug=FALSE,maxposn=length(EvalFuncSetting$Delta_Direct_Prf),PosMultip=PosMultip)
   #3Cb.csv
   st <- "powershell.exe .\\shell\\cmd5.ps1"
   system(st)
@@ -298,7 +303,7 @@ res1 -> total_res ; rm(res1)
 if(Combined_Spread){
   ##
   # 2Cb
-  res1<-read.table(paste(ResultFiles_Path_G,"2Cb.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep="",sep=",")
+  res1<-read.table(paste(ResultFiles_Path_G,"2Cb.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
   res1 %>% dplyr::arrange(res1[,(length(iniPos)+1)]) %>% dplyr::distinct() -> res1
   res1 %>% select(0:length(iniPos)+1) -> res1
   #over the specified socre
@@ -348,8 +353,8 @@ histIV %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")<=max(as.Date(opchain$Da
 total_res %>% mutate(posn=(putn+calln)) -> total_res
 total_res %>%  filter(posn==4) -> tmp_fil 
 total_res %>%  filter(posn==3) -> tmp_fil2
-total_res %>%  filter(posn<=2) -> tmp_fil3
-total_res %>%  filter(posn>=5) -> tmp_fil4
+total_res %>%  filter(posn>=5) -> tmp_fil3
+total_res %>%  filter(posn<=2) -> tmp_fil4
 
 ## Advantageous Effect
 
@@ -384,7 +389,7 @@ ConfigParameters<-read.table(paste(DataFiles_Path_G,ConfigFileName_G,sep=""),
 Thresh_AdvEffect=as.numeric(ConfigParameters["ResultProcess_Thresh_AdvEffect",1])
 F_Thrsh_Params_Names<-c("Score1","Score2","Score3","Delta1_Minus","Delta2_Minus","Delta3_Minus",
                         "Delta1_Plus","Delta2_Plus","Delta3_Plus","Thrsh_VegaE1","Thrsh_VegaE2","Thrsh_VegaE3",
-                        "F_TopN1","F_TopN2","F_TopN3")
+                        "F_TopN1","F_TopN2","F_TopN3","Thrsh_ThetaE1","Thrsh_ThetaE2","Thrsh_ThetaE3")
 F_Thrsh_Params<- vector("list",length(F_Thrsh_Params_Names))
 F_Thrsh_Params[[1]]<-as.numeric(ConfigParameters["ResultProcess_F_Thrsh_Score1",1])
 F_Thrsh_Params[[2]]<-as.numeric(ConfigParameters["ResultProcess_F_Thrsh_Score2",1])
@@ -401,6 +406,9 @@ F_Thrsh_Params[[12]]<-as.numeric(ConfigParameters["ResultProcess_F_Thrsh_VegaE3"
 F_Thrsh_Params[[13]]<-as.numeric(ConfigParameters["ResultProcess_F_TopN1",1])
 F_Thrsh_Params[[14]]<-as.numeric(ConfigParameters["ResultProcess_F_TopN2",1])
 F_Thrsh_Params[[15]]<-as.numeric(ConfigParameters["ResultProcess_F_TopN3",1])
+F_Thrsh_Params[[16]]<-as.numeric(ConfigParameters["ResultProcess_F_Thrsh_ThetaE1",1])
+F_Thrsh_Params[[17]]<-as.numeric(ConfigParameters["ResultProcess_F_Thrsh_Theta2",1])
+F_Thrsh_Params[[18]]<-as.numeric(ConfigParameters["ResultProcess_F_Thrsh_Theta3",1])
 names(F_Thrsh_Params)<-F_Thrsh_Params_Names ; rm(F_Thrsh_Params_Names) 
 (Thresh_AdvEffect)
 (F_Thrsh_Params)
