@@ -76,14 +76,14 @@ opchain<-read.table(rf,header=T,sep=",",stringsAsFactors=FALSE)
 
 #join
 rf<-paste(ResultFiles_Path_G,theCand,sep="")
-evalPositions<-read.table(rf,header=F,sep=",",colClasses="numeric") ;rm(rf)
+evalPositions<-read.table(rf,header=T,sep=",",colClasses="numeric") ;rm(rf)
 length(opchain$Position)
 evalPositions %>% arrange(evalPositions[,(length(opchain$Position)+1)]) %>% distinct() -> evalPositions
 #NAを含む行を削除する
 na.omit(evalPositions) -> evalPositions
 
 rf<-paste(ResultFiles_Path_G,"EvalCnd-1.csv",sep="")
-tmppos<-read.table(rf,header=F,sep=",",colClasses="numeric") ;rm(rf)
+tmppos<-read.table(rf,header=T,sep=",",colClasses="numeric") ;rm(rf)
 length(opchain$Position)
 tmppos %>% arrange(tmppos[,(length(opchain$Position)+1)]) %>% distinct() -> tmppos
 #NAを含む行を削除する
@@ -93,7 +93,7 @@ evalPositions %>% full_join(tmppos) -> evalPositions
 evalPositions %>% arrange(evalPositions[,(length(opchain$Position)+1)]) %>% distinct() -> evalPositions
 
 rf<-paste(ResultFiles_Path_G,"EvalCnd-2.csv",sep="")
-tmppos<-read.table(rf,header=F,sep=",",colClasses="numeric") ;rm(rf)
+tmppos<-read.table(rf,header=T,sep=",",colClasses="numeric") ;rm(rf)
 length(opchain$Position)
 tmppos %>% arrange(tmppos[,(length(opchain$Position)+1)]) %>% distinct() -> tmppos
 #NAを含む行を削除する
@@ -111,7 +111,7 @@ system(st) ;rm(st)
 
 #EvalPosition
 
-write.table(evalPositions,paste(ResultFiles_Path_G,Underying_Symbol_G,"_EvalPosition.csv",sep=""),row.names = FALSE,col.names=FALSE,sep=",",append=F)
+write.table(evalPositions,paste(ResultFiles_Path_G,Underying_Symbol_G,"_EvalPosition.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
 
 rm(opchain,evalPositions)
 rm(ConfigFileName_G,DataFiles_Path_G,ConfigParameters,Underying_Symbol_G,ResultFiles_Path_G)
