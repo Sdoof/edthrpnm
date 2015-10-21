@@ -172,7 +172,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   profit_hdays<-sum(profit_vector*weight)
   if(isDetail){cat(" (:1stD price",posStepDays$scene[[1]]$Price[udlStepNum + 1]);cat(" (:prft_vec)",profit_vector);cat(" :(prft_wght)",profit_hdays)}
   
-  if(abs(DeltaEffect_Comp)<0.1){
+  if(Setting$DeltaHedge){
     iniDelta <- posStepDays$scene[[1]]$Delta[udlStepNum + 1]
     profit_vector<-profit_vector-as.numeric(iniDelta)*(posEvalTbl$UDLY-mean(thePositionGrk$UDLY))
     profit_hdays<-sum(profit_vector*weight)
