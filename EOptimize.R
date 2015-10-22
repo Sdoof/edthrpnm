@@ -215,7 +215,7 @@ if(Combined_Spread){
   
   ### 2(exact x exact) Combinations (2Cb)
   #
-  create_combined_population(popnum=PopN_1,EvalFuncSetting,thresh=Thresh_1,plelem=c(1,1),fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+  create_combined_population(popnum=PopN_1,EvalFuncSetting,thresh=Thresh_1,plelem=c(1,1),ml=Optimize_ml,fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                              isFileout=TRUE,isDebug=FALSE,maxposn=length(EvalFuncSetting$Delta_Direct_Prf),PosMultip=PosMultip)
   
   #2Cb.csv
@@ -236,7 +236,7 @@ if(Combined_Spread){
   pools<-list(list(c(1,0,0),tmp)) #No.[[1]] again
   rm(tmp)
   
-  create_combined_population(popnum=PopN_2,EvalFuncSetting,thresh=Thresh_2,plelem=c(1,1,1),fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+  create_combined_population(popnum=PopN_2,EvalFuncSetting,thresh=Thresh_2,plelem=c(1,1,1),ml=Optimize_ml,fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                              isFileout=TRUE,isDebug=FALSE,maxposn=length(EvalFuncSetting$Delta_Direct_Prf),PosMultip=PosMultip)
   #3Cb.csv
   st <- "powershell.exe .\\shell\\cmd5.ps1"

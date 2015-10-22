@@ -764,7 +764,7 @@ createCombineCandidatePool<-function(fname,pnum=1000,nrows=-1,skip=0,method=1){
 #function for seraching candidate by combination 
 # two sample examples. one from pools[[2]], the other from pools[[3]]
 #ceiling(runif(1, min=1e-320, max=nrow(pools[[2]][[2]])))
-create_combined_population<-function(popnum,EvalFuncSetting,thresh,plelem,fname,isFileout=FALSE,isDebug=FALSE,maxposn,PosMultip){
+create_combined_population<-function(popnum,EvalFuncSetting,thresh,plelem,ml,fname,isFileout=FALSE,isDebug=FALSE,maxposn,PosMultip){
   added_num<-0
   total_count<-0
   start_t<-proc.time()
@@ -790,7 +790,7 @@ create_combined_population<-function(popnum,EvalFuncSetting,thresh,plelem,fname,
     x_new<-as.numeric((sum(x_new%%4)!=0))*x_new+as.numeric((sum(x_new%%4)==0))*x_new/4
     x_new<-as.numeric((sum(x_new%%3)!=0))*x_new+as.numeric((sum(x_new%%3)==0))*x_new/3
     x_new<-as.numeric((sum(x_new%%2)!=0))*x_new+as.numeric((sum(x_new%%2)==0))*x_new/2
-    x_new<-as.numeric((max(abs(x_new))==1))*x_new*2+as.numeric((max(abs(x_new))!=1))*x_new
+    x_new<-as.numeric((max(abs(x_new))==1))*x_new*ml+as.numeric((max(abs(x_new))!=1))*x_new
     if(isDebug){ cat(" x_new :",x_new) }
     total_count<-total_count+1
     
