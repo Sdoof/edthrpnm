@@ -109,9 +109,18 @@ system(st) ;rm(st)
 st <- "powershell.exe -Command \" Remove-Item .\\ResultData\\EvalCnd-2.csv  \""
 system(st) ;rm(st)
 
+
+evalPositions %>% filter(ThetaEffect>0) %>% distinct() -> evalPositions_Theta
+rownames(evalPositions_Theta) <- c(1:nrow(evalPositions_Theta))
+evalPositions %>% filter(ThetaEffect<=0) %>% distinct() -> evalPositions_Gamma
+rownames(evalPositions_Gamma) <- c(1:nrow(evalPositions_Gamma))
+
 #EvalPosition
 
 write.table(evalPositions,paste(ResultFiles_Path_G,Underying_Symbol_G,"_EvalPosition.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
+write.table(evalPositions_Theta,paste(ResultFiles_Path_G,Underying_Symbol_G,"_EvalPosition_Theta.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
+write.table(evalPositions_Gamma,paste(ResultFiles_Path_G,Underying_Symbol_G,"_EvalPosition_Gamma.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
+
 
 rm(opchain,evalPositions)
 rm(ConfigFileName_G,DataFiles_Path_G,ConfigParameters,Underying_Symbol_G,ResultFiles_Path_G)
