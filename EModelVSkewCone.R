@@ -14,7 +14,7 @@ ConfigParameters<-read.table(paste(DataFiles_Path_G,ConfigFileName_G,sep=""),
 
 #MAX ExpToDate for Skew Regression
 SkewRegressionTimeToExpDateMin<-0.9
-SkewRegressionTimeToExpDateMax<-2.5
+SkewRegressionTimeToExpDateMax<-2.0
 
 #We get regression only past this day. Currently reflected on Skew only.
 #should apply Vcone, etc.
@@ -304,15 +304,16 @@ rm(vcone,predict.c,model.ss)
 #  Put IV Change to IVIDX Up and Down
 #Up and Down change
 vchg<-make.vchg.df(vcone=atmiv.vcone.anal,type=1)
-(ggplot(vchg,aes(x=TimeToExpDate,y=VC.f,colour=Date))+geom_point())
+vchg$DaysToMaxDate<-as.numeric(max(as.Date(vchg$Date,format="%Y/%m/%d"))-as.Date(vchg$Date,format="%Y/%m/%d"))
+(ggplot(vchg,aes(x=TimeToExpDate,y=VC.f,colour=DaysToMaxDate))+geom_point())
 
 vchg %>% filter(IVIDX.f>=1.0) -> vchg_plus
-(ggplot(vchg_plus,aes(x=TimeToExpDate,y=VC.f,colour=Date))+geom_point())
+(ggplot(vchg_plus,aes(x=TimeToExpDate,y=VC.f,colour=DaysToMaxDate))+geom_point())
 
 vchg %>% filter(IVIDX.f<1.0) -> vchg_mns
 #filter outlier
 vchg_mns %>% dplyr::filter(VC.f>0.90) -> vchg_mns
-(ggplot(vchg_mns,aes(x=TimeToExpDate,y=VC.f,colour=Date))+geom_point())
+(ggplot(vchg_mns,aes(x=TimeToExpDate,y=VC.f,colour=DaysToMaxDate))+geom_point())
 
 #Regression
 #    5.smooth spline
@@ -379,8 +380,4 @@ rm(vchg,vchg_mns,vchg_plus,model.ss,predict.c)
 wf_<-paste(DataFiles_Path_G,Underying_Symbol_G,OpchainOutFileName,sep="")
 write.table(opch,wf_,quote=T,row.names=F,sep=",") ; rm(wf_)
 
-rm(atmiv.vcone.anal,atmiv,displace,opch,getNmlzdSkewVplot)
-rm(ConfigFileName_G,ConfigParameters,SkewRegressionTimeToExpDateMax,SkewRegressionTimeToExpDateMin)
-rm(CALENDAR_G,DataFiles_Path_G,OpType_Call_G,OpType_Put_G,OpchainOutFileName)
-rm(TimeToExp_Limit_Closeness_G,Underying_Symbol_G,divYld_G,riskFreeRate_G)
-rm(SkewModel,SkewModel_Put,SkewModel_Call,RegressionDateBackDaysMax)
+rm(list=ls())
