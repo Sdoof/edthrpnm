@@ -146,12 +146,5 @@ save.PC2IV(model=norns.lm,PC=getvarname(PC1dCtC),IVC=getvarname(IVCF1dCtC),cor=c
 #Load test
 load.PC2IV(PC=getvarname(PC1dCtC),IVC=getvarname(IVCF1dCtC))
 PC1dCtC_IVCF1dCtC
-rm(PC1dCtC_IVCF1dCtC)
 
-rm(gg_,co,histIV_,histPrc_)
-rm(PC1dCtC,PC3dCtC,PC5dCtC,PC7dCtC,PCIV5dCtC)
-rm(IVCF1dCtC,IVCF3dCtC,IVCF5dCtC,IVCF7dCtC)
-rm(norns.lm,start_day_,num_day_)
-rm(P2IV1d,P2IV3d,P2IV5d,P2IV7d)
-rm(ConfigFileName_G,ConfigParameters)
-rm(CALENDAR_G,DataFiles_Path_G,OpType_Call_G,OpType_Put_G,TimeToExp_Limit_Closeness_G,Underying_Symbol_G,divYld_G,riskFreeRate_G)
+rm(list=ls())

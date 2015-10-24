@@ -31,9 +31,9 @@ ResultFiles_Path_G=ConfigParameters["ResultFiles_Path_G",1]
 
 #switch: only for today or multiple days for skew calculation
 ProcessFileName=paste("_OPChain_Pre.csv",sep="")
-isSkewCalc=FALSE
+isSkewCalc=F
 #set TRUE if this is today's new position, or (already holding position) set FALSE,
-isNewPosition=TRUE
+isNewPosition=T
 TargetFileName=paste("_Positions_Pre_",Sys.Date(),".csv",sep="")
 #when isSkewCalc==TRUE, just comment out below
 if(isSkewCalc)
@@ -243,14 +243,5 @@ opchain$Position<-ifelse(is.na(opchain$Position), 0, opchain$Position)
 #Write to a file (RUT_Positions_Pre)
 wf_<-paste(DataFiles_Path_G,Underying_Symbol_G,TargetFileName,sep="")
 write.table(opchain,wf_,quote=T,row.names=F,sep=",")
-rm(wf_)
 
-rm(opchain)
-
-#Last Cleaning
-rm(makeOpchainContainer,makePosition,filterPosition)
-rm(ConfigFileName_G,ConfigParameters)
-rm(CALENDAR_G,riskFreeRate_G,divYld_G,OpType_Put_G,OpType_Call_G,TimeToExp_Limit_Closeness_G)
-rm(Underying_Symbol_G,DataFiles_Path_G,ResultFiles_Path_G,ProcessFileName,TargetFileName,isSkewCalc,isNewPosition)
-rm(SkewModel)
-
+rm(list=ls())
