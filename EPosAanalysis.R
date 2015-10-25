@@ -178,13 +178,19 @@ draw_line_step_size=(draw_line_size_max-draw_line_size_min)/(draw_line_steps-1)
 #thin to thick
 draw_line_size=draw_line_size_min + draw_line_step_size*(ceiling((drawGrktbl$day-1)/stepdays))
 #line_type
+#draw_line_type is ascending ordered
 draw_line_type=rev(length(evaldays)-ceiling((drawGrktbl$day-1)/stepdays))
+#draw_line_type is descending ordered
+#draw_line_type=length(evaldays)-ceiling((drawGrktbl$day-1)/stepdays)
+
 #first day line_type made blank
 FirstDayLineMadeBlank=TRUE
 if(FirstDayLineMadeBlank){
-  draw_line_type=draw_line_type-1
-  #or when draw_line_type is ascending ordered(Syoujyn) use below
-  #draw_line_type=(draw_line_type==draw_line_type[1])*(0)+(draw_line_type!=draw_line_type[1])*draw_line_type
+  (draw_line_type!=draw_line_type[1])*draw_line_type->tmp
+  min_line_type=min(tmp[tmp>0])
+  draw_line_type=(draw_line_type==draw_line_type[1])*(0) +
+    (min_line_type<=1)*(draw_line_type!=draw_line_type[1])*draw_line_type +
+    (min_line_type>1)*(draw_line_type!=draw_line_type[1])*(draw_line_type-1)
 }
 
 #if draw Delta and Vega Effect with sign
