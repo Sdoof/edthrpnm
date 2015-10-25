@@ -131,6 +131,7 @@ for(Counter in 1:nrow(targetPositions)){
   opchain$Position = unlist(targetPositions[Counter,])[1:length(opchain$Position)]
   opchain %>% dplyr::filter(Position!=0) -> thePosition
   cat("#Ticket",Counter,file=fname,append=T,"\n")
+  cat(opchain$Position,file=fname,sep=",","\n")
   writeIbAPITicket(out_text_file=fname,thePosition=thePosition,sep=",")
   thePosition %>% mutate(TYPE=ifelse(TYPE==OpType_Put_G,"Put","Call")) -> thePosition
   sink(fname, append = T)
@@ -144,6 +145,7 @@ for(Counter in 1:nrow(targetPositions)){
   opchain$Position = unlist(targetPositions[Counter,])[1:length(opchain$Position)]
   opchain %>% dplyr::filter(Position!=0) -> thePosition
   cat("#Ticket",Counter,file=fname,append=T,"\n")
+  cat(opchain$Position,file=fname,sep=",","\n")
   writeIbAPITicket(out_text_file=fname,thePosition=thePosition,sep=",")
   thePosition %>% mutate(TYPE=ifelse(TYPE==OpType_Put_G,"Put","Call")) -> thePosition
   sink(fname, append = T)
@@ -157,6 +159,7 @@ for(Counter in 1:nrow(targetPositions)){
   opchain$Position = unlist(targetPositions[Counter,])[1:length(opchain$Position)]
   opchain %>% dplyr::filter(Position!=0) -> thePosition
   cat("#Ticket",Counter,file=fname,append=T,"\n")
+  cat(opchain$Position,file=fname,sep=",","\n")
   writeIbAPITicket(out_text_file=fname,thePosition=thePosition,sep=",")
   thePosition %>% mutate(TYPE=ifelse(TYPE==OpType_Put_G,"Put","Call")) -> thePosition
   sink(fname, append = T)
