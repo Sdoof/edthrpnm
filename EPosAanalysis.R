@@ -179,6 +179,11 @@ draw_line_step_size=(draw_line_size_max-draw_line_size_min)/(draw_line_steps-1)
 draw_line_size=draw_line_size_min + draw_line_step_size*(ceiling((drawGrktbl$day-1)/stepdays))
 #line_type
 draw_line_type=rev(length(evaldays)-ceiling((drawGrktbl$day-1)/stepdays))
+#first day line_type made blank
+FirstDayLineMadeBlank=TRUE
+if(FirstDayLineMadeBlank){
+  draw_line_type=draw_line_type-1
+}
 
 #if draw Delta and Vega Effect with sign
 #draw_DeltaE_with_sign=(drawGrktbl$Delta>=0)*abs(drawGrktbl$DeltaEffect)+(drawGrktbl$Delta<0)*(-1)*abs(drawGrktbl$DeltaEffect)
