@@ -5,7 +5,7 @@ rm(list=ls())
 source('./ESourceRCode.R',encoding = 'UTF-8')
 
 #evaluated position or set evaPos manually by copy&paste csv value
-evaPos<-c(0,0,0,0,0,0,0,0,0,0,0,-1,-1,0,0,0,0,0,0,0,0,0,-1,0,0,0,1,0,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,1,0,0,0,0) 
+evaPos<-c(0,0,0,0,0,0,0,0,0,0,0,-1,0,-1,0,0,-1,0,0,0,0,-1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0) 
 
 #UDLY draw limit. given absolute % value
 UDLY_DrawRange<-0.10
@@ -183,6 +183,8 @@ draw_line_type=rev(length(evaldays)-ceiling((drawGrktbl$day-1)/stepdays))
 FirstDayLineMadeBlank=TRUE
 if(FirstDayLineMadeBlank){
   draw_line_type=draw_line_type-1
+  #or when draw_line_type is ascending ordered(Syoujyn) use below
+  #draw_line_type=(draw_line_type==draw_line_type[1])*(0)+(draw_line_type!=draw_line_type[1])*draw_line_type
 }
 
 #if draw Delta and Vega Effect with sign
