@@ -186,10 +186,9 @@ draw_line_type=rev(length(evaldays)-ceiling((drawGrktbl$day-1)/stepdays))
 #first day line_type made blank
 FirstDayLineMadeBlank=TRUE
 if(FirstDayLineMadeBlank){
-  (draw_line_type!=draw_line_type[1])*draw_line_type->tmp
+  tmp <- (draw_line_type!=draw_line_type[1])*draw_line_type
   min_line_type=min(tmp[tmp>0])
-  draw_line_type=(draw_line_type==draw_line_type[1])*(0) +
-    (min_line_type<=1)*(draw_line_type!=draw_line_type[1])*draw_line_type +
+  draw_line_type= (min_line_type<=1)*(draw_line_type!=draw_line_type[1])*draw_line_type +
     (min_line_type>1)*(draw_line_type!=draw_line_type[1])*(draw_line_type-1)
 }
 
