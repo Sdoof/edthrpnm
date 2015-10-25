@@ -167,18 +167,18 @@ drawGrktbl %>% dplyr::filter(UDLY>mean(thePosition$UDLY)*(1-UDLY_DrawRange)) %>%
 ##
 # Drawing Profit and Greeks Combined Graph
 
-draw_line_size_max=1.2
+draw_line_size_max=1.4
 draw_line_size_min=0
-draw_line_steps=max(max(ceiling(drawGrktbl$day/stepdays)),2)
+draw_line_steps=length(evaldays)
 draw_line_step_size=(draw_line_size_max-draw_line_size_min)/(draw_line_steps-1)
 
 #line_size
 #thick to thin
 #draw_line_size=draw_line_size_max - draw_line_step_size*(ceiling(drawGrktbl$day/stepdays)-1)
 #thin to thick
-draw_line_size=draw_line_size_min + draw_line_step_size*(ceiling(drawGrktbl$day/stepdays)-1)
+draw_line_size=draw_line_size_min + draw_line_step_size*(ceiling((drawGrktbl$day-1)/stepdays))
 #line_type
-draw_line_type=(length(evaldays)-ceiling(drawGrktbl$day/stepdays))
+draw_line_type=rev(length(evaldays)-ceiling((drawGrktbl$day-1)/stepdays))
 
 #if draw Delta and Vega Effect with sign
 #draw_DeltaE_with_sign=(drawGrktbl$Delta>=0)*abs(drawGrktbl$DeltaEffect)+(drawGrktbl$Delta<0)*(-1)*abs(drawGrktbl$DeltaEffect)
@@ -245,12 +245,12 @@ if(VolSensitivityCheck){
   #copy for -vol_chg%
   posStepDays_vc_orig<-posStepDays_vc
   
-  posStepDays_vc %>% group_by(days) %>% rowwise() %>% do(days=.$days,scene2=adjustPosChg(.$scene,.$days-stepdays,base_vol_chg=vol_chg,multi=PosMultip,hdd=holdDays,HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio)) -> tmp
+  posStepDays_vc %>% group_by(days) %>% rowwise() %>% do(days=.$days,scene2=adjustPosChg(.$scene,.$days-1,base_vol_chg=vol_chg,multi=PosMultip,hdd=holdDays,HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio,isDebug=TRUE)) -> tmp
   unlist(tmp$days) -> posStepDays_vc$days ; tmp$scene2 -> posStepDays_vc$scene ;rm(tmp)
   drawGrktbl_vc_plus<-createAgrregatedGreekTbl(posStepDays_vc,thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,multi=PosMultip,iniCredit=iniCredit)
   
   posStepDays_vc<-posStepDays_vc_orig
-  posStepDays_vc %>% group_by(days) %>% rowwise() %>% do(days=.$days,scene2=adjustPosChg(.$scene,.$days-stepdays,base_vol_chg=(-1)*vol_chg,multi=PosMultip,hdd=holdDays,HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio)) -> tmp
+  posStepDays_vc %>% group_by(days) %>% rowwise() %>% do(days=.$days,scene2=adjustPosChg(.$scene,.$days-1,base_vol_chg=(-1)*vol_chg,multi=PosMultip,hdd=holdDays,HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio,isDebug=TRUE)) -> tmp
   unlist(tmp$days) -> posStepDays_vc$days ; tmp$scene2 -> posStepDays_vc$scene ;rm(tmp)
   drawGrktbl_vc_mnus<-createAgrregatedGreekTbl(posStepDays_vc,thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,multi=PosMultip,iniCredit=iniCredit)
   
@@ -310,7 +310,7 @@ if(VolSensitivityCheck){
   gg<-ggplot(drawGrktbl,aes(x=UDLY,y=profit,group=day))
   (
   gg
-  +geom_line(size=draw_line_size,linetype=draw_line_type)
+  +geom_line(size=draw_line_size,linetype=draw_line_type,colour="gray")
   +geom_line(x=drawGrktbl_vc_plus$UDLY,y=drawGrktbl_vc_plus$profit,colour="blue",size=draw_line_size,group=drawGrktbl_vc_plus$day,linetype=draw_line_type)
   +geom_line(x=drawGrktbl_vc_mnus$UDLY,y=drawGrktbl_vc_mnus$profit,colour="red",size=draw_line_size,group=drawGrktbl_vc_plus$day,linetype=draw_line_type)
   +geom_point(x=thePositonGrks$UDLY,y=0,size=4.0,colour="black")
