@@ -5,7 +5,7 @@ rm(list=ls())
 source('./ESourceRCode.R',encoding = 'UTF-8')
 
 #evaluated position or set evaPos manually by copy&paste csv value
-evaPos<-c(1,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0,0,-2,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,0,-1,0,0) 
+evaPos<-c(0,0,0,0,0,0,0,0,0,0,0,-1,-1,0,0,0,0,0,0,0,0,0,-1,0,0,0,1,0,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,1,0,0,0,0) 
 
 #UDLY draw limit. given absolute % value
 UDLY_DrawRange<-0.10
@@ -119,7 +119,7 @@ if(evaldays[length(evaldays)]==min(get.busdays.between(opchain$Date,opchain$ExpD
   }else{
     evaldays[length(evaldays)]<-evaldays[length(evaldays)]-1
   }
-}else if(evaldays[length(evaldays)]<MAX_DAY) {
+}else if(evaldays[length(evaldays)]<max_days) {
   evaldays[length(evaldays)+1]<-max_days
 }
 
