@@ -377,10 +377,10 @@ getPositionWithGreeks<-function(tmp_fil){
   return(tmp_fil)
 }
 
-getPositionWithGreeks(tmp_fil) %>% arrange(desc(AdvEffect)) -> tmp_fil
-getPositionWithGreeks(tmp_fil2) %>% arrange(desc(AdvEffect)) -> tmp_fil2
-getPositionWithGreeks(tmp_fil3) %>% arrange(desc(AdvEffect)) -> tmp_fil3
-getPositionWithGreeks(tmp_fil4) %>% arrange(desc(AdvEffect)) -> tmp_fil4
+getPositionWithGreeks(tmp_fil) -> tmp_fil
+getPositionWithGreeks(tmp_fil2) -> tmp_fil2
+getPositionWithGreeks(tmp_fil3) -> tmp_fil3
+getPositionWithGreeks(tmp_fil4) -> tmp_fil4
 
 ##Filtering 
 #read again and again
@@ -415,8 +415,8 @@ tmp_fil %>%
   arrange(.[,length(iniPos)+1]) %>% filter(AdvEffect>Thresh_AdvEffect) %>% 
   filter(Delta>F_Thrsh_Params$Delta1_Minus,Delta<F_Thrsh_Params$Delta1_Plus) %>% 
   filter(VegaEffect>F_Thrsh_Params$Thrsh_VegaE1) -> tmp_fil_w ; print(tmp_fil_w)
-tmp_fil_w %>% filter(ThetaEffect>0) %>% arrange(.[,length(iniPos)+1]) %>% top_n(F_Thrsh_Params$F_TopN3/2) -> tmp
-tmp_fil_w %>% filter(ThetaEffect<=0) %>% arrange(.[,length(iniPos)+1]) %>% top_n(F_Thrsh_Params$F_TopN3-nrow(tmp)) -> tmp2
+tmp_fil_w %>% filter(ThetaEffect>0) %>% arrange(.[,length(iniPos)+1]) %>% head(F_Thrsh_Params$F_TopN3/2) -> tmp
+tmp_fil_w %>% filter(ThetaEffect<=0) %>% arrange(.[,length(iniPos)+1]) %>% head(F_Thrsh_Params$F_TopN3-nrow(tmp)) -> tmp2
 rbind(tmp,tmp2) %>% arrange(.[,length(iniPos)+1]) %>% distinct() -> tmp_fil_w ;rm(tmp,tmp2)
 
 tmp_fil2 %>% 
@@ -424,8 +424,8 @@ tmp_fil2 %>%
   arrange(.[,length(iniPos)+1]) %>% filter(AdvEffect>Thresh_AdvEffect) %>% 
   filter(Delta>F_Thrsh_Params$Delta2_Minus) %>% filter(Delta<F_Thrsh_Params$Delta2_Plus) %>%
   filter(VegaEffect>F_Thrsh_Params$Thrsh_VegaE2) -> tmp_fil_w2 ; print(tmp_fil_w2)
-tmp_fil_w2 %>% filter(ThetaEffect>0) %>% arrange(.[,length(iniPos)+1]) %>% top_n(F_Thrsh_Params$F_TopN3/2) -> tmp
-tmp_fil_w2 %>% filter(ThetaEffect<=0) %>% arrange(.[,length(iniPos)+1]) %>% top_n(F_Thrsh_Params$F_TopN3-nrow(tmp)) -> tmp2
+tmp_fil_w2 %>% filter(ThetaEffect>0) %>% arrange(.[,length(iniPos)+1]) %>% head(F_Thrsh_Params$F_TopN3/2) -> tmp
+tmp_fil_w2 %>% filter(ThetaEffect<=0) %>% arrange(.[,length(iniPos)+1]) %>% head(F_Thrsh_Params$F_TopN3-nrow(tmp)) -> tmp2
 rbind(tmp,tmp2) %>% arrange(.[,length(iniPos)+1]) %>% distinct() -> tmp_fil_w2 ;rm(tmp,tmp2)
 
 tmp_fil3 %>% 
@@ -433,8 +433,8 @@ tmp_fil3 %>%
   arrange(.[,length(iniPos)+1]) %>% filter(AdvEffect>Thresh_AdvEffect) %>% 
   filter(Delta>F_Thrsh_Params$Delta3_Minus) %>% filter(Delta<F_Thrsh_Params$Delta3_Plus) %>%
   filter(VegaEffect>F_Thrsh_Params$Thrsh_VegaE3) -> tmp_fil_w3 ; print(tmp_fil_w3)
-tmp_fil_w3 %>% filter(ThetaEffect>0) %>% arrange(.[,length(iniPos)+1]) %>% top_n(F_Thrsh_Params$F_TopN3/2) -> tmp
-tmp_fil_w3 %>% filter(ThetaEffect<=0) %>% arrange(.[,length(iniPos)+1]) %>% top_n(F_Thrsh_Params$F_TopN3-nrow(tmp)) -> tmp2
+tmp_fil_w3 %>% filter(ThetaEffect>0) %>% arrange(.[,length(iniPos)+1]) %>% head(F_Thrsh_Params$F_TopN3/2) -> tmp
+tmp_fil_w3 %>% filter(ThetaEffect<=0) %>% arrange(.[,length(iniPos)+1]) %>% head(F_Thrsh_Params$F_TopN3-nrow(tmp)) -> tmp2
 rbind(tmp,tmp2) %>% arrange(.[,length(iniPos)+1]) %>% distinct() -> tmp_fil_w3 ;rm(tmp,tmp2)
 
 tmp_fil4 %>% 
@@ -442,8 +442,8 @@ tmp_fil4 %>%
   arrange(.[,length(iniPos)+1]) %>% filter(AdvEffect>Thresh_AdvEffect) %>% 
   filter(Delta>F_Thrsh_Params$Delta1_Minus,Delta<F_Thrsh_Params$Delta1_Plus) %>% 
   filter(VegaEffect>F_Thrsh_Params$Thrsh_VegaE1) -> tmp_fil_w4 ; print(tmp_fil_w4)
-tmp_fil_w4 %>% filter(ThetaEffect>0) %>% arrange(.[,length(iniPos)+1]) %>% top_n(F_Thrsh_Params$F_TopN3/2) -> tmp
-tmp_fil_w4 %>% filter(ThetaEffect<=0) %>% arrange(.[,length(iniPos)+1]) %>% top_n(F_Thrsh_Params$F_TopN3-nrow(tmp)) -> tmp2
+tmp_fil_w4 %>% filter(ThetaEffect>0) %>% arrange(.[,length(iniPos)+1]) %>% head(F_Thrsh_Params$F_TopN3/2) -> tmp
+tmp_fil_w4 %>% filter(ThetaEffect<=0) %>% arrange(.[,length(iniPos)+1]) %>% head(F_Thrsh_Params$F_TopN3-nrow(tmp)) -> tmp2
 rbind(tmp,tmp2) %>% arrange(.[,length(iniPos)+1]) %>% distinct() -> tmp_fil_w4 ;rm(tmp,tmp2)
 
 ## Save to a file
