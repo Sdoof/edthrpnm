@@ -305,7 +305,7 @@ if(ShowDeltaHedge && VolSensitivityCheck){
   gg<-ggplot(drawGrktbl_DltHgd,aes(x=UDLY,y=profit,group=day))
   (
   gg
-  +geom_line(size=draw_line_size,linetype=draw_line_type)
+  +geom_line(size=draw_line_size,linetype=draw_line_type,colour="gray")
   +geom_line(x=drawGrktbl_DltHgd_vc_plus$UDLY,y=drawGrktbl_DltHgd_vc_plus$profit,colour="blue",size=draw_line_size,group=drawGrktbl_DltHgd_vc_plus$day,linetype=draw_line_type)
   +geom_line(x=drawGrktbl_DltHgd_vc_mnus$UDLY,y=drawGrktbl_DltHgd_vc_mnus$profit,colour="red",size=draw_line_size,group=drawGrktbl_DltHgd_vc_plus$day,linetype=draw_line_type)
   +geom_point(x=thePositonGrks$UDLY,y=0,size=4.0,colour="black")
