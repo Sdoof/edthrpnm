@@ -4,8 +4,21 @@ library(ggplot2)
 rm(list=ls())
 source('./ESourceRCode.R',encoding = 'UTF-8')
 
-#evaluated position or set evaPos manually by copy&paste csv value
-evaPos<-c(0,0,0,0,0,0,0,0,0,0,0,-1,0,-1,0,0,-1,0,0,0,0,-1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0) 
+#Config File
+ConfigFileName_G="ConfigParameters.csv"
+DataFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\MarketData\\data\\"
+ConfigParameters<-read.table(paste(DataFiles_Path_G,ConfigFileName_G,sep=""),
+                             row.names=1, comment.char="#",header=T,stringsAsFactors=F,sep=",")
+
+#File
+Underying_Symbol_G=ConfigParameters["Underying_Symbol_G",1]
+ResultFiles_Path_G=ConfigParameters["ResultFiles_Path_G",1]
+
+#Evaluation CSV file
+EvalPos_fn=paste(ResultFiles_Path_G,Underying_Symbol_G,"_EvalPosition_Theta.csv",sep='')
+
+#Here you spicify which position should be analyzed.
+eval_pos_idx=3
 
 #UDLY draw limit. given absolute % value
 UDLY_DrawRange<-0.10
@@ -13,12 +26,12 @@ UDLY_DrawRange<-0.10
 #Show Graph of Delta Headged Position
 ShowDeltaHedge=TRUE
 
-#Config File
-ConfigFileName_G="ConfigParameters.csv"
-DataFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\MarketData\\data\\"
+#Volatility Sensitivity Checked
+VolSensitivityCheck=TRUE
 
-ConfigParameters<-read.table(paste(DataFiles_Path_G,ConfigFileName_G,sep=""),
-                             row.names=1, comment.char="#",header=T,stringsAsFactors=F,sep=",")
+#First day line mede Blank
+FirstDayLineMadeBlank=TRUE
+
 #Calendar
 CALENDAR_G=ConfigParameters["CALENDAR_G",1]
 
@@ -29,12 +42,10 @@ divYld_G=as.numeric(ConfigParameters["divYld_G",1])
 #Definition
 OpType_Put_G=as.numeric(ConfigParameters["OpType_Put_G",1])
 OpType_Call_G=as.numeric(ConfigParameters["OpType_Call_G",1])
-#Skewness Calculation
 
+#Skewness Calculation
 TimeToExp_Limit_Closeness_G=as.numeric(ConfigParameters["TimeToExp_Limit_Closeness_G",1])
-#File
-Underying_Symbol_G=ConfigParameters["Underying_Symbol_G",1]
-ResultFiles_Path_G=ConfigParameters["ResultFiles_Path_G",1]
+
 
 # set days interval between which the position is analyzed step by step.
 stepdays=as.numeric(ConfigParameters["AnalyStepdays",1])
@@ -54,21 +65,18 @@ dviv_caldays=as.numeric(ConfigParameters["dviv_caldays",1])
 PosMultip=as.numeric(ConfigParameters["PosMultip",1])
 
 #Load opchain if evaPos is already assigned.
-#if(sum(as.numeric(evaPos!=0))==0) {   #means evaPos=0 vector
-# opchain<-theAlreadyCreatedPosition
-#} else {
-rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep="")
-opchain<-read.table(rf,header=T,sep=",",stringsAsFactors=FALSE)
-rm(rf)
-#} #endOfelse
+opchain<-read.table(paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep=""),header=T,sep=",",stringsAsFactors=FALSE)
 
 ##Historical Implied Volatility Data
-rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_IV.csv",sep="") 
-histIV<-read.table(rf,header=T,sep=",",nrows=1000);rm(rf)
+histIV<-read.table(paste(DataFiles_Path_G,Underying_Symbol_G,"_IV.csv",sep=""),header=T,sep=",",nrows=1000)
 #filtering
 histIV %>% dplyr::transmute(Date=Date,IVIDX=Close/100) -> histIV
 histIV %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")<=max(as.Date(opchain$Date,format="%Y/%m/%d"))) %>%
   dplyr::arrange(desc(as.Date(Date,format="%Y/%m/%d"))) %>% head(n=dviv_caldays) -> histIV
+
+##Spread Position loaded to be evaluated.
+tmp<-read.table(EvalPos_fn,header=F,sep=",",colClasses="numeric")
+evaPos<-unlist(tmp[eval_pos_idx,])[1:length(opchain$Position)]
 
 #Load Regression and Correlation Parameters
 load.PC2IV(PC="PC3dCtC",IVC="IVCF3dCtC")
@@ -123,11 +131,8 @@ if(evaldays[length(evaldays)]==min(get.busdays.between(opchain$Date,opchain$ExpD
   evaldays[length(evaldays)+1]<-max_days
 }
 
-#read analyzed positon. here we give by copy and paste
-pos_anlys<-evaPos
-
 #note opchain is already instanciated by the proceduces of ERskRtnEval
-opchain$Position<-pos_anlys
+opchain$Position<-evaPos
 opchain %>% dplyr::filter(Position!=0) -> thePosition
 
 ###If needed, change thePositon's Date,Price,UDLY and re-calc the Greeks
@@ -166,25 +171,19 @@ drawGrktbl %>% dplyr::filter(UDLY>mean(thePosition$UDLY)*(1-UDLY_DrawRange)) %>%
 
 ##
 # Drawing Profit and Greeks Combined Graph
-
 draw_line_size_max=1.4
 draw_line_size_min=0
 draw_line_steps=length(evaldays)
 draw_line_step_size=(draw_line_size_max-draw_line_size_min)/(draw_line_steps-1)
 
-#line_size
-#thick to thin
-#draw_line_size=draw_line_size_max - draw_line_step_size*(ceiling(drawGrktbl$day/stepdays)-1)
-#thin to thick
+#draw_line_size vector thin to thick
 draw_line_size=draw_line_size_min + draw_line_step_size*(ceiling((drawGrktbl$day-1)/stepdays))
-#line_type
-#draw_line_type is ascending ordered
+#draw_line_type vector is ascending ordered
 draw_line_type=rev(length(evaldays)-ceiling((drawGrktbl$day-1)/stepdays))
-#draw_line_type is descending ordered
+#draw_line_type vector is descending ordered
 #draw_line_type=length(evaldays)-ceiling((drawGrktbl$day-1)/stepdays)
 
 #first day line_type made blank
-FirstDayLineMadeBlank=TRUE
 if(FirstDayLineMadeBlank){
   tmp <- (draw_line_type!=draw_line_type[1])*draw_line_type
   min_line_type=min(tmp[tmp>0])
@@ -195,7 +194,6 @@ if(FirstDayLineMadeBlank){
 #if draw Delta and Vega Effect with sign
 #draw_DeltaE_with_sign=(drawGrktbl$Delta>=0)*abs(drawGrktbl$DeltaEffect)+(drawGrktbl$Delta<0)*(-1)*abs(drawGrktbl$DeltaEffect)
 #draw_VegaE_with_sign=(drawGrktbl$Vega>=0)*abs(drawGrktbl$VegaEffect)+(drawGrktbl$Vega<0)*(-1)*abs(drawGrktbl$VegaEffect)
-
 gg<-ggplot(drawGrktbl,aes(x=UDLY,y=profit,group=day))
 (
 gg
@@ -211,7 +209,8 @@ gg
 #+geom_point(x=thePositonGrks$UDLY,y=thePositonGrks$Vega,size=4.0,colour="green")+geom_point(x=thePositonGrks$UDLY,y=thePositonGrks$ThetaEffect,size=4.0,colour="orange")
 +ylim(
   #min(c(min(drawGrktbl$ThetaEffect),min(drawGrktbl$Delta),min(drawGrktbl$GammaEffect),min(drawGrktbl$Vega),min(drawGrktbl$profit))),
-  min(c(min(drawGrktbl$profit))),max(c(max(drawGrktbl$profit))))
+  min(c(min(drawGrktbl$profit)),min(drawGrktbl$ThetaEffect),min(drawGrktbl$GammaEffect)),
+  max(c(max(drawGrktbl$profit)),max(drawGrktbl$ThetaEffect),max(drawGrktbl$GammaEffect)))
 #max(c(max(drawGrktbl$ThetaEffect),max(drawGrktbl$Delta),max(drawGrktbl$GammaEffect),max(drawGrktbl$Vega),max(drawGrktbl$profit))))
 )
 
@@ -232,7 +231,6 @@ if(ShowDeltaHedge){
   #new delta
   drawGrktbl_DltHgd$Delta<-drawGrktbl_DltHgd$Delta-as.numeric(headgedDelta)
   
-  
   gg<-ggplot(drawGrktbl_DltHgd,aes(x=UDLY,y=profit,group=day))
   (
   gg
@@ -244,14 +242,14 @@ if(ShowDeltaHedge){
   +geom_point(x=thePositonGrks$UDLY,y=0,size=4.0,colour="black")
   #+geom_point(x=thePositonGrks$UDLY,y=thePositonGrks$Delta,size=4.0,colour="blue")+geom_point(x=thePositonGrks$UDLY,y=thePositonGrks$Vega,size=4.0,colour="green")
   #+geom_point(x=thePositonGrks$UDLY,y=thePositonGrks$GammaEffect,size=4.0,colour="red")+geom_point(x=thePositonGrks$UDLY,y=thePositonGrks$ThetaEffect,size=4.0,colour="orange")
-  #+ylim(
-  #  min(c(min(drawGrktbl_DltHgd$ThetaEffect),min(drawGrktbl_DltHgd$Delta),min(drawGrktbl_DltHgd$GammaEffect),min(drawGrktbl_DltHgd$Vega),min(drawGrktbl_DltHgd$profit))),
-  # max(c(max(drawGrktbl_DltHgd$ThetaEffect),max(drawGrktbl_DltHgd$Delta),max(drawGrktbl_DltHgd$GammaEffect),max(drawGrktbl_DltHgd$Vega),max(drawGrktbl_DltHgd$profit))))
+  +ylim(
+    #min(c(min(drawGrktbl$ThetaEffect),min(drawGrktbl$Delta),min(drawGrktbl$GammaEffect),min(drawGrktbl$Vega),min(drawGrktbl$profit))),
+    min(c(min(drawGrktbl_DltHgd$profit)),min(drawGrktbl_DltHgd$ThetaEffect),min(drawGrktbl_DltHgd$GammaEffect)),
+    max(c(max(drawGrktbl_DltHgd$profit)),max(drawGrktbl_DltHgd$ThetaEffect),max(drawGrktbl_DltHgd$GammaEffect)))
   )
 }
 
 #volatility change %
-VolSensitivityCheck=TRUE
 if(VolSensitivityCheck){
   vol_chg<-0.2
   #copy for -vol_chg%
@@ -273,10 +271,8 @@ if(VolSensitivityCheck){
     dplyr::filter(UDLY<mean(thePosition$UDLY)*(1+UDLY_DrawRange)) -> drawGrktbl_vc_mnus
 }
 
-
 ##
 # Draw Delta Hedged Spread's Implied Volaility Sensitivity
-
 if(ShowDeltaHedge && VolSensitivityCheck){
   #data frame for delta headge
   drawGrktbl_DltHgd_vc_plus<-drawGrktbl_vc_plus
@@ -317,7 +313,6 @@ if(ShowDeltaHedge && VolSensitivityCheck){
 
 ##
 # Draw Implied Volaility Sensitivity Hedge Effect
-
 if(VolSensitivityCheck){
   gg<-ggplot(drawGrktbl,aes(x=UDLY,y=profit,group=day))
   (
@@ -331,7 +326,6 @@ if(VolSensitivityCheck){
     max(c(max(drawGrktbl$profit),max(drawGrktbl_vc_plus$profit),max(drawGrktbl_vc_mnus$profit))))
   )
 }
-
 
 rm(list=ls())
 
