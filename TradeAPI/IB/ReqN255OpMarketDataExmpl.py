@@ -214,8 +214,8 @@ def writeToFile(sectype,symbol):
                contract_price.bid, contract_price.ask, contract.m_expiry, contract.m_right))
         if sectype == 'OPT' and contract_price.last == '':
             contract_price.last = (contract_price.bid + contract_price.ask)/2.0
-        #if sectype == 'OPT' and (contract_price.bid < 0 or contract_price.ask < 0) :
-        #    continue
+        if sectype == 'OPT' and (contract_price.bid < 0 or contract_price.ask < 0) :
+            continue
         if sectype == 'OPT' and contract.m_right == 'P':
             contract.m_right = '1'
         elif sectype == 'OPT' and contract.m_right == 'C':
