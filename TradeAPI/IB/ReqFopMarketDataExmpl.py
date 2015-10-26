@@ -143,11 +143,12 @@ def makeFxFutOptContract(sym, exp, strike, right, multip):
 
 def subscribeContractList(opCont,con):
     global nextOrderId
+    global EUR_Strike_Max, EUR_Strike_Min, JPY_Strike_Max, JPY_Strike_Min, GBP_Strike_Max, GBP_Strike_Min
     nextOrderId = nextOrderId + 1
     theOrderId = nextOrderId
     con.reqContractDetails(theOrderId, opCont)
     #raw_input('wait for contractDetail press to continue')
-    sleep(2)
+    sleep(2.5)
     contractRemoveList = []
     for con_item in range(len(contractRestoreList)):
         con_each = contractRestoreList[con_item]
@@ -299,14 +300,13 @@ if __name__ == '__main__':
         subscribeContractList(fxFutOpContract,con)
         #raw_input('requesting Fx Futre Option length press any to continue ')
         subscribeDataRequest(con)
-        sleep(14)
+        sleep(8)
         #raw_input('cancel mktData %s press any to continue' % (orderIdMktReqContractDict.keys()))
         for req_order_id in orderIdMktReqContractDict.iterkeys():
             con.cancelMktData(req_order_id)
         #raw_input('Price data writing to file press to continue')
         sleep(2)
         con.disconnect()
-        # Server Access
         con = Connection.create(port=port_G, clientId=clientId_G)
         # con.registerAll(MessageHandler)
         con.register(ErrorHandler, 'Error')
@@ -329,14 +329,13 @@ if __name__ == '__main__':
         subscribeContractList(fxFutContract,con)
         #raw_input('requesting Fx Futre Option length press any to continue ')
         subscribeDataRequest(con)
-        sleep(10)
+        sleep(5)
         #raw_input('cancel mktData %s press any to continue' % (orderIdMktReqContractDict.keys()))
         for req_order_id in orderIdMktReqContractDict.iterkeys():
             con.cancelMktData(req_order_id)
         #raw_input('Price data writing to file press to continue')
         sleep(2)
         con.disconnect()
-        # Server Access
         con = Connection.create(port=port_G, clientId=clientId_G)
         # con.registerAll(MessageHandler)
         con.register(ErrorHandler, 'Error')
