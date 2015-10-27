@@ -199,15 +199,9 @@ getGCDComboRatio <- function(combo_ratio){
   return(combo_ratio)
 }
 
-##
-# write code snap of API to acess IB TWS
 
-writeIbAPITicket <- function(out_text_file,thePosition,sep="$"){
-  thePosition_org<-thePosition
-  
-  #if the legnum >=5, sprit thePisition into 2 parts. Put and Call
-  if(length(thePosition$TYPE)>=5)
-    thePosition %>% filter(TYPE==OpType_Put_G) -> thePosition
+# file IO for writeIbAPITicket
+fileOutAPITicket <- function(out_text_file,thePosition,sep){
   m_symbol<-rep(Underying_Symbol_G,times=length(thePosition$TYPE))
   m_expiry<-format(as.Date(thePosition$ExpDate,format="%Y/%m/%d"),"%Y%m%d")
   m_strike<-thePosition$Strike
@@ -226,29 +220,73 @@ writeIbAPITicket <- function(out_text_file,thePosition,sep="$"){
   cat("ComboRatio = [ ",file=out_text_file,append=T);cat(paste(combo_ratio),sep=sep,file=out_text_file,append=T);cat(" ] ;",file=out_text_file,append=T)
   cat("LimitPrice_G = ",limit_price," ;",file=out_text_file,append=T)
   cat("QTY_G = ",qty,"\n",file=out_text_file,append=T)
+}
+
+
+##
+# write code snap of API to acess IB TWS
+
+writeIbAPITicket <- function(out_text_file,thePosition,sep=","){
+  #Put
+  thePosition %>% filter(TYPE==OpType_Put_G) -> thePositionPut
+  rownames(thePositionPut) <- c(1:nrow(thePositionPut))
   
-  #Second Call, if needed.
-  thePosition<-thePosition_org
-  if(length(thePosition$TYPE)>=5) {
-    thePosition %>% filter(TYPE==OpType_Call_G) -> thePosition
-    m_symbol<-rep(Underying_Symbol_G,times=length(thePosition$TYPE))
-    m_expiry<-format(as.Date(thePosition$ExpDate,format="%Y/%m/%d"),"%Y%m%d")
-    m_strike<-thePosition$Strike
-    m_right<-ifelse(thePosition$TYPE==OpType_Put_G, "P","C")
-    buy_sell<-ifelse(thePosition$Position>=0, "BUY","SELL")
-    combo_ratio_raw <- abs(thePosition$Position)
-    combo_ratio <- getGCDComboRatio(combo_ratio_raw)
-    limit_price<-(-9000)
-    qty<-min(combo_ratio_raw/combo_ratio)
-    
-    cat("SymbolTicket2 = [ ",file=out_text_file,append=T);cat(sprintf("\'%s\'",paste(m_symbol)),sep=sep,file=out_text_file,append=T) ; cat(" ]; ",file=out_text_file,append=T)
-    cat("ExpiryTicket2 = [ ",file=out_text_file,append=T);cat(sprintf("\'%s\'",paste(m_expiry)),sep=sep,file=out_text_file,append=T) ; cat(" ]; ",file=out_text_file,append=T)
-    cat("StrikeTicket2 = [ ",file=out_text_file,append=T); cat(paste(m_strike),sep=sep,file=out_text_file,append=T) ; cat(" ] ; ",file=out_text_file,append=T)
-    cat("RightTicket2 = [ ",file=out_text_file,append=T);cat(sprintf("\'%s\'",paste(m_right)),sep=sep,file=out_text_file,append=T) ; cat(" ]; ",file=out_text_file,append=T)
-    cat("BuySell2 = [ ",file=out_text_file,append=T);cat(sprintf("\'%s\'",paste(buy_sell)),sep=sep,file=out_text_file,append=T) ; cat(" ]; ",file=out_text_file,append=T)
-    cat("ComboRatio2 = [ ",file=out_text_file,append=T);cat(paste(combo_ratio),sep=sep,file=out_text_file,append=T);cat(" ] ;",file=out_text_file,append=T)
-    cat("LimitPrice2_G = ",limit_price," ;",file=out_text_file,append=T)
-    cat("QTY2_G = ",qty,"\n",file=out_text_file,append=T)
+  if(nrow(thePositionPut)<4){
+    fileOutAPITicket(out_text_file,thePositionPut,sep)
+  }else {
+    start_p=1
+    outnum=nrow(thePositionPut)
+    while(outnum!=0){
+      if(outnum!=4){
+        fileOutAPITicket(out_text_file,thePositionPut[start_p:(start_p+2),],sep)
+        outnum=outnum-3
+        start_p=start_p+3
+      }
+      if(outnum==4){
+        fileOutAPITicket(out_text_file,thePositionPut[start_p:(start_p+1),],sep)
+        outnum=outnum-2
+        start_p=start_p+2
+        fileOutAPITicket(out_text_file,thePositionPut[start_p:(start_p+1),],sep)
+        outnum=outnum-2
+        start_p=start_p+2
+      }
+      if(outnum==2){
+        fileOutAPITicket(out_text_file,thePositionPut[start_p:(start_p+1),],sep)
+        outnum=outnum-2
+        start_p=start_p+2
+      }
+    }
+  }
+  
+  #Call
+  thePosition %>% filter(TYPE==OpType_Call_G) -> thePositionCall
+  rownames(thePositionCall) <- c(1:nrow(thePositionCall))
+  
+  if(nrow(thePositionCall)<4){
+    fileOutAPITicket(out_text_file,thePositionCall,sep)
+  }else {
+    start_p=1
+    outnum=nrow(thePositionCall)
+    while(outnum!=0){
+      if(outnum!=4){
+        fileOutAPITicket(out_text_file,thePositionCall[start_p:(start_p+2),],sep)
+        outnum=outnum-3
+        start_p=start_p+3
+      }
+      if(outnum==4){
+        fileOutAPITicket(out_text_file,thePositionCall[start_p:(start_p+1),],sep)
+        outnum=outnum-2
+        start_p=start_p+2
+        fileOutAPITicket(out_text_file,thePositionCall[start_p:(start_p+1),],sep)
+        outnum=outnum-2
+        start_p=start_p+2
+      }
+      if(outnum==2){
+        fileOutAPITicket(out_text_file,thePositionCall[start_p:(start_p+1),],sep)
+        outnum=outnum-2
+        start_p=start_p+2
+      }
+    }
   }
 }
 
