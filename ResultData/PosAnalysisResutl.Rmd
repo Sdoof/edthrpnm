@@ -27,11 +27,14 @@ ConfigParameters<-read.table(paste(DataFiles_Path_G,ConfigFileName_G,sep=""),
 Underying_Symbol_G=ConfigParameters["Underying_Symbol_G",1]
 ResultFiles_Path_G=ConfigParameters["ResultFiles_Path_G",1]
 
+##
+# Position Analysis Specifc Settings
+
 #Evaluation CSV file
 EvalPos_fn=paste(ResultFiles_Path_G,Underying_Symbol_G,"_EvalPosition_Theta.csv",sep='')
 
 #Here you spicify which position should be analyzed.
-DrawSpreads=c(1:5)
+DrawSpreads=c(8:9)
 
 #UDLY draw limit. given absolute % value
 UDLY_DrawRange<-0.10
@@ -45,6 +48,20 @@ VolSensitivityCheck=TRUE
 #First day line mede Blank
 FirstDayLineMadeBlank=TRUE
 
+#Show API Ticket
+ShowAPITicket=TRUE
+
+#Show Evaluation Detail
+ShowEvaluationDetail=TRUE
+
+# set days interval between which the position is analyzed step by step.
+stepdays=as.numeric(ConfigParameters["AnalyStepdays",1])
+udlStepNum=as.numeric(ConfigParameters["AnalyStepNum",1])
+udlStepPct=as.numeric(ConfigParameters["AnalyStepPct",1])
+MAX_DAY=as.numeric(ConfigParameters["AnalyMaxDay",1])
+
+##
+# General Settings
 #Calendar
 CALENDAR_G=ConfigParameters["CALENDAR_G",1]
 
@@ -59,16 +76,6 @@ OpType_Call_G=as.numeric(ConfigParameters["OpType_Call_G",1])
 #Skewness Calculation
 TimeToExp_Limit_Closeness_G=as.numeric(ConfigParameters["TimeToExp_Limit_Closeness_G",1])
 
-
-# set days interval between which the position is analyzed step by step.
-stepdays=as.numeric(ConfigParameters["AnalyStepdays",1])
-udlStepNum=as.numeric(ConfigParameters["AnalyStepNum",1])
-udlStepPct=as.numeric(ConfigParameters["AnalyStepPct",1])
-MAX_DAY=as.numeric(ConfigParameters["AnalyMaxDay",1])
-
-#HV_IV_Adjust_Ratio
-HV_IV_Adjust_Ratio=as.numeric(ConfigParameters["EvalFnc_HV_IV_Adjust_Ratio",1])
-
 #For calculating GreekEffect for drawing, we assume holdDays as stepdays
 holdDays=stepdays
 
@@ -77,16 +84,8 @@ dviv_caldays=as.numeric(ConfigParameters["dviv_caldays",1])
 #Multipler of Position
 PosMultip=as.numeric(ConfigParameters["PosMultip",1])
 
-#Load opchain if evaPos is already assigned.
-opchain<-read.table(paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep=""),header=T,sep=",",stringsAsFactors=FALSE)
-
-##Historical Implied Volatility Data
-histIV<-read.table(paste(DataFiles_Path_G,Underying_Symbol_G,"_IV.csv",sep=""),header=T,sep=",",nrows=1000)
-#filtering
-histIV %>% dplyr::transmute(Date=Date,IVIDX=Close/100) -> histIV
-histIV %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")<=max(as.Date(opchain$Date,format="%Y/%m/%d"))) %>%
-  dplyr::arrange(desc(as.Date(Date,format="%Y/%m/%d"))) %>% head(n=dviv_caldays) -> histIV
-
+#HV_IV_Adjust_Ratio
+HV_IV_Adjust_Ratio=as.numeric(ConfigParameters["EvalFnc_HV_IV_Adjust_Ratio",1])
 
 #EvalFuncSetting
 EvFNames <- c("holdDays","UdlStepNum","UdlStepPct","Posnum","Tail_rate","LossLimitPrice",
@@ -123,6 +122,16 @@ EvalFuncSetting[[24]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_EvalConvex",1
 EvalFuncSetting[[25]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_DeltaHedgeToEvalProfit",1])==1,TRUE,FALSE)
 
 names(EvalFuncSetting)<-EvFNames
+
+#Load opchain if evaPos is already assigned.
+opchain<-read.table(paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep=""),header=T,sep=",",stringsAsFactors=FALSE)
+
+##Historical Implied Volatility Data
+histIV<-read.table(paste(DataFiles_Path_G,Underying_Symbol_G,"_IV.csv",sep=""),header=T,sep=",",nrows=1000)
+#filtering
+histIV %>% dplyr::transmute(Date=Date,IVIDX=Close/100) -> histIV
+histIV %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")<=max(as.Date(opchain$Date,format="%Y/%m/%d"))) %>%
+  dplyr::arrange(desc(as.Date(Date,format="%Y/%m/%d"))) %>% head(n=dviv_caldays) -> histIV
 
 #Load Regression and Correlation Parameters
 load.PC2IV(PC="PC3dCtC",IVC="IVCF3dCtC")
@@ -177,7 +186,10 @@ for(eval_pos_idx in DrawSpreads){
   tmp<-read.table(EvalPos_fn,header=F,sep=",",colClasses="numeric")
   evaPos<-unlist(tmp[eval_pos_idx,])[1:length(opchain$Position)]
   
+  #show Spread id, evaluated days and evaPos vector
   cat(eval_pos_idx," Spread","\n")
+  cat("evaluated days ")
+  cat(evaldays,sep=",","\n")
   cat(evaPos,sep=",","\n")
   
   #note opchain is already instanciated by the proceduces of ERskRtnEval
@@ -188,16 +200,19 @@ for(eval_pos_idx in DrawSpreads){
   thePosition %>% select(Date,ExpDate,TYPE,Strike,Position,ContactName,UDLY) %>% mutate(TYPE=ifelse(TYPE==OpType_Put_G,"Put","Call")) %>% print()
   
   #Evaluation Details
-  posnum<-sum(getPutCallnOfthePosition(evaPos))
-  obj_Income_sgmd(evaPos,EvalFuncSetting,isDebug=FALSE,isDetail=TRUE,
-                     udlStepNum=EvalFuncSetting$UdlStepNum,udlStepPct=EvalFuncSetting$UdlStepPct,
-                     maxposnum=EvalFuncSetting$Maxposnum,PosMultip=PosMultip,
-                     tail_rate=EvalFuncSetting$Tail_rate,lossLimitPrice=EvalFuncSetting$LossLimitPrice,
-                     Delta_Direct_Prf=EvalFuncSetting$Delta_Direct_Prf[posnum],Vega_Direct_Prf=EvalFuncSetting$Vega_Direct_Prf[posnum],
-                     Delta_Neutral_Offset=EvalFuncSetting$Delta_Neutral_Offset[posnum],Vega_Neutral_Offset=EvalFuncSetting$Vega_Neutral_Offset[posnum])
+  if(ShowEvaluationDetail){
+    posnum<-sum(getPutCallnOfthePosition(evaPos))
+    obj_Income_sgmd(evaPos,EvalFuncSetting,isDebug=FALSE,isDetail=TRUE,
+                    udlStepNum=EvalFuncSetting$UdlStepNum,udlStepPct=EvalFuncSetting$UdlStepPct,
+                    maxposnum=EvalFuncSetting$Maxposnum,PosMultip=PosMultip,
+                    tail_rate=EvalFuncSetting$Tail_rate,lossLimitPrice=EvalFuncSetting$LossLimitPrice,
+                    Delta_Direct_Prf=EvalFuncSetting$Delta_Direct_Prf[posnum],Vega_Direct_Prf=EvalFuncSetting$Vega_Direct_Prf[posnum],
+                    Delta_Neutral_Offset=EvalFuncSetting$Delta_Neutral_Offset[posnum],Vega_Neutral_Offset=EvalFuncSetting$Vega_Neutral_Offset[posnum])
+  }
   
-  #API code chunk
-  writeIbAPITicket(out_text_file="",thePosition=thePosition,sep=",")
+  #Print API Ticket
+  if(ShowAPITicket)
+    writeIbAPITicket(out_text_file="",thePosition=thePosition,sep=",")
   
   #thePosition's greek df and initial price
   thePositonGrks<-getPositionGreeks(thePosition,multi=PosMultip,hdd=holdDays,HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio)
@@ -344,7 +359,7 @@ for(eval_pos_idx in DrawSpreads){
     drawGrktbl_DltHgd_vc_mnus$Delta<-drawGrktbl_DltHgd_vc_mnus$Delta-as.numeric(headgedDelta)
     
     gg<-ggplot(drawGrktbl_DltHgd,aes(x=UDLY,y=profit,group=day))+
-      geom_line(size=draw_line_size,linetype=draw_line_type,colour="gray")+
+      geom_line(size=draw_line_size,linetype=draw_line_type,colour="gray60")+
       geom_line(x=drawGrktbl_DltHgd_vc_plus$UDLY,y=drawGrktbl_DltHgd_vc_plus$profit,colour="blue",size=draw_line_size,group=drawGrktbl_DltHgd_vc_plus$day,linetype=draw_line_type)+
       geom_line(x=drawGrktbl_DltHgd_vc_mnus$UDLY,y=drawGrktbl_DltHgd_vc_mnus$profit,colour="red",size=draw_line_size,group=drawGrktbl_DltHgd_vc_plus$day,linetype=draw_line_type)+
       geom_point(x=thePositonGrks$UDLY,y=0,size=4.0,colour="black")+
