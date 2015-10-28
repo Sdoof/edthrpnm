@@ -2,6 +2,7 @@
 library(dplyr)
 library(RQuantLib)
 library(ggplot2)
+library(pracma)
 library(knitr)
 source('../EGeomBrownMtn.R',encoding = 'UTF-8')
 source('../EOpPosStimulations.R',encoding = 'UTF-8')
@@ -15,7 +16,7 @@ source('../ERskRtnEval.R',encoding = 'UTF-8')
 title: "PosAnalResult"
 output: html_document
 ---
-```{r echo = FALSE,message=F, warning=F,error=FALSE,fig.width=12,fig.height=9}
+```{r echo = FALSE,message=F, warning=F,error=FALSE,fig.width=16,fig.height=12}
 #Config File
 ConfigFileName_G="ConfigParameters.csv"
 DataFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\MarketData\\data\\"
@@ -30,9 +31,7 @@ ResultFiles_Path_G=ConfigParameters["ResultFiles_Path_G",1]
 EvalPos_fn=paste(ResultFiles_Path_G,Underying_Symbol_G,"_EvalPosition_Theta.csv",sep='')
 
 #Here you spicify which position should be analyzed.
-#DrawSpreads=c(1)
-for(eval_pos_idx in 1:2){
-#eval_pos_idx=1
+DrawSpreads=c(1:5)
 
 #UDLY draw limit. given absolute % value
 UDLY_DrawRange<-0.10
@@ -89,6 +88,42 @@ histIV %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")<=max(as.Date(opchain$Da
   dplyr::arrange(desc(as.Date(Date,format="%Y/%m/%d"))) %>% head(n=dviv_caldays) -> histIV
 
 
+#EvalFuncSetting
+EvFNames <- c("holdDays","UdlStepNum","UdlStepPct","Posnum","Tail_rate","LossLimitPrice",
+              "HV_IV_Adjust_Ratio","Delta_Thresh_Minus","Delta_Thresh_Plus","Vega_Thresh_Minus","Vega_Thresh_Plus",
+              "Delta_Direct_Prf","Vega_Direct_Prf","Delta_Neutral_Offset","Vega_Neutral_Offset",
+              "Profit_Coef","AdvEffect_Coef","AllEffect_Coef","DrctlEffect_Coef","MaxLoss_Coef",
+              "SigmoidA_Numerator","SigmoidA_Denominator","ThetaEffectPositive","EvalConvex","DeltaHedge")
+EvalFuncSetting<-vector("list",length(EvFNames))
+
+EvalFuncSetting[[1]]<-holdDays
+EvalFuncSetting[[2]]<-as.numeric(ConfigParameters["EvalFnc_UdlStepNum",1])
+EvalFuncSetting[[3]]<-as.numeric(ConfigParameters["EvalFnc_UdlStepPct",1])
+EvalFuncSetting[[4]]<-eval(parse(text=gsub("\\$",",",ConfigParameters["EvalFnc_Posnum",1])))
+EvalFuncSetting[[5]]<-as.numeric(ConfigParameters["EvalFnc_Tail_rate",1]) 
+EvalFuncSetting[[6]]<-as.numeric(ConfigParameters["EvalFnc_LossLimitPrice",1]) 
+EvalFuncSetting[[7]]<-as.numeric(ConfigParameters["EvalFnc_HV_IV_Adjust_Ratio",1])
+EvalFuncSetting[[8]]<-eval(parse(text=gsub("\\$",",",ConfigParameters["EvalFnc_Delta_Thresh_Minus",1])))
+EvalFuncSetting[[9]]<-eval(parse(text=gsub("\\$",",",ConfigParameters["EvalFnc_Delta_Thresh_Plus",1])))
+EvalFuncSetting[[10]]<-eval(parse(text=gsub("\\$",",",ConfigParameters["EvalFnc_Vega_Thresh_Minus",1])))
+EvalFuncSetting[[11]]<-eval(parse(text=gsub("\\$",",",ConfigParameters["EvalFnc_Vega_Thresh_Plus",1])))
+EvalFuncSetting[[12]]<-eval(parse(text=gsub("\\$",",",ConfigParameters["EvalFnc_Delta_Direct_Prf",1])))
+EvalFuncSetting[[13]]<-eval(parse(text=gsub("\\$",",",ConfigParameters["EvalFnc_Vega_Direct_Prf",1])))
+EvalFuncSetting[[14]]<-eval(parse(text=gsub("\\$",",",ConfigParameters["EvalFnc_Delta_Neutral_Offset",1])))
+EvalFuncSetting[[15]]<-eval(parse(text=gsub("\\$",",",ConfigParameters["EvalFnc_Vega_Neutral_Offset",1])))
+EvalFuncSetting[[16]]<-as.numeric(ConfigParameters["EvalFnc_Profit_Coef",1])
+EvalFuncSetting[[17]]<-as.numeric(ConfigParameters["EvalFnc_AdvEffect_Coef",1])
+EvalFuncSetting[[18]]<-as.numeric(ConfigParameters["EvalFnc_AllEffect_Coef",1]) 
+EvalFuncSetting[[19]]<-as.numeric(ConfigParameters["EvalFnc_DrctlEffect_Coef",1])
+EvalFuncSetting[[20]]<-as.numeric(ConfigParameters["EvalFnc_MaxLoss_Coef",1])
+EvalFuncSetting[[21]]<-as.numeric(ConfigParameters["EvalFnc_SigmoidA_Numerator",1])
+EvalFuncSetting[[22]]<-as.numeric(ConfigParameters["EvalFnc_SigmoidA_Denominator",1])
+EvalFuncSetting[[23]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_ThetaEffectPositive",1])==1,TRUE,FALSE)
+EvalFuncSetting[[24]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_EvalConvex",1])==1,TRUE,FALSE)
+EvalFuncSetting[[25]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_DeltaHedgeToEvalProfit",1])==1,TRUE,FALSE)
+
+names(EvalFuncSetting)<-EvFNames
+
 #Load Regression and Correlation Parameters
 load.PC2IV(PC="PC3dCtC",IVC="IVCF3dCtC")
 load.PC2IV(PC="PC5dCtC",IVC="IVCF5dCtC")
@@ -128,18 +163,41 @@ if(evaldays[length(evaldays)]==min(get.busdays.between(opchain$Date,opchain$ExpD
 }else if(evaldays[length(evaldays)]<max_days) {
   evaldays[length(evaldays)+1]<-max_days
 }
+getPutCallnOfthePosition<-function(x){
+  type<-opchain$TYPE
+  putpos<-(type+OpType_Put_G)
+  putn<-sum( as.numeric((putpos*x)!=0) )
+  callpos<-(type+OpType_Call_G)
+  calln<-sum( as.numeric((callpos*x)!=0) )
+  return (c(putn,calln))
+}
 
 ##Spread Position loaded to be evaluated.
-
-  
+for(eval_pos_idx in DrawSpreads){
   tmp<-read.table(EvalPos_fn,header=F,sep=",",colClasses="numeric")
   evaPos<-unlist(tmp[eval_pos_idx,])[1:length(opchain$Position)]
+  
+  cat(eval_pos_idx," Spread","\n")
+  cat(evaPos,sep=",","\n")
   
   #note opchain is already instanciated by the proceduces of ERskRtnEval
   opchain$Position<-evaPos
   opchain %>% dplyr::filter(Position!=0) -> thePosition
   
-  ###If needed, change thePositon's Date,Price,UDLY and re-calc the Greeks
+  #print thePosition
+  thePosition %>% select(Date,ExpDate,TYPE,Strike,Position,ContactName,UDLY) %>% mutate(TYPE=ifelse(TYPE==OpType_Put_G,"Put","Call")) %>% print()
+  
+  #Evaluation Details
+  posnum<-sum(getPutCallnOfthePosition(evaPos))
+  obj_Income_sgmd(evaPos,EvalFuncSetting,isDebug=FALSE,isDetail=TRUE,
+                     udlStepNum=EvalFuncSetting$UdlStepNum,udlStepPct=EvalFuncSetting$UdlStepPct,
+                     maxposnum=EvalFuncSetting$Maxposnum,PosMultip=PosMultip,
+                     tail_rate=EvalFuncSetting$Tail_rate,lossLimitPrice=EvalFuncSetting$LossLimitPrice,
+                     Delta_Direct_Prf=EvalFuncSetting$Delta_Direct_Prf[posnum],Vega_Direct_Prf=EvalFuncSetting$Vega_Direct_Prf[posnum],
+                     Delta_Neutral_Offset=EvalFuncSetting$Delta_Neutral_Offset[posnum],Vega_Neutral_Offset=EvalFuncSetting$Vega_Neutral_Offset[posnum])
+  
+  #API code chunk
+  writeIbAPITicket(out_text_file="",thePosition=thePosition,sep=",")
   
   #thePosition's greek df and initial price
   thePositonGrks<-getPositionGreeks(thePosition,multi=PosMultip,hdd=holdDays,HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio)
@@ -203,9 +261,9 @@ if(evaldays[length(evaldays)]==min(get.busdays.between(opchain$Date,opchain$ExpD
     geom_line(x=drawGrktbl$UDLY,y=drawGrktbl$GammaEffect,colour="red",size=draw_line_size,group=drawGrktbl$day,linetype=draw_line_type)+
     geom_line(x=drawGrktbl$UDLY,y=drawGrktbl$ThetaEffect,colour="orange",size=draw_line_size,group=drawGrktbl$day,linetype=draw_line_type)+
     geom_point(x=thePositonGrks$UDLY,y=0,size=4.0,colour="black")+
-  ylim(
-    min(c(min(drawGrktbl$profit)),min(drawGrktbl$ThetaEffect),min(drawGrktbl$GammaEffect)),
-    max(c(max(drawGrktbl$profit)),max(drawGrktbl$ThetaEffect),max(drawGrktbl$GammaEffect)))
+    ylim(
+      min(c(min(drawGrktbl$profit)),min(drawGrktbl$ThetaEffect),min(drawGrktbl$GammaEffect)),
+      max(c(max(drawGrktbl$profit)),max(drawGrktbl$ThetaEffect),max(drawGrktbl$GammaEffect)))
   print(gg)
   
   if(ShowDeltaHedge){
@@ -225,15 +283,15 @@ if(evaldays[length(evaldays)]==min(get.busdays.between(opchain$Date,opchain$ExpD
     #new delta
     drawGrktbl_DltHgd$Delta<-drawGrktbl_DltHgd$Delta-as.numeric(headgedDelta)
     
-     gg<-ggplot(drawGrktbl_DltHgd,aes(x=UDLY,y=profit,group=day))+
-       geom_line(size=draw_line_size,linetype=draw_line_type)+
-       geom_line(x=drawGrktbl_DltHgd$UDLY,y=drawGrktbl_DltHgd$GammaEffect,colour="red",size=draw_line_size,group=drawGrktbl_DltHgd$day,linetype=draw_line_type)+
-       geom_line(x=drawGrktbl_DltHgd$UDLY,y=drawGrktbl_DltHgd$ThetaEffect,colour="orange",size=draw_line_size,group=drawGrktbl_DltHgd$day,linetype=draw_line_type)+
-       geom_point(x=thePositonGrks$UDLY,y=0,size=4.0,colour="black")+
-       ylim(
-         min(c(min(drawGrktbl_DltHgd$profit)),min(drawGrktbl_DltHgd$ThetaEffect),min(drawGrktbl_DltHgd$GammaEffect)),
-         max(c(max(drawGrktbl_DltHgd$profit)),max(drawGrktbl_DltHgd$ThetaEffect),max(drawGrktbl_DltHgd$GammaEffect)))
-     print(gg)
+    gg<-ggplot(drawGrktbl_DltHgd,aes(x=UDLY,y=profit,group=day))+
+      geom_line(size=draw_line_size,linetype=draw_line_type)+
+      geom_line(x=drawGrktbl_DltHgd$UDLY,y=drawGrktbl_DltHgd$GammaEffect,colour="red",size=draw_line_size,group=drawGrktbl_DltHgd$day,linetype=draw_line_type)+
+      geom_line(x=drawGrktbl_DltHgd$UDLY,y=drawGrktbl_DltHgd$ThetaEffect,colour="orange",size=draw_line_size,group=drawGrktbl_DltHgd$day,linetype=draw_line_type)+
+      geom_point(x=thePositonGrks$UDLY,y=0,size=4.0,colour="black")+
+      ylim(
+        min(c(min(drawGrktbl_DltHgd$profit)),min(drawGrktbl_DltHgd$ThetaEffect),min(drawGrktbl_DltHgd$GammaEffect)),
+        max(c(max(drawGrktbl_DltHgd$profit)),max(drawGrktbl_DltHgd$ThetaEffect),max(drawGrktbl_DltHgd$GammaEffect)))
+    print(gg)
   }
   
   #volatility change %
@@ -285,15 +343,15 @@ if(evaldays[length(evaldays)]==min(get.busdays.between(opchain$Date,opchain$ExpD
     drawGrktbl_DltHgd_vc_plus$Delta<-drawGrktbl_DltHgd_vc_plus$Delta-as.numeric(headgedDelta)
     drawGrktbl_DltHgd_vc_mnus$Delta<-drawGrktbl_DltHgd_vc_mnus$Delta-as.numeric(headgedDelta)
     
-     gg<-ggplot(drawGrktbl_DltHgd,aes(x=UDLY,y=profit,group=day))+
-     geom_line(size=draw_line_size,linetype=draw_line_type,colour="gray")+
-     geom_line(x=drawGrktbl_DltHgd_vc_plus$UDLY,y=drawGrktbl_DltHgd_vc_plus$profit,colour="blue",size=draw_line_size,group=drawGrktbl_DltHgd_vc_plus$day,linetype=draw_line_type)+
-       geom_line(x=drawGrktbl_DltHgd_vc_mnus$UDLY,y=drawGrktbl_DltHgd_vc_mnus$profit,colour="red",size=draw_line_size,group=drawGrktbl_DltHgd_vc_plus$day,linetype=draw_line_type)+
-       geom_point(x=thePositonGrks$UDLY,y=0,size=4.0,colour="black")+
-       ylim(
-       min(c(min(drawGrktbl_DltHgd$profit),min(drawGrktbl_DltHgd_vc_plus$profit),min(drawGrktbl_DltHgd_vc_mnus$profit))),
-       max(c(max(drawGrktbl_DltHgd$profit),max(drawGrktbl_DltHgd_vc_plus$profit),max(drawGrktbl_DltHgd_vc_mnus$profit))))
-      print(gg)
+    gg<-ggplot(drawGrktbl_DltHgd,aes(x=UDLY,y=profit,group=day))+
+      geom_line(size=draw_line_size,linetype=draw_line_type,colour="gray")+
+      geom_line(x=drawGrktbl_DltHgd_vc_plus$UDLY,y=drawGrktbl_DltHgd_vc_plus$profit,colour="blue",size=draw_line_size,group=drawGrktbl_DltHgd_vc_plus$day,linetype=draw_line_type)+
+      geom_line(x=drawGrktbl_DltHgd_vc_mnus$UDLY,y=drawGrktbl_DltHgd_vc_mnus$profit,colour="red",size=draw_line_size,group=drawGrktbl_DltHgd_vc_plus$day,linetype=draw_line_type)+
+      geom_point(x=thePositonGrks$UDLY,y=0,size=4.0,colour="black")+
+      ylim(
+        min(c(min(drawGrktbl_DltHgd$profit),min(drawGrktbl_DltHgd_vc_plus$profit),min(drawGrktbl_DltHgd_vc_mnus$profit))),
+        max(c(max(drawGrktbl_DltHgd$profit),max(drawGrktbl_DltHgd_vc_plus$profit),max(drawGrktbl_DltHgd_vc_mnus$profit))))
+    print(gg)
   }
 }
 
