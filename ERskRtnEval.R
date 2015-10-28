@@ -19,11 +19,11 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   
   #position where pos$Position != 0
   position<-hollowNonZeroPosition(pos=x)
-  if(isDetail){print(position)}
+  if(isDebug){print(position)}
   
   #At day 0 position price and Greeks.
   thePositionGrk<-getPositionGreeks(position,multi=PosMultip,hdd=Setting$holdDays,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)
-  if(isDetail){cat("initail position\n");print(thePositionGrk)}
+  if(isDebug){cat("initail position\n");print(thePositionGrk)}
   
   #posEvalTble after 1 day and holdDay
   udlStepNum<-udlStepNum
@@ -36,7 +36,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   sd_hd<-(anlzd_sd/sqrt(252/sd_multp))
   #f.y.i sd_hd<-exp(anlzd_sd*sqrt(sd_multp/252))-1 #exponential expression
   weight<-dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd / sum(dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd)
-  if(isDetail){cat(":(weight 1stDay)",weight)}
+  if(isDebug){cat(":(weight 1stDay)",weight)}
   
   #dATMIV/dIVIDX 1 day regression result
   posStepDays<-data.frame(days=c(1,Setting$holdDays))
@@ -48,10 +48,10 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
     do(days=.$days,scene2=adjustPosChg(.$scene,.$days-1,base_vol_chg=0,multi=PosMultip,hdd=Setting$holdDays,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)) -> tmp
   unlist(tmp$days) -> posStepDays$days ; tmp$scene2 -> posStepDays$scene ;rm(tmp)
   
-  if(isDetail){cat("\n(:after 1st day evalTble)\n");print(posStepDays$scene[[1]])}
-  if(isDetail){print(posStepDays$scene[[1]]$pos)}
-  if(isDetail){cat("(:after holdDay evalTble)\n");print(posStepDays$scene[[length(posStepDays)]])}
-  if(isDetail){print(posStepDays$scene[[length(posStepDays)]]$pos)}
+  if(isDebug){cat("\n(:after 1st day evalTble)\n");print(posStepDays$scene[[1]])}
+  if(isDebug){print(posStepDays$scene[[1]]$pos)}
+  if(isDebug){cat("(:after holdDay evalTble)\n");print(posStepDays$scene[[length(posStepDays)]])}
+  if(isDebug){print(posStepDays$scene[[length(posStepDays)]]$pos)}
   
   ##
   # Greek Effects calculations. Forward looking indicator. Use first day's posEvalTble.
@@ -81,7 +81,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   ##
   # Advantageous Effects.
   c5<- sum((posEvalTbl$GammaEffect+posEvalTbl$ThetaEffect)*weight)
-  if(isDebug){cat(" :c5(AdvEffect_wght)",c5)}
+  if(isDetail){cat(" :c5(AdvEffect_wght)",c5)}
   
   ##
   # Directional Effects.
@@ -92,19 +92,19 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   expPriceChange <- getExpectedValueChange(base=posEvalTbl$UDLY,sd=posEvalTbl$IVIDX*Setting$HV_IV_Adjust_Ratio, dtime=Setting$holdDays/252)
   Delta_revised_offset<-posEvalTbl$Delta-Delta_Neutral_Offset
   Delta_Effect_revised_offset<- (-abs(Delta_revised_offset))*expPriceChange
-  if(isDebug){
+  if(isDetail){
     cat(" :(expPriceChange)",expPriceChange," :(Delta Offset)",Delta_revised_offset," :(DeltaE offset)",Delta_Effect_revised_offset)}
   
   Delta_revised_offset<-sum(Delta_revised_offset*weight)
   Delta_Effect_revised_offset<-sum(Delta_Effect_revised_offset*weight)
-  if(isDebug){
+  if(isDetail){
     cat(" :(DeltaE_wght)",Delta_Effect_revised_offset," :(Delta_wght)",Delta_revised_offset)}
   
   ###Delta_Thresh_Minus,Delta_Thresh_Plus
   DeltaEffect_Comp<-(Delta_revised_offset<0)*(Delta_revised_offset<Setting$Delta_Thresh_Minus[length(position$TYPE)])*Delta_Effect_revised_offset+
     (Delta_revised_offset>0)*(Delta_revised_offset>Setting$Delta_Thresh_Plus[length(position$TYPE)])*Delta_Effect_revised_offset
   
-  if(isDebug){
+  if(isDetail){
     cat(" :betwn (Delta_Thresh_Minus)",Setting$Delta_Thresh_Minus[length(position$TYPE)],
         " and (Delta_Thresh_Plus)",Setting$Delta_Thresh_Plus[length(position$TYPE)])
     cat(" :(new DeltaE_wght)",DeltaEffect_Comp)
@@ -116,19 +116,19 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   expIVChange<-getExpectedValueChange(base=posEvalTbl$IVIDX,sd=annuual.daily.volatility(histIV$IVIDX)$daily,dtime=Setting$holdDays)*100
   Vega_revised_offset<-posEvalTbl$Vega-Vega_Neutral_Offset
   Vega_Effect_revised_offset<- (-abs(Vega_revised_offset))*expIVChange
-  if(isDebug){
+  if(isDetail){
     cat(" :(expIVChange)",expIVChange," :(Vega Offset)",Vega_revised_offset," :(VegaE offset)",Vega_Effect_revised_offset)
     
   }
   Vega_revised_offset<-sum(Vega_revised_offset*weight)
   Vega_Effect_revised_offset<-sum(Vega_Effect_revised_offset*weight)
-  if(isDebug){
+  if(isDetail){
     cat(" :(VegaE_Wght)",Vega_Effect_revised_offset," :(Vega_Wght)",Vega_revised_offset)
   }
   ##Vega_Thresh_Minus,Vega_Thresh_Plus
   VegaEffect_Comp<-(Vega_revised_offset<0)*(Vega_revised_offset<Setting$Vega_Thresh_Minus[length(position$TYPE)])*Vega_Effect_revised_offset+
     (Vega_revised_offset>0)*(Vega_revised_offset>Setting$Vega_Thresh_Plus[length(position$TYPE)])*Vega_Effect_revised_offset
-   if(isDebug){
+   if(isDetail){
     cat(" :betwn (Vega_Thresh_Minus)",Setting$Vega_Thresh_Minus[length(position$TYPE)],
         " and (Vega_Thresh_Plus)",Setting$Vega_Thresh_Plus[length(position$TYPE)])
     cat(" :(new VegaE_wght)",VegaEffect_Comp)
@@ -147,7 +147,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   ##
   # Directional Effect
   c6<- vega_pref_coef*VegaEffect_Comp+dlta_pref_coef*DeltaEffect_Comp
-  if(isDebug){
+  if(isDetail){
     cat(" (:vega_pref_coef",vega_pref_coef," x :VegaE_new",VegaEffect_Comp,
         "+ :dlta_pref_coef",dlta_pref_coef," x :DeltaE_new",DeltaEffect_Comp," = :(DrctlEffect)c6 ",c6,")")
   }
@@ -199,33 +199,32 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
     c8<- (-1)*maxLoss
   else
     c8<- profit_sd
-  if(isDebug){cat(" :c8(profit_sd or max_loss) ",c8)}
+  if(isDetail){cat(" :c8(profit_sd or max_loss) ",c8)}
   
   ##
   # cost7 All Effects.
   c7<- c5+c6
-  if(isDebug){cat(" :c7(AllEffect)",c7)}
+  if(isDetail){cat(" :c7(AllEffect)",c7)}
   
   ##
   # total cost is weighted sum of each cost.
-  
   A<- Setting$DrctlEffect_Coef*c6 + Setting$AllEffect_Coef*c7 + Setting$MaxLoss_Coef*c8
   B<-Setting$AdvEffect_Coef*c5+Setting$Profit_Coef*c3
   
-  if(isDebug){cat(" :Coef_Drct",Setting$DrctlEffect_Coef,"x",c6,"+:Coef_AllE",Setting$AllEffect_Coef,"x",c7,"+ :Coef_MaxLoss(SD)",Setting$MaxLoss_Coef,"x",c8,"= Numr",A)}
-  if(isDebug){cat(" :Coef_Adv",Setting$AdvEffect_Coef,"x",c5,"+:Coef_Prft",Setting$Profit_Coef,"x",c3,"= Denom",B)}
+  if(isDetail){cat(" :Coef_Drct",Setting$DrctlEffect_Coef,"x",c6,"+:Coef_AllE",Setting$AllEffect_Coef,"x",c7,"+ :Coef_MaxLoss(SD)",Setting$MaxLoss_Coef,"x",c8,"= Numr",A)}
+  if(isDetail){cat(" :Coef_Adv",Setting$AdvEffect_Coef,"x",c5,"+:Coef_Prft",Setting$Profit_Coef,"x",c3,"= Denom",B)}
   
   sigA<-sigmoid(A,a=Setting$SigmoidA_Numerator,b=0)
   sigB<-sigmoid(B,a=Setting$SigmoidA_Denominator,b=0)
   
   cost<-sigA/sigB
-  if(isDebug){cat(" :sigA",sigA,":sigB",sigB,":cost(sigA/sigB)",cost)}
+  if(isDetail){cat(" :sigA",sigA,":sigB",sigB,":cost(sigA/sigB)",cost)}
   
   ##
   # total cost and penalty
   val<-cost 
   
-  if(isDebug){cat(" :val",val,"\n")}
+  if(isDetail){cat(" :val",val,"\n")}
   return(val)
 }
 
