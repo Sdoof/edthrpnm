@@ -56,8 +56,13 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   ##
   # Greek Effects calculations. Forward looking indicator. Use first day's posEvalTble.
   
-  #first day
+  #default first day
   posEvalTbl<-posStepDays$scene[[1]]
+  #not default, holdDay(last day)
+  if(Setting$GreekEfctOnHldD){
+    if(isDebug){cat("GreekEffect evaluated on holdDay ",Setting$holdDays,"\n")}
+    posEvalTbl<-posStepDays$scene[[length(posStepDays)]]
+  }
   
   ##
   # Constraint 2. Tail Risk
