@@ -5,21 +5,6 @@ library(pracma)
 ## Preparation
 #  Load EOptimize.R's code chunk
 
-#Config File
-#ConfigFileName_G="ConfigParameters.csv"
-#DataFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\MarketData\\data\\"
-
-#ConfigParameters<-read.table(paste(DataFiles_Path_G,ConfigFileName_G,sep=""),
-#                             row.names=1, comment.char="#",header=T,stringsAsFactors=F,sep=",")
-
-#Definition
-#OpType_Put_G=as.numeric(ConfigParameters["OpType_Put_G",1])
-#OpType_Call_G=as.numeric(ConfigParameters["OpType_Call_G",1])
-
-#File
-#Underying_Symbol_G=ConfigParameters["Underying_Symbol_G",1]
-#ResultFiles_Path_G=ConfigParameters["ResultFiles_Path_G",1]
-
 getPutCallLegNOfthePosition<-function(x){
   type<-opchain$TYPE
   putpos<-(type+OpType_Put_G)
@@ -158,11 +143,3 @@ for(eval_pos_idx in Spreads){
   print(val)
   
 }
-
-#savefile or create object
-
-#Config File
-rm(ConfigFileName_G,DataFiles_Path_G,ConfigParameters,OpType_Put_G,OpType_Call_G)
-rm(Underying_Symbol_G,ResultFiles_Path_G)
-rm(evaPos,opchain)
-
