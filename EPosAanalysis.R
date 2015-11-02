@@ -15,10 +15,10 @@ Underying_Symbol_G=ConfigParameters["Underying_Symbol_G",1]
 ResultFiles_Path_G=ConfigParameters["ResultFiles_Path_G",1]
 
 #Evaluation CSV file
-EvalPos_fn=paste(ResultFiles_Path_G,Underying_Symbol_G,"_EvalPosition_Theta.csv",sep='')
+EvalPos_fn=paste(ResultFiles_Path_G,Underying_Symbol_G,"_EvalPosition.csv",sep='')
 
 #Here you spicify which position should be analyzed.
-eval_pos_idx=3
+eval_pos_idx=27
 
 #UDLY draw limit. given absolute % value
 UDLY_DrawRange<-0.10
