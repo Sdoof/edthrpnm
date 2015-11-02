@@ -18,6 +18,9 @@ getPutCallLegNOfthePosition<-function(x){
 ## Create Last Day's positiojn
 ##
 
+#result output fle
+out_file_name=paste(ResultFiles_Path_G,Underying_Symbol_G,"_TrackSpread.txt",sep="")
+
 ##
 # 追跡対象(Last Day)のOption Chain読み込み
 #
@@ -70,6 +73,13 @@ val<-obj_Income_sgmd(opchain$Position,EvalFuncSetting,isDebug=F,isDetail=F,
                      Delta_Direct_Prf=EvalFuncSetting$Delta_Direct_Prf[posnum],Vega_Direct_Prf=EvalFuncSetting$Vega_Direct_Prf[posnum],
                      Delta_Neutral_Offset=EvalFuncSetting$Delta_Neutral_Offset[posnum],Vega_Neutral_Offset=EvalFuncSetting$Vega_Neutral_Offset[posnum])
 print(val)
+cat("#Last Spread eval_score: ",val,file=out_file_name,append=T,"\n")
+opchain %>% mutate(TYPE=ifelse(TYPE==OpType_Put_G,"Put","Call")) %>% 
+  select(Date,ExpDate,TYPE,Strike,ContactName,Position,UDLY,Price,OrigIV,ATMIV,IVIDX) %>%
+  arrange(Date,ExpDate,desc(TYPE),Strike)-> tmp
+sink(out_file_name, append = T)
+print(tmp)
+sink()
 
 ###
 ## Create Today's Day's position and show Differnces 
@@ -125,11 +135,9 @@ for(eval_pos_idx in Spreads){
   positon_join$Position<-ifelse(is.na(positon_join$Position), 0, positon_join$Position)
   positon_join$Position_Pre<-ifelse(is.na(positon_join$Position_Pre), 0, positon_join$Position_Pre)
   positon_join %>% arrange(Date,ExpDate,desc(TYPE),Strike) -> positon_join
-  
   positon_join$DiffPos=positon_join$Position-positon_join$Position_Pre
   
-  print(positon_join)
-  cat("pos idx",eval_pos_idx,"diff ",sum(abs(positon_join$DiffPos))," ")
+  #print(positon_join)
   
   #evaluation value of today's eval_pos_idx'th Leg
   opchain=position_today
@@ -141,5 +149,12 @@ for(eval_pos_idx in Spreads){
                        Delta_Direct_Prf=EvalFuncSetting$Delta_Direct_Prf[posnum],Vega_Direct_Prf=EvalFuncSetting$Vega_Direct_Prf[posnum],
                        Delta_Neutral_Offset=EvalFuncSetting$Delta_Neutral_Offset[posnum],Vega_Neutral_Offset=EvalFuncSetting$Vega_Neutral_Offset[posnum])
   print(val)
-  
+  #writ to the file
+  cat("#pos idx: ",eval_pos_idx,"diff ",sum(abs(positon_join$DiffPos))," eval_score",val,file=out_file_name,append=T,"\n")
+  positon_join %>% mutate(TYPE=ifelse(TYPE==OpType_Put_G,"Put","Call")) %>% 
+    select(Date,ExpDate,TYPE,Strike,ContactName,Position,Position_Pre,DiffPos) %>%
+    arrange(Date,ExpDate,desc(TYPE),Strike)-> tmp
+  sink(out_file_name, append = T)
+  print(tmp)
+  sink()
 }
