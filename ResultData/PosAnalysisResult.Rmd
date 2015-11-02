@@ -93,12 +93,13 @@ PosMultip=as.numeric(ConfigParameters["PosMultip",1])
 #HV_IV_Adjust_Ratio
 HV_IV_Adjust_Ratio=as.numeric(ConfigParameters["EvalFnc_HV_IV_Adjust_Ratio",1])
 
+
 #EvalFuncSetting
 EvFNames <- c("holdDays","UdlStepNum","UdlStepPct","Posnum","Tail_rate","LossLimitPrice",
               "HV_IV_Adjust_Ratio","Delta_Thresh_Minus","Delta_Thresh_Plus","Vega_Thresh_Minus","Vega_Thresh_Plus",
               "Delta_Direct_Prf","Vega_Direct_Prf","Delta_Neutral_Offset","Vega_Neutral_Offset",
               "Profit_Coef","AdvEffect_Coef","AllEffect_Coef","DrctlEffect_Coef","MaxLoss_Coef",
-              "SigmoidA_Numerator","SigmoidA_Denominator","ThetaEffectPositive","EvalConvex","DeltaHedge")
+              "SigmoidA_Numerator","SigmoidA_Denominator","ThetaEffectPositive","EvalConvex","DeltaHedge","GreekEfctOnHldD")
 EvalFuncSetting<-vector("list",length(EvFNames))
 
 EvalFuncSetting[[1]]<-holdDays
@@ -126,8 +127,10 @@ EvalFuncSetting[[22]]<-as.numeric(ConfigParameters["EvalFnc_SigmoidA_Denominator
 EvalFuncSetting[[23]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_ThetaEffectPositive",1])==1,TRUE,FALSE)
 EvalFuncSetting[[24]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_EvalConvex",1])==1,TRUE,FALSE)
 EvalFuncSetting[[25]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_DeltaHedgeToEvalProfit",1])==1,TRUE,FALSE)
+EvalFuncSetting[[26]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_GreekEffectEvalOnHoldDay",1])==1,TRUE,FALSE)
 
 names(EvalFuncSetting)<-EvFNames
+rm(EvFNames)
 
 #Load opchain if evaPos is already assigned.
 opchain<-read.table(paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep=""),header=T,sep=",",stringsAsFactors=FALSE)
