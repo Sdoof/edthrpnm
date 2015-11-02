@@ -33,7 +33,7 @@ ResultFiles_Path_G=ConfigParameters["ResultFiles_Path_G",1]
 ProcessFileName=paste("_OPChain_Pre.csv",sep="")
 isSkewCalc=F
 #set TRUE if this is today's new position, or (already holding position) set FALSE,
-isNewPosition=T
+isNewPosition=F
 TargetFileName=paste("_Positions_Pre_",Sys.Date(),".csv",sep="")
 #when isSkewCalc==TRUE, just comment out below
 if(isSkewCalc)
@@ -207,7 +207,7 @@ makePosition <- function(opch){
 
 opchain<-makePosition(opchain)
 
-filterPosition <- function(opchain,HowfarOOM_MIN=-0.5,OOM_Limit_V=c(0.08,0.08)){
+filterPosition <- function(opchain,HowfarOOM_MIN=-0.5,OOM_Limit_V=c(0.09,0.09)){
   ##
   #  Filter Target Ranges
   
@@ -230,9 +230,6 @@ filterPosition <- function(opchain,HowfarOOM_MIN=-0.5,OOM_Limit_V=c(0.08,0.08)){
 if(!isSkewCalc){
   if(isNewPosition)
     opchain<-filterPosition(opchain)
-  else {
-    opchain<-filterPosition(opchain,HowfarOOM_MIN=-0.3)
-  }
 }
 
 #select and sort
