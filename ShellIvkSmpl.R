@@ -132,7 +132,12 @@ for(Counter in 1:nrow(targetPositions)){
   opchain %>% dplyr::filter(Position!=0) -> thePosition
   cat("#Ticket",Counter,file=fname,append=T,"\n")
   cat(opchain$Position,file=fname,sep=",","\n")
-  writeIbAPITicket(out_text_file=fname,thePosition=thePosition,sep=",")
+  tryCatch(
+    writeIbAPITicket(out_text_file=fname,thePosition=thePosition,sep=","),
+    error=function(e){
+      message(e)
+    }
+  )
   thePosition %>% mutate(TYPE=ifelse(TYPE==OpType_Put_G,"Put","Call")) -> thePosition
   sink(fname, append = T)
   print(thePosition)
@@ -146,7 +151,12 @@ for(Counter in 1:nrow(targetPositions)){
   opchain %>% dplyr::filter(Position!=0) -> thePosition
   cat("#Ticket",Counter,file=fname,append=T,"\n")
   cat(opchain$Position,file=fname,sep=",","\n")
-  writeIbAPITicket(out_text_file=fname,thePosition=thePosition,sep=",")
+  tryCatch(
+    writeIbAPITicket(out_text_file=fname,thePosition=thePosition,sep=","),
+    error=function(e){
+      message(e)
+    }
+  )
   thePosition %>% mutate(TYPE=ifelse(TYPE==OpType_Put_G,"Put","Call")) -> thePosition
   sink(fname, append = T)
   print(thePosition)
@@ -160,7 +170,12 @@ for(Counter in 1:nrow(targetPositions)){
   opchain %>% dplyr::filter(Position!=0) -> thePosition
   cat("#Ticket",Counter,file=fname,append=T,"\n")
   cat(opchain$Position,file=fname,sep=",","\n")
-  writeIbAPITicket(out_text_file=fname,thePosition=thePosition,sep=",")
+  tryCatch(
+    writeIbAPITicket(out_text_file=fname,thePosition=thePosition,sep=","),
+    error=function(e){
+      message(e)
+    }
+  )
   thePosition %>% mutate(TYPE=ifelse(TYPE==OpType_Put_G,"Put","Call")) -> thePosition
   sink(fname, append = T)
   print(thePosition)
