@@ -109,6 +109,8 @@ opchain$Gamma<-tmp$Gamma
 opchain$Vega<-tmp$Vega
 opchain$Theta<-tmp$Theta
 opchain$Rho<-tmp$Rho
+
+#opchain$Vomma<-get.EuropeanOptionVomma(opchain)
 rm(tmp)
 
 rownames(opchain) <- c(1:nrow(opchain))

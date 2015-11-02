@@ -95,7 +95,7 @@ get.EuropeanOptionVomma <- function(xT){
                           dividendYield=divYld_G, riskFreeRate=riskFreeRate_G, maturity=busdays_betwn/252, volatility=xT$OrigIV[i]-h)
       VegaMinus<-tmp$vega/100
     }
-   vomma[i] <- (VegaPlus - VegaMinus)/2
+   vomma[i] <- abs((VegaPlus - VegaMinus)/2)
   }
   vomma
 }
