@@ -42,7 +42,7 @@ EvFNames <- c("holdDays","UdlStepNum","UdlStepPct","Posnum","Tail_rate","LossLim
               "HV_IV_Adjust_Ratio","Delta_Thresh_Minus","Delta_Thresh_Plus","Vega_Thresh_Minus","Vega_Thresh_Plus",
               "Delta_Direct_Prf","Vega_Direct_Prf","Delta_Neutral_Offset","Vega_Neutral_Offset",
               "Profit_Coef","AdvEffect_Coef","AllEffect_Coef","DrctlEffect_Coef","MaxLoss_Coef",
-              "SigmoidA_Numerator","SigmoidA_Denominator","ThetaEffectPositive","EvalConvex","DeltaHedge")
+              "SigmoidA_Numerator","SigmoidA_Denominator","ThetaEffectPositive","EvalConvex","DeltaHedge","GreekEfctOnHldD")
 EvalFuncSetting<-vector("list",length(EvFNames))
 
 EvalFuncSetting[[1]]<-holdDays
@@ -70,7 +70,7 @@ EvalFuncSetting[[22]]<-as.numeric(ConfigParameters["EvalFnc_SigmoidA_Denominator
 EvalFuncSetting[[23]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_ThetaEffectPositive",1])==1,TRUE,FALSE)
 EvalFuncSetting[[24]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_EvalConvex",1])==1,TRUE,FALSE)
 EvalFuncSetting[[25]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_DeltaHedgeToEvalProfit",1])==1,TRUE,FALSE)
-
+EvalFuncSetting[[26]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_GreekEffectEvalOnHoldDay",1])==1,TRUE,FALSE)
 
 names(EvalFuncSetting)<-EvFNames
 rm(EvFNames)
@@ -290,14 +290,27 @@ iniPos<-opchain$Position
 # }
 
 #Performance improved a little, but may cause side effect if type's encoding rule had changed.
-getPutCallnOfthePosition<-function(x){
-  type<-opchain$TYPE
-  putpos<-(type+OpType_Put_G)
-  putn<-sum( as.numeric((putpos*x)!=0) )
-  callpos<-(type+OpType_Call_G)
-  calln<-sum( as.numeric((callpos*x)!=0) )
-  return (c(putn,calln))
-}
+# getPutCallnOfthePosition<-function(x){
+#   type<-opchain$TYPE
+#   putpos<-(type+OpType_Put_G)
+#   putn<-sum( as.numeric((putpos*x)!=0) )
+#   callpos<-(type+OpType_Call_G)
+#   calln<-sum( as.numeric((callpos*x)!=0) )
+#   return (c(putn,calln))
+# }
+
+ getPutCallnOfthePosition<-function(x){
+   type<-opchain$TYPE
+   #put
+   putpos<-(type+OpType_Put_G)
+   putpos<-putpos/(OpType_Put_G*2)
+   putn<-sum(abs(putpos*x))
+   #call
+   callpos<-(type+OpType_Call_G)
+   callpos<-callpos/(OpType_Call_G*2)
+   calln<-sum(abs(callpos*x))
+   return (c(putn,calln))
+ }
 
 ##
 # Exact (1Cb)
