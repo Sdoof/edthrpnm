@@ -16,7 +16,7 @@ orderIdMktReqContractDict = None
 priceInfoDict = {}
 
 SPX_Strike_Max=2450
-SPX_Strike_Min=1410
+SPX_Strike_Min=1000
 RUT_Strike_Max=1500
 RUT_Strike_Min=700
 
@@ -166,9 +166,9 @@ def subscribeContractList(opCont,con):
         #      (con_each.m_conId, con_each.m_localSymbol, con_each.m_secType, con_each.m_right, con_each.m_strike,
         #       con_each.m_expiry, con_each.m_symbol, con_each.m_multiplier, con_each.m_exchange))
         ### exclude condition
-        if (con_each.m_strike % 10) != 0:
-            contractRemoveList.append(con_each)
-        elif con_each.m_secType == 'OPT' and con_each.m_symbol == 'SPX' and con_each.m_strike < SPX_Strike_Min:
+        #if (con_each.m_strike % 10) != 0:
+        #    contractRemoveList.append(con_each)
+        if con_each.m_secType == 'OPT' and con_each.m_symbol == 'SPX' and con_each.m_strike < SPX_Strike_Min:
             contractRemoveList.append(con_each)
         elif con_each.m_secType == 'OPT' and con_each.m_symbol == 'SPX' and con_each.m_strike > SPX_Strike_Max:
             contractRemoveList.append(con_each)
@@ -240,8 +240,6 @@ def writeToFile(sectype,symbol):
 
 # -- main  ---------------------------------------------------------------------
 opContractList = [
-                  makeOptContract(sym='SPX', exp='20151106', strike='', right='P'),
-                  makeOptContract(sym='SPX', exp='20151106', strike='', right='C'),
                   makeOptContract(sym='SPX', exp='20151119', strike='', right='P'),
                   makeOptContract(sym='SPX', exp='20151119', strike='', right='C'),
                   makeOptContract(sym='SPX', exp='20151204', strike='', right='P'),
