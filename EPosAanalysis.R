@@ -18,7 +18,7 @@ ResultFiles_Path_G=ConfigParameters["ResultFiles_Path_G",1]
 EvalPos_fn=paste(ResultFiles_Path_G,Underying_Symbol_G,"_EvalPosition.csv",sep='')
 
 #Here you spicify which position should be analyzed.
-eval_pos_idx=27
+eval_pos_idx=50
 
 #UDLY draw limit. given absolute % value
 UDLY_DrawRange<-0.10

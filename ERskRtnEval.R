@@ -98,7 +98,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   
   ##
   # Advantageous Effects.
-  c5<- sum((posEvalTbl$GammaEffect+posEvalTbl$ThetaEffect++posEvalTbl$VommaEffect)*weight)
+  c5<- sum((posEvalTbl$GammaEffect+posEvalTbl$ThetaEffect+posEvalTbl$VommaEffect)*weight)
   if(isDetail){cat(" :c5(AdvEffect_wght)",c5)}
   
   ##
