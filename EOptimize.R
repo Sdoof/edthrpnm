@@ -110,6 +110,8 @@ opchain<-read.table(rf,header=T,sep=",",stringsAsFactors=F)
 
 #get position where opchain$Position!=0
 opchain %>% dplyr::filter(Position!=0) -> position
+#vomma calc. later not needed because DataProvision already calculate this.
+opchain$Vomma=get.EuropeanOptionVomma(opchain)
 
 ##Historical Implied Volatility Data
 rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_IV.csv",sep="") 
