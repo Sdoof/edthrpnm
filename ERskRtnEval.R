@@ -61,7 +61,20 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   #not default, holdDay(last day)
   if(Setting$GreekEfctOnHldD){
     if(isDebug){cat("GreekEffect evaluated on holdDay ",Setting$holdDays,"\n")}
-    posEvalTbl<-posStepDays$scene[[length(posStepDays)]]
+    posEvalTbl_1<-posStepDays$scene[[1]]
+    posEvalTbl_hd<-posStepDays$scene[[length(posStepDays)]]
+    #average
+    posEvalTbl$Delta=(posEvalTbl_1$Delta+posEvalTbl_hd$Delta)/2
+    posEvalTbl$Gamma=(posEvalTbl_1$Gamma+posEvalTbl_hd$Gamma)/2
+    posEvalTbl$Vega=(posEvalTbl_1$Vega+posEvalTbl_hd$Vega)/2
+    posEvalTbl$Theta=(posEvalTbl_1$Theta+posEvalTbl_hd$Theta)/2
+    #posEvalTbl$Vomma=(posEvalTbl_1$Vomma+posEvalTbl_hd$Vomma)/2
+    posEvalTbl$DeltaEffect=(posEvalTbl_1$DeltaEffect+posEvalTbl_hd$DeltaEffect)/2
+    posEvalTbl$GammaEffect=(posEvalTbl_1$GammaEffect+posEvalTbl_hd$GammaEffect)/2
+    posEvalTbl$VegaEffect=(posEvalTbl_1$VegaEffect+posEvalTbl_hd$VegaEffect)/2
+    posEvalTbl$ThetaEffect=(posEvalTbl_1$ThetaEffect+posEvalTbl_hd$ThetaEffect)/2
+    #posEvalTbl$VommaEffect=(posEvalTbl_1$VommaEffect+posEvalTbl_hd$VommaEffect)/2
+    posEvalTbl$IVIDX=(posEvalTbl_1$IVIDX+posEvalTbl_hd$IVIDX)/2
   }
   
   ##
