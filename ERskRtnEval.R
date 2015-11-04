@@ -111,14 +111,14 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   if(isDetail){cat(" (:1stD price",posStepDays$scene[[1]]$Price[udlStepNum + 1]);cat(" (:prft_vec)",profit_vector);cat(" :(prft_wght)",profit_hdays)}
   
   ##
-  # Volatility Plus
+  # Profit Scenario When IV goes Up
   posEvalTbl<-posStepDays_vc_plus$scene[[length(posStepDays)]]
   profit_vector_vc_plus<-(posEvalTbl$Price-posStepDays$scene[[1]]$Price[udlStepNum + 1])
   profit_hdays_vc_plus<-sum(profit_vector_vc_plus*weight)
   if(isDetail){cat(" (:prft_vec_vc+)",profit_vector_vc_plus);cat(" :(prft_wght_vc+)",profit_hdays_vc_plus)}
   
   ##
-  # Volatility mnus
+  # Profit Scenario When IV goes Down
   posEvalTbl<-posStepDays_vc_minus$scene[[length(posStepDays)]]
   profit_vector_vc_minus<-(posEvalTbl$Price-posStepDays$scene[[1]]$Price[udlStepNum + 1])
   profit_hdays_vc_minus<-sum(profit_vector_vc_minus*weight)
@@ -141,18 +141,14 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
     if(isDetail){cat(" (:prft_vec_dh_vc-)",profit_vector_vc_minus);cat(" :(prft_wght_dh_vc-)",profit_hdays_vc_minus)}
     
   }
-  #sd and max_loss before delta hedge
+  
+  ##
+  #  sd and max_loss
   maxLoss<-min(c(profit_vector,profit_vector_vc_plus,profit_vector_vc_minus))
-  ## profit sd
-  #if(isDetail){cat(" :(weight_times)",weight_times)}
   pdist<-c(rep(rep(profit_vector,times=round(weight*100)),times=round(weight_IV*100)[2]),
            rep(rep(profit_vector_vc_plus,times=round(weight*100)),times=round(weight_IV*100)[3]),
            rep(rep(profit_vector_vc_minus,times=round(weight*100)),times=round(weight_IV*100)[1]))
-  
-  #pdist = rep(profit_vector,times=weight_times)
-  #if(isDetail){cat(" :(profit_dist)",pdist)}
   profit_sd<-sd(pdist)
-  #if(isDetail){ cat("profit_sd",profit_sd)}
   if(isDetail){
     cat(" :(profit_sd)",profit_sd);cat(" :(max_loss)",maxLoss)
   }
@@ -165,7 +161,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
     c8<- (-1)*maxLoss
   else
     c8<- profit_sd
-  if(isDetail){cat(" :c8(profit_sd or max_loss) ",c8)}
+  if(isDetail){cat(" :c8(profit_sd or max_loss)",c8)}
   
   ##
   # Greek Effects calculations. Forward looking indicator. Use first day's posEvalTble.
@@ -175,14 +171,14 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   VegaEffectWithSign= (profit_hdays_vc_plus-profit_hdays_vc_minus)/2
   VommaEffect=((profit_hdays_vc_plus + profit_hdays_vc_minus)/2)-profit_hdays
   Vega_True=VegaEffectWithSign/(expIVChange*100)
-  if(isDetail){cat("(:Vega)",Vega_True," (:VegaEffectWithSign)",VegaEffectWithSign," (:VommaEffect)",VommaEffect)}
+  if(isDetail){cat(" (:Vega)",Vega_True," (:VegaEffectWithSign)",VegaEffectWithSign," (:VommaEffect)",VommaEffect)}
   
   ## Greek Effect calculation Scene
   #  default first day
   posEvalTbl<-posStepDays$scene[[1]]
   #not default, averaging 1st Day and holdDay
   if(Setting$GreekEfctOnHldD){
-    if(isDebug){cat("GreekEffect evaluated on holdDay ",Setting$holdDays,"\n")}
+    if(isDebug){cat(" (:GreekEfctOnHldD)",Setting$holdDays)}
     posEvalTbl_1<-posStepDays$scene[[1]]
     posEvalTbl_hd<-posStepDays$scene[[length(posStepDays)]]
     #averaging
@@ -196,7 +192,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
     posEvalTbl$ThetaEffect=(posEvalTbl_1$ThetaEffect+posEvalTbl_hd$ThetaEffect)/2
     posEvalTbl$IVIDX=(posEvalTbl_1$IVIDX+posEvalTbl_hd$IVIDX)/2
   }
- 
+  
   ##
   # Constraint 2. Tail Risk
   #   tailPrice<-min(sum(getIntrisicValue(position$UDLY[1]*(1-tail_rate),position)),
