@@ -33,7 +33,7 @@ ResultFiles_Path_G=ConfigParameters["ResultFiles_Path_G",1]
 ProcessFileName=paste("_OPChain_Pre.csv",sep="")
 isSkewCalc=F
 #set TRUE if this is today's new position, or (already holding position) set FALSE,
-isNewPosition=F
+isNewPosition=T
 TargetFileName=paste("_Positions_Pre_",Sys.Date(),".csv",sep="")
 #when isSkewCalc==TRUE, just comment out below
 if(isSkewCalc)
@@ -46,7 +46,7 @@ makeOpchainContainer<-function(){
   
   opch_pr_ %>% select(Strike,ContactName,TYPE,Date,ExpDate,Last,Bid,Ask) %>% 
     arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="%Y/%m/%d"),desc(TYPE),Strike) -> opch_pr_
-
+  
   opch_pr_$Position<-0
   opch_pr_$Price<-(opch_pr_$Bid+opch_pr_$Ask)/2
   
@@ -192,7 +192,7 @@ makePosition <- function(opch){
   opch <- merge(opch,
                 atmiv %>% dplyr::select(Date,ExpDate,TYPE,ATMIV) %>% as.data.frame(),
                 by.x=c("Date","ExpDate","TYPE"),by.y=c("Date","ExpDate","TYPE"),all.x=T)
-
+  
   #sorting
   atmiv %>% dplyr::arrange(desc(TYPE),as.Date(ExpDate,format="%Y/%m/%d"),as.Date(Date,format="%Y/%m/%d")) -> atmiv
   opch %>% dplyr::arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="%Y/%m/%d"),desc(TYPE),Strike) -> opch
@@ -216,9 +216,9 @@ filterPosition <- function(opchain,HowfarOOM_MIN=-0.5,OOM_Limit_V=c(0.09,0.09)){
   
   #Calender Spread 
   OOM_Limit<-(OOM_Limit_V[1])
-  opchain %>%  dplyr::filter(ExpDate=="2015/11/19") %>% dplyr::filter(HowfarOOM<OOM_Limit)  %>% dplyr::filter((Strike%%10)==0) -> opchain_cal1
+  opchain %>%  dplyr::filter(ExpDate=="2015/12/17") %>% dplyr::filter(HowfarOOM<OOM_Limit)  %>% dplyr::filter((Strike%%10)==0) -> opchain_cal1
   OOM_Limit<-(OOM_Limit_V[2])
-  opchain %>%  dplyr::filter(ExpDate=="2015/12/17") %>% dplyr::filter(HowfarOOM<OOM_Limit)  %>% dplyr::filter((Strike%%10)==0) -> opchain_cal2
+  opchain %>%  dplyr::filter(ExpDate=="2016/1/14") %>% dplyr::filter(HowfarOOM<OOM_Limit)  %>% dplyr::filter((Strike%%10)==0) -> opchain_cal2
   
   #Join
   opchain_cal1 %>%  dplyr::full_join(opchain_cal2) %>% 
