@@ -17,6 +17,8 @@ EvalFnc_Posnum,c(3$4)
 EvalFnc_Tail_rate,0.4
 EvalFnc_LossLimitPrice,30000
 EvalFnc_HV_IV_Adjust_Ratio,0.85
+#Drift % for weight calculation. annualized
+EvalFnc_Weight_Drift,0.08
 ## _Thresh_Minus|Plus
 EvalFnc_Delta_Thresh_Minus,c(-30$-30$-30$-30$-30$-30$-30$-30$-30$-30)
 EvalFnc_Delta_Thresh_Plus,c(30$30$30$30$30$30$30$30$30$30)
