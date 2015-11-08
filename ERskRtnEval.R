@@ -31,12 +31,12 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   udlChgPct<-seq(-udlStepPct*udlStepNum,udlStepPct*udlStepNum,length=(2*udlStepNum)+1)
   
   #weighting calculate
-  sd_multp<- (1)
-  anlzd_sd<-histIV$IVIDX[1]*Setting$HV_IV_Adjust_Ratio
-  sd_hd<-(anlzd_sd/sqrt(252/sd_multp))
+  #sd_multp<- (1)
+  #anlzd_sd<-histIV$IVIDX[1]*Setting$HV_IV_Adjust_Ratio
+  #sd_hd<-(anlzd_sd/sqrt(252/sd_multp))
   #f.y.i sd_hd<-exp(anlzd_sd*sqrt(sd_multp/252))-1 #exponential expression
-  weight<-dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd / sum(dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd)
-  if(isDebug){cat(":(weight 1stDay)",weight)}
+  #weight<-dnorm(udlChgPct,mean=sd_multp/252*Setting$Weight_Drift,sd=sd_hd)*sd_hd / sum(dnorm(udlChgPct,mean=sd_multp/252*Setting$Weight_Drift,sd=sd_hd)*sd_hd)
+  #if(isDebug){cat(":(weight 1stDay)",weight)}
   
   #dATMIV/dIVIDX 1 day regression result
   posStepDays<-data.frame(days=c(1,Setting$holdDays))
@@ -91,7 +91,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   anlzd_sd<-histIV$IVIDX[1]*Setting$HV_IV_Adjust_Ratio
   sd_hd<-(anlzd_sd/sqrt(252/sd_multp))
   #f.y.i sd_hd<-exp(anlzd_sd*sqrt(sd_multp/252))-1 #exponential expression
-  weight<-dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd / sum(dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd)
+  weight<-dnorm(udlChgPct,mean=sd_multp/252*Setting$Weight_Drift,sd=sd_hd)*sd_hd / sum(dnorm(udlChgPct,mean=sd_multp/252*Setting$Weight_Drift,sd=sd_hd)*sd_hd)
   if(isDetail){cat(":(weight hdday)",weight)}
   
   #vertical (Implied Volatility) weight
