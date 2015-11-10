@@ -31,7 +31,9 @@ ResultFiles_Path_G=ConfigParameters["ResultFiles_Path_G",1]
 
 #switch: only for today or multiple days for skew calculation
 ProcessFileName=paste("_OPChain_Pre.csv",sep="")
-isSkewCalc=F
+isSkewCalc=T
+#set TRUE if this opchain is for Future Option 
+isFOP=T
 #set TRUE if this is today's new position, or (already holding position) set FALSE,
 isNewPosition=T
 TargetFileName=paste("_Positions_Pre_",Sys.Date(),".csv",sep="")
@@ -66,7 +68,61 @@ makeOpchainContainer<-function(){
   return(opch_pr_)
 }
 
-opchain<-makeOpchainContainer()
+
+makeFOPChainContainer<-function(){  
+  #read data file
+  rf_<-paste(DataFiles_Path_G,Underying_Symbol_G,ProcessFileName,sep="")
+  opch_pr_<-read.table(rf_,header=T,sep=",")
+  
+  opch_pr_ %>% select(Strike,ContactName,TYPE,Date,ExpDate,Last,Bid,Ask) %>% 
+    arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="%Y/%m/%d"),desc(TYPE),Strike) -> opch_pr_
+  
+  opch_pr_$Price<-(opch_pr_$Bid+opch_pr_$Ask)/2
+  #standarize (unify) data expression
+  opch_pr_$Date=format(as.Date(opch_pr_$Date,format="%Y/%m/%d"),"%Y/%b/%d")
+  opch_pr_$ExpDate=format(as.Date(opch_pr_$ExpDate,format="%Y/%m/%d"),"%Y/%b/%d")
+  
+  #read historical price
+  rf_<-paste(DataFiles_Path_G,Underying_Symbol_G,"FUT.csv",sep="")
+  futPrc_<-read.table(rf_,header=T,sep=",",nrows=1000)
+  futPrc_$UDLY=(futPrc_$Bid+futPrc_$Ask)/2
+  futPrc_ %>% select(ContactName,Date,ExpDate,UDLY) %>% 
+    arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="%Y/%m/%d")) -> futPrc_
+  #standarize (unify) data expression
+  futPrc_$Date=format(as.Date(futPrc_$Date,format="%Y/%m/%d"),"%Y/%b/%d")
+  futPrc_$ExpDate=format(as.Date(futPrc_$ExpDate,format="%Y/%m/%d"),"%Y/%b/%d")
+  #Change Column names into Future Specefic
+  futPrc_$FutContactName=futPrc_$ContactName
+  futPrc_$ContactName=NULL
+  futPrc_$FutExpDate=futPrc_$ExpDate
+  futPrc_$ExpDate=NULL
+  
+  #Selecting Appropriate FutExPDate and UDLY
+  opch_pr_ %>% left_join(futPrc_,by="Date") -> tmp
+  tmp$Tdiff = as.numeric(difftime(as.Date(tmp$FutExpDate,format="%Y/%m/%d"),as.Date(tmp$ExpDate,format="%Y/%m/%d")), units="days")
+  tmp %>% filter(Tdiff>=0) -> tmp
+  tmp %>% group_by(Strike,ContactName,Date,ExpDate,TYPE,Bid,Ask,Price) %>% summarise(UDLY=UDLY[which.min(Tdiff)],FutExpDate=FutExpDate[which.min(Tdiff)],
+                                                           TdiffMin=min(Tdiff)) %>% as.data.frame() -> tmp
+  tmp %>% arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="%Y/%m/%d"),desc(TYPE),Strike) -> tmp
+  
+  #reassigne tmp as opch_pr_
+  #add Greek and IV columns
+  opch_pr_ <- tmp
+  opch_pr_$Position<-0
+  opch_pr_$Theta<-opch_pr_$Vega<-opch_pr_$Gamma<-opch_pr_$Delta<-0
+  opch_pr_$IV<-opch_pr_$OrigIV<-opch_pr_$Rho<-0
+  #remove unnecessary columns
+  opch_pr_$TdiffMin<-NULL
+  
+  return(opch_pr_)
+}
+
+#create Option Chain Container
+if(!isFOP){
+  opchain<-makeOpchainContainer()
+}else{
+  opchain <- makeFOPChainContainer()
+}
 
 #inconsistent data purged
 opchain %>% filter(Price!=0) -> opchain
