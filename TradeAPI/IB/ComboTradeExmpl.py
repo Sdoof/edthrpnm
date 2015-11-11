@@ -59,6 +59,28 @@ def makeOptContract(sym, exp, strike, right):
     newOptContract.m_currency = "USD"
     return newOptContract
 
+def makeFxFutContract(sym, exp, multip):
+    newFutContract = Contract()
+    newFutContract.m_symbol = sym
+    newFutContract.m_secType = "FUT"
+    newFutContract.m_expiry = exp
+    newFutContract.m_multiplier = multip
+    newFutContract.m_exchange = "GLOBEX"
+    newFutContract.m_currency = "USD"
+    return newFutContract
+
+def makeFxFutOptContract(sym, exp, strike, right, multip):
+    newOptContract = Contract()
+    newOptContract.m_symbol = sym
+    newOptContract.m_secType = "FOP"
+    newOptContract.m_expiry = exp
+    newOptContract.m_strike = strike
+    newOptContract.m_right = right
+    newOptContract.m_multiplier = multip
+    newOptContract.m_exchange = "GLOBEX"
+    newOptContract.m_currency = "USD"
+    return newOptContract
+
 def makeComboLeg(conId, action, ratio):
     newComboLeg = ComboLeg()
     newComboLeg.m_conId = conId
