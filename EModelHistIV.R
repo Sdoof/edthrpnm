@@ -69,18 +69,23 @@ rm(PC3dCtC_IVCF3dCtC)
 
 ##5d
 PC5dCtC=PC5dCtC[start_day_:(start_day_+num_day_)]
+na.omit(PC5dCtC)  %>% as.vector() -> PC5dCtC
 IVCF5dCtC=IVCF5dCtC[start_day_:(start_day_+num_day_)]
+na.omit(IVCF5dCtC)  %>% as.vector() -> IVCF5dCtC
+PC5dCtC=PC5dCtC[1:min(length(PC5dCtC),length(IVCF5dCtC))]
+IVCF5dCtC=IVCF5dCtC[1:min(length(PC5dCtC),length(IVCF5dCtC))]
 P2IV5d <- data.frame(PCIV5dCtC=PC5dCtC, IVCF5dCtC=IVCF5dCtC)
 (gg_<-ggplot(P2IV5d,aes(x=PCIV5dCtC,y=IVCF5dCtC))+geom_point())
-co<-cor(PCIV5dCtC[start_day_:(start_day_+num_day_)],IVCF5dCtC[start_day_:(start_day_+num_day_)])
+
+#co<-cor(PCIV5dCtC[start_day_:(start_day_+min(num_day_,nrow(P2IV5d)))],IVCF5dCtC[start_day_:(start_day_+min(num_day_,nrow(P2IV5d)))])
 #linear regression
-norns.lm<-lm(IVCF5dCtC~PCIV5dCtC, data=P2IV5d)
-summary(norns.lm)
-gg_+geom_abline(intercept=norns.lm$coefficient[1],slope=norns.lm$coefficient[2],color="orange")
+#norns.lm<-lm(IVCF5dCtC~PCIV5dCtC, data=P2IV5d)
+#summary(norns.lm)
+#gg_+geom_abline(intercept=norns.lm$coefficient[1],slope=norns.lm$coefficient[2],color="orange")
 
 P2IV5d <- data.frame(PC5dCtC=PC5dCtC, IVCF5dCtC=IVCF5dCtC)
 (gg_<-ggplot(P2IV5d,aes(x=PC5dCtC,y=IVCF5dCtC))+geom_point())
-co<-cor(PC5dCtC[start_day_:(start_day_+num_day_)],IVCF5dCtC[start_day_:(start_day_+num_day_)])
+co<-cor(PC5dCtC[start_day_:min((start_day_+num_day_),length(PC5dCtC))],IVCF5dCtC[start_day_:min((start_day_+num_day_),length(IVCF5dCtC))])
 #linear regression
 norns.lm<-lm(IVCF5dCtC~PC5dCtC, data=P2IV5d)
 summary(norns.lm)
