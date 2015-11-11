@@ -18,7 +18,7 @@ ResultFiles_Path_G=ConfigParameters["ResultFiles_Path_G",1]
 EvalPos_fn=paste(ResultFiles_Path_G,Underying_Symbol_G,"_EvalPosition.csv",sep='')
 
 #Here you spicify which position should be analyzed.
-eval_pos_idx=27
+eval_pos_idx=1
 
 #UDLY draw limit. given absolute % value
 UDLY_DrawRange<-0.10
@@ -79,12 +79,12 @@ tmp<-read.table(EvalPos_fn,header=F,sep=",",colClasses="numeric")
 evaPos<-unlist(tmp[eval_pos_idx,])[1:length(opchain$Position)]
 
 #Load Regression and Correlation Parameters
-load.PC2IV(PC="PC3dCtC",IVC="IVCF3dCtC")
-PC3dCtC_IVCF3dCtC
-load.PC2IV(PC="PC5dCtC",IVC="IVCF5dCtC")
-PC5dCtC_IVCF5dCtC
-load.PC2IV(PC="PC7dCtC",IVC="IVCF7dCtC")
-PC7dCtC_IVCF7dCtC
+#load.PC2IV(PC="PC3dCtC",IVC="IVCF3dCtC")
+#PC3dCtC_IVCF3dCtC
+#load.PC2IV(PC="PC5dCtC",IVC="IVCF5dCtC")
+#PC5dCtC_IVCF5dCtC
+#load.PC2IV(PC="PC7dCtC",IVC="IVCF7dCtC")
+#PC7dCtC_IVCF7dCtC
 load.PC2IV(PC="PC1dCtC",IVC="IVCF1dCtC")
 PC1dCtC_IVCF1dCtC
 #load.PC2IV(PC="PC1dCtO",IVC="IVCF1dCtO")
@@ -180,8 +180,8 @@ draw_line_step_size=(draw_line_size_max-draw_line_size_min)/(draw_line_steps-1)
 draw_line_size=draw_line_size_min + draw_line_step_size*(ceiling((drawGrktbl$day-1)/stepdays))
 #draw_line_type vector is ascending ordered
 draw_line_type=rev(length(evaldays)-ceiling((drawGrktbl$day-1)/stepdays))
-#draw_line_type vector is descending ordered
-#draw_line_type=length(evaldays)-ceiling((drawGrktbl$day-1)/stepdays)
+#drawdraw_line_type_line_type vector is descending ordered
+#=length(evaldays)-ceiling((drawGrktbl$day-1)/stepdays)
 
 #first day line_type made blank
 if(FirstDayLineMadeBlank){
