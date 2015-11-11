@@ -31,7 +31,7 @@ ResultFiles_Path_G=ConfigParameters["ResultFiles_Path_G",1]
 
 #switch: only for today or multiple days for skew calculation
 ProcessFileName=paste("_OPChain_Pre.csv",sep="")
-isSkewCalc=T
+isSkewCalc=F
 #set TRUE if this opchain is for Future Option 
 isFOP=T
 #set TRUE if this is today's new position, or (already holding position) set FALSE,
@@ -46,6 +46,10 @@ makeOpchainContainer<-function(){
   rf_<-paste(DataFiles_Path_G,Underying_Symbol_G,ProcessFileName,sep="")
   opch_pr_<-read.table(rf_,header=T,sep=",")
   
+  #standarize (unify) data expression
+  opch_pr_$Date=format(as.Date(opch_pr_$Date,format="%Y/%m/%d"),"%Y/%b/%d")
+  opch_pr_$ExpDate=format(as.Date(opch_pr_$ExpDate,format="%Y/%m/%d"),"%Y/%b/%d")
+  
   opch_pr_ %>% select(Strike,ContactName,TYPE,Date,ExpDate,Last,Bid,Ask) %>% 
     arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="%Y/%m/%d"),desc(TYPE),Strike) -> opch_pr_
   
@@ -59,6 +63,8 @@ makeOpchainContainer<-function(){
   rf_<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Hist.csv",sep="")
   histPrc_<-read.table(rf_,header=T,sep=",",nrows=1000)
   histPrc_<-data.frame(Date=histPrc_$Date,UDLY=histPrc_$Close)
+  #standarize (unify) data expression
+  histPrc_$Date=format(as.Date(histPrc_$Date,format="%Y/%m/%d"),"%Y/%b/%d")
   
   #remove not used row
   #opch_pr_<-subset(opch_pr_,Volume!=0)
@@ -185,9 +191,16 @@ adjustATMIV <- function(atmiv){
 #  ATMIV IVIDX Moneyness etc. calculation for the opchain to be completed.
 
 makePosition <- function(opch){
+  
+  #standarize (unify) data expression
+  opch$Date=format(as.Date(opch$Date,format="%Y/%m/%d"),"%Y/%b/%d")
+  opch$ExpDate=format(as.Date(opch$ExpDate,format="%Y/%m/%d"),"%Y/%b/%d")
+  
   rf_<-paste(DataFiles_Path_G,Underying_Symbol_G,"_IV.csv",sep="")
   histIV<-read.table(rf_,header=T,sep=",",nrows=1000)
   rm(rf_)
+  #standarize (unify) data expression
+  histIV$Date=format(as.Date(histIV$Date,format="%Y/%m/%d"),"%Y/%b/%d")
   
   #
   # volatility and moneyness calculation complete
@@ -196,7 +209,9 @@ makePosition <- function(opch){
   opch$Last<-opch$Bid<-opch$Ask<-opch$Ask<-opch$Volume<-opch$OI<-NULL
   #Histrical Volatility(Index). VOlatility % to DN. Column name Close to IVIDX
   histIV<-data.frame(Date=histIV$Date,IVIDX=(histIV$Close/100))
+  
   ##Historical Implied Volatility(index) merge
+  
   opch<-merge(opch,histIV,all.x=T)
   rm(histIV)
   
@@ -261,6 +276,7 @@ makePosition <- function(opch){
   return(opchain)
 }
 
+
 opchain<-makePosition(opchain)
 
 filterPosition <- function(opchain,HowfarOOM_MIN=-0.5,OOM_Limit_V=c(0.09,0.09)){
@@ -272,9 +288,29 @@ filterPosition <- function(opchain,HowfarOOM_MIN=-0.5,OOM_Limit_V=c(0.09,0.09)){
   
   #Calender Spread 
   OOM_Limit<-(OOM_Limit_V[1])
-  opchain %>%  dplyr::filter(ExpDate=="2015/12/17") %>% dplyr::filter(HowfarOOM<OOM_Limit)  %>% dplyr::filter((Strike%%10)==0) -> opchain_cal1
+  opchain %>%  dplyr::filter(ExpDate=="2015/12/04") %>% dplyr::filter(HowfarOOM<OOM_Limit)  %>% dplyr::filter((Strike%%10)==0) -> opchain_cal1
   OOM_Limit<-(OOM_Limit_V[2])
-  opchain %>%  dplyr::filter(ExpDate=="2016/1/14") %>% dplyr::filter(HowfarOOM<OOM_Limit)  %>% dplyr::filter((Strike%%10)==0) -> opchain_cal2
+  opchain %>%  dplyr::filter(ExpDate=="2016/1/08") %>% dplyr::filter(HowfarOOM<OOM_Limit)  %>% dplyr::filter((Strike%%10)==0) -> opchain_cal2
+  
+  #Join
+  opchain_cal1 %>%  dplyr::full_join(opchain_cal2) %>% 
+    dplyr::arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="%Y/%m/%d"),desc(TYPE),Strike) -> opchain
+  
+  return(opchain)
+}
+
+filterForFOPPosition <- function(opchain,HowfarOOM_MIN=0,OOM_Limit_V=c(0.09,0.09)){
+  ##
+  #  Filter Target Ranges
+  
+  #Only OOM
+  opchain %>% dplyr::filter(HowfarOOM>=HowfarOOM_MIN) -> opchain
+  
+  #Calender Spread 
+  OOM_Limit<-(OOM_Limit_V[1])
+  opchain %>%  dplyr::filter(ExpDate=="2015/12/04") %>% dplyr::filter(HowfarOOM<OOM_Limit) -> opchain_cal1
+  OOM_Limit<-(OOM_Limit_V[2])
+  opchain %>%  dplyr::filter(ExpDate=="2016/1/08") %>% dplyr::filter(HowfarOOM<OOM_Limit) -> opchain_cal2
   
   #Join
   opchain_cal1 %>%  dplyr::full_join(opchain_cal2) %>% 
@@ -285,7 +321,10 @@ filterPosition <- function(opchain,HowfarOOM_MIN=-0.5,OOM_Limit_V=c(0.09,0.09)){
 
 if(!isSkewCalc){
   if(isNewPosition)
-    opchain<-filterPosition(opchain)
+    if(!isFOP)
+      opchain<-filterPosition(opchain)
+    else
+      opchain<-filterForFOPPosition(opchain)
 }
 
 #select and sort
