@@ -79,12 +79,12 @@ tmp<-read.table(EvalPos_fn,header=F,sep=",",colClasses="numeric")
 evaPos<-unlist(tmp[eval_pos_idx,])[1:length(opchain$Position)]
 
 #Load Regression and Correlation Parameters
-#load.PC2IV(PC="PC3dCtC",IVC="IVCF3dCtC")
-#PC3dCtC_IVCF3dCtC
-#load.PC2IV(PC="PC5dCtC",IVC="IVCF5dCtC")
-#PC5dCtC_IVCF5dCtC
-#load.PC2IV(PC="PC7dCtC",IVC="IVCF7dCtC")
-#PC7dCtC_IVCF7dCtC
+load.PC2IV(PC="PC3dCtC",IVC="IVCF3dCtC")
+PC3dCtC_IVCF3dCtC
+load.PC2IV(PC="PC5dCtC",IVC="IVCF5dCtC")
+PC5dCtC_IVCF5dCtC
+load.PC2IV(PC="PC7dCtC",IVC="IVCF7dCtC")
+PC7dCtC_IVCF7dCtC
 load.PC2IV(PC="PC1dCtC",IVC="IVCF1dCtC")
 PC1dCtC_IVCF1dCtC
 #load.PC2IV(PC="PC1dCtO",IVC="IVCF1dCtO")
