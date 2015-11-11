@@ -231,9 +231,7 @@ def writeToFile(sectype,symbol):
     file.close()
 
 # -- main  ---------------------------------------------------------------------
-opContractList = [makeOptContract(sym='N225', exp='20151112', strike='', right='C'),
-                  makeOptContract(sym='N225', exp='20151112', strike='', right='C'),
-                  makeOptContract(sym='N225', exp='20151112', strike='', right='P'),
+opContractList = [makeOptContract(sym='N225', exp='20151210', strike='', right='C'),
                   makeOptContract(sym='N225', exp='20151210', strike='', right='C'),
                   makeOptContract(sym='N225', exp='20151210', strike='', right='P'),
                   makeOptContract(sym='N225', exp='20160107', strike='', right='C'),
