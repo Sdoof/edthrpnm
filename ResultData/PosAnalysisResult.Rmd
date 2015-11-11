@@ -143,9 +143,9 @@ histIV %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")<=max(as.Date(opchain$Da
   dplyr::arrange(desc(as.Date(Date,format="%Y/%m/%d"))) %>% head(n=dviv_caldays) -> histIV
 
 #Load Regression and Correlation Parameters
-load.PC2IV(PC="PC3dCtC",IVC="IVCF3dCtC")
-load.PC2IV(PC="PC5dCtC",IVC="IVCF5dCtC")
-load.PC2IV(PC="PC7dCtC",IVC="IVCF7dCtC")
+#load.PC2IV(PC="PC3dCtC",IVC="IVCF3dCtC")
+#load.PC2IV(PC="PC5dCtC",IVC="IVCF5dCtC")
+#load.PC2IV(PC="PC7dCtC",IVC="IVCF7dCtC")
 load.PC2IV(PC="PC1dCtC",IVC="IVCF1dCtC")
 #load.PC2IV(PC="PC1dCtO",IVC="IVCF1dCtO")
 #PC1dCtO_IVCF1dCtO
