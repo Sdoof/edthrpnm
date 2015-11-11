@@ -32,6 +32,10 @@ histPrc_<-read.table(rf_,header=T,sep=",",nrows=550)
 rf_<-paste(DataFiles_Path_G,Underying_Symbol_G,"_IV.csv",sep="")
 histIV_<-read.table(rf_,header=T,sep=",",nrows=550)
 rm(rf_)
+#show Realized and Impled Volatility
+cat("Realized Vol(30d anlzd)",annuual.daily.volatility(histPrc_$Close[1:30])$anlzd*100,"IV",histIV_$Close[1])
+cat("Realized Vol(60d anlzd)",annuual.daily.volatility(histPrc_$Close[1:60])$anlzd*100,"IV",histIV_$Close[1])
+cat("Realized Vol(200d anlzd)",annuual.daily.volatility(histPrc_$Close[1:200])$anlzd*100,"IV",histIV_$Close[1])
 
 #data construct
 PC5dCtC  <- PCndCtC(hist=histPrc_$Close,n=5)
