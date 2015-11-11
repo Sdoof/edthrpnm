@@ -34,7 +34,7 @@ if(length(grep("2", ConfigFileName_G))<1 && length(grep("3", ConfigFileName_G))<
   st <- paste("powershell.exe -Command \" Get-Content  .\\ResultData\\EvalCnd-.csv | Out-File -Filepath .\\ResultData\\EvalCnd-2.csv -Encoding default  \"")
   #st <- "powershell.exe -Command \" Get-ChildItem ..\\edthrpnm3\\ResultData\\EvalCnd.csv |  Out-File -Filepath  .\\ResultData\\EvalCnd--.csv \" "
   system(st) ;rm(st)
- 
+  
   theCand<-"EvalCnd.csv"
   
 }
@@ -54,7 +54,7 @@ if(length(grep("2", ConfigFileName_G))>=1) {
   system(st) ;rm(st)
   
   theCand<-"EvalCnd2.csv"
-
+  
 }
 
 #edthrpnm3
@@ -114,13 +114,26 @@ st <- "powershell.exe -Command \" Remove-Item .\\ResultData\\EvalCnd-2.csv  \""
 system(st) ;rm(st)
 
 #Separate into two groups. Theta > 0 and Theta<=0(Gamma positive)
-evalPositions %>% filter(ThetaEffect>0) %>% distinct() -> evalPositions_Theta
-rownames(evalPositions_Theta) <- c(1:nrow(evalPositions_Theta))
-evalPositions %>% filter(ThetaEffect<=0) %>% distinct() -> evalPositions_Gamma
-rownames(evalPositions_Gamma) <- c(1:nrow(evalPositions_Gamma))
-
+tryCatch({
+  evalPositions %>% filter(ThetaEffect>0) %>% distinct() -> evalPositions_Theta
+  rownames(evalPositions_Theta) <- c(1:nrow(evalPositions_Theta))
+  write.table(evalPositions_Theta,paste(ResultFiles_Path_G,Underying_Symbol_G,"_EvalPosition_Theta.csv",sep=""),row.names
+              = F,col.names=F,sep=",",append=F)},
+  error=function(e){
+    message(e)
+  }
+)
+tryCatch({
+  evalPositions %>% filter(ThetaEffect<=0) %>% distinct() -> evalPositions_Gamma
+  rownames(evalPositions_Gamma) <- c(1:nrow(evalPositions_Gamma))
+  write.table(evalPositions_Gamma,paste(ResultFiles_Path_G,Underying_Symbol_G,"_EvalPosition_Gamma.csv",sep=""),row.names
+              = F,col.names=F,sep=",",append=F)},
+  error=function(e){
+    message(e)
+  }
+)
 #Write EvalPosition files
-write.table(evalPositions,paste(ResultFiles_Path_G,Underying_Symbol_G,"_EvalPosition.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
-write.table(evalPositions_Theta,paste(ResultFiles_Path_G,Underying_Symbol_G,"_EvalPosition_Theta.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
-write.table(evalPositions_Gamma,paste(ResultFiles_Path_G,Underying_Symbol_G,"_EvalPosition_Gamma.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
+write.table(evalPositions,paste(ResultFiles_Path_G,Underying_Symbol_G,"_EvalPosition.csv",sep=""),row.names
+            = F,col.names=F,sep=",",append=F)
+
 rm(list=ls())
