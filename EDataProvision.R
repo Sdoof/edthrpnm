@@ -112,8 +112,14 @@ makeFOPChainContainer<-function(){
   tmp %>% arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="%Y/%m/%d"),desc(TYPE),Strike) -> tmp
   
   #reassigne tmp as opch_pr_
-  #add Greek and IV columns
   opch_pr_ <- tmp
+  
+  ##
+  ## TO BE DONE.
+  # UDLY: Forward Price -> Non Forward Price(nearly equal Spot Price)
+  #       because we reflect Interest Rate differnce on BS Equation.
+  
+  #add Greek and IV columns
   opch_pr_$Position<-0
   opch_pr_$Theta<-opch_pr_$Vega<-opch_pr_$Gamma<-opch_pr_$Delta<-0
   opch_pr_$IV<-opch_pr_$OrigIV<-opch_pr_$Rho<-0
