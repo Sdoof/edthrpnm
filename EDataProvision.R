@@ -123,13 +123,16 @@ makeFOPChainContainer<-function(){
   opch_pr_ %>% group_by(UDLY) %>% summarise(DateToFutExpDate=DateToFutExpDate[which.min(DateToFutExpDate)],
                                             Date=Date[which.min(DateToFutExpDate)],
                                             FutExpDate=FutExpDate[which.min(DateToFutExpDate)]) %>% as.data.frame() -> tmp
+  tmp %>% arrange(desc(as.Date(Date,format="%Y/%m/%d")),as.Date(FutExpDate,format="%Y/%m/%d")) -> tmp
   # approximate forward rate by using 2 latest FUT Price, solving the equation that the 1st FUT's Spot price equals 2nd one.
   # for the details, consult paper specification
   fwrd_rate=divYld_G
-  tmp$UDLY[1]*(1+fwrd_rate*tmp$DateToFutExpDate[1])/(1+riskFreeRate_G*tmp$DateToFutExpDate[1])
-  tmp$UDLY[2]*(1+fwrd_rate*tmp$DateToFutExpDate[2])/(1+riskFreeRate_G*tmp$DateToFutExpDate[2])
-  A_tmp=tmp$UDLY[2]/tmp$UDLY[1]*(1+riskFreeRate_G*tmp$DateToFutExpDate[1])/(1+riskFreeRate_G*tmp$DateToFutExpDate[2])
-  fwrd_rate=(A_tmp-1)/(tmp$DateToFutExpDate[1]-A_tmp*tmp$DateToFutExpDate[2])
+  if(nrow(tmp)>=2){
+    tmp$UDLY[1]*(1+fwrd_rate*tmp$DateToFutExpDate[1])/(1+riskFreeRate_G*tmp$DateToFutExpDate[1])
+    tmp$UDLY[2]*(1+fwrd_rate*tmp$DateToFutExpDate[2])/(1+riskFreeRate_G*tmp$DateToFutExpDate[2])
+    A_tmp=tmp$UDLY[2]/tmp$UDLY[1]*(1+riskFreeRate_G*tmp$DateToFutExpDate[1])/(1+riskFreeRate_G*tmp$DateToFutExpDate[2])
+    fwrd_rate=(A_tmp-1)/(tmp$DateToFutExpDate[1]-A_tmp*tmp$DateToFutExpDate[2])
+  }
   opch_pr_$UDLY=opch_pr_$UDLY*(1+fwrd_rate*opch_pr_$DateToFutExpDate)/(1+riskFreeRate_G*opch_pr_$DateToFutExpDate)
   ##
   # set the estimaed forward rate as global variable divYld_G
@@ -148,7 +151,10 @@ if(!isFOP){
   opchain<-makeOpchainContainer()
 }else{
   opchain <- makeFOPChainContainer()
+  cat("(:divYld_G)",divYld_G,"\n")
 }
+
+
 
 #inconsistent data purged
 opchain %>% filter(Price!=0) -> opchain
