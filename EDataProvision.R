@@ -113,18 +113,34 @@ makeFOPChainContainer<-function(){
   
   #reassigne tmp as opch_pr_
   opch_pr_ <- tmp
+  #remove unnecessary columns
+  opch_pr_$TdiffMin<-NULL
   
   ##
-  ## TO BE DONE.
-  # UDLY: Forward Price -> Non Forward Price(nearly equal Spot Price)
-  #       because we reflect Interest Rate differnce on BS Equation.
+  # Approximate Forward Rate
+  time_DateToFutExpDate=as.numeric(difftime(as.Date(opch_pr_$FutExpDate,format="%Y/%m/%d"),as.Date(opch_pr_$Date,format="%Y/%m/%d")), units="days")/365
+  opch_pr_$DateToFutExpDate=time_DateToFutExpDate
+  opch_pr_ %>% group_by(UDLY) %>% summarise(DateToFutExpDate=DateToFutExpDate[which.min(DateToFutExpDate)],
+                                            Date=Date[which.min(DateToFutExpDate)],
+                                            FutExpDate=FutExpDate[which.min(DateToFutExpDate)]) %>% as.data.frame() -> tmp
+  
+  ##
+  # approximate forward rate by using 2 latest FUT Price, solving the equation that the 1st FUT's Spot price equals 2nd one.
+  # for the details, consult paper specification
+  fwrd_rate=divYld_G
+  tmp$UDLY[1]*(1+fwrd_rate*tmp$DateToFutExpDate[1])/(1+riskFreeRate_G*tmp$DateToFutExpDate[1])
+  tmp$UDLY[2]*(1+fwrd_rate*tmp$DateToFutExpDate[2])/(1+riskFreeRate_G*tmp$DateToFutExpDate[2])
+  A_tmp=tmp$UDLY[2]/tmp$UDLY[1]*(1+riskFreeRate_G*tmp$DateToFutExpDate[1])/(1+riskFreeRate_G*tmp$DateToFutExpDate[2])
+  fwrd_rate=(A_tmp-1)/(tmp$DateToFutExpDate[1]-A_tmp*tmp$DateToFutExpDate[2])
+  opch_pr_$UDLY=opch_pr_$UDLY*(1+fwrd_rate*opch_pr_$DateToFutExpDate)/(1+riskFreeRate_G*opch_pr_$DateToFutExpDate)
+  ##
+  # set the estimaed forward rate as gloval variable divYld_G
+  divYld_G <<- fwrd_rate
   
   #add Greek and IV columns
   opch_pr_$Position<-0
   opch_pr_$Theta<-opch_pr_$Vega<-opch_pr_$Gamma<-opch_pr_$Delta<-0
   opch_pr_$IV<-opch_pr_$OrigIV<-opch_pr_$Rho<-0
-  #remove unnecessary columns
-  opch_pr_$TdiffMin<-NULL
   
   return(opch_pr_)
 }
