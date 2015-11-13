@@ -123,8 +123,6 @@ makeFOPChainContainer<-function(){
   opch_pr_ %>% group_by(UDLY) %>% summarise(DateToFutExpDate=DateToFutExpDate[which.min(DateToFutExpDate)],
                                             Date=Date[which.min(DateToFutExpDate)],
                                             FutExpDate=FutExpDate[which.min(DateToFutExpDate)]) %>% as.data.frame() -> tmp
-  
-  ##
   # approximate forward rate by using 2 latest FUT Price, solving the equation that the 1st FUT's Spot price equals 2nd one.
   # for the details, consult paper specification
   fwrd_rate=divYld_G
@@ -134,7 +132,7 @@ makeFOPChainContainer<-function(){
   fwrd_rate=(A_tmp-1)/(tmp$DateToFutExpDate[1]-A_tmp*tmp$DateToFutExpDate[2])
   opch_pr_$UDLY=opch_pr_$UDLY*(1+fwrd_rate*opch_pr_$DateToFutExpDate)/(1+riskFreeRate_G*opch_pr_$DateToFutExpDate)
   ##
-  # set the estimaed forward rate as gloval variable divYld_G
+  # set the estimaed forward rate as global variable divYld_G
   divYld_G <<- fwrd_rate
   
   #add Greek and IV columns
