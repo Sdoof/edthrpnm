@@ -59,24 +59,24 @@ def makeOptContract(sym, exp, strike, right):
     newOptContract.m_currency = "USD"
     return newOptContract
 
-def makeFxFutContract(sym, exp, multip):
+def makeFxFutContract(sym, exp):
     newFutContract = Contract()
     newFutContract.m_symbol = sym
     newFutContract.m_secType = "FUT"
     newFutContract.m_expiry = exp
-    newFutContract.m_multiplier = multip
+    newFutContract.m_multiplier = ""
     newFutContract.m_exchange = "GLOBEX"
     newFutContract.m_currency = "USD"
     return newFutContract
 
-def makeFxFutOptContract(sym, exp, strike, right, multip):
+def makeFxFutOptContract(sym, exp, strike, right):
     newOptContract = Contract()
     newOptContract.m_symbol = sym
     newOptContract.m_secType = "FOP"
     newOptContract.m_expiry = exp
     newOptContract.m_strike = strike
     newOptContract.m_right = right
-    newOptContract.m_multiplier = multip
+    newOptContract.m_multiplier = ""
     newOptContract.m_exchange = "GLOBEX"
     newOptContract.m_currency = "USD"
     return newOptContract
@@ -86,17 +86,17 @@ def makeComboLeg(conId, action, ratio):
     newComboLeg.m_conId = conId
     newComboLeg.m_ratio = ratio
     newComboLeg.m_action = action
-    newComboLeg.m_exchange = "SMART"
+    newComboLeg.m_exchange = "GLOBEX"
     newComboLeg.m_openClose = 0
     newComboLeg.m_shortSaleSlot = 0
     newComboLeg.m_designatedLocation = ""
     return newComboLeg
 
-def makeBagContract(legs):
+def makeBagContract(legs,symbol):
     newBagContract = Contract()
-    newBagContract.m_symbol = "USD"
+    newBagContract.m_symbol = symbol
     newBagContract.m_secType = "BAG"
-    newBagContract.m_exchange = "SMART"
+    newBagContract.m_exchange = "GLOBEX"
     newBagContract.m_currency = "USD"
     newBagContract.m_comboLegs = legs
     return newBagContract
@@ -113,7 +113,7 @@ def makeOrder(action, qty, price):
     newOrder.m_transmit = False
     return newOrder
 
-def placeSpreadOrder(Leg, BuySell, ComboRatio, LimitPrice, QTY):
+def placeSpreadOrder(Leg, BuySell, ComboRatio, LimitPrice, QTY, symbol):
     global contractDetail, con, nextOrderId
     LegContract = None
     for legitem in range(len(Leg)):
@@ -140,8 +140,9 @@ def placeSpreadOrder(Leg, BuySell, ComboRatio, LimitPrice, QTY):
             LegsList.append(makeComboLeg(LegContract[legitem].m_conId, BuySell[legitem], ComboRatio[legitem]))
         else:
             LegsList = [makeComboLeg(LegContract[legitem].m_conId, BuySell[legitem], ComboRatio[legitem])]
-    # build a bag with these legs
-    BagContract = makeBagContract(LegsList)
+        print(LegContract[legitem].m_conId, BuySell[legitem], ComboRatio[legitem])
+    # build a bag with these
+    BagContract = makeBagContract(LegsList,symbol)
     # combination legs
     comboOrder = makeOrder(action="BUY", qty=QTY, price=LimitPrice)
     # place order
@@ -176,13 +177,14 @@ def placeEachLegOrder(Leg, BuySell, ComboRatio,lmtPrc):
         sleep(3)
         print('option order placed (orderId: ' + str(theOrderId))
 
-def processAPITicket(Symbol, Expiry, Strike, Right):
+
+def processFopAPITicket(Symbol, Expiry, Strike, Right):
     Leg_new = None
     for legid in range(len(Symbol)):
         if Leg_new:
-            Leg_new.append(makeOptContract(Symbol[legid], Expiry[legid], Strike[legid], Right[legid]))
+            Leg_new.append(makeFxFutOptContract(Symbol[legid], Expiry[legid], Strike[legid], Right[legid]))
         else:
-            Leg_new = [makeOptContract(Symbol[legid], Expiry[legid], Strike[legid], Right[legid])]
+            Leg_new = [makeFxFutOptContract(Symbol[legid], Expiry[legid], Strike[legid], Right[legid])]
     return Leg_new
 
 def makeLmtPrice(BuySell,bid,ask):
@@ -235,32 +237,22 @@ optionOrderAsk=600
 TicketPackages = []
 #First Ticket
 
-SymbolTicket = [ 'SPX','SPX','SPX' ]; ExpiryTicket = [ '20151204','20151204','20151204' ]; StrikeTicket = [ 1930,1990,2000 ] ; RightTicket = [ 'P','P','P' ]; BuySell = [ 'BUY','SELL','SELL' ]; ComboRatio = [ 1,1,1 ] ;LimitPrice_G =  -9000  ;QTY_G =  1
+SymbolTicket = [ 'EUR','EUR' ]; ExpiryTicket = [ '20160108','20160108' ]; StrikeTicket = [ 1.045,1.055 ] ; RightTicket = [ 'P','P' ]; BuySell = [ 'BUY','BUY' ]; ComboRatio = [ 1,1 ] ;LimitPrice_G =  -9000  ;QTY_G =  1
 
 theTicketPkg=createTicketPackage(SymbolTicket,ExpiryTicket,StrikeTicket,RightTicket,BuySell,ComboRatio,LimitPrice_G,QTY_G)
 TicketPackages.append(theTicketPkg)
 queTickets=deque(TicketPackages)
 
-SymbolTicket = [ 'SPX','SPX','SPX' ]; ExpiryTicket = [ '20151204','20151204','20151231' ]; StrikeTicket = [ 2030,2080,1920 ] ; RightTicket = [ 'P','P','P' ]; BuySell = [ 'SELL','BUY','BUY' ]; ComboRatio = [ 1,1,1 ] ;LimitPrice_G =  -9000  ;QTY_G =  1
+SymbolTicket = [ 'EUR','EUR' ]; ExpiryTicket = [ '20160205','20160205' ]; StrikeTicket = [ 1.01,1.035 ] ; RightTicket = [ 'P','P' ]; BuySell = [ 'SELL','SELL' ]; ComboRatio = [ 1,1 ] ;LimitPrice_G =  -9000  ;QTY_G =  1
 theTicketPkg=createTicketPackage(SymbolTicket,ExpiryTicket,StrikeTicket,RightTicket,BuySell,ComboRatio,LimitPrice_G,QTY_G)
 queTickets.append(theTicketPkg)
 
-SymbolTicket = [ 'SPX','SPX' ]; ExpiryTicket = [ '20151204','20151204' ]; StrikeTicket = [ 2080,2130 ] ; RightTicket = [ 'C','C' ]; BuySell = [ 'SELL','BUY' ]; ComboRatio = [ 1,1 ] ;LimitPrice_G =  -9000  ;QTY_G =  1
+SymbolTicket = [ 'EUR','EUR','EUR' ]; ExpiryTicket = [ '20160108','20160108','20160205' ]; StrikeTicket = [ 1.095,1.1,1.12 ] ; RightTicket = [ 'C','C','C' ]; BuySell = [ 'SELL','SELL','BUY' ]; ComboRatio = [ 1,1,2 ] ;LimitPrice_G =  -9000  ;QTY_G =  1
 theTicketPkg=createTicketPackage(SymbolTicket,ExpiryTicket,StrikeTicket,RightTicket,BuySell,ComboRatio,LimitPrice_G,QTY_G)
 queTickets.append(theTicketPkg)
 
 #Second Ticket
-SymbolTicket = [ 'RUT','RUT','RUT' ]; ExpiryTicket = [ '20151217','20160114','20160114' ]; StrikeTicket = [ 1190,1170,1190 ] ; RightTicket = [ 'P','P','P' ]; BuySell = [ 'SELL','BUY','BUY' ]; ComboRatio = [ 2,1,1 ] ;LimitPrice_G =  -9000  ;QTY_G =  1
-theTicketPkg=createTicketPackage(SymbolTicket,ExpiryTicket,StrikeTicket,RightTicket,BuySell,ComboRatio,LimitPrice_G,QTY_G)
-queTickets.append(theTicketPkg)
 
-SymbolTicket = [ 'RUT','RUT' ]; ExpiryTicket = [ '20151217','20151217' ]; StrikeTicket = [ 1190,1210 ] ; RightTicket = [ 'C','C' ]; BuySell = [ 'BUY','BUY' ]; ComboRatio = [ 1,1 ] ;LimitPrice_G =  -9000  ;QTY_G =  1
-theTicketPkg=createTicketPackage(SymbolTicket,ExpiryTicket,StrikeTicket,RightTicket,BuySell,ComboRatio,LimitPrice_G,QTY_G)
-queTickets.append(theTicketPkg)
-
-SymbolTicket = [ 'RUT','RUT' ]; ExpiryTicket = [ '20160114','20160114' ]; StrikeTicket = [ 1170,1220 ] ; RightTicket = [ 'C','C' ]; BuySell = [ 'SELL','SELL' ]; ComboRatio = [ 1,1 ] ;LimitPrice_G =  -9000  ;QTY_G =  1
-theTicketPkg=createTicketPackage(SymbolTicket,ExpiryTicket,StrikeTicket,RightTicket,BuySell,ComboRatio,LimitPrice_G,QTY_G)
-queTickets.append(theTicketPkg)
 
 # -- main  ------------------------------------------------------------------
 if __name__ == '__main__':
@@ -282,7 +274,7 @@ if __name__ == '__main__':
             QTY_G=tkpkg.qTY_G
 
             ## Makeing Leg Lists from APT Ticket
-            Leg = processAPITicket(SymbolTicket, ExpiryTicket, StrikeTicket, RightTicket)
+            Leg = processFopAPITicket(SymbolTicket, ExpiryTicket, StrikeTicket, RightTicket)
             ## Make sure each Sperad is correct
             print('------------- Spread')
             for legitem in range(len(Leg)):
@@ -304,7 +296,7 @@ if __name__ == '__main__':
             con.reqIds(1)
 
             ## place Spread Order
-            placeSpreadOrder(Leg, BuySell, ComboRatio, LimitPrice_G, QTY_G)
+            placeSpreadOrder(Leg, BuySell, ComboRatio, LimitPrice_G, QTY_G, symbol=Leg[1].m_symbol)
             con.reqOpenOrders()
             ans = raw_input('PLACING INDIVIDUAL LEG ORDER (yes or no)?')
             if ans == "yes":
