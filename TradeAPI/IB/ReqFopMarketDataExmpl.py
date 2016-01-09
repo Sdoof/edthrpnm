@@ -243,13 +243,7 @@ def writeToFile(sectype,symbol):
 
 # -- main  ---------------------------------------------------------------------
 fxFutOpContractList = [
-                       makeFxFutOptContract(sym='JPY', exp='20160108', strike='', right='C', multip=''),
-                       makeFxFutOptContract(sym='JPY', exp='20160108', strike='', right='C', multip=''),
-                       makeFxFutOptContract(sym='JPY', exp='20160108', strike='', right='P', multip=''),
-                       makeFxFutOptContract(sym='EUR', exp='20160108', strike='', right='C', multip=''),
-                       makeFxFutOptContract(sym='EUR', exp='20160108', strike='', right='P', multip=''),
-                       makeFxFutOptContract(sym='GBP', exp='20160108', strike='', right='C', multip=''),
-                       makeFxFutOptContract(sym='GBP', exp='20160108', strike='', right='P', multip=''),
+                       makeFxFutOptContract(sym='JPY', exp='20160205', strike='', right='C', multip=''),
                        makeFxFutOptContract(sym='JPY', exp='20160205', strike='', right='C', multip=''),
                        makeFxFutOptContract(sym='JPY', exp='20160205', strike='', right='P', multip=''),
                        makeFxFutOptContract(sym='EUR', exp='20160205', strike='', right='C', multip=''),
@@ -271,15 +265,15 @@ fxFutOpContractList = [
                        ]
 
 fxFutContractList = [
-                     makeFxFutContract(sym='JPY', exp='201512', multip=''),
-                     makeFxFutContract(sym='EUR', exp='201512', multip=''),
-                     makeFxFutContract(sym='GBP', exp='201512', multip=''),
                      makeFxFutContract(sym='JPY', exp='201603', multip=''),
                      makeFxFutContract(sym='EUR', exp='201603', multip=''),
                      makeFxFutContract(sym='GBP', exp='201603', multip=''),
                      makeFxFutContract(sym='JPY', exp='201606', multip=''),
                      makeFxFutContract(sym='EUR', exp='201606', multip=''),
-                     makeFxFutContract(sym='GBP', exp='201606', multip='')
+                     makeFxFutContract(sym='GBP', exp='201606', multip=''),
+                     makeFxFutContract(sym='JPY', exp='201609', multip=''),
+                     makeFxFutContract(sym='EUR', exp='201609', multip=''),
+                     makeFxFutContract(sym='GBP', exp='201609', multip='')
                      ]
 
 if __name__ == '__main__':
