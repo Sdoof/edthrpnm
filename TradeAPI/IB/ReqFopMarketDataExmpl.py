@@ -243,13 +243,7 @@ def writeToFile(sectype,symbol):
 
 # -- main  ---------------------------------------------------------------------
 fxFutOpContractList = [
-                       makeFxFutOptContract(sym='JPY', exp='20160205', strike='', right='C', multip=''),
-                       makeFxFutOptContract(sym='JPY', exp='20160205', strike='', right='C', multip=''),
-                       makeFxFutOptContract(sym='JPY', exp='20160205', strike='', right='P', multip=''),
-                       makeFxFutOptContract(sym='EUR', exp='20160205', strike='', right='C', multip=''),
-                       makeFxFutOptContract(sym='EUR', exp='20160205', strike='', right='P', multip=''),
-                       makeFxFutOptContract(sym='GBP', exp='20160205', strike='', right='C', multip=''),
-                       makeFxFutOptContract(sym='GBP', exp='20160205', strike='', right='P', multip=''),
+                       makeFxFutOptContract(sym='JPY', exp='20160304', strike='', right='C', multip=''),
                        makeFxFutOptContract(sym='JPY', exp='20160304', strike='', right='C', multip=''),
                        makeFxFutOptContract(sym='JPY', exp='20160304', strike='', right='P', multip=''),
                        makeFxFutOptContract(sym='EUR', exp='20160304', strike='', right='C', multip=''),
