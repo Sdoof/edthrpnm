@@ -34,7 +34,7 @@ ResultFiles_Path_G=ConfigParameters["ResultFiles_Path_G",1]
 EvalPos_fn=paste(ResultFiles_Path_G,Underying_Symbol_G,"_EvalPosition.csv",sep='')
 
 #Here you spicify which position should be analyzed.
-DrawSpreads=c(1:100)
+DrawSpreads=c(1:10)
 
 #UDLY draw limit. given absolute % value
 UDLY_DrawRange<-0.10
@@ -224,7 +224,7 @@ for(eval_pos_idx in DrawSpreads){
       writeIbAPITicket(out_text_file="",thePosition=thePosition,sep=","),
       error=function(e){
         message(e)
-      }
+        }
     )
   
   #thePosition's greek df and initial price
@@ -313,17 +313,17 @@ for(eval_pos_idx in DrawSpreads){
     drawGrktbl_DltHgd$Delta<-drawGrktbl_DltHgd$Delta-as.numeric(headgedDelta)
     
     #draw_DeltaE_with_sign=(drawGrktbl_DltHgd$Delta>=0)*abs(drawGrktbl_DltHgd$DeltaEffect)+
-    #(drawGrktbl_DltHgd$Delta<0)*(-1)*abs(drawGrktbl_DltHgd$DeltaEffect)
+      #(drawGrktbl_DltHgd$Delta<0)*(-1)*abs(drawGrktbl_DltHgd$DeltaEffect)
     
     gg<-ggplot(drawGrktbl_DltHgd,aes(x=UDLY,y=profit,group=day))+
-      geom_line(size=draw_line_size,linetype=draw_line_type)+
-      geom_line(y=drawGrktbl_DltHgd$GammaEffect,colour="red",size=draw_line_size,linetype=draw_line_type)+
-      geom_line(y=drawGrktbl_DltHgd$ThetaEffect,colour="orange",size=draw_line_size,linetype=draw_line_type)+
-      #geom_line(x=drawGrktbl$UDLY,y=drawGrktbl$DeltaEffect,colour="skyblue3",size=draw_line_size,group=drawGrktbl$day,linetype=draw_line_type)+
-      geom_point(x=thePositonGrks$UDLY,y=0,size=4.0,colour="black")+
-      ylim(
-        min(c(min(drawGrktbl_DltHgd$profit)),min(drawGrktbl_DltHgd$ThetaEffect),min(drawGrktbl_DltHgd$GammaEffect)),
-        max(c(max(drawGrktbl_DltHgd$profit)),max(drawGrktbl_DltHgd$ThetaEffect),max(drawGrktbl_DltHgd$GammaEffect)))
+    geom_line(size=draw_line_size,linetype=draw_line_type)+
+    geom_line(y=drawGrktbl_DltHgd$GammaEffect,colour="red",size=draw_line_size,linetype=draw_line_type)+
+    geom_line(y=drawGrktbl_DltHgd$ThetaEffect,colour="orange",size=draw_line_size,linetype=draw_line_type)+
+    #geom_line(x=drawGrktbl$UDLY,y=drawGrktbl$DeltaEffect,colour="skyblue3",size=draw_line_size,group=drawGrktbl$day,linetype=draw_line_type)+
+    geom_point(x=thePositonGrks$UDLY,y=0,size=4.0,colour="black")+
+    ylim(
+      min(c(min(drawGrktbl_DltHgd$profit)),min(drawGrktbl_DltHgd$ThetaEffect),min(drawGrktbl_DltHgd$GammaEffect)),
+      max(c(max(drawGrktbl_DltHgd$profit)),max(drawGrktbl_DltHgd$ThetaEffect),max(drawGrktbl_DltHgd$GammaEffect)))
     print(gg)
   }
   
@@ -377,17 +377,27 @@ for(eval_pos_idx in DrawSpreads){
     drawGrktbl_DltHgd_vc_plus$Delta<-drawGrktbl_DltHgd_vc_plus$Delta-as.numeric(headgedDelta)
     drawGrktbl_DltHgd_vc_mnus$Delta<-drawGrktbl_DltHgd_vc_mnus$Delta-as.numeric(headgedDelta)
     
+    #gg<-ggplot(drawGrktbl_DltHgd,aes(x=UDLY,y=profit,group=day))+
+    #  geom_line(size=draw_line_size,linetype=draw_line_type,colour="gray60")+
+    #  geom_line(x=drawGrktbl_DltHgd_vc_plus$UDLY,y=drawGrktbl_DltHgd_vc_plus$profit,colour="blue",size=draw_line_size,group=drawGrktbl_DltHgd_vc_plus$day,linetype=draw_line_type)+
+    #  geom_line(x=drawGrktbl_DltHgd_vc_mnus$UDLY,y=drawGrktbl_DltHgd_vc_mnus$profit,colour="red",size=draw_line_size,group=drawGrktbl_DltHgd_vc_plus$day,linetype=draw_line_type)+
+    #  geom_point(x=thePositonGrks$UDLY,y=0,size=4.0,colour="black")+
+    #  ylim(
+    #    min(c(min(drawGrktbl_DltHgd$profit),min(drawGrktbl_DltHgd_vc_plus$profit),min(drawGrktbl_DltHgd_vc_mnus$profit))),
+    #    max(c(max(drawGrktbl_DltHgd$profit),max(drawGrktbl_DltHgd_vc_plus$profit),max(drawGrktbl_DltHgd_vc_mnus$profit))))
+    #print(gg)
+    
     gg<-ggplot(drawGrktbl_DltHgd,aes(x=UDLY,y=profit,group=day))+
-      geom_line(size=draw_line_size,linetype=draw_line_type,colour="gray60")+
-      geom_line(y=drawGrktbl_DltHgd_vc_plus$profit,colour="blue",size=draw_line_size,linetype=draw_line_type)+
-      geom_line(y=drawGrktbl_DltHgd_vc_mnus$profit,colour="red",size=draw_line_size,linetype=draw_line_type)+
-      geom_point(x=thePositonGrks$UDLY,y=0,size=4.0,colour="black")+
-      #geom_line(y=drawGrktbl$ThetaEffect,colour="orange",size=draw_line_size,linetype=draw_line_type)+
-      #geom_line(x=drawGrktbl$UDLY,y=drawGrktbl$DeltaEffect,colour="skyblue3",size=draw_line_size,group=drawGrktbl$day,linetype=draw_line_type)+
-      #geom_point(x=thePositonGrks$UDLY,y=0,size=4.0,colour="black")+
-      ylim(
-        min(c(min(drawGrktbl_DltHgd$profit)),min(drawGrktbl_DltHgd$ThetaEffect),min(drawGrktbl_DltHgd$GammaEffect)),
-        max(c(max(drawGrktbl_DltHgd$profit)),max(drawGrktbl_DltHgd$ThetaEffect),max(drawGrktbl_DltHgd$GammaEffect)))
+    geom_line(size=draw_line_size,linetype=draw_line_type,colour="gray60")+
+    geom_line(y=drawGrktbl_DltHgd_vc_plus$profit,colour="blue",size=draw_line_size,linetype=draw_line_type)+
+    geom_line(y=drawGrktbl_DltHgd_vc_mnus$profit,colour="red",size=draw_line_size,linetype=draw_line_type)+
+    geom_point(x=thePositonGrks$UDLY,y=0,size=4.0,colour="black")+
+    #geom_line(y=drawGrktbl$ThetaEffect,colour="orange",size=draw_line_size,linetype=draw_line_type)+
+    #geom_line(x=drawGrktbl$UDLY,y=drawGrktbl$DeltaEffect,colour="skyblue3",size=draw_line_size,group=drawGrktbl$day,linetype=draw_line_type)+
+    #geom_point(x=thePositonGrks$UDLY,y=0,size=4.0,colour="black")+
+    ylim(
+      min(c(min(drawGrktbl_DltHgd$profit)),min(drawGrktbl_DltHgd$ThetaEffect),min(drawGrktbl_DltHgd$GammaEffect)),
+      max(c(max(drawGrktbl_DltHgd$profit)),max(drawGrktbl_DltHgd$ThetaEffect),max(drawGrktbl_DltHgd$GammaEffect)))
     print(gg)
     
   }
