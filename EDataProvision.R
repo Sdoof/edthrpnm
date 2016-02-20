@@ -33,7 +33,7 @@ ResultFiles_Path_G=ConfigParameters["ResultFiles_Path_G",1]
 ProcessFileName=paste("_OPChain_Pre.csv",sep="")
 isSkewCalc=F
 #set TRUE if this opchain is for Future Option 
-isFOP=T
+isFOP=F
 #set TRUE if this is today's new position, or (already holding position) set FALSE,
 isNewPosition=T
 TargetFileName=paste("_Positions_Pre_",Sys.Date(),".csv",sep="")
@@ -153,7 +153,6 @@ if(!isFOP){
   opchain <- makeFOPChainContainer()
   cat("(:divYld_G)",divYld_G,"\n")
 }
-
 
 
 #inconsistent data purged
@@ -305,7 +304,7 @@ makePosition <- function(opch){
 
 opchain<-makePosition(opchain)
 
-filterPosition <- function(opchain,HowfarOOM_MIN=-0.5,OOM_Limit_V=c(0.09,0.09)){
+filterPosition <- function(opchain,HowfarOOM_MIN=0.0,OOM_Limit_V=c(0.09,0.09)){
   ##
   #  Filter Target Ranges
   
@@ -314,9 +313,9 @@ filterPosition <- function(opchain,HowfarOOM_MIN=-0.5,OOM_Limit_V=c(0.09,0.09)){
   
   #Calender Spread 
   OOM_Limit<-(OOM_Limit_V[1])
-  opchain %>%  dplyr::filter(ExpDate=="2015/12/04") %>% dplyr::filter(HowfarOOM<OOM_Limit)  %>% dplyr::filter((Strike%%10)==0) -> opchain_cal1
+  opchain %>%  dplyr::filter(ExpDate=="2016/4/14") %>% dplyr::filter(HowfarOOM<OOM_Limit)  %>% dplyr::filter((Strike%%10)==0) -> opchain_cal1
   OOM_Limit<-(OOM_Limit_V[2])
-  opchain %>%  dplyr::filter(ExpDate=="2016/1/08") %>% dplyr::filter(HowfarOOM<OOM_Limit)  %>% dplyr::filter((Strike%%10)==0) -> opchain_cal2
+  opchain %>%  dplyr::filter(ExpDate=="2016/5/19") %>% dplyr::filter(HowfarOOM<OOM_Limit)  %>% dplyr::filter((Strike%%10)==0) -> opchain_cal2
   
   #Join
   opchain_cal1 %>%  dplyr::full_join(opchain_cal2) %>% 
@@ -334,9 +333,9 @@ filterForFOPPosition <- function(opchain,HowfarOOM_MIN=0,OOM_Limit_V=c(0.09,0.09
   
   #Calender Spread 
   OOM_Limit<-(OOM_Limit_V[1])
-  opchain %>%  dplyr::filter(ExpDate=="2015/12/04") %>% dplyr::filter(HowfarOOM<OOM_Limit) -> opchain_cal1
+  opchain %>%  dplyr::filter(ExpDate=="2016/3/04") %>% dplyr::filter(HowfarOOM<OOM_Limit) -> opchain_cal1
   OOM_Limit<-(OOM_Limit_V[2])
-  opchain %>%  dplyr::filter(ExpDate=="2016/1/08") %>% dplyr::filter(HowfarOOM<OOM_Limit) -> opchain_cal2
+  opchain %>%  dplyr::filter(ExpDate=="2016/4/08") %>% dplyr::filter(HowfarOOM<OOM_Limit) -> opchain_cal2
   
   #Join
   opchain_cal1 %>%  dplyr::full_join(opchain_cal2) %>% 
