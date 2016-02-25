@@ -76,4 +76,12 @@ expdate<-"2016/6/16"
 tbl_[[2]]["ExpDate"]<-expdate
 write.table(tbl_[[2]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
 tbl_[[3]]["ExpDate"]<-expdate
-write.table(tbl_[[3]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
+#2016/9/15
+tbl_<-readHTMLTable("http://finance.yahoo.com/q/op?s=^SPX&date=1473984000")
+expdate<-"2016/9/15"
+tbl_[[2]]["ExpDate"]<-expdate
+write.table(tbl_[[2]],wfilename_,row.names=F,col.names=F,append=T,sep=",")
+tbl_[[3]]["ExpDate"]<-expdate
+
+
+
