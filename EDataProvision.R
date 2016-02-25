@@ -304,7 +304,7 @@ makePosition <- function(opch){
 
 opchain<-makePosition(opchain)
 
-filterPosition <- function(opchain,HowfarOOM_MIN=0.0,OOM_Limit_V=c(0.09,0.09)){
+filterPosition <- function(opchain,HowfarOOM_MIN=0.0,OOM_Limit_V=c(0.30,0.30)){
   ##
   #  Filter Target Ranges
   
@@ -315,7 +315,7 @@ filterPosition <- function(opchain,HowfarOOM_MIN=0.0,OOM_Limit_V=c(0.09,0.09)){
   OOM_Limit<-(OOM_Limit_V[1])
   opchain %>%  dplyr::filter(ExpDate=="2016/4/14") %>% dplyr::filter(HowfarOOM<OOM_Limit)  %>% dplyr::filter((Strike%%10)==0) -> opchain_cal1
   OOM_Limit<-(OOM_Limit_V[2])
-  opchain %>%  dplyr::filter(ExpDate=="2016/5/19") %>% dplyr::filter(HowfarOOM<OOM_Limit)  %>% dplyr::filter((Strike%%10)==0) -> opchain_cal2
+  opchain %>%  dplyr::filter(ExpDate=="2016/6/16") %>% dplyr::filter(HowfarOOM<OOM_Limit)  %>% dplyr::filter((Strike%%10)==0) -> opchain_cal2
   
   #Join
   opchain_cal1 %>%  dplyr::full_join(opchain_cal2) %>% 
