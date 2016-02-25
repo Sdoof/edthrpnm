@@ -13,8 +13,8 @@ ConfigParameters<-read.table(paste(DataFiles_Path_G,ConfigFileName_G,sep=""),
                              row.names=1, comment.char="#",header=T,stringsAsFactors=F,sep=",")
 
 #MAX ExpToDate for Skew Regression
-SkewRegressionTimeToExpDateMin<-0.9
-SkewRegressionTimeToExpDateMax<-2.0
+SkewRegressionTimeToExpDateMin<-1.5
+SkewRegressionTimeToExpDateMax<-3.8
 
 #We get regression only past this day. Currently reflected on Skew only.
 #should apply Vcone, etc.
