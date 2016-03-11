@@ -240,19 +240,33 @@ def writeToFile(sectype,symbol):
 
 # -- main  ---------------------------------------------------------------------
 opContractList = [
-                  makeOptContract(sym='SPX', exp='20160218', strike='', right='P'),
-                  makeOptContract(sym='SPX', exp='20160218', strike='', right='C'),
-                  makeOptContract(sym='SPX', exp='20160317', strike='', right='P'),
-                  makeOptContract(sym='SPX', exp='20160317', strike='', right='C'),
-                  makeOptContract(sym='RUT', exp='20160317', strike='', right='P'),
-                  makeOptContract(sym='RUT', exp='20160317', strike='', right='C')
+                  makeOptContract(sym='SPX', exp='20160408', strike='', right='P'),
+                  makeOptContract(sym='SPX', exp='20160408', strike='', right='C'),
+                  makeOptContract(sym='SPX', exp='20160414', strike='', right='P'),
+                  makeOptContract(sym='SPX', exp='20160414', strike='', right='C'),
+                  makeOptContract(sym='SPX', exp='20160429', strike='', right='P'),
+                  makeOptContract(sym='SPX', exp='20160429', strike='', right='C'),
+                  makeOptContract(sym='SPX', exp='20160519', strike='', right='P'),
+                  makeOptContract(sym='SPX', exp='20160519', strike='', right='C'),
+                  makeOptContract(sym='SPX', exp='20160531', strike='', right='P'),
+                  makeOptContract(sym='SPX', exp='20160531', strike='', right='C'),
+                  makeOptContract(sym='SPX', exp='20160616', strike='', right='P'),
+                  makeOptContract(sym='SPX', exp='20160616', strike='', right='C'),
+                  makeOptContract(sym='SPX', exp='20160630', strike='', right='P'),
+                  makeOptContract(sym='SPX', exp='20160630', strike='', right='C'),
+                  makeOptContract(sym='SPX', exp='20160729', strike='', right='P'),
+                  makeOptContract(sym='SPX', exp='20160729', strike='', right='C'),
+                  makeOptContract(sym='SPX', exp='20160831', strike='', right='P'),
+                  makeOptContract(sym='SPX', exp='20160831', strike='', right='C'),
+                  makeOptContract(sym='SPX', exp='20160915', strike='', right='P'),
+                  makeOptContract(sym='SPX', exp='20160915', strike='', right='C')
                   ]
 
 idxContractList = [
                    makeIndexContract(sym='SPX',exchange='CBOE'),
-                   makeIndexContract(sym='RUT',exchange='RUSSELL'),
-                   makeIndexContract(sym='VIX',exchange='CBOE'),
-                   makeIndexContract(sym='RVX',exchange='CBOE')
+                   #makeIndexContract(sym='RUT',exchange='RUSSELL'),
+                   makeIndexContract(sym='VIX',exchange='CBOE')
+                   #makeIndexContract(sym='RVX',exchange='CBOE')
                    ]
 
 if __name__ == '__main__':
