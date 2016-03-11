@@ -221,7 +221,7 @@ def writeToFile(sectype,symbol):
               (contract.m_strike, contract.m_localSymbol, contract_price.last,
                contract_price.bid, contract_price.ask, contract.m_expiry, contract.m_right))
         if sectype == 'OPT' and contract_price.last == '':
-            contract_price.last = (contract_price.bid + contract_price.ask)/2.0
+            contract_price.last = 0.0
         if sectype == 'OPT' and (contract_price.bid < 0 or contract_price.ask < 0) :
             continue
         if sectype == 'OPT' and contract.m_right == 'P':
@@ -239,9 +239,8 @@ def writeToFile(sectype,symbol):
     file.close()
 
 # -- main  ---------------------------------------------------------------------
+#18 elements finish in 4min15s
 opContractList = [
-                  makeOptContract(sym='SPX', exp='20160408', strike='', right='P'),
-                  makeOptContract(sym='SPX', exp='20160408', strike='', right='C'),
                   makeOptContract(sym='SPX', exp='20160414', strike='', right='P'),
                   makeOptContract(sym='SPX', exp='20160414', strike='', right='C'),
                   makeOptContract(sym='SPX', exp='20160429', strike='', right='P'),
@@ -328,7 +327,7 @@ if __name__ == '__main__':
         subscribeContractList(idxContract,con)
         #raw_input('requesting Fx Futre Option length press any to continue ')
         subscribeDataRequest(con)
-        sleep(5)
+        sleep(2)
         #raw_input('cancel mktData %s press any to continue' % (orderIdMktReqContractDict.keys()))
         for req_order_id in orderIdMktReqContractDict.iterkeys():
             con.cancelMktData(req_order_id)
