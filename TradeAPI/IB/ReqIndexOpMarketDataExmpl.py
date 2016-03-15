@@ -237,8 +237,11 @@ def writeToFile(sectype,symbol):
             except:
                 continue
         elif sectype == 'IND' and symbol == contract.m_symbol:
-            writer_csv.writerow(
-                [str(contract_price.last),str(contract_price.close),datetime.now().strftime('%Y/%m/%d %H:%M:%S')])
+            try:
+                writer_csv.writerow(
+                    [str(contract_price.last),str(contract_price.close),datetime.now().strftime('%Y/%m/%d %H:%M:%S')])
+            except:
+                continue
     file.close()
 
 # -- main  ---------------------------------------------------------------------
