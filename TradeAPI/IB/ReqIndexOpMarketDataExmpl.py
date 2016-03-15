@@ -230,9 +230,12 @@ def writeToFile(sectype,symbol):
              contract.m_right = '-1'
         #contract.m_expiry = datetime.datetime.strptime(contract.m_expiry,'%Y%m%d').strftime('%Y/%m/%d')
         if sectype == 'OPT' and symbol == contract.m_symbol:
-            writer_csv.writerow(
-                [str(contract.m_strike), contract.m_localSymbol, str(format(contract_price.last,'.10f')), str(format(contract_price.bid,'.10f')),
-                 str(format(contract_price.ask,'.10f')), datetime.strptime(contract.m_expiry,'%Y%m%d').strftime('%Y/%m/%d'), contract.m_right])
+            try:
+                writer_csv.writerow(
+                    [str(contract.m_strike), contract.m_localSymbol, str(format(contract_price.last,'.10f')), str(format(contract_price.bid,'.10f')),
+                     str(format(contract_price.ask,'.10f')), datetime.strptime(contract.m_expiry,'%Y%m%d').strftime('%Y/%m/%d'), contract.m_right])
+            except:
+                continue
         elif sectype == 'IND' and symbol == contract.m_symbol:
             writer_csv.writerow(
                 [str(contract_price.last),str(contract_price.close),datetime.now().strftime('%Y/%m/%d %H:%M:%S')])
@@ -253,10 +256,10 @@ opContractList = [
                   makeOptContract(sym='SPX', exp='20160616', strike='', right='C'),
                   makeOptContract(sym='SPX', exp='20160630', strike='', right='P'),
                   makeOptContract(sym='SPX', exp='20160630', strike='', right='C'),
-                  makeOptContract(sym='SPX', exp='20160729', strike='', right='P'),
-                  makeOptContract(sym='SPX', exp='20160729', strike='', right='C'),
-                  makeOptContract(sym='SPX', exp='20160831', strike='', right='P'),
-                  makeOptContract(sym='SPX', exp='20160831', strike='', right='C'),
+                  # makeOptContract(sym='SPX', exp='20160714', strike='', right='P'),
+                  # makeOptContract(sym='SPX', exp='20160714', strike='', right='C'),
+                  # makeOptContract(sym='SPX', exp='20160818', strike='', right='P'),
+                  # makeOptContract(sym='SPX', exp='20160818', strike='', right='C'),
                   makeOptContract(sym='SPX', exp='20160915', strike='', right='P'),
                   makeOptContract(sym='SPX', exp='20160915', strike='', right='C')
                   ]
@@ -298,7 +301,7 @@ if __name__ == '__main__':
         #raw_input('requesting Fx Futre Option length press any to continue ')
         subscribeDataRequest(con)
         #raw_input('cancel mktData %s press any to continue' % (orderIdMktReqContractDict.keys()))
-        sleep(8)
+        sleep(10)
         for req_order_id in orderIdMktReqContractDict.iterkeys():
             con.cancelMktData(req_order_id)
         #raw_input('Price data writing to file press to continue')
