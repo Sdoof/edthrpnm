@@ -304,7 +304,7 @@ if __name__ == '__main__':
         #raw_input('requesting Fx Futre Option length press any to continue ')
         subscribeDataRequest(con)
         #raw_input('cancel mktData %s press any to continue' % (orderIdMktReqContractDict.keys()))
-        sleep(10)
+        sleep(12)
         for req_order_id in orderIdMktReqContractDict.iterkeys():
             con.cancelMktData(req_order_id)
         #raw_input('Price data writing to file press to continue')
