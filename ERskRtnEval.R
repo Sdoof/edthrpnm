@@ -317,140 +317,6 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   return(val)
 }
 
-#evaluation of the Date and just its greekeffect (not weighted)
-obj_fixedpt_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
-                             udlStepNum,udlStepPct,maxposnum,PosMultip,
-                             tail_rate,lossLimitPrice,
-                             Delta_Direct_Prf,Vega_Direct_Prf,
-                             Delta_Neutral_Offset,Vega_Neutral_Offset){
-  #returned when the spread is not appropriate
-  unacceptableVal=10
-  
-  if(isDebug){
-    cat("\n :Delta_Direct_Prf",Delta_Direct_Prf)
-    cat(" :Vega_Direct_Prf",Vega_Direct_Prf)
-    cat(" :Delta_Neutral_Offset",Delta_Neutral_Offset," :Vega_Neutral_Offset",Vega_Neutral_Offset)
-    cat(" :holdDays",Setting$holdDays,"\n")
-  }
-  
-  #position where pos$Position != 0
-  position<-hollowNonZeroPosition(pos=x)
-  if(isDetail){print(position)}
-  
-  #At day 0 position price and Greeks.
-  thePositionGrk<-getPositionGreeks(position,multi=PosMultip,hdd=Setting$holdDays,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)
-  if(isDetail){print(thePositionGrk)}  
-  
-  ##
-  # AdvEffect
-  c5<- thePositionGrk$GammaEffect+thePositionGrk$ThetaEffect
-  if(isDebug){cat(" :c5(AdvEffect)",c5)}
-  
-  ##
-  # Directional Effects.
-  ## Delta
-  theDelta<-thePositionGrk$Delta
-  theDeltaEfct<-thePositionGrk$DeltaEffect
-  
-  ##Delta_Neutral_Offset
-   expPriceChange <- getExpectedValueChange(base=posEvalTbl$UDLY,sd=position$IVIDX[1]*Setting$HV_IV_Adjust_Ratio, dtime=Setting$holdDays/252)
-   Delta_revised_offset<-theDelta-Delta_Neutral_Offset
-   Delta_Effect_revised_offset<- (-abs(Delta_revised_offset))*expPriceChange
-   
-   if(isDebug){
-     cat(" :(expctPrcChg)",expPriceChange,#" :double check(expctPrcChg)",theDeltaEfct/(-abs(theDelta)),
-         " :(DeltaE offset)",Delta_Effect_revised_offset," :(Delta offset)",Delta_revised_offset)
-   }
-   
-   ###Delta_Thresh_Minus,Delta_Thresh_Plus
-   DeltaEffect_Comp<-(Delta_revised_offset<0)*(Delta_revised_offset<Setting$Delta_Thresh_Minus[length(position$TYPE)])*Delta_Effect_revised_offset+
-     (Delta_revised_offset>0)*(Delta_revised_offset>Setting$Delta_Thresh_Plus[length(position$TYPE)])*Delta_Effect_revised_offset
-   
-   if(isDebug){
-     cat(" :btwn (Delta_Thresh_Minus)",Setting$Delta_Thresh_Minus[length(position$TYPE)],
-         " :and (Delta_Thresh_Plus)",Setting$Delta_Thresh_Plus[length(position$TYPE)])
-     cat(" :(new DeltaE)",DeltaEffect_Comp)
-   }
-  
-  ## Vega
-  theVega<-thePositionGrk$Vega
-  theVegaEfct<-thePositionGrk$VegaEffect
-  
-  ##Vega_Neutral_Offset
-  expIVChange<-getExpectedValueChange(base=position$IVIDX[1],sd=annuual.daily.volatility(histIV$IVIDX)$daily,dtime=Setting$holdDays)
-  Vega_revised_offset<-theVega-Vega_Neutral_Offset
-  Vega_Effect_revised_offset<- (-abs(Vega_revised_offset))*expIVChange
-  
-  if(isDebug){
-    cat(" :(expIVChange)",expIVChange,#" :double check(expIVChange)",theVegaEfct/(-abs(theVega)),
-        " :(VegaE offset)",Vega_Effect_revised_offset," :(Vega offset)",Vega_revised_offset)
-  }
-  
-  ###Delta_Thresh_Minus,Delta_Thresh_Plus
-  VegaEffect_Comp<-(Vega_revised_offset<0)*(Vega_revised_offset<Setting$Vega_Thresh_Minus[length(position$TYPE)])*Vega_Effect_revised_offset+
-    (Vega_revised_offset>0)*(Vega_revised_offset>Setting$Vega_Thresh_Plus[length(position$TYPE)])*Vega_Effect_revised_offset
-  
-  if(isDebug){
-    cat(" :btw (Vega_Thresh_Minus)",Setting$Vega_Thresh_Minus[length(position$TYPE)],
-        " :and (Vega_Thresh_Plus)",Setting$Vega_Thresh_Plus[length(position$TYPE)])
-    cat(" :(new VegaE)",VegaEffect_Comp)
-  }
-  
-  ##
-  # Vega_Direct_Prf,Delta_Direct_Prf reflected as coef
-  
-  dlta_pref_coef<-(Delta_Direct_Prf==0)*(-1)+
-    (Delta_Direct_Prf>0)*(Delta_revised_offset>=0)+(Delta_Direct_Prf>0)*(Delta_revised_offset<0)*(-1)+
-    (Delta_Direct_Prf<0)*(Delta_revised_offset>=0)*(-1)+(Delta_Direct_Prf<0)*(Delta_revised_offset<0)
-  
-  vega_pref_coef<-(Vega_Direct_Prf==0)*(-1)+
-    (Vega_Direct_Prf>0)*(Vega_revised_offset>=0)+(Vega_Direct_Prf>0)*(Vega_revised_offset<0)*(-1)+
-    (Vega_Direct_Prf<0)*(Vega_revised_offset>=0)*(-1)+(Vega_Direct_Prf<0)*(Vega_revised_offset<0)
-#   
-#   dlta_pref_coef<-(Delta_Direct_Prf==0)*(-1)+
-#     (Delta_Direct_Prf>0)*(thePositionGrk$Delta>=0)+(Delta_Direct_Prf>0)*(thePositionGrk$Delta<0)*(-1)+
-#     (Delta_Direct_Prf<0)*(thePositionGrk$Delta>=0)*(-1)+(Delta_Direct_Prf<0)*(thePositionGrk$Delta<0)
-#   
-#   vega_pref_coef<-(Vega_Direct_Prf==0)*(-1)+
-#     (Vega_Direct_Prf>0)*(thePositionGrk$Vega>=0)+(Vega_Direct_Prf>0)*(thePositionGrk$Vega<0)*(-1)+
-#     (Vega_Direct_Prf<0)*(thePositionGrk$Vega>=0)*(-1)+(Vega_Direct_Prf<0)*(thePositionGrk$Vega<0)
-  
-  c6<- vega_pref_coef*VegaEffect_Comp+dlta_pref_coef*DeltaEffect_Comp
-  
-  if(isDebug){
-    cat(" (:vega_pref_coef",vega_pref_coef," x :VegaE_new",VegaEffect_Comp,
-        "+ :dlta_pref_coef",dlta_pref_coef," x :DeltaE_new",DeltaEffect_Comp," = :(DrctlEffect)c6 ",c6,")")
-    }
-  
-  ##
-  # All Effects
-  c7<- c5+c6
-  if(isDebug){cat(" :c7(AllEffect)",c7)}
-  
-  ##
-  # total cost is weighted sum of each cost.
-  c3<-0 #Profit is not valid here.
-  A<-Setting$DrctlEffect_Coef*c6+Setting$AllEffect_Coef*c7
-  B<-(Setting$AdvEffect_Coef+Setting$Profit_Coef)*c5+Setting$Profit_Coef*c3
-  
-  if(isDebug){cat(" (:Coef_Drct",Setting$DrctlEffect_Coef,"x",c6,"+:Coef_AllE",Setting$AllEffect_Coef,"x",c7,"= Numr ",A,")")}
-  if(isDebug){cat(" (:Coef_Adv",Setting$AdvEffect_Coef+Setting$Profit_Coef,"x",c5,"+:Coef_Prft 0 x",c3,"= Denom",B,")")}
-  
-  sigA<-sigmoid(A,a=Setting$SigmoidA_Numerator,b=0)
-  sigB<-sigmoid(B,a=Setting$SigmoidA_Denominator,b=0)
-  cost<-sigA/sigB
-  
-  if(isDebug){cat(" :a",Setting$SigmoidA_Numerator," :sigA",sigA," :a",Setting$SigmoidA_Denominator," :sigB",sigB," :cost(sigA/sigB)",cost)}
-  
-  ##
-  # total cost and penalty
-  val<-cost
-  
-  if(isDebug){cat(" :val",val,"\n")}
-  return(val)
-  
-}
-
 #Rsk/Rtn greek related functions
 #get the position's total greek
 getPosGreeks<-function(pos,greek,multi){
@@ -720,6 +586,66 @@ getIntrisicValue<-function(udly_price,position,multip){
   as.numeric(((udly_price-position$Strike)*(-position$TYPE)>0))*
     (udly_price-position$Strike)*(-position$TYPE)*multip*position$Position
 }
+
+
+sampleVerticalSpread<-function(targetOpTyep,verticalType,targetExpDate,isDebug=FALSE,isDetail=FALSE){
+  
+  idxy<-as.numeric(opchain$TYPE==targetOpTyep)*
+    as.numeric(opchain$ExpDate==targetExpDate)*rep(1:length(opchain$TYPE),length=length(opchain$TYPE))
+  if(isDebug){ cat(" candidate pos:",idxy) }
+  y<-rep(0,times=length(opchain$TYPE))
+  if(sum(idxy)>0){
+    idxy<-idxy[idxy!=0]
+    #if(isDebug){ cat(" put pos cand :",idxy) }
+    idxy<-sample(idxy,size=2,replace=FALSE,prob=NULL)
+    opchain$Strike[idxy[1]]
+    opchain$Strike[idxy[2]]
+    (opchain$Strike[idxy[2]]>=opchain$Strike[idxy[1]])*(verticalType==BULL_VERTICAL_SPREAD_TYPE)*idxy +
+      (opchain$Strike[idxy[2]]<opchain$Strike[idxy[1]])*(verticalType==BULL_VERTICAL_SPREAD_TYPE)*rev(idxy) +
+      (opchain$Strike[idxy[2]]>=opchain$Strike[idxy[1]])*(verticalType==BEAR_VERTICAL_SPREAD_TYPE)*rev(idxy) +
+      (opchain$Strike[idxy[2]]<opchain$Strike[idxy[1]])*(verticalType==BEAR_VERTICAL_SPREAD_TYPE)*idxy ->idxy
+    if(isDebug){ cat("idxy:",idxy) }
+    #y<-rep(0,times=length(iniPos))
+    y_shift<-0
+    n_shift<-(2)
+    y[idxy[(1+y_shift):(y_shift+(n_shift/2))]]<-(1)
+    y[idxy[(n_shift/2+1+y_shift):2]]<-(-1)
+  }
+  if(isDebug){ cat(" (:pos",y,")") }
+  return(y)
+}
+
+sampleDiagonalSpread<-function(targetOpTyep,diagonalType,targetExpDate_f,targetExpDate_b,isDebug=FALSE,isDetail=FALSE){
+  #Front
+  idxy<-as.numeric(opchain$TYPE==targetOpTyep)*
+    as.numeric(opchain$ExpDate==targetExpDate_f)*rep(1:length(opchain$TYPE),length=length(opchain$TYPE))
+  y<-rep(0,times=length(opchain$TYPE))
+  if(sum(idxy)>0){
+    idxy<-idxy[idxy!=0]
+    #if(isDebug){ cat(" put pos cand :",idxy) }
+    idxy<-sample(idxy,size=1,replace=T,prob=NULL)
+    #y<-rep(0,times=length(iniPos))
+    y[idxy[1]]<-as.numeric(diagonalType==DIAGONAL_TYPE_LONG)*(-1) +
+      as.numeric(diagonalType==DIAGONAL_TYPE_SHORT)*(1)
+  }
+  #Back
+  idxy<-as.numeric(opchain$TYPE==targetOpTyep)*
+    as.numeric(opchain$ExpDate==targetExpDate_b)*rep(1:length(opchain$TYPE),length=length(opchain$TYPE))
+  z<-rep(0,times=length(iniPos))
+  if(sum(idxy)>0){
+    idxy<-idxy[idxy!=0]
+    #if(isDebug){ cat(" put pos cand :",idxy) }
+    idxy<-sample(idxy,size=1,replace=T,prob=NULL)
+    #y<-rep(0,times=length(iniPos))
+    z[idxy[1]]<-as.numeric(diagonalType==DIAGONAL_TYPE_LONG)*(1) +
+      as.numeric(diagonalType==DIAGONAL_TYPE_SHORT)*(-1)
+  }
+  x<-y+z
+  
+  if(isDebug){ cat(" (:pos",x,")") }
+  return(x)
+}
+
 
 ##
 # Creating initial candidate population of spread positions whose componets of each position are exactly spcicified by the arguments.
