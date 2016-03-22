@@ -313,9 +313,11 @@ filterPosition <- function(opchain,HowfarOOM_MIN=0.0,OOM_Limit_V=c(0.30,0.30)){
   
   #Calender Spread 
   OOM_Limit<-(OOM_Limit_V[1])
-  opchain %>%  dplyr::filter(ExpDate=="2016/4/14") %>% dplyr::filter(HowfarOOM<OOM_Limit)  %>% dplyr::filter((Strike%%10)==0) -> opchain_cal1
+  #opchain %>%  dplyr::filter(ExpDate=="2016/5/19") %>% dplyr::filter(HowfarOOM<OOM_Limit)  %>% dplyr::filter((Strike%%10)==0) -> opchain_cal1
+  opchain %>%  dplyr::filter(ExpDate=="2016/5/19") %>% dplyr::filter(HowfarOOM<OOM_Limit) -> opchain_cal1
   OOM_Limit<-(OOM_Limit_V[2])
-  opchain %>%  dplyr::filter(ExpDate=="2016/6/16") %>% dplyr::filter(HowfarOOM<OOM_Limit)  %>% dplyr::filter((Strike%%10)==0) -> opchain_cal2
+  #opchain %>%  dplyr::filter(ExpDate=="2016/6/16") %>% dplyr::filter(HowfarOOM<OOM_Limit)  %>% dplyr::filter((Strike%%10)==0) -> opchain_cal2
+  opchain %>%  dplyr::filter(ExpDate=="2016/6/16") %>% dplyr::filter(HowfarOOM<OOM_Limit) -> opchain_cal2
   
   #Join
   opchain_cal1 %>%  dplyr::full_join(opchain_cal2) %>% 
@@ -359,8 +361,10 @@ opchain %>% select(Date,ExpDate,TYPE,Strike,ContactName,Position,UDLY,Price,
   arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="%Y/%m/%d"),desc(TYPE),Strike) -> opchain
 opchain$Position<-ifelse(is.na(opchain$Position), 0, opchain$Position)
 
+
 #Write to a file (RUT_Positions_Pre)
 wf_<-paste(DataFiles_Path_G,Underying_Symbol_G,TargetFileName,sep="")
 write.table(opchain,wf_,quote=T,row.names=F,sep=",")
 
 rm(list=ls())
+
