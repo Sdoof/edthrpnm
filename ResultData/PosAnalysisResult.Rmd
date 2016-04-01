@@ -34,10 +34,10 @@ ResultFiles_Path_G=ConfigParameters["ResultFiles_Path_G",1]
 EvalPos_fn=paste(ResultFiles_Path_G,Underying_Symbol_G,"_EvalPosition.csv",sep='')
 
 #Here you spicify which position should be analyzed.
-DrawSpreads=c(1:100)
+DrawSpreads=c(1:50)
 
 #UDLY draw limit. given absolute % value
-UDLY_DrawRange<-0.10
+UDLY_DrawRange<-0.16
 
 #Show Graph of Delta Headged Position
 ShowDeltaHedge=TRUE
