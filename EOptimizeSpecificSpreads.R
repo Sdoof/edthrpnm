@@ -343,7 +343,7 @@ if(SpreadTypeToDir[[sampleSpreadType]]==dirInstance){
   #sampling
   originalLossLimitPrice=EvalFuncSetting$LossLimitPrice
   #EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*max(spreadRatio)
-  EvalFuncSetting$LossLimitPrice=3000*max(spreadRatio)
+  EvalFuncSetting$LossLimitPrice=(-3000)*max(spreadRatio)
   
   sampleMain(sampleSpreadType=sampleSpreadType,totalPopNum=totalPopNum,
              targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,
@@ -366,7 +366,7 @@ if(SpreadTypeToDir[[sampleSpreadType]]==dirInstance){
   # EvalFuncSetting$AdvEffect_Coef=0
   # EvalFuncSetting$DrctlEffect_Coef=0.6
   # EvalFuncSetting$MaxLoss_Coef=0.4
-  EvalFuncSetting$DeltaHedge=F
+  EvalFuncSetting$DeltaHedge=T
   EvalFuncSetting$Delta_Thresh_Minus=rep(-1,times=10)
   EvalFuncSetting$Delta_Thresh_Plus=rep(1,times=10)
   EvalFuncSetting$Vega_Thresh_Minus=rep(-200,times=10)
@@ -377,7 +377,7 @@ if(SpreadTypeToDir[[sampleSpreadType]]==dirInstance){
   #sampling
   originalLossLimitPrice=EvalFuncSetting$LossLimitPrice
   #EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*max(spreadRatio)
-  EvalFuncSetting$LossLimitPrice=3000*max(spreadRatio)
+  EvalFuncSetting$LossLimitPrice=(-3000)*max(spreadRatio)
   
   sampleMain(sampleSpreadType=sampleSpreadType,totalPopNum=totalPopNum,
              targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,
