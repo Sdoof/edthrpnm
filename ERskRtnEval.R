@@ -145,12 +145,21 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   ##
   #  sd and max_loss
   maxLoss<-min(c(profit_vector,profit_vector_vc_plus,profit_vector_vc_minus))
+  
+  ## MaxLoss Constraint
+  if(maxLoss<Setting$LossLimitPrice){
+    if(isDetail){
+      cat(" :(max_loss)",maxLoss);cat(" :(loss_limit_price)",Setting$LossLimitPrice)
+    }
+    return(unacceptableVal)
+  }
+  #calculating sd
   pdist<-c(rep(rep(profit_vector,times=round(weight*100)),times=round(weight_IV*100)[2]),
            rep(rep(profit_vector_vc_plus,times=round(weight*100)),times=round(weight_IV*100)[3]),
            rep(rep(profit_vector_vc_minus,times=round(weight*100)),times=round(weight_IV*100)[1]))
   profit_sd<-sd(pdist)
   if(isDetail){
-    cat(" :(profit_sd)",profit_sd);cat(" :(max_loss)",maxLoss)
+    cat(" :(profit_sd)",profit_sd);cat(" :(max_loss)",maxLoss);cat(" :(loss_limit_price)",Setting$LossLimitPrice)
   }
   
   #c3 profit
@@ -192,15 +201,6 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
     posEvalTbl$ThetaEffect=(posEvalTbl_1$ThetaEffect+posEvalTbl_hd$ThetaEffect)/2
     posEvalTbl$IVIDX=(posEvalTbl_1$IVIDX+posEvalTbl_hd$IVIDX)/2
   }
-  
-  ##
-  # Constraint 2. Tail Risk
-  #   tailPrice<-min(sum(getIntrisicValue(position$UDLY[1]*(1-tail_rate),position)),
-  #                  sum(getIntrisicValue(position$UDLY[1]*(1+tail_rate),position)))
-  #   lossLimitPrice <- (-1)*lossLimitPrice
-  #   if(isDebug){cat(" :tlpr",tailPrice);cat(" :lslmt",lossLimitPrice);cat(" :p2",penalty2)}
-  #   if(tailPrice<lossLimitPrice)
-  #     return(unacceptableVal)
   
   ##
   # Constraint 4. ThetaEffect. This should be soft constraint
@@ -736,6 +736,21 @@ sampleMain<-function(sampleSpreadType,totalPopNum,targetExpDate,targetExpDate_f,
     
       w=sampleDiagonalSpread(targetOpTyep=ifelse(runif(1)<=0.500000,OpType_Put_G,OpType_Call_G),
                              diagonalType=ifelse(runif(1)<=0.500000,DIAGONAL_TYPE_LONG,DIAGONAL_TYPE_SHORT),
+                             targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,isDebug=isDebug,isDetail=idDetail)
+      
+      x<-y*spreadRatio[1]+(z+w)*spreadRatio[2]
+    }else if(sampleSpreadType==PUT_BULL_SPREAD_PLUS_DOUBLE_DIAGONAL_SMPLING){
+      y=sampleVerticalSpread(targetOpTyep=OpType_Put_G,
+                             verticalType=BULL_VERTICAL_SPREAD_TYPE,
+                             targetExpDate=targetExpDate,isDebug=isDebug,isDetail=idDetail)
+      
+      diagonalType=ifelse(runif(1)<=0.500000,DIAGONAL_TYPE_LONG,DIAGONAL_TYPE_SHORT)
+      z=sampleDiagonalSpread(targetOpTyep=OpType_Put_G,
+                             diagonalType=diagonalType,
+                             targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,isDebug=isDebug,isDetail=idDetail)
+      diagonalType=ifelse(runif(1)<=0.500000,DIAGONAL_TYPE_LONG,DIAGONAL_TYPE_SHORT)
+      w=sampleDiagonalSpread(targetOpTyep=OpType_Call_G,
+                             diagonalType=diagonalType,
                              targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,isDebug=isDebug,isDetail=idDetail)
       
       x<-y*spreadRatio[1]+(z+w)*spreadRatio[2]
