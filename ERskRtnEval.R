@@ -184,7 +184,9 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   
   ## Greek Effect calculation Scene
   #  default first day
-  posEvalTbl<-posStepDays$scene[[1]]
+  #posEvalTbl<-posStepDays$scene[[1]]
+  #  default holding day
+  posEvalTbl<-posStepDays$scene[[length(posStepDays)]]
   #not default, averaging 1st Day and holdDay
   if(Setting$GreekEfctOnHldD){
     if(isDebug){cat(" (:GreekEfctOnHldD)",Setting$holdDays)}
