@@ -65,12 +65,20 @@ if(length(grep("3", ConfigFileName_G))>=1)
 #functions used for this script only
 createOutFname<-function(targetExpDate,targetExpDate_f,targetExpDate_b,spreadRatio,EvalFuncSetting){
   outFname=paste(".\\ResultData\\",Underying_Symbol_G,"-",SpreadTypeNames[[sampleSpreadType]],"-",spreadRatio[1],spreadRatio[2],spreadRatio[3],"-",
-         EvalFuncSetting$holdDays,"-",EvalFuncSetting$Profit_Coef,"_",EvalFuncSetting$AdvEffect_Coef,"-",EvalFuncSetting$DrctlEffect_Coef,"_",EvalFuncSetting$MaxLoss_Coef,"-",
-         "lossLmt$",EvalFuncSetting$LossLimitPrice,"-","dltHgd$",EvalFuncSetting$DeltaHedge,"-","vegaDrct$",mean(EvalFuncSetting$Vega_Direct_Prf),"-",
-         "convex$",EvalFuncSetting$EvalConvex,"-","DltTh$",EvalFuncSetting$Delta_Thresh_Plus[1],"_",EvalFuncSetting$Delta_Thresh_Minus[1],"-",
-         "VegaTh$",EvalFuncSetting$Vega_Thresh_Plus[1],"_",EvalFuncSetting$Vega_Thresh_Minus[1],"-","sgmd$",EvalFuncSetting$SigmoidA_Numerator,"_",EvalFuncSetting$SigmoidA_Denominator,"-",
-         "tgtDate$",format(as.Date(targetExpDate,format="%Y/%m/%d"),"%Y%m%d"),"_",format(as.Date(targetExpDate_f,format="%Y/%m/%d"),"%Y%m%d"),"_",format(as.Date(targetExpDate_b,format="%Y/%m/%d"),"%Y%m%d"),
-         ".csv",sep="")
+                 EvalFuncSetting$UdlStepPct*1000,"x",EvalFuncSetting$UdlStepNum,"-",EvalFuncSetting$holdDays,"d-",EvalFuncSetting$Profit_Coef,"_",EvalFuncSetting$AdvEffect_Coef,"-",
+                 EvalFuncSetting$DrctlEffect_Coef,"_",EvalFuncSetting$MaxLoss_Coef,"-",
+                 "LLt$",EvalFuncSetting$LossLimitPrice,"-",
+                 "DTh$",EvalFuncSetting$Delta_Thresh_Plus[1],"_",EvalFuncSetting$Delta_Thresh_Minus[1],"-",
+                 "VTh$",EvalFuncSetting$Vega_Thresh_Plus[1],"_",EvalFuncSetting$Vega_Thresh_Minus[1],"-",
+                 "HIVR$",EvalFuncSetting$HV_IV_Adjust_Ratio,"-",
+                 "cvx$",ifelse(EvalFuncSetting$EvalConvex,"T","F"),"-",
+                 "VDrt$",mean(EvalFuncSetting$Vega_Direct_Prf),"-",
+                 "GkA$",ifelse(EvalFuncSetting$GreekEfctOnHldD,"T","F"),"-",
+                 "dft$",EvalFuncSetting$Weight_Drift*100,"-",
+                 "DHg$",ifelse(EvalFuncSetting$DeltaHedge,"T","F"),"-",
+                 "sgd$",EvalFuncSetting$SigmoidA_Numerator,"_",EvalFuncSetting$SigmoidA_Denominator,"-",
+                 "tgD$",format(as.Date(targetExpDate,format="%Y/%m/%d"),"%m%d"),"_",format(as.Date(targetExpDate_f,format="%Y/%m/%d"),"%m%d"),"_",format(as.Date(targetExpDate_b,format="%Y/%m/%d"),"%m%d"),
+                 ".csv",sep="")
   return(outFname)
 }
 
