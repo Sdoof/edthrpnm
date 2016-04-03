@@ -143,10 +143,12 @@ histIV %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")<=max(as.Date(opchain$Da
   dplyr::arrange(desc(as.Date(Date,format="%Y/%m/%d"))) %>% head(n=dviv_caldays) -> histIV
 
 #Load Regression and Correlation Parameters
+load.PC2IV(PC="PC1dCtC",IVC="IVCF1dCtC")
 load.PC2IV(PC="PC3dCtC",IVC="IVCF3dCtC")
 load.PC2IV(PC="PC5dCtC",IVC="IVCF5dCtC")
 load.PC2IV(PC="PC7dCtC",IVC="IVCF7dCtC")
-load.PC2IV(PC="PC1dCtC",IVC="IVCF1dCtC")
+load.PC2IV(PC="PC12dCtC",IVC="IVCF12dCtC")
+load.PC2IV(PC="PC18dCtC",IVC="IVCF18dCtC")
 #PC1dCtO_IVCF1dCtO
 load.Skew()
 load.Skew("_Put")
@@ -236,7 +238,7 @@ for(eval_pos_idx in DrawSpreads){
   #Set data frames as a row value of another data frame.
   posStepDays %>% group_by(days) %>%
     do(scene=createPositionEvalTable(position=thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,
-                                     multi=PosMultip,hdd=1,HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio)) -> posStepDays
+                                     multi=PosMultip,hdd=EvalFuncSetting$holdDays,HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio)) -> posStepDays
   
   iniCredit <- -1*posStepDays$scene[[1]]$Price[udlStepNum+1]
   

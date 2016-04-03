@@ -42,7 +42,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   posStepDays<-data.frame(days=c(1,Setting$holdDays))
   posStepDays %>% group_by(days) %>%
     do(scene=createPositionEvalTable(position=position,udlStepNum=udlStepNum,udlStepPct=udlStepPct,
-                                     multi=PosMultip,hdd=1,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)) -> posStepDays
+                                     multi=PosMultip,hdd=Setting$holdDays,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)) -> posStepDays
   
   #Use for checking volatility sensitivity later
   posStepDays_vc<-posStepDays
@@ -392,16 +392,22 @@ getVommaEffect<-function(pos,greek,ividx,dviv,multi,hdd){
 
 #Factory of Volatility Level Regression Result
 get.Volatility.Level.Regression<-function(Days=holdDays,ctoc=TRUE){
-  if((!ctoc)*(Days==1)){
-    return (PC1dCtO_IVCF1dCtO)
-  }else if(ctoc*(Days==1)){
+  daysCandidate=c(1,3,5,7,12,18)
+  daysdiff=abs(c(daysCandidate)-Days)
+  days_idx=min(which( abs(daysdiff) == min(daysdiff)))
+  Days=daysCandidate[days_idx]
+  if(Days==1){
     return(PC1dCtC_IVCF1dCtC)
-  } else if(ctoc*(Days==3)){
+  } else if(Days==3){
     return(PC3dCtC_IVCF3dCtC)
-  }else if(ctoc*(Days==5)){
+  }else if(Days==5){
     return(PC5dCtC_IVCF5dCtC)
-  }else if(ctoc*(Days==7)){
+  }else if(Days==7){
     return(PC7dCtC_IVCF7dCtC)
+  }else if(Days==12){
+    return(PC12dCtC_IVCF12dCtC)
+  }else if(Days==18){
+    return(PC18dCtC_IVCF18dCtC)
   }
 }
 

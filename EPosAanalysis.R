@@ -79,16 +79,18 @@ tmp<-read.table(EvalPos_fn,header=F,sep=",",colClasses="numeric")
 evaPos<-unlist(tmp[eval_pos_idx,])[1:length(opchain$Position)]
 
 #Load Regression and Correlation Parameters
+load.PC2IV(PC="PC1dCtC",IVC="IVCF1dCtC")
+PC1dCtC_IVCF1dCtC
 load.PC2IV(PC="PC3dCtC",IVC="IVCF3dCtC")
 PC3dCtC_IVCF3dCtC
 load.PC2IV(PC="PC5dCtC",IVC="IVCF5dCtC")
 PC5dCtC_IVCF5dCtC
 load.PC2IV(PC="PC7dCtC",IVC="IVCF7dCtC")
 PC7dCtC_IVCF7dCtC
-load.PC2IV(PC="PC1dCtC",IVC="IVCF1dCtC")
-PC1dCtC_IVCF1dCtC
-#load.PC2IV(PC="PC1dCtO",IVC="IVCF1dCtO")
-#PC1dCtO_IVCF1dCtO
+load.PC2IV(PC="PC12dCtC",IVC="IVCF12dCtC")
+PC12dCtC_IVCF12dCtC
+load.PC2IV(PC="PC18dCtC",IVC="IVCF18dCtC")
+PC18dCtC_IVCF18dCtC
 load.Skew()
 SkewModel
 load.Skew("_Put")
@@ -146,7 +148,7 @@ posStepDays<-data.frame(days=evaldays)
 #Set data frames as a row value of another data frame.
 posStepDays %>% group_by(days) %>%
   do(scene=createPositionEvalTable(position=thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,
-                                   multi=PosMultip,hdd=1,HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio)) -> posStepDays
+                                   multi=PosMultip,hdd=as.numeric(ConfigParameters["holdDays",1]),HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio)) -> posStepDays
 
 iniCredit <- -1*posStepDays$scene[[1]]$Price[udlStepNum+1]
 
