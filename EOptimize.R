@@ -92,9 +92,6 @@ Thresh_2=as.numeric(ConfigParameters["Optimize_Thresh_2",1])
 #Search Combined(2Cb,3Cb,etc) Spreads?
 Combined_Spread=ifelse(as.numeric(ConfigParameters["Optimize_Combined_Spread",1])==1,TRUE,FALSE)
 
-#Filtering
-EvalPosition_ThetaPlus=ifelse(as.numeric(ConfigParameters["Filter_EvalPosition_ThetaPlus",1])==1,TRUE,FALSE)
-
 ##
 # opchain,position,histIV,iniPos must exist as Global Variables.
 
