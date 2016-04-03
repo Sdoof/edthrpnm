@@ -1,7 +1,7 @@
 #Load library and Configfile Setting in EOptimize.R beforehand
 
 combineSpreads<-function(spreadRatio,headN_1st,headN_2nd){
-  tmp<-read.table(paste(ResultFiles_Path_G,Underying_Symbol_G,"_EvalPosition_1St.csv",sep=""),
+  tmp<-read.table(paste(ResultFiles_Path_G,Underying_Symbol_G,"_1.csv",sep=""),
                   header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
   tmp %>% dplyr::arrange(tmp[,(length(opchain$Position)+1)]) %>% dplyr::distinct() -> tmp
   tmp %>% arrange(.[,length(opchain$Position)+1]) %>% head(headN_1st) -> tmp
@@ -11,7 +11,7 @@ combineSpreads<-function(spreadRatio,headN_1st,headN_2nd){
   # Notice pools is global variable
   pools<<-list(list(c(1,0,0),tmp)) #No.[[1]]
   
-  tmp<-read.table(paste(ResultFiles_Path_G,Underying_Symbol_G,"_EvalPosition_2nd.csv",sep=""),
+  tmp<-read.table(paste(ResultFiles_Path_G,Underying_Symbol_G,"_2.csv",sep=""),
                   header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
   tmp %>% dplyr::arrange(tmp[,(length(opchain$Position)+1)]) %>% dplyr::distinct() -> tmp
   tmp %>% arrange(.[,length(opchain$Position)+1]) %>% head(headN_2nd) -> tmp
