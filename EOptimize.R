@@ -45,7 +45,7 @@ EvFNames <- c("holdDays","UdlStepNum","UdlStepPct","Posnum","Tail_rate","LossLim
               "SigmoidA_Numerator","SigmoidA_Denominator","ThetaEffectPositive","EvalConvex","DeltaHedge","GreekEfctOnHldD")
 EvalFuncSetting<-vector("list",length(EvFNames))
 
-EvalFuncSetting[[1]]<-holdDays
+EvalFuncSetting[[1]]<-as.numeric(ConfigParameters["holdDays",1])
 EvalFuncSetting[[2]]<-as.numeric(ConfigParameters["EvalFnc_UdlStepNum",1])
 EvalFuncSetting[[3]]<-as.numeric(ConfigParameters["EvalFnc_UdlStepPct",1])
 EvalFuncSetting[[4]]<-eval(parse(text=gsub("\\$",",",ConfigParameters["EvalFnc_Posnum",1])))
