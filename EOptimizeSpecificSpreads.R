@@ -2,6 +2,7 @@ library(RQuantLib)
 library(ggplot2)
 library(dplyr)
 library(pracma)
+rm(list=ls())
 source('./ESourceRCode.R',encoding = 'UTF-8')
 
 ##specify each time
