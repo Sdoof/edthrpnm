@@ -122,12 +122,13 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   posEvalTbl<-posStepDays_vc_minus$scene[[length(posStepDays)]]
   profit_vector_vc_minus<-(posEvalTbl$Price-posStepDays$scene[[1]]$Price[udlStepNum + 1])
   profit_hdays_vc_minus<-sum(profit_vector_vc_minus*weight)
-  if(isDetail){cat(" (:prft_vec_vc-)",profit_vector_vc_minus);cat(" :(prft_wght_vc-)",profit_hdays_vc_minus)}
+  
+  #Initial Delta
+  iniDelta <- posStepDays$scene[[1]]$Delta[udlStepNum + 1]
+  if(isDetail){cat(" (:iniDelta)",iniDelta);cat(" (:prft_vec_vc-)",profit_vector_vc_minus);cat(" :(prft_wght_vc-)",profit_hdays_vc_minus)}
   
   ## Delta Hedge
   if(Setting$DeltaHedge){
-    iniDelta <- posStepDays$scene[[1]]$Delta[udlStepNum + 1]
-    
     profit_vector<-profit_vector-as.numeric(iniDelta)*(posEvalTbl$UDLY-mean(thePositionGrk$UDLY))
     profit_hdays<-sum(profit_vector*weight)
     if(isDetail){cat(" (:iniDelta)",iniDelta);cat(" (:prft_vec_dh)",profit_vector);cat(" :(prft_wght_dh)",profit_hdays)}
