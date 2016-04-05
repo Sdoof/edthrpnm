@@ -6,22 +6,6 @@ library(dplyr)
 rm(list=ls())
 source('./ESourceRCode.R',encoding = 'UTF-8')
 
-#Config File
-ConfigFileName_G="ConfigParameters.csv"
-DataFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\MarketData\\data\\"
-
-ConfigParameters<-read.table(paste(DataFiles_Path_G,ConfigFileName_G,sep=""),
-                             row.names=1, comment.char="#",header=T,stringsAsFactors=F,sep=",")
-
-#Definition
-OpType_Put_G=as.numeric(ConfigParameters["OpType_Put_G",1])
-OpType_Call_G=as.numeric(ConfigParameters["OpType_Call_G",1])
-
-#File
-Underying_Symbol_G=ConfigParameters["Underying_Symbol_G",1]
-ResultFiles_Path_G=ConfigParameters["ResultFiles_Path_G",1]
-
-#combine
 #edthrpnm
 if(length(grep("2", ConfigFileName_G))<1 && length(grep("3", ConfigFileName_G))<1 ){
   st <- "powershell.exe -Command \" Get-ChildItem ..\\edthrpnm2\\ResultData\\EvalCnd.csv | cat >  .\\ResultData\\EvalCnd-.csv  -Encoding default \" "
@@ -73,10 +57,6 @@ if(length(grep("3", ConfigFileName_G))>=1){
   
   theCand<-"EvalCnd3.csv"
 }
-
-#Option Chain 
-rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep="")
-opchain<-read.table(rf,header=T,sep=",",stringsAsFactors=F)
 
 #join
 rf<-paste(ResultFiles_Path_G,theCand,sep="")
