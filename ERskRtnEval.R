@@ -49,7 +49,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   
   #holdDay changes
   posStepDays %>% group_by(days) %>% rowwise() %>%
-    do(days=.$days,scene2=adjustPosChg(.$scene,.$days-1,base_vol_chg=0,
+    do(days=.$days,scene2=adjustPosChg(.$scene,base_vol_chg=0,
                                        multi=PosMultip,hdd=Setting$holdDays,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)) -> tmp
   unlist(tmp$days) -> posStepDays$days ; tmp$scene2 -> posStepDays$scene ;rm(tmp)
   
@@ -72,14 +72,14 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   #PositionStepDays data frame of Volatility UP scenario
   posStepDays_vc_plus<-posStepDays_vc
   posStepDays_vc_plus %>% group_by(days) %>% rowwise() %>% 
-    do(days=.$days,scene2=adjustPosChg(.$scene,.$days-1,base_vol_chg=vol_chg,
+    do(days=.$days,scene2=adjustPosChg(.$scene,base_vol_chg=vol_chg,
                                        multi=PosMultip,hdd=Setting$holdDays,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)) -> tmp
   unlist(tmp$days) -> posStepDays_vc_plus$days ; tmp$scene2 -> posStepDays_vc_plus$scene ;rm(tmp)
   
   #PositionStepDays data frame of Volatility Down scenario
   posStepDays_vc_minus<-posStepDays_vc
   posStepDays_vc_minus %>% group_by(days) %>% rowwise() %>% 
-    do(days=.$days,scene2=adjustPosChg(.$scene,.$days-1,base_vol_chg=(-1)*vol_chg,
+    do(days=.$days,scene2=adjustPosChg(.$scene,base_vol_chg=(-1)*vol_chg,
                                        multi=PosMultip,hdd=Setting$holdDays,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)) -> tmp
   unlist(tmp$days) -> posStepDays_vc_minus$days ; tmp$scene2 -> posStepDays_vc_minus$scene ;rm(tmp)
   
@@ -1109,9 +1109,8 @@ createGreekTbl<-function(days,pos_smry_x,pos_smry_greek){
 #innfer functions : position operation related.
 # Now this function change only Base Volatility Level.
 # so arguments other than base_vol_chg does not affect anything.
-adjustPosChgInner<-function(process_df,time_advcd, base_vol_chg=0){
+adjustPosChgInner<-function(process_df,base_vol_chg=0){
   pos<-as.data.frame(process_df$pos[1])
-  if(sum(as.numeric(time_advcd==0))!=0) return(pos)
   #print(pos)
   
   #base volatility change relrected to IVIDX
@@ -1120,28 +1119,6 @@ adjustPosChgInner<-function(process_df,time_advcd, base_vol_chg=0){
   
   # ATM IV change
   pos$ATMIV<-pos$ATMIV*(1+ividx_chg_pct)*get.Volatility.Change.Regression.Result(pos,ividx_chg_pct)
-  
-  #Volatility Cone の影響。時間変化した分の影響を受ける。その比の分だけ比率変化
-  #ATMIV_pos <- ATMIV_pos*(ATMIV_pos/IVIDX_pos)t=TimeToExpDate_pre/(ATMIV_pos/IVIDX_pos)t=TimeToExpDate_pos
-  # bdays_per_month<-252/12
-  # TimeToExpDate_pos<-(pos$TimeToExpDate*bdays_per_month-time_advcd)/bdays_per_month
-  # pos$ATMIV<-pos$ATMIV *
-  #   get.Volatility.Cone.Regression.Result(pos$TYPE,TimeToExpDate_pos)/
-  #   get.Volatility.Cone.Regression.Result(pos$TYPE,pos$TimeToExpDate)
-  
-  #set new TimeToExpDate
-  #pos$TimeToExpDate<-TimeToExpDate_pos
-  
-  #Date advance
-  # pos$Date <- format(advance(CALENDAR_G,dates=as.Date(pos$Date,format="%Y/%m/%d"),
-  #                            time_advcd,0),"%Y/%m/%d")
-  
-  #Moneyness.nm which reflects the value of TimetoExpDate
-  # pos$Moneyness.Frac<-pos$Strike/pos$UDLY
-  # eval_timeToExpDate<-as.numeric(pos$TimeToExpDate<TimeToExp_Limit_Closeness_G)*TimeToExp_Limit_Closeness_G+
-  #   as.numeric(pos$TimeToExpDate>=TimeToExp_Limit_Closeness_G)*pos$TimeToExpDate
-  # pos$Moneyness.Nm<-log(pos$Moneyness.Frac)/pos$ATMIV/sqrt(eval_timeToExpDate)
-  # pos$Moneyness.Frac<-NULL
   
   #calculate IV_pos(OrigIV) using SkewModel based on model definition formula.
   spskew<-(pos$TYPE==OpType_Put_G)*get.predicted.spline.skew(SkewModel_Put,pos$Moneyness.Nm)+
@@ -1163,14 +1140,13 @@ adjustPosChgInner<-function(process_df,time_advcd, base_vol_chg=0){
 
 # Now this function change only Base Volatility Level.
 # so arguments other than base_vol_chg does not affect anything.
-adjustPosChg<-function(process_df,time_advcd,base_vol_chg=0,multi,hdd,HV_IV_Adjust_Ratio,isDebug=FALSE){
+adjustPosChg<-function(process_df,base_vol_chg=0,multi,hdd,HV_IV_Adjust_Ratio,isDebug=FALSE){
  
    if(isDebug){
     print(process_df)
-    print(time_advcd)
   }
   
-  process_df %>% group_by(udlChgPct) %>% do(pos=adjustPosChgInner(.,time_advcd,base_vol_chg=base_vol_chg)) -> process_df
+  process_df %>% group_by(udlChgPct) %>% do(pos=adjustPosChgInner(.,base_vol_chg=base_vol_chg)) -> process_df
   
   #cat("HV_IV_Adjust_Ratio (adjustPosChg):",HV_IV_Adjust_Ratio)
   

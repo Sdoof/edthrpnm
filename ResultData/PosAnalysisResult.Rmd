@@ -134,8 +134,8 @@ for(eval_pos_idx in DrawSpreads){
   
   #total data frame
   posStepDays<-data.frame(days=evaldays)
- 
-   posStepDays %>% group_by(days) %>%
+  
+  posStepDays %>% group_by(days) %>%
     do(scene=createPositionEvalTable(position=thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,
                                      multi=PosMultip,hdd=.$days,HV_IV_Adjust_Ratio=EvalFuncSetting$HV_IV_Adjust_Ratio)) -> posStepDays
   
@@ -229,13 +229,17 @@ for(eval_pos_idx in DrawSpreads){
     posStepDays_vc_orig<-posStepDays_vc
     
     #volatility Plus
-    posStepDays_vc %>% group_by(days) %>% rowwise() %>% do(days=.$days,scene2=adjustPosChg(.$scene,.$days-1,base_vol_chg=vol_chg,multi=PosMultip,hdd=holdDays,HV_IV_Adjust_Ratio=EvalFuncSetting$HV_IV_Adjust_Ratio,isDebug=FALSE)) -> tmp
+    posStepDays_vc %>% group_by(days) %>% rowwise() %>% do(days=.$days,scene2=adjustPosChg(.$scene,base_vol_chg=vol_chg,
+                                                                                           multi=PosMultip,hdd=holdDays,
+                                                                                           HV_IV_Adjust_Ratio=EvalFuncSetting$HV_IV_Adjust_Ratio,isDebug=FALSE)) -> tmp
     unlist(tmp$days) -> posStepDays_vc$days ; tmp$scene2 -> posStepDays_vc$scene ;rm(tmp)
     drawGrktbl_vc_plus<-createAgrregatedGreekTbl(posStepDays_vc,thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,multi=PosMultip,iniCredit=iniCredit)
     
     #volatility Minus
     posStepDays_vc<-posStepDays_vc_orig
-    posStepDays_vc %>% group_by(days) %>% rowwise() %>% do(days=.$days,scene2=adjustPosChg(.$scene,.$days-1,base_vol_chg=(-1)*vol_chg,multi=PosMultip,hdd=holdDays,HV_IV_Adjust_Ratio=EvalFuncSetting$HV_IV_Adjust_Ratio,isDebug=FALSE)) -> tmp
+    posStepDays_vc %>% group_by(days) %>% rowwise() %>% do(days=.$days,scene2=adjustPosChg(.$scene,base_vol_chg=(-1)*vol_chg,
+                                                                                           multi=PosMultip,hdd=holdDays,
+                                                                                           HV_IV_Adjust_Ratio=EvalFuncSetting$HV_IV_Adjust_Ratio,isDebug=FALSE)) -> tmp
     unlist(tmp$days) -> posStepDays_vc$days ; tmp$scene2 -> posStepDays_vc$scene ;rm(tmp)
     drawGrktbl_vc_mnus<-createAgrregatedGreekTbl(posStepDays_vc,thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,multi=PosMultip,iniCredit=iniCredit)
     
