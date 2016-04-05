@@ -42,7 +42,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   posStepDays<-data.frame(days=c(1,Setting$holdDays))
   posStepDays %>% group_by(days) %>%
     do(scene=createPositionEvalTable(position=position,udlStepNum=udlStepNum,udlStepPct=udlStepPct,
-                                     multi=PosMultip,hdd=Setting$holdDays,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)) -> posStepDays
+                                     multi=PosMultip,hdd=.$days,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)) -> posStepDays
   
   #Use for checking volatility sensitivity later
   posStepDays_vc<-posStepDays
@@ -455,13 +455,13 @@ get.UDLY.Changed.Price<-function(udly,chg_pct){
 #   3      0.12   <S3:data.frame>
 # <S3:data.frame> is original data frame which only UDLY are modified.
 # This function reflects Date,IV,etc after udlChg% change for the UDLYs in "days" days.
-reflectPosChg<- function(process_df,days,IV_DEVIATION=0,MIN_IVIDX_CHG=(-0.5)){
+reflectPosChg<- function(process_df,days,IVLvlRegDaysOffset=0,IV_DEVIATION=0,MIN_IVIDX_CHG=(-0.5)){
   pos<-as.data.frame(process_df$pos[1])
   chg<-as.numeric(process_df$udlChgPct[1])
   # print(chg)
   
   # get (IVIDX_pre/IVIDX_pos)/(UDLY_pre/UDLY_pos)
-  regression<-get.Volatility.Level.Regression(Days=days)
+  regression<-get.Volatility.Level.Regression(Days=(days+IVLvlRegDaysOffset))
   ividx_chg_pct<-get.predicted.IVIDXChange(model=regression$model,xmin=chg,xmax=100,x_by=0)$IVIDXC
   #if ividx_chg_pct < MIN_IVIDX_CHG, ividx_chg_pct=MIN_IVIDX_CHG
   ividx_chg_pct<-(ividx_chg_pct<MIN_IVIDX_CHG)*MIN_IVIDX_CHG+(ividx_chg_pct>=MIN_IVIDX_CHG)*ividx_chg_pct
@@ -527,14 +527,14 @@ hollowNonZeroPosition<-function(pos){
   position
 }
 
-createPositionEvalTable<-function(position,udlStepNum,udlStepPct,multi,hdd,HV_IV_Adjust_Ratio){
+createPositionEvalTable<-function(position,udlStepNum,udlStepPct,multi,hdd,HV_IV_Adjust_Ratio,IVLvlRegDaysOffset=0){
   udlChgPct<-seq(-udlStepPct*udlStepNum,udlStepPct*udlStepNum,length=(2*udlStepNum)+1)
   posEvalTbl<-data.frame(udlChgPct=udlChgPct) ;rm(udlStepNum,udlStepPct)
   #Set data frames as a row value of another data frame.
   posEvalTbl %>% group_by(udlChgPct) %>% do(pos=position) -> posEvalTbl
   #Modify pos based on scenario
-  posEvalTbl %>% group_by(udlChgPct) %>% do(pos=reflectPosChg(.,hdd)) -> posEvalTbl
- 
+  posEvalTbl %>% group_by(udlChgPct) %>% do(pos=reflectPosChg(process_df=.,days=hdd,IVLvlRegDaysOffset=IVLvlRegDaysOffset)) -> posEvalTbl
+
   #cat("HV_IV_Adjust_Ratio (createPositionEvalTable):",HV_IV_Adjust_Ratio)
   
   ##
@@ -1107,15 +1107,8 @@ createGreekTbl<-function(days,pos_smry_x,pos_smry_greek){
 
 
 #innfer functions : position operation related.
-
-#After each posTable is created by createPositionEvalTable(), 
-#we must adjust actual Date and related conditions. Date (and TimeToExpDate), 
-#Moneyness.nm,, IV(OrigIV) and time decayed Greeks.
-
-#assuming on each day, IVIDX doesn't change at udlChgPcg==0.
-#instance price change had only occured from stepdays before.
-
-#nested. adjustPosChg() calls adjustPosChgInner()
+# Now this function change only Base Volatility Level.
+# so arguments other than base_vol_chg does not affect anything.
 adjustPosChgInner<-function(process_df,time_advcd, base_vol_chg=0){
   pos<-as.data.frame(process_df$pos[1])
   if(sum(as.numeric(time_advcd==0))!=0) return(pos)
@@ -1130,25 +1123,25 @@ adjustPosChgInner<-function(process_df,time_advcd, base_vol_chg=0){
   
   #Volatility Cone の影響。時間変化した分の影響を受ける。その比の分だけ比率変化
   #ATMIV_pos <- ATMIV_pos*(ATMIV_pos/IVIDX_pos)t=TimeToExpDate_pre/(ATMIV_pos/IVIDX_pos)t=TimeToExpDate_pos
-  bdays_per_month<-252/12
-  TimeToExpDate_pos<-(pos$TimeToExpDate*bdays_per_month-time_advcd)/bdays_per_month
-  pos$ATMIV<-pos$ATMIV *
-    get.Volatility.Cone.Regression.Result(pos$TYPE,TimeToExpDate_pos)/
-    get.Volatility.Cone.Regression.Result(pos$TYPE,pos$TimeToExpDate)
+  # bdays_per_month<-252/12
+  # TimeToExpDate_pos<-(pos$TimeToExpDate*bdays_per_month-time_advcd)/bdays_per_month
+  # pos$ATMIV<-pos$ATMIV *
+  #   get.Volatility.Cone.Regression.Result(pos$TYPE,TimeToExpDate_pos)/
+  #   get.Volatility.Cone.Regression.Result(pos$TYPE,pos$TimeToExpDate)
   
   #set new TimeToExpDate
-  pos$TimeToExpDate<-TimeToExpDate_pos
+  #pos$TimeToExpDate<-TimeToExpDate_pos
   
   #Date advance
-  pos$Date <- format(advance(CALENDAR_G,dates=as.Date(pos$Date,format="%Y/%m/%d"),
-                             time_advcd,0),"%Y/%m/%d")
+  # pos$Date <- format(advance(CALENDAR_G,dates=as.Date(pos$Date,format="%Y/%m/%d"),
+  #                            time_advcd,0),"%Y/%m/%d")
   
   #Moneyness.nm which reflects the value of TimetoExpDate
-  pos$Moneyness.Frac<-pos$Strike/pos$UDLY
-  eval_timeToExpDate<-as.numeric(pos$TimeToExpDate<TimeToExp_Limit_Closeness_G)*TimeToExp_Limit_Closeness_G+
-    as.numeric(pos$TimeToExpDate>=TimeToExp_Limit_Closeness_G)*pos$TimeToExpDate
-  pos$Moneyness.Nm<-log(pos$Moneyness.Frac)/pos$ATMIV/sqrt(eval_timeToExpDate)
-  pos$Moneyness.Frac<-NULL
+  # pos$Moneyness.Frac<-pos$Strike/pos$UDLY
+  # eval_timeToExpDate<-as.numeric(pos$TimeToExpDate<TimeToExp_Limit_Closeness_G)*TimeToExp_Limit_Closeness_G+
+  #   as.numeric(pos$TimeToExpDate>=TimeToExp_Limit_Closeness_G)*pos$TimeToExpDate
+  # pos$Moneyness.Nm<-log(pos$Moneyness.Frac)/pos$ATMIV/sqrt(eval_timeToExpDate)
+  # pos$Moneyness.Frac<-NULL
   
   #calculate IV_pos(OrigIV) using SkewModel based on model definition formula.
   spskew<-(pos$TYPE==OpType_Put_G)*get.predicted.spline.skew(SkewModel_Put,pos$Moneyness.Nm)+
@@ -1168,6 +1161,8 @@ adjustPosChgInner<-function(process_df,time_advcd, base_vol_chg=0){
   pos
 }
 
+# Now this function change only Base Volatility Level.
+# so arguments other than base_vol_chg does not affect anything.
 adjustPosChg<-function(process_df,time_advcd,base_vol_chg=0,multi,hdd,HV_IV_Adjust_Ratio,isDebug=FALSE){
  
    if(isDebug){

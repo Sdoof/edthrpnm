@@ -34,10 +34,10 @@ ResultFiles_Path_G=ConfigParameters["ResultFiles_Path_G",1]
 EvalPos_fn=paste(ResultFiles_Path_G,Underying_Symbol_G,"_EvalPosition.csv",sep='')
 
 #Here you spicify which position should be analyzed.
-DrawSpreads=c(1:5)
+DrawSpreads=c(1:2)
 
 #UDLY draw limit. given absolute % value
-UDLY_DrawRange<-0.16
+UDLY_DrawRange<-0.10
 
 #Show Graph of Delta Headged Position
 ShowDeltaHedge=TRUE
@@ -234,14 +234,10 @@ for(eval_pos_idx in DrawSpreads){
   
   #total data frame
   posStepDays<-data.frame(days=evaldays)
-  
-  #Set data frames as a row value of another data frame.
-  posStepDays %>% group_by(days) %>%
+ 
+   posStepDays %>% group_by(days) %>%
     do(scene=createPositionEvalTable(position=thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,
-                                     multi=PosMultip,hdd=as.numeric(ifelse(.$days+EvalFuncSetting$holdDays<=max(evaldays),
-                                                                           as.numeric(ifelse(.$days<=EvalFuncSetting$holdDays,.$days,EvalFuncSetting$holdDays)),
-                                                                           max(evaldays)-.$days)),
-                                     HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio)) -> posStepDays
+                                     multi=PosMultip,hdd=.$days,HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio)) -> posStepDays
   
   iniCredit <- -1*posStepDays$scene[[1]]$Price[udlStepNum+1]
   
@@ -249,8 +245,6 @@ for(eval_pos_idx in DrawSpreads){
   posStepDays_vc<-posStepDays
   
   #We must adjust each position values
-  posStepDays %>% group_by(days) %>% rowwise() %>% do(days=.$days,scene2=adjustPosChg(.$scene,.$days-1,base_vol_chg=0,multi=PosMultip,hdd=holdDays,HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio,isDebug=FALSE)) -> tmp
-  unlist(tmp$days) -> posStepDays$days ; tmp$scene2 -> posStepDays$scene ;rm(tmp)
   
   #Now drawing
   drawGrktbl<-createAgrregatedGreekTbl(posStepDays,thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,multi=PosMultip,iniCredit=iniCredit)
@@ -291,13 +285,13 @@ for(eval_pos_idx in DrawSpreads){
   #draw_VegaE_with_sign=(drawGrktbl$Vega>=0)*abs(drawGrktbl$VegaEffect)+(drawGrktbl$Vega<0)*(-1)*abs(drawGrktbl$VegaEffect)
   gg<-ggplot(drawGrktbl,aes(x=UDLY,y=profit,group=day))+
     geom_line(size=draw_line_size,linetype=draw_line_type)+
-    geom_line(y=drawGrktbl$GammaEffect,colour="red",size=draw_line_size,linetype=draw_line_type)+
+    #geom_line(y=drawGrktbl$GammaEffect,colour="red",size=draw_line_size,linetype=draw_line_type)+
     geom_line(y=drawGrktbl$ThetaEffect,colour="orange",size=draw_line_size,linetype=draw_line_type)+
     #geom_line(x=drawGrktbl$UDLY,y=drawGrktbl$DeltaEffect,colour="skyblue3",size=draw_line_size,group=drawGrktbl$day,linetype=draw_line_type)+
     geom_point(x=thePositonGrks$UDLY,y=0,size=4.0,colour="black")+
     ylim(
-      min(c(min(drawGrktbl$profit)),min(drawGrktbl$ThetaEffect),min(drawGrktbl$GammaEffect)),
-      max(c(max(drawGrktbl$profit)),max(drawGrktbl$ThetaEffect),max(drawGrktbl$GammaEffect)))
+      min(c(min(drawGrktbl$profit)),min(drawGrktbl$ThetaEffect)),#min(drawGrktbl$GammaEffect)),
+      max(c(max(drawGrktbl$profit)),max(drawGrktbl$ThetaEffect)))#max(drawGrktbl$GammaEffect)))
   print(gg)
   
   if(ShowDeltaHedge){
@@ -313,25 +307,20 @@ for(eval_pos_idx in DrawSpreads){
     #new Profit
     drawGrktbl_DltHgd$profit<-drawGrktbl_DltHgd$profit-as.numeric(headgedDelta)*(drawGrktbl_DltHgd$UDLY-mean(thePosition$UDLY))
     
-    #drawGrktbl_DltHgd$profit<-drawGrktbl_DltHgd$profit-as.numeric(headgedDelta)*(drawGrktbl_DltHgd$UDLY-rep(posStepDays$scene[[1]]$UDLY,times=length(evaldays)))
     #new delta
     drawGrktbl_DltHgd$Delta<-drawGrktbl_DltHgd$Delta-as.numeric(headgedDelta)
     
-    #draw_DeltaE_with_sign=(drawGrktbl_DltHgd$Delta>=0)*abs(drawGrktbl_DltHgd$DeltaEffect)+
-    #(drawGrktbl_DltHgd$Delta<0)*(-1)*abs(drawGrktbl_DltHgd$DeltaEffect)
-    
     gg<-ggplot(drawGrktbl_DltHgd,aes(x=UDLY,y=profit,group=day))+
       geom_line(size=draw_line_size,linetype=draw_line_type)+
-      geom_line(y=drawGrktbl_DltHgd$GammaEffect,colour="red",size=draw_line_size,linetype=draw_line_type)+
+      #geom_line(y=drawGrktbl_DltHgd$GammaEffect,colour="red",size=draw_line_size,linetype=draw_line_type)+
       geom_line(y=drawGrktbl_DltHgd$ThetaEffect,colour="orange",size=draw_line_size,linetype=draw_line_type)+
       #geom_line(x=drawGrktbl$UDLY,y=drawGrktbl$DeltaEffect,colour="skyblue3",size=draw_line_size,group=drawGrktbl$day,linetype=draw_line_type)+
       geom_point(x=thePositonGrks$UDLY,y=0,size=4.0,colour="black")+
       ylim(
-        min(c(min(drawGrktbl_DltHgd$profit)),min(drawGrktbl_DltHgd$ThetaEffect),min(drawGrktbl_DltHgd$GammaEffect)),
-        max(c(max(drawGrktbl_DltHgd$profit)),max(drawGrktbl_DltHgd$ThetaEffect),max(drawGrktbl_DltHgd$GammaEffect)))
+        min(c(min(drawGrktbl_DltHgd$profit)),min(drawGrktbl_DltHgd$ThetaEffect)),#min(drawGrktbl_DltHgd$GammaEffect)),
+        max(c(max(drawGrktbl_DltHgd$profit)),max(drawGrktbl_DltHgd$ThetaEffect)))#,max(drawGrktbl_DltHgd$GammaEffect)))
     print(gg)
   }
-  
   
   #volatility change %
   if(VolSensitivityCheck){
@@ -339,15 +328,18 @@ for(eval_pos_idx in DrawSpreads){
     #copy for -vol_chg%
     posStepDays_vc_orig<-posStepDays_vc
     
+    #volatility Plus
     posStepDays_vc %>% group_by(days) %>% rowwise() %>% do(days=.$days,scene2=adjustPosChg(.$scene,.$days-1,base_vol_chg=vol_chg,multi=PosMultip,hdd=holdDays,HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio,isDebug=FALSE)) -> tmp
     unlist(tmp$days) -> posStepDays_vc$days ; tmp$scene2 -> posStepDays_vc$scene ;rm(tmp)
     drawGrktbl_vc_plus<-createAgrregatedGreekTbl(posStepDays_vc,thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,multi=PosMultip,iniCredit=iniCredit)
     
+    #volatility Minus
     posStepDays_vc<-posStepDays_vc_orig
     posStepDays_vc %>% group_by(days) %>% rowwise() %>% do(days=.$days,scene2=adjustPosChg(.$scene,.$days-1,base_vol_chg=(-1)*vol_chg,multi=PosMultip,hdd=holdDays,HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio,isDebug=FALSE)) -> tmp
     unlist(tmp$days) -> posStepDays_vc$days ; tmp$scene2 -> posStepDays_vc$scene ;rm(tmp)
     drawGrktbl_vc_mnus<-createAgrregatedGreekTbl(posStepDays_vc,thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,multi=PosMultip,iniCredit=iniCredit)
     
+    #Draw ranging
     drawGrktbl_vc_plus %>% dplyr::filter(UDLY>mean(thePosition$UDLY)*(1-UDLY_DrawRange)) %>% 
       dplyr::filter(UDLY<mean(thePosition$UDLY)*(1+UDLY_DrawRange)) -> drawGrktbl_vc_plus
     
@@ -391,8 +383,8 @@ for(eval_pos_idx in DrawSpreads){
       #geom_line(x=drawGrktbl$UDLY,y=drawGrktbl$DeltaEffect,colour="skyblue3",size=draw_line_size,group=drawGrktbl$day,linetype=draw_line_type)+
       #geom_point(x=thePositonGrks$UDLY,y=0,size=4.0,colour="black")+
       ylim(
-        min(c(min(drawGrktbl_DltHgd$profit)),min(drawGrktbl_DltHgd$ThetaEffect),min(drawGrktbl_DltHgd$GammaEffect)),
-        max(c(max(drawGrktbl_DltHgd$profit)),max(drawGrktbl_DltHgd$ThetaEffect),max(drawGrktbl_DltHgd$GammaEffect)))
+        min(c(min(drawGrktbl_DltHgd$profit)),min(drawGrktbl_DltHgd$ThetaEffect)),#,min(drawGrktbl_DltHgd$GammaEffect)),
+        max(c(max(drawGrktbl_DltHgd$profit)),max(drawGrktbl_DltHgd$ThetaEffect)))#,max(drawGrktbl_DltHgd$GammaEffect)))
     print(gg)
     
   }
