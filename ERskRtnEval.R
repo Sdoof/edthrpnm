@@ -455,13 +455,13 @@ get.UDLY.Changed.Price<-function(udly,chg_pct){
 #   3      0.12   <S3:data.frame>
 # <S3:data.frame> is original data frame which only UDLY are modified.
 # This function reflects Date,IV,etc after udlChg% change for the UDLYs in "days" days.
-reflectPosChg<- function(process_df,days,IVLvlRegDaysOffset=0,IV_DEVIATION=0,MIN_IVIDX_CHG=(-0.5)){
+reflectPosChg<- function(process_df,days,IV_DEVIATION=0,MIN_IVIDX_CHG=(-0.5)){
   pos<-as.data.frame(process_df$pos[1])
   chg<-as.numeric(process_df$udlChgPct[1])
   # print(chg)
   
   # get (IVIDX_pre/IVIDX_pos)/(UDLY_pre/UDLY_pos)
-  regression<-get.Volatility.Level.Regression(Days=(days+IVLvlRegDaysOffset))
+  regression<-get.Volatility.Level.Regression(Days=days)
   ividx_chg_pct<-get.predicted.IVIDXChange(model=regression$model,xmin=chg,xmax=100,x_by=0)$IVIDXC
   #if ividx_chg_pct < MIN_IVIDX_CHG, ividx_chg_pct=MIN_IVIDX_CHG
   ividx_chg_pct<-(ividx_chg_pct<MIN_IVIDX_CHG)*MIN_IVIDX_CHG+(ividx_chg_pct>=MIN_IVIDX_CHG)*ividx_chg_pct
@@ -527,13 +527,13 @@ hollowNonZeroPosition<-function(pos){
   position
 }
 
-createPositionEvalTable<-function(position,udlStepNum,udlStepPct,multi,hdd,HV_IV_Adjust_Ratio,IVLvlRegDaysOffset=0){
+createPositionEvalTable<-function(position,udlStepNum,udlStepPct,multi,hdd,HV_IV_Adjust_Ratio){
   udlChgPct<-seq(-udlStepPct*udlStepNum,udlStepPct*udlStepNum,length=(2*udlStepNum)+1)
   posEvalTbl<-data.frame(udlChgPct=udlChgPct) ;rm(udlStepNum,udlStepPct)
   #Set data frames as a row value of another data frame.
   posEvalTbl %>% group_by(udlChgPct) %>% do(pos=position) -> posEvalTbl
   #Modify pos based on scenario
-  posEvalTbl %>% group_by(udlChgPct) %>% do(pos=reflectPosChg(process_df=.,days=hdd,IVLvlRegDaysOffset=IVLvlRegDaysOffset)) -> posEvalTbl
+  posEvalTbl %>% group_by(udlChgPct) %>% do(pos=reflectPosChg(process_df=.,days=hdd)) -> posEvalTbl
 
   #cat("HV_IV_Adjust_Ratio (createPositionEvalTable):",HV_IV_Adjust_Ratio)
   
