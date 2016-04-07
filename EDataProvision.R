@@ -31,7 +31,7 @@ ResultFiles_Path_G=ConfigParameters["ResultFiles_Path_G",1]
 
 #switch: only for today or multiple days for skew calculation
 ProcessFileName=paste("_OPChain_Pre.csv",sep="")
-isSkewCalc=F
+isSkewCalc=T
 #set TRUE if this opchain is for Future Option 
 isFOP=F
 #set TRUE if this is today's new position, or (already holding position) set FALSE,
@@ -304,26 +304,30 @@ makePosition <- function(opch){
 
 opchain<-makePosition(opchain)
 
-filterPosition <- function(opchain,HowfarOOM_MIN=0.0,OOM_Limit_V=c(0.30,0.30)){
+filterPosition <- function(opchain,Delta_Limit_MAX=c(0.5,0.6,0.6),Delta_Limit_MIN=c(0.05,0.1,0.1)){
   ##
   #  Filter Target Ranges
   
   #Only OOM
-  opchain %>% dplyr::filter(HowfarOOM>=HowfarOOM_MIN) -> opchain
+  #opchain %>% dplyr::filter(HowfarOOM>=HowfarOOM_MIN) -> opchain
   
   #Calender Spread 
-  OOM_Limit<-(OOM_Limit_V[1])
-  #opchain %>%  dplyr::filter(ExpDate=="2016/5/19") %>% dplyr::filter(HowfarOOM<OOM_Limit)  %>% dplyr::filter((Strike%%10)==0) -> opchain_cal1
-  opchain %>%  dplyr::filter(ExpDate=="2016/5/19") %>% dplyr::filter(HowfarOOM<OOM_Limit) -> opchain_cal1
-  OOM_Limit<-(OOM_Limit_V[2])
-  #opchain %>%  dplyr::filter(ExpDate=="2016/6/16") %>% dplyr::filter(HowfarOOM<OOM_Limit)  %>% dplyr::filter((Strike%%10)==0) -> opchain_cal2
-  opchain %>%  dplyr::filter(ExpDate=="2016/6/16") %>% dplyr::filter(HowfarOOM<OOM_Limit) -> opchain_cal2
+  #Delta_Limit<-(Delta_Limit_V[1])
+  
+  opchain %>%  dplyr::filter(ExpDate=="2016/5/19") %>% dplyr::filter(abs(Delta)>Delta_Limit_MIN[1])  %>% 
+    dplyr::filter(abs(Delta)<Delta_Limit_MAX[1]) %>% dplyr::filter((Strike%%25)==0) -> opchain_cal1
+  
+  opchain %>%  dplyr::filter(ExpDate=="2016/6/16") %>% dplyr::filter(abs(Delta)>Delta_Limit_MIN[2])  %>% 
+    dplyr::filter(abs(Delta)<Delta_Limit_MAX[2]) %>% dplyr::filter((Strike%%10)==0) -> opchain_cal2
+ 
+  opchain %>%  dplyr::filter(ExpDate=="2016/4/29") %>% dplyr::filter(abs(Delta)>Delta_Limit_MIN[3])  %>% 
+    dplyr::filter(abs(Delta)<Delta_Limit_MAX[3]) %>% dplyr::filter((Strike%%10)==0) -> opchain_cal3
   
   #Join
-  opchain_cal1 %>%  dplyr::full_join(opchain_cal2) %>% 
-    dplyr::arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="%Y/%m/%d"),desc(TYPE),Strike) -> opchain
+  opchain_cal1 %>%  dplyr::full_join(opchain_cal2) %>% dplyr::full_join(opchain_cal3) %>%
+    dplyr::arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="%Y/%m/%d"),desc(TYPE),Strike) %>% distinct() -> opchain_ret
   
-  return(opchain)
+  return(opchain_ret)
 }
 
 filterForFOPPosition <- function(opchain,HowfarOOM_MIN=0,OOM_Limit_V=c(0.09,0.09)){
