@@ -31,7 +31,7 @@ ResultFiles_Path_G=ConfigParameters["ResultFiles_Path_G",1]
 
 #switch: only for today or multiple days for skew calculation
 ProcessFileName=paste("_OPChain_Pre.csv",sep="")
-isSkewCalc=T
+isSkewCalc=F
 #set TRUE if this opchain is for Future Option 
 isFOP=F
 #set TRUE if this is today's new position, or (already holding position) set FALSE,
@@ -314,13 +314,13 @@ filterPosition <- function(opchain,Delta_Limit_MAX=c(0.5,0.6,0.6),Delta_Limit_MI
   #Calender Spread 
   #Delta_Limit<-(Delta_Limit_V[1])
   
-  opchain %>%  dplyr::filter(ExpDate=="2016/5/19") %>% dplyr::filter(abs(Delta)>Delta_Limit_MIN[1])  %>% 
+  opchain %>%  dplyr::filter(ExpDate=="2016/5/31") %>% dplyr::filter(abs(Delta)>Delta_Limit_MIN[1])  %>% 
     dplyr::filter(abs(Delta)<Delta_Limit_MAX[1]) %>% dplyr::filter((Strike%%25)==0) -> opchain_cal1
   
   opchain %>%  dplyr::filter(ExpDate=="2016/6/16") %>% dplyr::filter(abs(Delta)>Delta_Limit_MIN[2])  %>% 
     dplyr::filter(abs(Delta)<Delta_Limit_MAX[2]) %>% dplyr::filter((Strike%%10)==0) -> opchain_cal2
  
-  opchain %>%  dplyr::filter(ExpDate=="2016/4/29") %>% dplyr::filter(abs(Delta)>Delta_Limit_MIN[3])  %>% 
+  opchain %>%  dplyr::filter(ExpDate=="2016/5/19") %>% dplyr::filter(abs(Delta)>Delta_Limit_MIN[3])  %>% 
     dplyr::filter(abs(Delta)<Delta_Limit_MAX[3]) %>% dplyr::filter((Strike%%10)==0) -> opchain_cal3
   
   #Join
