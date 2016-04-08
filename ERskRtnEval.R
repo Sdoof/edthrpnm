@@ -729,10 +729,10 @@ sampleMain<-function(sampleSpreadType,totalPopNum,targetExpDate,targetExpDate_f,
       y=sampleVerticalSpread(targetOpTyep=OpType_Call_G,
                              verticalType=BEAR_VERTICAL_SPREAD_TYPE,
                              targetExpDate=targetExpDate,isDebug=isDebug,isDetail=idDetail)
-      z=sampleDiagonalSpread(targetOpTyep=OpType_Put_G,
-                             diagonalType=ifelse(runif(1)<=0.500000,DIAGONAL_TYPE_LONG,DIAGONAL_TYPE_SHORT),
-                             targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,isDebug=isDebug,isDetail=idDetail)
       
+      z=sampleDiagonalSpread(targetOpTyep=ifelse(runif(1)<=0.500000,OpType_Put_G,OpType_Call_G),
+                           diagonalType=ifelse(runif(1)<=0.500000,DIAGONAL_TYPE_LONG,DIAGONAL_TYPE_SHORT),
+                           targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,isDebug=isDebug,isDetail=idDetail)
       x<-y*spreadRatio[1]+z*spreadRatio[2]
       
     }else if(sampleSpreadType==CALL_BEAR_SPREAD_PLUS_DOUBLE_DIAGONAL_SMPLING){
@@ -763,6 +763,31 @@ sampleMain<-function(sampleSpreadType,totalPopNum,targetExpDate,targetExpDate_f,
                              targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,isDebug=isDebug,isDetail=idDetail)
       
       x<-y*spreadRatio[1]+(z+w)*spreadRatio[2]
+    }else if(sampleSpreadType==POOL_PLUS_DOUBLE_DIAGONAL_SMPLING){
+      
+      s1<-pools[[ 1 ]][[2]][ceiling(runif(1, min=1e-320, max=nrow(pools[[1]][[2]]))), ]
+      y<-unlist(s1[1:length(iniPos)]);s1_score<-as.numeric(s1[length(s1)])
+      
+      diagonalType=ifelse(runif(1)<=0.500000,DIAGONAL_TYPE_LONG,DIAGONAL_TYPE_SHORT)
+      z=sampleDiagonalSpread(targetOpTyep=OpType_Put_G,
+                             diagonalType=diagonalType,
+                             targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,isDebug=isDebug,isDetail=idDetail)
+      diagonalType=ifelse(runif(1)<=0.500000,DIAGONAL_TYPE_LONG,DIAGONAL_TYPE_SHORT)
+      w=sampleDiagonalSpread(targetOpTyep=OpType_Call_G,
+                             diagonalType=diagonalType,
+                             targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,isDebug=isDebug,isDetail=idDetail)
+      
+      x<-y*spreadRatio[1]+(z+w)*spreadRatio[2]
+    }else if(sampleSpreadType==POOL_PLUS_SINGLE_DIAGONAL_SMPLING){
+      
+      s1<-pools[[ 1 ]][[2]][ceiling(runif(1, min=1e-320, max=nrow(pools[[1]][[2]]))), ]
+      y<-unlist(s1[1:length(iniPos)]);s1_score<-as.numeric(s1[length(s1)])
+      
+      z=sampleDiagonalSpread(targetOpTyep=ifelse(runif(1)<=0.500000,OpType_Put_G,OpType_Call_G),
+                             diagonalType=ifelse(runif(1)<=0.500000,DIAGONAL_TYPE_LONG,DIAGONAL_TYPE_SHORT),
+                             targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,isDebug=isDebug,isDetail=idDetail)
+      
+      x<-y*spreadRatio[1]+z*spreadRatio[2]
     }
     
     if(isDetail)
