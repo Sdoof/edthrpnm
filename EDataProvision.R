@@ -36,10 +36,10 @@ isSkewCalc=F
 isFOP=F
 #set TRUE if this is today's new position, or (already holding position) set FALSE,
 isNewPosition=T
-TargetFileName=paste("_Positions_Pre_",Sys.Date(),".csv",sep="")
+TargetFileName=paste("_Positions_Pre_",format(Sys.time(),"%Y%b%d_%H%M%S"),".csv",sep="")
 #when isSkewCalc==TRUE, just comment out below
 if(isSkewCalc)
-  TargetFileName=paste("_OPChain_Pos_",Sys.Date(),".csv",sep="")
+  TargetFileName=paste("_OPChain_Pos_",format(Sys.time(),"%Y%b%d_%H%M%S"),".csv",sep="")
 
 makeOpchainContainer<-function(){  
   #read data file
@@ -318,10 +318,10 @@ filterPosition <- function(opchain,Delta_Limit_MAX=c(0.5,0.6,0.6),Delta_Limit_MI
     dplyr::filter(abs(Delta)<Delta_Limit_MAX[1]) %>% dplyr::filter((Strike%%25)==0) -> opchain_cal1
   
   opchain %>%  dplyr::filter(ExpDate=="2016/6/16") %>% dplyr::filter(abs(Delta)>Delta_Limit_MIN[2])  %>% 
-    dplyr::filter(abs(Delta)<Delta_Limit_MAX[2]) %>% dplyr::filter((Strike%%10)==0) -> opchain_cal2
+    dplyr::filter(abs(Delta)<Delta_Limit_MAX[2]) %>% dplyr::filter((Strike%%15)==0) -> opchain_cal2
  
   opchain %>%  dplyr::filter(ExpDate=="2016/5/19") %>% dplyr::filter(abs(Delta)>Delta_Limit_MIN[3])  %>% 
-    dplyr::filter(abs(Delta)<Delta_Limit_MAX[3]) %>% dplyr::filter((Strike%%10)==0) -> opchain_cal3
+    dplyr::filter(abs(Delta)<Delta_Limit_MAX[3]) %>% dplyr::filter((Strike%%15)==0) -> opchain_cal3
   
   #Join
   opchain_cal1 %>%  dplyr::full_join(opchain_cal2) %>% dplyr::full_join(opchain_cal3) %>%

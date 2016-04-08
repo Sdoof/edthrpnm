@@ -6,8 +6,8 @@ rm(list=ls())
 source('./ESourceRCode.R',encoding = 'UTF-8')
 
 ##specify each time
-TARGET_EXPDATE="2016/5/31"
-TARGET_EXPDATE_FRONT="2016/5/19"
+TARGET_EXPDATE="2016/5/19"
+TARGET_EXPDATE_FRONT="2016/4/29"
 TARGET_EXPDATE_BACK="2016/6/16"
 
 ##Spread Type Definition
@@ -98,7 +98,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
   targetExpDate_f=targetExpDate
   targetExpDate_b=targetExpDate
   spreadRatio=c(1,1,1)
-  totalPopNum=300
+  totalPopNum=100
   InitialPopThresh=2.5
   # EvalFuncSetting$holdDays=12
   # EvalFuncSetting$Profit_Coef=0.5
@@ -129,7 +129,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
     distinct() -> tmp
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
   #pool setting
-  tmp %>% arrange(.[,length(opchain$Position)+1]) %>% head(nrow(.)/4) %>% filter(.[[length(opchain$Position)+1]]<1.8) -> tmp
+  tmp %>% arrange(.[,length(opchain$Position)+1]) %>% head(nrow(.)/2) %>% filter(.[[length(opchain$Position)+1]]<1.8) -> tmp
   ## or when all results are mixed together regardress of the number of Putn and Calln, pools[[1]] should be set as
   # c(1,0,0) <- c(1Cb{=exact}, Putn not spicified, Calln not spicified)
   # Notice pools is global variable
@@ -549,7 +549,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
   targetExpDate_f=targetExpDate
   targetExpDate_b=targetExpDate
   spreadRatio=c(1,1,1)
-  totalPopNum=300
+  totalPopNum=100
   InitialPopThresh=2.5
   # EvalFuncSetting$holdDays=12
   # EvalFuncSetting$Profit_Coef=1
