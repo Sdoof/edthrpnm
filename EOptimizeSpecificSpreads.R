@@ -6,8 +6,8 @@ rm(list=ls())
 source('./ESourceRCode.R',encoding = 'UTF-8')
 
 ##specify each time
-TARGET_EXPDATE="2016/5/19"
-TARGET_EXPDATE_FRONT="2016/4/29"
+TARGET_EXPDATE="2016/5/31"
+TARGET_EXPDATE_FRONT="2016/5/19"
 TARGET_EXPDATE_BACK="2016/6/16"
 
 ##Spread Type Definition
@@ -105,10 +105,10 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
   # EvalFuncSetting$AdvEffect_Coef=0.5
   # EvalFuncSetting$DrctlEffect_Coef=0.6
   # EvalFuncSetting$MaxLoss_Coef=0.4
-  EvalFuncSetting$Delta_Thresh_Minus=rep(-15,times=10)
-  EvalFuncSetting$Delta_Thresh_Plus=rep(15,times=10)
-  EvalFuncSetting$Vega_Thresh_Minus=rep(-200,times=10)
-  EvalFuncSetting$Vega_Thresh_Plus=rep(200,times=10)
+  EvalFuncSetting$Delta_Thresh_Minus=rep(-2,times=10)
+  EvalFuncSetting$Delta_Thresh_Plus=rep(2,times=10)
+  EvalFuncSetting$Vega_Thresh_Minus=rep(-50,times=10)
+  EvalFuncSetting$Vega_Thresh_Plus=rep(50,times=10)
   
   outFname=createOutFname(targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,spreadRatio=spreadRatio,EvalFuncSetting=EvalFuncSetting)
   
@@ -143,17 +143,17 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
   targetExpDate_f=TARGET_EXPDATE_FRONT
   targetExpDate_b=TARGET_EXPDATE_BACK
   spreadRatio=c(1,1,1)
-  totalPopNum=70000
+  totalPopNum=50000
   InitialPopThresh=2.5
   # EvalFuncSetting$holdDays=12
   # EvalFuncSetting$Profit_Coef=0.5
   # EvalFuncSetting$AdvEffect_Coef=0.5
   # EvalFuncSetting$DrctlEffect_Coef=0.6
   # EvalFuncSetting$MaxLoss_Coef=0.4
-  EvalFuncSetting$Delta_Thresh_Minus=rep(-10,times=10)
-  EvalFuncSetting$Delta_Thresh_Plus=rep(10,times=10)
-  EvalFuncSetting$Vega_Thresh_Minus=rep(-100,times=10)
-  EvalFuncSetting$Vega_Thresh_Plus=rep(100,times=10)
+  EvalFuncSetting$Delta_Thresh_Minus=rep(-1,times=10)
+  EvalFuncSetting$Delta_Thresh_Plus=rep(1,times=10)
+  EvalFuncSetting$Vega_Thresh_Minus=rep(-10,times=10)
+  EvalFuncSetting$Vega_Thresh_Plus=rep(10,times=10)
   
   outFname=createOutFname(targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,spreadRatio=spreadRatio,EvalFuncSetting=EvalFuncSetting)
 
@@ -502,84 +502,84 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
 
 
 ### DOUBLE DIAGONAL Candiates for Completion
-sampleSpreadType=DOUBLE_DIAGONAL_SMPLING
-if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
-  targetExpDate=TARGET_EXPDATE
-  targetExpDate_f=TARGET_EXPDATE_FRONT
-  targetExpDate_b=TARGET_EXPDATE_BACK
-  spreadRatio=c(1,1,1)
-  totalPopNum=30000
-  InitialPopThresh=2.5
-  # EvalFuncSetting$holdDays=12
-  # EvalFuncSetting$Profit_Coef=1
-  # EvalFuncSetting$AdvEffect_Coef=0
-  # EvalFuncSetting$DrctlEffect_Coef=0.6
-  # EvalFuncSetting$MaxLoss_Coef=0.4
-  EvalFuncSetting$Delta_Thresh_Minus=rep(-1,times=10)
-  EvalFuncSetting$Delta_Thresh_Plus=rep(1,times=10)
-  EvalFuncSetting$Vega_Thresh_Minus=rep(-30,times=10)
-  EvalFuncSetting$Vega_Thresh_Plus=rep(30,times=10)
-  
-  outFname=createOutFname(targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,spreadRatio=spreadRatio,EvalFuncSetting=EvalFuncSetting)
-
-  #sampling
-  originalLossLimitPrice=EvalFuncSetting$LossLimitPrice
-  #EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*max(spreadRatio)
-  EvalFuncSetting$LossLimitPrice=(-3000)*max(spreadRatio)
-  
-  sampleMain(sampleSpreadType=sampleSpreadType,totalPopNum=totalPopNum,
-             targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,
-             spreadRatio=spreadRatio,InitialPopThresh=InitialPopThresh,outFname=outFname,isFileout=T,isDebug=F,isDetail=F)
-  
-  EvalFuncSetting$LossLimitPrice=originalLossLimitPrice
-  
-  #file handling
-  tmp<-read.table(outFname,header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
-  tmp %>% arrange(.[,length(opchain$Position)+1])  %>% 
-    #select(.,1:length(opchain$Position)) %>% 
-    distinct() -> tmp
-  write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
-  
-}
-
-###IRON_CONDOR for Completion
-sampleSpreadType=IRON_CONDOR_SMPLING
-if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
-  targetExpDate=TARGET_EXPDATE
-  targetExpDate_f=targetExpDate
-  targetExpDate_b=targetExpDate
-  spreadRatio=c(1,1,1)
-  totalPopNum=100
-  InitialPopThresh=2.5
-  # EvalFuncSetting$holdDays=12
-  # EvalFuncSetting$Profit_Coef=1
-  # EvalFuncSetting$AdvEffect_Coef=0
-  # EvalFuncSetting$DrctlEffect_Coef=0.6
-  # EvalFuncSetting$MaxLoss_Coef=0.4
-  EvalFuncSetting$DeltaHedge=T
-  EvalFuncSetting$Delta_Thresh_Minus=rep(-1,times=10)
-  EvalFuncSetting$Delta_Thresh_Plus=rep(1,times=10)
-  EvalFuncSetting$Vega_Thresh_Minus=rep(-200,times=10)
-  EvalFuncSetting$Vega_Thresh_Plus=rep(200,times=10)
-  
-  outFname=createOutFname(targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,spreadRatio=spreadRatio,EvalFuncSetting=EvalFuncSetting)
-  
-  #sampling
-  originalLossLimitPrice=EvalFuncSetting$LossLimitPrice
-  #EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*max(spreadRatio)
-  EvalFuncSetting$LossLimitPrice=(-3000)*max(spreadRatio)
-  
-  sampleMain(sampleSpreadType=sampleSpreadType,totalPopNum=totalPopNum,
-             targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,
-             spreadRatio=spreadRatio,InitialPopThresh=InitialPopThresh,outFname=outFname,isFileout=T,isDebug=F,isDetail=F)
-  
-  EvalFuncSetting$LossLimitPrice=originalLossLimitPrice
-  
-  #file handling
-  tmp<-read.table(outFname,header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
-  tmp %>% arrange(.[,length(opchain$Position)+1])  %>% 
-    #select(.,1:length(opchain$Position)) %>% 
-    distinct() -> tmp
-  write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
-}
+# sampleSpreadType=DOUBLE_DIAGONAL_SMPLING
+# if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
+#   targetExpDate=TARGET_EXPDATE
+#   targetExpDate_f=TARGET_EXPDATE_FRONT
+#   targetExpDate_b=TARGET_EXPDATE_BACK
+#   spreadRatio=c(1,1,1)
+#   totalPopNum=30000
+#   InitialPopThresh=2.5
+#   # EvalFuncSetting$holdDays=12
+#   # EvalFuncSetting$Profit_Coef=1
+#   # EvalFuncSetting$AdvEffect_Coef=0
+#   # EvalFuncSetting$DrctlEffect_Coef=0.6
+#   # EvalFuncSetting$MaxLoss_Coef=0.4
+#   EvalFuncSetting$Delta_Thresh_Minus=rep(-1,times=10)
+#   EvalFuncSetting$Delta_Thresh_Plus=rep(1,times=10)
+#   EvalFuncSetting$Vega_Thresh_Minus=rep(-30,times=10)
+#   EvalFuncSetting$Vega_Thresh_Plus=rep(30,times=10)
+#   
+#   outFname=createOutFname(targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,spreadRatio=spreadRatio,EvalFuncSetting=EvalFuncSetting)
+# 
+#   #sampling
+#   originalLossLimitPrice=EvalFuncSetting$LossLimitPrice
+#   #EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*max(spreadRatio)
+#   EvalFuncSetting$LossLimitPrice=(-3000)*max(spreadRatio)
+#   
+#   sampleMain(sampleSpreadType=sampleSpreadType,totalPopNum=totalPopNum,
+#              targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,
+#              spreadRatio=spreadRatio,InitialPopThresh=InitialPopThresh,outFname=outFname,isFileout=T,isDebug=F,isDetail=F)
+#   
+#   EvalFuncSetting$LossLimitPrice=originalLossLimitPrice
+#   
+#   #file handling
+#   tmp<-read.table(outFname,header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
+#   tmp %>% arrange(.[,length(opchain$Position)+1])  %>% 
+#     #select(.,1:length(opchain$Position)) %>% 
+#     distinct() -> tmp
+#   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
+#   
+# }
+# 
+# ###IRON_CONDOR for Completion
+# sampleSpreadType=IRON_CONDOR_SMPLING
+# if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
+#   targetExpDate=TARGET_EXPDATE
+#   targetExpDate_f=targetExpDate
+#   targetExpDate_b=targetExpDate
+#   spreadRatio=c(1,1,1)
+#   totalPopNum=100
+#   InitialPopThresh=2.5
+#   # EvalFuncSetting$holdDays=12
+#   # EvalFuncSetting$Profit_Coef=1
+#   # EvalFuncSetting$AdvEffect_Coef=0
+#   # EvalFuncSetting$DrctlEffect_Coef=0.6
+#   # EvalFuncSetting$MaxLoss_Coef=0.4
+#   EvalFuncSetting$DeltaHedge=T
+#   EvalFuncSetting$Delta_Thresh_Minus=rep(-1,times=10)
+#   EvalFuncSetting$Delta_Thresh_Plus=rep(1,times=10)
+#   EvalFuncSetting$Vega_Thresh_Minus=rep(-200,times=10)
+#   EvalFuncSetting$Vega_Thresh_Plus=rep(200,times=10)
+#   
+#   outFname=createOutFname(targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,spreadRatio=spreadRatio,EvalFuncSetting=EvalFuncSetting)
+#   
+#   #sampling
+#   originalLossLimitPrice=EvalFuncSetting$LossLimitPrice
+#   #EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*max(spreadRatio)
+#   EvalFuncSetting$LossLimitPrice=(-3000)*max(spreadRatio)
+#   
+#   sampleMain(sampleSpreadType=sampleSpreadType,totalPopNum=totalPopNum,
+#              targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,
+#              spreadRatio=spreadRatio,InitialPopThresh=InitialPopThresh,outFname=outFname,isFileout=T,isDebug=F,isDetail=F)
+#   
+#   EvalFuncSetting$LossLimitPrice=originalLossLimitPrice
+#   
+#   #file handling
+#   tmp<-read.table(outFname,header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
+#   tmp %>% arrange(.[,length(opchain$Position)+1])  %>% 
+#     #select(.,1:length(opchain$Position)) %>% 
+#     distinct() -> tmp
+#   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
+# }
 
