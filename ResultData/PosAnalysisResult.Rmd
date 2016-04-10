@@ -28,7 +28,7 @@ EvalPos_fn=paste(ResultFiles_Path_G,Underying_Symbol_G,"_EvalPosition.csv",sep='
 DrawSpreads=c(1:50)
 
 #UDLY draw limit. given absolute % value
-UDLY_DrawRange<-0.15
+UDLY_DrawRange<-0.16
 
 #Show Graph of Delta Headged Position
 ShowDeltaHedge=TRUE
@@ -90,6 +90,10 @@ getPutCallnOfthePosition<-function(x){
   calln<-sum( as.numeric((callpos*x)!=0) )
   return (c(putn,calln))
 }
+
+## filter DrawSpreads<=nrow(EvalPos_fn)
+tmp<-read.table(EvalPos_fn,header=F,sep=",",colClasses="numeric")
+DrawSpreads=DrawSpreads[DrawSpreads<=nrow(tmp)]
 
 ##Spread Position loaded to be evaluated.
 for(eval_pos_idx in DrawSpreads){
