@@ -14,8 +14,9 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
     cat(":(Delta_Direct_Prf)",Delta_Direct_Prf)
     cat(" :(Vega_Direct_Prf)",Vega_Direct_Prf)
     cat(" :(Delta_Neutral_Offset)",Delta_Neutral_Offset," :Vega_Neutral_Offset",Vega_Neutral_Offset)
-    cat(" :(holdDays)",Setting$holdDays,"\n")
+    if(isDetail==F){cat(" :(holdDays)",Setting$holdDays,"\n")}
   }
+  if(isDetail){cat(" :(holdDays)",Setting$holdDays,"\n")}
   
   #position where pos$Position != 0
   position<-hollowNonZeroPosition(pos=x)
