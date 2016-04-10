@@ -105,10 +105,10 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
   # EvalFuncSetting$AdvEffect_Coef=0.5
   # EvalFuncSetting$DrctlEffect_Coef=0.6
   # EvalFuncSetting$MaxLoss_Coef=0.4
-  EvalFuncSetting$Delta_Thresh_Minus=rep(-2,times=10)
-  EvalFuncSetting$Delta_Thresh_Plus=rep(2,times=10)
-  EvalFuncSetting$Vega_Thresh_Minus=rep(-50,times=10)
-  EvalFuncSetting$Vega_Thresh_Plus=rep(50,times=10)
+  # EvalFuncSetting$Delta_Thresh_Minus=rep(-2,times=10)
+  # EvalFuncSetting$Delta_Thresh_Plus=rep(2,times=10)
+  # EvalFuncSetting$Vega_Thresh_Minus=rep(-50,times=10)
+  # EvalFuncSetting$Vega_Thresh_Plus=rep(50,times=10)
   
   outFname=createOutFname(targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,spreadRatio=spreadRatio,EvalFuncSetting=EvalFuncSetting)
   
@@ -150,10 +150,10 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
   # EvalFuncSetting$AdvEffect_Coef=0.5
   # EvalFuncSetting$DrctlEffect_Coef=0.6
   # EvalFuncSetting$MaxLoss_Coef=0.4
-  EvalFuncSetting$Delta_Thresh_Minus=rep(-1,times=10)
-  EvalFuncSetting$Delta_Thresh_Plus=rep(1,times=10)
-  EvalFuncSetting$Vega_Thresh_Minus=rep(-10,times=10)
-  EvalFuncSetting$Vega_Thresh_Plus=rep(10,times=10)
+  # EvalFuncSetting$Delta_Thresh_Minus=rep(-1,times=10)
+  # EvalFuncSetting$Delta_Thresh_Plus=rep(1,times=10)
+  # EvalFuncSetting$Vega_Thresh_Minus=rep(-10,times=10)
+  # EvalFuncSetting$Vega_Thresh_Plus=rep(10,times=10)
   
   outFname=createOutFname(targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,spreadRatio=spreadRatio,EvalFuncSetting=EvalFuncSetting)
 
@@ -195,10 +195,10 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
   # EvalFuncSetting$AdvEffect_Coef=0.5
   # EvalFuncSetting$DrctlEffect_Coef=0.6
   # EvalFuncSetting$MaxLoss_Coef=0.4
-  EvalFuncSetting$Delta_Thresh_Minus=rep(-10,times=10)
-  EvalFuncSetting$Delta_Thresh_Plus=rep(10,times=10)
-  EvalFuncSetting$Vega_Thresh_Minus=rep(-100,times=10)
-  EvalFuncSetting$Vega_Thresh_Plus=rep(100,times=10)
+  # EvalFuncSetting$Delta_Thresh_Minus=rep(-10,times=10)
+  # EvalFuncSetting$Delta_Thresh_Plus=rep(10,times=10)
+  # EvalFuncSetting$Vega_Thresh_Minus=rep(-100,times=10)
+  # EvalFuncSetting$Vega_Thresh_Plus=rep(100,times=10)
   
   outFname=createOutFname(targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,spreadRatio=spreadRatio,EvalFuncSetting=EvalFuncSetting)
   
@@ -233,10 +233,10 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
   # EvalFuncSetting$AdvEffect_Coef=0.5
   # EvalFuncSetting$DrctlEffect_Coef=0.6
   # EvalFuncSetting$MaxLoss_Coef=0.4
-  EvalFuncSetting$Delta_Thresh_Minus=rep(-1,times=10)
-  EvalFuncSetting$Delta_Thresh_Plus=rep(1,times=10)
-  EvalFuncSetting$Vega_Thresh_Minus=rep(-10,times=10)
-  EvalFuncSetting$Vega_Thresh_Plus=rep(10,times=10)
+  # EvalFuncSetting$Delta_Thresh_Minus=rep(-1,times=10)
+  # EvalFuncSetting$Delta_Thresh_Plus=rep(1,times=10)
+  # EvalFuncSetting$Vega_Thresh_Minus=rep(-10,times=10)
+  # EvalFuncSetting$Vega_Thresh_Plus=rep(10,times=10)
   
   #spread ratio 1
   spreadRatio=c(1,1,1)
@@ -289,10 +289,10 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
   # EvalFuncSetting$AdvEffect_Coef=0.5
   # EvalFuncSetting$DrctlEffect_Coef=0.6
   # EvalFuncSetting$MaxLoss_Coef=0.4
-  EvalFuncSetting$Delta_Thresh_Minus=rep(-1,times=10)
-  EvalFuncSetting$Delta_Thresh_Plus=rep(1,times=10)
-  EvalFuncSetting$Vega_Thresh_Minus=rep(-10,times=10)
-  EvalFuncSetting$Vega_Thresh_Plus=rep(10,times=10)
+  # EvalFuncSetting$Delta_Thresh_Minus=rep(-1,times=10)
+  # EvalFuncSetting$Delta_Thresh_Plus=rep(1,times=10)
+  # EvalFuncSetting$Vega_Thresh_Minus=rep(-10,times=10)
+  # EvalFuncSetting$Vega_Thresh_Plus=rep(10,times=10)
   
   #spread ratio 1
   spreadRatio=c(1,1,1)
@@ -345,10 +345,10 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
   # EvalFuncSetting$AdvEffect_Coef=0.5
   # EvalFuncSetting$DrctlEffect_Coef=0.6
   # EvalFuncSetting$MaxLoss_Coef=0.4
-  EvalFuncSetting$Delta_Thresh_Minus=rep(-1,times=10)
-  EvalFuncSetting$Delta_Thresh_Plus=rep(1,times=10)
-  EvalFuncSetting$Vega_Thresh_Minus=rep(-10,times=10)
-  EvalFuncSetting$Vega_Thresh_Plus=rep(10,times=10)
+  # EvalFuncSetting$Delta_Thresh_Minus=rep(-1,times=10)
+  # EvalFuncSetting$Delta_Thresh_Plus=rep(1,times=10)
+  # EvalFuncSetting$Vega_Thresh_Minus=rep(-10,times=10)
+  # EvalFuncSetting$Vega_Thresh_Plus=rep(10,times=10)
   
   #spread ratio 1
   spreadRatio=c(1,1,1)
@@ -401,10 +401,10 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
   # EvalFuncSetting$AdvEffect_Coef=0.5
   # EvalFuncSetting$DrctlEffect_Coef=0.6
   # EvalFuncSetting$MaxLoss_Coef=0.4
-  EvalFuncSetting$Delta_Thresh_Minus=rep(-1,times=10)
-  EvalFuncSetting$Delta_Thresh_Plus=rep(1,times=10)
-  EvalFuncSetting$Vega_Thresh_Minus=rep(-10,times=10)
-  EvalFuncSetting$Vega_Thresh_Plus=rep(10,times=10)
+  # EvalFuncSetting$Delta_Thresh_Minus=rep(-1,times=10)
+  # EvalFuncSetting$Delta_Thresh_Plus=rep(1,times=10)
+  # EvalFuncSetting$Vega_Thresh_Minus=rep(-10,times=10)
+  # EvalFuncSetting$Vega_Thresh_Plus=rep(10,times=10)
   
   #spread ratio 1
   spreadRatio=c(1,1,1)
@@ -457,10 +457,10 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
   # EvalFuncSetting$AdvEffect_Coef=0.5
   # EvalFuncSetting$DrctlEffect_Coef=0.6
   # EvalFuncSetting$MaxLoss_Coef=0.4
-  EvalFuncSetting$Delta_Thresh_Minus=rep(-1,times=10)
-  EvalFuncSetting$Delta_Thresh_Plus=rep(1,times=10)
-  EvalFuncSetting$Vega_Thresh_Minus=rep(-10,times=10)
-  EvalFuncSetting$Vega_Thresh_Plus=rep(10,times=10)
+  # EvalFuncSetting$Delta_Thresh_Minus=rep(-1,times=10)
+  # EvalFuncSetting$Delta_Thresh_Plus=rep(1,times=10)
+  # EvalFuncSetting$Vega_Thresh_Minus=rep(-10,times=10)
+  # EvalFuncSetting$Vega_Thresh_Plus=rep(10,times=10)
   
   #spread ratio 1
   spreadRatio=c(1,1,1)
