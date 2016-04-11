@@ -816,8 +816,6 @@ sampleMain<-function(sampleSpreadType,totalPopNum,targetExpDate,targetExpDate_f,
     }else{
       val<-as.numeric(filter(POSITION_HASH,hash==md5sumOfPos)$val)
       hash_hit_num<-hash_hit_num+1
-      if((total_count%%100)==0)
-        cat(" hash hit num:",hash_hit_num," hash total num:",nrow(POSITION_HASH)," total count:",total_count,"\n")
     }
     
     if(val<InitialPopThresh){
@@ -830,6 +828,7 @@ sampleMain<-function(sampleSpreadType,totalPopNum,targetExpDate,targetExpDate_f,
     total_count<-total_count+1
     if((added_num%%50)==0){
       cat(" added num:",added_num,"total count:",total_count,"time:",(proc.time()-start_t)[3],"\n")
+      cat("    hash hit num:",hash_hit_num," hash total num:",nrow(POSITION_HASH)," total count:",total_count,"\n")
       start_t<-proc.time()
     }
     if(added_num==totalPopNum)
