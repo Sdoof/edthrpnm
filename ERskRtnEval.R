@@ -660,7 +660,9 @@ sampleDiagonalSpread<-function(targetOpTyep,diagonalType,targetExpDate_f,targetE
 sampleMain<-function(sampleSpreadType,totalPopNum,targetExpDate,targetExpDate_f,targetExpDate_b,spreadRatio,InitialPopThresh,outFname,isFileout=T,isDebug=F,isDetail=F){
   added_num<-(0)
   total_count<-(0)
+  hash_hit_num<-(0)
   start_t<-proc.time()
+  POSITION_HASH=data.frame( "hash" = character(), "val" = numeric(), stringsAsFactors=FALSE)
   while(TRUE){
     x<-rep(0,times=length(opchain$TYPE))
     if(sampleSpreadType==IRON_CONDOR_SMPLING){
@@ -795,17 +797,28 @@ sampleMain<-function(sampleSpreadType,totalPopNum,targetExpDate,targetExpDate_f,
       print(hollowNonZeroPosition(x))
     
     posnum=sum(as.numeric((x)!=0))
-    tryCatch(
-      val<-obj_Income_sgmd(x,EvalFuncSetting,isDebug=F,isDetail=F,
-                           udlStepNum=EvalFuncSetting$UdlStepNum,udlStepPct=EvalFuncSetting$UdlStepPct,
-                           maxposnum=EvalFuncSetting$Maxposnum,PosMultip=PosMultip,
-                           tail_rate=EvalFuncSetting$Tail_rate,lossLimitPrice=EvalFuncSetting$LossLimitPrice,
-                           Delta_Direct_Prf=EvalFuncSetting$Delta_Direct_Prf[posnum],Vega_Direct_Prf=EvalFuncSetting$Vega_Direct_Prf[posnum],
-                           Delta_Neutral_Offset=EvalFuncSetting$Delta_Neutral_Offset[posnum],Vega_Neutral_Offset=EvalFuncSetting$Vega_Neutral_Offset[posnum]),
-      error=function(e){
-        message(e)
-        val<-(InitialPopThresh+1.0)
-      })
+    
+    md5sumOfPos=digest(paste(x,collapse = ""))
+    if(nrow(filter(POSITION_HASH,hash==md5sumOfPos))==0){
+      tryCatch(
+        val<-obj_Income_sgmd(x,EvalFuncSetting,isDebug=F,isDetail=F,
+                             udlStepNum=EvalFuncSetting$UdlStepNum,udlStepPct=EvalFuncSetting$UdlStepPct,
+                             maxposnum=EvalFuncSetting$Maxposnum,PosMultip=PosMultip,
+                             tail_rate=EvalFuncSetting$Tail_rate,lossLimitPrice=EvalFuncSetting$LossLimitPrice,
+                             Delta_Direct_Prf=EvalFuncSetting$Delta_Direct_Prf[posnum],Vega_Direct_Prf=EvalFuncSetting$Vega_Direct_Prf[posnum],
+                             Delta_Neutral_Offset=EvalFuncSetting$Delta_Neutral_Offset[posnum],Vega_Neutral_Offset=EvalFuncSetting$Vega_Neutral_Offset[posnum]),
+        error=function(e){
+          message(e)
+          val<-(InitialPopThresh+1.0)
+        })
+      POSITION_HASH[nrow(POSITION_HASH)+1,]=c(md5sumOfPos,val)
+      POSITION_HASH %>% arrange(hash) %>% distinct() -> POSITION_HASH
+    }else{
+      val<-as.numeric(filter(POSITION_HASH,hash==md5sumOfPos)$val)
+      hash_hit_num<-hash_hit_num+1
+      if((total_count%%100)==0)
+        cat(" hash hit num:",hash_hit_num," hash total num:",nrow(POSITION_HASH)," total count:",total_count,"\n")
+    }
     
     if(val<InitialPopThresh){
       added_num<-added_num+1
@@ -822,6 +835,8 @@ sampleMain<-function(sampleSpreadType,totalPopNum,targetExpDate,targetExpDate_f,
     if(added_num==totalPopNum)
       break
   }
+  cat(" hash hit num:",hash_hit_num," hash total num:",nrow(POSITION_HASH)," total count:",total_count,"\n")
+  POSITION_HASH=NULL
 }
 
 
