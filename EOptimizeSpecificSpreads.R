@@ -2,6 +2,7 @@ library(RQuantLib)
 library(ggplot2)
 library(dplyr)
 library(pracma)
+library(digest)
 rm(list=ls())
 source('./ESourceRCode.R',encoding = 'UTF-8')
 
