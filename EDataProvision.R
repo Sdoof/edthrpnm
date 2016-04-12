@@ -304,7 +304,7 @@ makePosition <- function(opch){
 
 opchain<-makePosition(opchain)
 
-filterPosition <- function(opchain,Delta_Limit_MAX=c(0.5,0.6,0.6),Delta_Limit_MIN=c(0.05,0.1,0.1)){
+filterPosition <- function(opchain,Delta_Limit_MAX=c(0.5,0.53,0.6),Delta_Limit_MIN=c(0.10,0.2,0.14)){
   ##
   #  Filter Target Ranges
   
@@ -314,8 +314,17 @@ filterPosition <- function(opchain,Delta_Limit_MAX=c(0.5,0.6,0.6),Delta_Limit_MI
   #Calender Spread 
   #Delta_Limit<-(Delta_Limit_V[1])
   
+  #opchain %>%  dplyr::filter(ExpDate=="2016/5/31") %>% dplyr::filter(abs(Delta)>Delta_Limit_MIN[1])  %>% 
+  #  dplyr::filter(abs(Delta)<Delta_Limit_MAX[1]) %>% dplyr::filter((Strike%%25)==0) -> opchain_cal1
+  
   opchain %>%  dplyr::filter(ExpDate=="2016/5/31") %>% dplyr::filter(abs(Delta)>Delta_Limit_MIN[1])  %>% 
-    dplyr::filter(abs(Delta)<Delta_Limit_MAX[1]) %>% dplyr::filter((Strike%%25)==0) -> opchain_cal1
+    dplyr::filter(abs(Delta)<Delta_Limit_MAX[1]) %>% dplyr::filter((Strike%%15)==0) -> opchain_cal1_2
+  
+  opchain_cal1<-opchain_cal1_2
+  
+  #opchain_cal1 %>% dplyr::full_join(opchain_cal1_2) %>% 
+  #  dplyr::arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="%Y/%m/%d"),desc(TYPE),Strike) %>%
+  #  distinct() -> opchain_cal1
   
   opchain %>%  dplyr::filter(ExpDate=="2016/6/16") %>% dplyr::filter(abs(Delta)>Delta_Limit_MIN[2])  %>% 
     dplyr::filter(abs(Delta)<Delta_Limit_MAX[2]) %>% dplyr::filter((Strike%%15)==0) -> opchain_cal2
