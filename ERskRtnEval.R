@@ -801,7 +801,7 @@ sampleMain<-function(sampleSpreadType,totalPopNum,targetExpDate,targetExpDate_f,
     md5sumOfPos=digest(paste(x,collapse = ""))
     if(nrow(filter(POSITION_HASH,hash==md5sumOfPos))==0){
       tryCatch(
-        val<-obj_Income_sgmd(x,EvalFuncSetting,isDebug=F,isDetail=F,
+        val<-obj_Income_sgmd(x,EvalFuncSetting,isDebug=isDebug,isDetail=isDetail,
                              udlStepNum=EvalFuncSetting$UdlStepNum,udlStepPct=EvalFuncSetting$UdlStepPct,
                              maxposnum=EvalFuncSetting$Maxposnum,PosMultip=PosMultip,
                              tail_rate=EvalFuncSetting$Tail_rate,lossLimitPrice=EvalFuncSetting$LossLimitPrice,
@@ -827,8 +827,8 @@ sampleMain<-function(sampleSpreadType,totalPopNum,targetExpDate,targetExpDate_f,
     }
     total_count<-total_count+1
     if((added_num%%50)==0){
-      cat(" added num:",added_num,"total count:",total_count,"time:",(proc.time()-start_t)[3],"\n")
-      cat("    hash hit num:",hash_hit_num," hash total num:",nrow(POSITION_HASH)," total count:",total_count,"\n")
+      cat(" added num:",added_num," hash hit:",hash_hit_num," hash pop:",nrow(POSITION_HASH),
+          "total count:",total_count," time:",(proc.time()-start_t)[3],"\n")
       start_t<-proc.time()
     }
     if(added_num==totalPopNum)
