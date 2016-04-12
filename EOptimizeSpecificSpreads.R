@@ -11,13 +11,20 @@ TARGET_EXPDATE="2016/5/31"
 TARGET_EXPDATE_FRONT="2016/5/19"
 TARGET_EXPDATE_BACK="2016/6/16"
 
+#Initial Population evalfunc value
+InitialPopThresh=3.0
+
+#Debug, Detail Mode
+IS_DEBUG_MODE=F
+IS_DETAL_MODE=F
+
 ##Spread Type Definition
 BULL_VERTICAL_SPREAD_TYPE=1
-BEAR_VERTICAL_SPREAD_TYPE=-1
+BEAR_VERTICAL_SPREAD_TYPE=(-1)
 
 #DIAGONAL Type Definition
 DIAGONAL_TYPE_LONG=1
-DIAGONAL_TYPE_SHORT=-1
+DIAGONAL_TYPE_SHORT=(-1)
 
 #sample type Definition
 IRON_CONDOR_SMPLING=1
@@ -100,7 +107,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
   targetExpDate_b=targetExpDate
   spreadRatio=c(1,1,1)
   totalPopNum=100
-  InitialPopThresh=2.5
+  # InitialPopThresh=2.5
   # EvalFuncSetting$holdDays=12
   # EvalFuncSetting$Profit_Coef=0.5
   # EvalFuncSetting$AdvEffect_Coef=0.5
@@ -119,7 +126,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
   
   sampleMain(sampleSpreadType=sampleSpreadType,totalPopNum=totalPopNum,
              targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,
-             spreadRatio=spreadRatio,InitialPopThresh=InitialPopThresh,outFname=outFname,isFileout=T,isDebug=F,isDetail=F)
+             spreadRatio=spreadRatio,InitialPopThresh=InitialPopThresh,outFname=outFname,isFileout=T,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAL_MODE)
   
   EvalFuncSetting$LossLimitPrice=originalLossLimitPrice
   
@@ -130,7 +137,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
     distinct() -> tmp
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
   #pool setting
-  tmp %>% arrange(.[,length(opchain$Position)+1]) %>% head(nrow(.)/2) %>% filter(.[[length(opchain$Position)+1]]<1.8) -> tmp
+  tmp %>% arrange(.[,length(opchain$Position)+1]) %>% head(min(20,max(4,nrow(.)/2))) -> tmp
   ## or when all results are mixed together regardress of the number of Putn and Calln, pools[[1]] should be set as
   # c(1,0,0) <- c(1Cb{=exact}, Putn not spicified, Calln not spicified)
   # Notice pools is global variable
@@ -144,8 +151,8 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
   targetExpDate_f=TARGET_EXPDATE_FRONT
   targetExpDate_b=TARGET_EXPDATE_BACK
   spreadRatio=c(1,1,1)
-  totalPopNum=50000
-  InitialPopThresh=2.5
+  totalPopNum=30000
+  # InitialPopThresh=2.5
   # EvalFuncSetting$holdDays=12
   # EvalFuncSetting$Profit_Coef=0.5
   # EvalFuncSetting$AdvEffect_Coef=0.5
@@ -164,7 +171,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
   
   sampleMain(sampleSpreadType=sampleSpreadType,totalPopNum=totalPopNum,
              targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,
-             spreadRatio=spreadRatio,InitialPopThresh=InitialPopThresh,outFname=outFname,isFileout=T,isDebug=F,isDetail=F)
+             spreadRatio=spreadRatio,InitialPopThresh=InitialPopThresh,outFname=outFname,isFileout=T,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAL_MODE)
   
   EvalFuncSetting$LossLimitPrice=originalLossLimitPrice
   
@@ -175,7 +182,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
     distinct() -> tmp
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
   #pool setting
-  tmp %>% arrange(.[,length(opchain$Position)+1]) %>% head(nrow(.)/4) %>% filter(.[[length(opchain$Position)+1]]<1.5) -> tmp
+  tmp %>% arrange(.[,length(opchain$Position)+1]) %>% head(min(1000,max(4,nrow(.)/2))) -> tmp
   ## or when all results are mixed together regardress of the number of Putn and Calln, pools[[1]] should be set as
   # c(1,0,0) <- c(1Cb{=exact}, Putn not spicified, Calln not spicified)
   # Notice pools is global variable
@@ -189,8 +196,8 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
   targetExpDate_f=TARGET_EXPDATE_FRONT
   targetExpDate_b=TARGET_EXPDATE_BACK
   spreadRatio=c(1,1,1)
-  totalPopNum=300
-  InitialPopThresh=2.5
+  totalPopNum=200
+  # InitialPopThresh=2.5
   # EvalFuncSetting$holdDays=12
   # EvalFuncSetting$Profit_Coef=0.5
   # EvalFuncSetting$AdvEffect_Coef=0.5
@@ -209,7 +216,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
   
   sampleMain(sampleSpreadType=sampleSpreadType,totalPopNum=totalPopNum,
              targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,
-             spreadRatio=spreadRatio,InitialPopThresh=InitialPopThresh,outFname=outFname,isFileout=T,isDebug=F,isDetail=F)
+             spreadRatio=spreadRatio,InitialPopThresh=InitialPopThresh,outFname=outFname,isFileout=T,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAL_MODE)
   
   EvalFuncSetting$LossLimitPrice=originalLossLimitPrice
   
@@ -228,7 +235,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
   targetExpDate_f=TARGET_EXPDATE_FRONT
   targetExpDate_b=TARGET_EXPDATE_BACK
   totalPopNum=30000
-  InitialPopThresh=2.5
+  # InitialPopThresh=2.5
   # EvalFuncSetting$holdDays=12
   # EvalFuncSetting$Profit_Coef=0.5
   # EvalFuncSetting$AdvEffect_Coef=0.5
@@ -250,7 +257,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
   
   sampleMain(sampleSpreadType=sampleSpreadType,totalPopNum=totalPopNum,
              targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,
-             spreadRatio=spreadRatio,InitialPopThresh=InitialPopThresh,outFname=outFname,isFileout=T,isDebug=F,isDetail=F)
+             spreadRatio=spreadRatio,InitialPopThresh=InitialPopThresh,outFname=outFname,isFileout=T,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAL_MODE)
   
   EvalFuncSetting$LossLimitPrice=originalLossLimitPrice
   
@@ -284,7 +291,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
   targetExpDate_f=TARGET_EXPDATE_FRONT
   targetExpDate_b=TARGET_EXPDATE_BACK
   totalPopNum=30000
-  InitialPopThresh=2.5
+  # InitialPopThresh=2.5
   # EvalFuncSetting$holdDays=12
   # EvalFuncSetting$Profit_Coef=0.5
   # EvalFuncSetting$AdvEffect_Coef=0.5
@@ -306,7 +313,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
   
   sampleMain(sampleSpreadType=sampleSpreadType,totalPopNum=totalPopNum,
              targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,
-             spreadRatio=spreadRatio,InitialPopThresh=InitialPopThresh,outFname=outFname,isFileout=T,isDebug=F,isDetail=F)
+             spreadRatio=spreadRatio,InitialPopThresh=InitialPopThresh,outFname=outFname,isFileout=T,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAL_MODE)
   
   EvalFuncSetting$LossLimitPrice=originalLossLimitPrice
   
@@ -340,7 +347,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
   targetExpDate_f=TARGET_EXPDATE_FRONT
   targetExpDate_b=TARGET_EXPDATE_BACK
   totalPopNum=30000
-  InitialPopThresh=2.5
+  # InitialPopThresh=2.5
   # EvalFuncSetting$holdDays=12
   # EvalFuncSetting$Profit_Coef=0.5
   # EvalFuncSetting$AdvEffect_Coef=0.5
@@ -362,7 +369,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
   
   sampleMain(sampleSpreadType=sampleSpreadType,totalPopNum=totalPopNum,
              targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,
-             spreadRatio=spreadRatio,InitialPopThresh=InitialPopThresh,outFname=outFname,isFileout=T,isDebug=F,isDetail=F)
+             spreadRatio=spreadRatio,InitialPopThresh=InitialPopThresh,outFname=outFname,isFileout=T,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAL_MODE)
   
   EvalFuncSetting$LossLimitPrice=originalLossLimitPrice
   
@@ -396,7 +403,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
   targetExpDate_f=TARGET_EXPDATE_FRONT
   targetExpDate_b=TARGET_EXPDATE_BACK
   totalPopNum=15000
-  InitialPopThresh=2.5
+  # InitialPopThresh=2.5
   # EvalFuncSetting$holdDays=12
   # EvalFuncSetting$Profit_Coef=0.5
   # EvalFuncSetting$AdvEffect_Coef=0.5
@@ -416,9 +423,11 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
   originalLossLimitPrice=EvalFuncSetting$LossLimitPrice
   EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*max(spreadRatio)
   
+  EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*2
+  
   sampleMain(sampleSpreadType=sampleSpreadType,totalPopNum=totalPopNum,
              targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,
-             spreadRatio=spreadRatio,InitialPopThresh=InitialPopThresh,outFname=outFname,isFileout=T,isDebug=F,isDetail=F)
+             spreadRatio=spreadRatio,InitialPopThresh=InitialPopThresh,outFname=outFname,isFileout=T,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAL_MODE)
   
   EvalFuncSetting$LossLimitPrice=originalLossLimitPrice
   
@@ -451,8 +460,8 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
   targetExpDate=TARGET_EXPDATE
   targetExpDate_f=TARGET_EXPDATE_FRONT
   targetExpDate_b=TARGET_EXPDATE_BACK
-  totalPopNum=50000
-  InitialPopThresh=2.5
+  totalPopNum=30000
+  # InitialPopThresh=2.5
   # EvalFuncSetting$holdDays=12
   # EvalFuncSetting$Profit_Coef=0.5
   # EvalFuncSetting$AdvEffect_Coef=0.5
@@ -472,9 +481,11 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
   originalLossLimitPrice=EvalFuncSetting$LossLimitPrice
   EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*max(spreadRatio)
   
+  EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*2
+  
   sampleMain(sampleSpreadType=sampleSpreadType,totalPopNum=totalPopNum,
              targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,
-             spreadRatio=spreadRatio,InitialPopThresh=InitialPopThresh,outFname=outFname,isFileout=T,isDebug=F,isDetail=F)
+             spreadRatio=spreadRatio,InitialPopThresh=InitialPopThresh,outFname=outFname,isFileout=T,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAL_MODE)
   
   EvalFuncSetting$LossLimitPrice=originalLossLimitPrice
   
