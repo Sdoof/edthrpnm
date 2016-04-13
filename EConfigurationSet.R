@@ -5,6 +5,12 @@ DataFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\MarketData\\data\\"
 ConfigParameters<-read.table(paste(DataFiles_Path_G,ConfigFileName_G,sep=""),
                              row.names=1, comment.char="#",header=T,stringsAsFactors=F,sep=",")
 ###Global 変数及び定数.
+
+##Eeach Target File
+TARGET_EXPDATE="2016/5/31"
+TARGET_EXPDATE_FRONT="2016/5/19"
+TARGET_EXPDATE_BACK="2016/6/16"
+
 #Definition
 OpType_Put_G=as.numeric(ConfigParameters["OpType_Put_G",1])
 OpType_Call_G=as.numeric(ConfigParameters["OpType_Call_G",1])
