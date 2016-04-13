@@ -6,11 +6,6 @@ library(digest)
 rm(list=ls())
 source('./ESourceRCode.R',encoding = 'UTF-8')
 
-##specify each time
-TARGET_EXPDATE="2016/5/31"
-TARGET_EXPDATE_FRONT="2016/5/19"
-TARGET_EXPDATE_BACK="2016/6/16"
-
 #Initial Population evalfunc value
 InitialPopThresh=3.0
 
