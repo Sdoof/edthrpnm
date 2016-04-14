@@ -662,7 +662,7 @@ sampleMain<-function(sampleSpreadType,totalPopNum,targetExpDate,targetExpDate_f,
   total_count<-(0)
   hash_hit_num<-(0)
   start_t<-proc.time()
-  POSITION_HASH=data.frame( "hash" = character(), "val" = numeric(), stringsAsFactors=FALSE)
+  POSITION_HASH=hash()
   while(TRUE){
     x<-rep(0,times=length(opchain$TYPE))
     if(sampleSpreadType==IRON_CONDOR_SMPLING){
@@ -799,7 +799,7 @@ sampleMain<-function(sampleSpreadType,totalPopNum,targetExpDate,targetExpDate_f,
     posnum=sum(as.numeric((x)!=0))
     
     md5sumOfPos=digest(paste(x,collapse = ""))
-    if(nrow(filter(POSITION_HASH,hash==md5sumOfPos))==0){
+    if(has.key(md5sumOfPos, POSITION_HASH)==FALSE){
       tryCatch(
         val<-obj_Income_sgmd(x,EvalFuncSetting,isDebug=isDebug,isDetail=isDetail,
                              udlStepNum=EvalFuncSetting$UdlStepNum,udlStepPct=EvalFuncSetting$UdlStepPct,
@@ -811,10 +811,9 @@ sampleMain<-function(sampleSpreadType,totalPopNum,targetExpDate,targetExpDate_f,
           message(e)
           val<-(InitialPopThresh+1.0)
         })
-      POSITION_HASH[nrow(POSITION_HASH)+1,]=c(md5sumOfPos,val)
-      POSITION_HASH %>% arrange(hash) %>% distinct() -> POSITION_HASH
+      POSITION_HASH[md5sumOfPos]<-val
     }else{
-      val<-as.numeric(filter(POSITION_HASH,hash==md5sumOfPos)$val)
+      val<-POSITION_HASH[[md5sumOfPos]]
       hash_hit_num<-hash_hit_num+1
     }
     
@@ -827,15 +826,15 @@ sampleMain<-function(sampleSpreadType,totalPopNum,targetExpDate,targetExpDate_f,
     }
     total_count<-total_count+1
     if((added_num%%50)==0){
-      cat(" added num:",added_num," hash hit:",hash_hit_num," hash pop:",nrow(POSITION_HASH),
-          "total count:",total_count," time:",(proc.time()-start_t)[3],"\n")
+      cat(" added num:",added_num," hash hit:",hash_hit_num," hash length:",length(POSITION_HASH),
+          "total:",total_count," time:",(proc.time()-start_t)[3],"\n")
       start_t<-proc.time()
     }
     if(added_num==totalPopNum)
       break
   }
-  cat(" hash hit num:",hash_hit_num," hash total num:",nrow(POSITION_HASH)," total count:",total_count,"\n")
-  POSITION_HASH=NULL
+  cat("   hash hit:",hash_hit_num," hash length:",length(POSITION_HASH)," total:",total_count,"\n")
+  POSITION_HASH<-hash()
 }
 
 

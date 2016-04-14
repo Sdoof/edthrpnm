@@ -3,6 +3,7 @@ library(ggplot2)
 library(dplyr)
 library(pracma)
 library(digest)
+library(hash)
 rm(list=ls())
 source('./ESourceRCode.R',encoding = 'UTF-8')
 
@@ -101,7 +102,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
   targetExpDate_f=targetExpDate
   targetExpDate_b=targetExpDate
   spreadRatio=c(1,1,1)
-  totalPopNum=100
+  totalPopNum=200
   # InitialPopThresh=2.5
   # EvalFuncSetting$holdDays=12
   # EvalFuncSetting$Profit_Coef=0.5
