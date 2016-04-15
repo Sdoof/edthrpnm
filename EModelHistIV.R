@@ -5,27 +5,6 @@ library(dplyr)
 rm(list=ls())
 source('./ESourceRCode.R',encoding = 'UTF-8')
 
-#Config File
-ConfigFileName_G="ConfigParameters.csv"
-DataFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\MarketData\\data\\"
-
-ConfigParameters<-read.table(paste(DataFiles_Path_G,ConfigFileName_G,sep=""),
-                             row.names=1, comment.char="#",header=T,stringsAsFactors=F,sep=",")
-
-#Calendar
-CALENDAR_G=ConfigParameters["CALENDAR_G",1]
-
-riskFreeRate_G=as.numeric(ConfigParameters["riskFreeRate_G",1])
-divYld_G=as.numeric(ConfigParameters["divYld_G",1])
-
-#Definition
-OpType_Put_G=as.numeric(ConfigParameters["OpType_Put_G",1])
-OpType_Call_G=as.numeric(ConfigParameters["OpType_Call_G",1])
-#Skewness Calculation
-TimeToExp_Limit_Closeness_G=as.numeric(ConfigParameters["TimeToExp_Limit_Closeness_G",1])
-#File
-Underying_Symbol_G=ConfigParameters["Underying_Symbol_G",1]
-
 #read data file
 rf_<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Hist.csv",sep="")
 histPrc_<-read.table(rf_,header=T,sep=",",nrows=2000)
