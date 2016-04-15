@@ -60,6 +60,9 @@ MAX_DAY=as.numeric(ConfigParameters["AnalyMaxDay",1])
 #For calculating GreekEffect for drawing, we assume holdDays as stepdays
 holdDays=stepdays
 
+#Unlimit the LossLimitPrice
+EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*10
+
 #get evaluation days vector, evaldays
 opchain$Date<-as.character(opchain$Date)
 opchain$ExpDate<-as.character(opchain$ExpDate)
