@@ -7,9 +7,9 @@ ConfigParameters<-read.table(paste(DataFiles_Path_G,ConfigFileName_G,sep=""),
 ###Global 変数及び定数.
 
 ##Eeach Target File
-TARGET_EXPDATE="2016/5/31"
-TARGET_EXPDATE_FRONT="2016/6/16"
-TARGET_EXPDATE_BACK="2016/7/14"
+TARGET_EXPDATE=ConfigParameters["TARGET_EXPDATE",1]
+TARGET_EXPDATE_FRONT=ConfigParameters["TARGET_EXPDATE_FRONT",1]
+TARGET_EXPDATE_BACK=ConfigParameters["TARGET_EXPDATE_BACK",1]
 
 #Definition
 OpType_Put_G=as.numeric(ConfigParameters["OpType_Put_G",1])
@@ -74,6 +74,9 @@ EvalFuncSetting[[27]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_GreekEffectEv
 
 names(EvalFuncSetting)<-EvFNames
 rm(EvFNames)
+
+
+
 
 #MuLtipler for creating initial populaitons
 Optimize_ml=as.numeric(ConfigParameters["Optimize_ml",1])
