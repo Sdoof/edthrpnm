@@ -6,7 +6,7 @@ source('./ESourceRCode.R',encoding = 'UTF-8')
 
 #switch: only for today or multiple days for skew calculation
 ProcessFileName=paste("_OPChain_Pre.csv",sep="")
-isSkewCalc=F
+isSkewCalc=T
 #set TRUE if this opchain is for Future Option 
 isFOP=F
 #set TRUE if this is today's new position, or (already holding position) set FALSE,
@@ -265,17 +265,65 @@ makePosition <- function(opch){
   return(opchain)
 }
 
+##
+#  atmiv not adjusted usig SkewModel
+makeNotAdjustedBySkewATMiv <- function(opch){
+  #standarize (unify) data expression
+  opch$Date=format(as.Date(opch$Date,format="%Y/%m/%d"),"%Y/%b/%d")
+  opch$ExpDate=format(as.Date(opch$ExpDate,format="%Y/%m/%d"),"%Y/%b/%d")
+  
+  # volatility and moneyness calculation complete
+  opch$Last<-opch$Bid<-opch$Ask<-opch$Ask<-opch$Volume<-opch$OI<-NULL
+  
+  #if >1.0 Strike is right(bigger) than UDLY, else(<1.0) left(smaller)
+  opch$Moneyness.Frac<-opch$Strike/opch$UDLY
+  # As fraction of UDLY. positive indicates OOM, negative ITM.
+  opch$HowfarOOM<-(1-opch$Moneyness.Frac)*opch$TYPE
+  #As fraction of Implied SD. >0 OOM, <0 ITM
+  #opch$Moneyness.SDFrac<-(opch$UDLY-opch$Strike)*opch$TYPE/(opch$UDLY*opch$IVIDX)
+  
+  #construct Time axis for regression. In this case expressed as Month.
+  get.busdays.between(start=opch$Date,end=opch$ExpDate)
+  bdays_per_month<-252/12
+  opch$TimeToExpDate<-get.busdays.between(start=opch$Date,end=opch$ExpDate)/bdays_per_month
+  rm(bdays_per_month)
+  
+  #sort
+  opch %>% dplyr::arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="%Y/%m/%d"),desc(TYPE),Strike) -> opch
+  
+  ##END Got complete opch
+  
+  #Get ATM Implied Volatilities for each option types.
+  ##START Create atmiv
+  opch %>% dplyr::group_by(Date,ExpDate,TYPE) %>% dplyr::filter(HowfarOOM>0) %>% 
+    #Get the OrigIV where HowfarOOM is minimum, ie. IV at ATM.
+    dplyr::summarise(num=n(),OOM=min(abs(HowfarOOM)),min.i=which.min(abs(HowfarOOM)),ATMIV=OrigIV[which.min(abs(HowfarOOM))],
+                     TimeToExpDate=TimeToExpDate[which.min(abs(HowfarOOM))],#IVIDX=IVIDX[which.min(abs(HowfarOOM))],
+                     UDLY=UDLY[which.min(abs(HowfarOOM))],Strike=Strike[which.min(abs(HowfarOOM))],
+                     Moneyness.Frac=Moneyness.Frac[which.min(abs(HowfarOOM))]) %>% 
+    as.data.frame() -> atmiv
+  atmiv %>% dplyr::select(Date,ExpDate,Strike,UDLY,TYPE,ATMIV,TimeToExpDate) %>% as.data.frame() -> atmiv
+  
+  #sorting
+  atmiv %>% dplyr::arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="%Y/%m/%d"),desc(TYPE)) -> atmiv
+ 
+  return(atmiv)
+}
+
+#not adjusted atmiv
+# atmiv_na=makeNotAdjustedBySkewATMiv(opchain)
+
 ## opchain is created
 opchain<-makePosition(opchain)
 
 ##
 # c(IronCondor{VerticalSpread},DIAGONAL_BACK,DIAGONAL_FRONT)
 # # DIAGONAL Near ATM combination
-#    Delta_Limit_MAX=c(0.5,0.53,0.6),Delta_Limit_MIN=c(0.10,0.2,0.14),
+#    Delta_Limit_MAX=c(0.5,0.6,0.53),Delta_Limit_MIN=c(0.10,0.1,0.1),
 # # DIAGONAL OOM combination
-#    Delta_Limit_MAX=c(0.5,0.35,0.35),Delta_Limit_MIN=c(0.10,0.2,0.15),
+#    Delta_Limit_MAX=c(0.5,0.35,0.4),Delta_Limit_MIN=c(0.10,0.05,0.1),
 filterPosition <- function(opchain,
-                           Delta_Limit_MAX=c(0.5,0.35,0.35),Delta_Limit_MIN=c(0.10,0.2,0.15),
+                           Delta_Limit_MAX=c(0.5,0.6,0.53),Delta_Limit_MIN=c(0.10,0.1,0.1),
                            TARGET_EXPDATE,TARGET_EXPDATE_FRONT,TARGET_EXPDATE_BACK){
   ##
   #  Filter Target Ranges 
@@ -299,11 +347,11 @@ filterPosition <- function(opchain,
     dplyr::arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="%Y/%m/%d"),desc(TYPE),Strike) %>%
     distinct() -> opchain_cal1
   
-  opchain %>%  dplyr::filter(ExpDate==TARGET_EXPDATE_BACK) %>% dplyr::filter(abs(Delta)>Delta_Limit_MIN[2])  %>% 
-    dplyr::filter(abs(Delta)<Delta_Limit_MAX[2]) %>% dplyr::filter((Strike%%15)==0) -> opchain_cal2
+  opchain %>%  dplyr::filter(ExpDate==TARGET_EXPDATE_BACK) %>% dplyr::filter(abs(Delta)>Delta_Limit_MIN[3])  %>% 
+    dplyr::filter(abs(Delta)<Delta_Limit_MAX[3]) %>% dplyr::filter((Strike%%15)==0) -> opchain_cal2
  
-  opchain %>%  dplyr::filter(ExpDate==TARGET_EXPDATE_FRONT) %>% dplyr::filter(abs(Delta)>Delta_Limit_MIN[3])  %>% 
-    dplyr::filter(abs(Delta)<Delta_Limit_MAX[3]) %>% dplyr::filter((Strike%%15)==0) -> opchain_cal3
+  opchain %>%  dplyr::filter(ExpDate==TARGET_EXPDATE_FRONT) %>% dplyr::filter(abs(Delta)>Delta_Limit_MIN[2])  %>% 
+    dplyr::filter(abs(Delta)<Delta_Limit_MAX[2]) %>% dplyr::filter((Strike%%15)==0) -> opchain_cal3
   
   #Join
   opchain_cal1 %>%  dplyr::full_join(opchain_cal2) %>% dplyr::full_join(opchain_cal3) %>%
@@ -332,6 +380,10 @@ filterForFOPPosition <- function(opchain,HowfarOOM_MIN=0,OOM_Limit_V=c(0.09,0.09
   return(opchain)
 }
 
+
+#just check the result before going throught the rest
+opchain_check<-filterPosition(opchain,TARGET_EXPDATE=TARGET_EXPDATE,TARGET_EXPDATE_FRONT=TARGET_EXPDATE_FRONT,TARGET_EXPDATE_BACK=TARGET_EXPDATE_BACK)
+
 if(!isSkewCalc){
   if(isNewPosition)
     if(!isFOP)
@@ -339,6 +391,7 @@ if(!isSkewCalc){
     else
       opchain<-filterForFOPPosition(opchain)
 }
+
 
 #select and sort
 opchain %>% select(Date,ExpDate,TYPE,Strike,ContactName,Position,UDLY,Price,
