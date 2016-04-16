@@ -5,35 +5,13 @@ library(dplyr)
 rm(list=ls())
 source('./ESourceRCode.R',encoding = 'UTF-8')
 
-#Config File
-ConfigFileName_G="ConfigParameters.csv"
-DataFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\MarketData\\data\\"
-
-ConfigParameters<-read.table(paste(DataFiles_Path_G,ConfigFileName_G,sep=""),
-                             row.names=1, comment.char="#",header=T,stringsAsFactors=F,sep=",")
-
 #MAX ExpToDate for Skew Regression
-SkewRegressionTimeToExpDateMin<-1.5
-SkewRegressionTimeToExpDateMax<-3.8
+SkewRegressionTimeToExpDateMin<-1.4
+SkewRegressionTimeToExpDateMax<-3.2
 
 #We get regression only past this day. Currently reflected on Skew only.
 #should apply Vcone, etc.
 RegressionDateBackDaysMax<-0
-
-#Calendar
-CALENDAR_G=ConfigParameters["CALENDAR_G",1]
-
-# Possibly read from File
-riskFreeRate_G=as.numeric(ConfigParameters["riskFreeRate_G",1])
-divYld_G=as.numeric(ConfigParameters["divYld_G",1])
-
-#Definition
-OpType_Put_G=as.numeric(ConfigParameters["OpType_Put_G",1])
-OpType_Call_G=as.numeric(ConfigParameters["OpType_Call_G",1])
-#Skewness Calculation
-TimeToExp_Limit_Closeness_G=as.numeric(ConfigParameters["TimeToExp_Limit_Closeness_G",1])
-#File
-Underying_Symbol_G=ConfigParameters["Underying_Symbol_G",1]
 
 #option chain Output File
 OpchainOutFileName=paste("_OPChain_Skew_",Sys.Date(),".csv",sep="")
