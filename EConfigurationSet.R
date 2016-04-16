@@ -8,8 +8,8 @@ ConfigParameters<-read.table(paste(DataFiles_Path_G,ConfigFileName_G,sep=""),
 
 ##Eeach Target File
 TARGET_EXPDATE="2016/5/31"
-TARGET_EXPDATE_FRONT="2016/5/19"
-TARGET_EXPDATE_BACK="2016/6/16"
+TARGET_EXPDATE_FRONT="2016/6/16"
+TARGET_EXPDATE_BACK="2016/7/14"
 
 #Definition
 OpType_Put_G=as.numeric(ConfigParameters["OpType_Put_G",1])
@@ -91,6 +91,14 @@ Thresh_2=as.numeric(ConfigParameters["Optimize_Thresh_2",1])
 #Search Combined(2Cb,3Cb,etc) Spreads?
 Combined_Spread=ifelse(as.numeric(ConfigParameters["Optimize_Combined_Spread",1])==1,TRUE,FALSE)
 
+##Historical Implied Volatility Data
+rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_IV.csv",sep="") 
+histIV<-read.table(rf,header=T,sep=",",stringsAsFactors=F,nrows=100);rm(rf)
+#filtering
+histIV %>% dplyr::transmute(Date=Date,IVIDX=Close/100) -> histIV
+histIV %>% #dplyr::filter(as.Date(Date,format="%Y/%m/%d")<=max(as.Date(opchain$Date,format="%Y/%m/%d"))) %>%
+  dplyr::arrange(desc(as.Date(Date,format="%Y/%m/%d"))) %>% head(n=dviv_caldays) -> histIV
+
 ##
 # opchain,position,histIV,iniPos must exist as Global Variables.
 
@@ -107,14 +115,6 @@ opchain<-read.table(rf,header=T,sep=",",stringsAsFactors=F)
 
 #get position where opchain$Position!=0
 opchain %>% dplyr::filter(Position!=0) -> position
-
-##Historical Implied Volatility Data
-rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_IV.csv",sep="") 
-histIV<-read.table(rf,header=T,sep=",",stringsAsFactors=F,nrows=100);rm(rf)
-#filtering
-histIV %>% dplyr::transmute(Date=Date,IVIDX=Close/100) -> histIV
-histIV %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")<=max(as.Date(opchain$Date,format="%Y/%m/%d"))) %>%
-  dplyr::arrange(desc(as.Date(Date,format="%Y/%m/%d"))) %>% head(n=dviv_caldays) -> histIV
 
 ## iniPos must exist as Global Varibles to get the 
 iniPos<-opchain$Position
