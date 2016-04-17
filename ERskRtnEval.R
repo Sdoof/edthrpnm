@@ -689,6 +689,18 @@ sampleMain<-function(sampleSpreadType,totalPopNum,targetExpDate,targetExpDate_f,
                              targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,isDebug=isDebug,isDetail=idDetail)
       x<-(y+z)*spreadRatio[1]+w*spreadRatio[2]
       
+    }else if(sampleSpreadType==CALL_BEAR_SPREAD_SMPLING){
+      y=sampleVerticalSpread(targetOpTyep=OpType_Call_G,
+                             verticalType=BEAR_VERTICAL_SPREAD_TYPE,
+                             targetExpDate=targetExpDate,isDebug=isDebug,isDetail=idDetail)
+      x<-y*spreadRatio[1]
+      
+    }else if(sampleSpreadType==PUT_BULL_SPREAD_SMPLING){
+      y=sampleVerticalSpread(targetOpTyep=OpType_Put_G,
+                             verticalType=BULL_VERTICAL_SPREAD_TYPE,
+                             targetExpDate=targetExpDate,isDebug=isDebug,isDetail=idDetail)
+      x<-y*spreadRatio[1]
+      
     }else if(sampleSpreadType==IRON_CONDOR_PLUS_DOUBLE_DIAGONAL_SMPLING){
       y=sampleVerticalSpread(targetOpTyep=OpType_Put_G,
                              verticalType=BULL_VERTICAL_SPREAD_TYPE,
