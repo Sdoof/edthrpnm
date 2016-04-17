@@ -264,7 +264,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
   
   sampleMain(sampleSpreadType=sampleSpreadType,totalPopNum=50,
              targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,
-             spreadRatio=spreadRatio,InitialPopThresh=InitialPopThresh+2,outFname=outFname,isFileout=T,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAL_MODE)
+             spreadRatio=spreadRatio,InitialPopThresh=min(UNACCEPTABLEVAL-0.1,InitialPopThresh+7),outFname=outFname,isFileout=T,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAL_MODE)
   
   EvalFuncSetting$LossLimitPrice=originalLossLimitPrice
   
@@ -349,7 +349,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
   
   sampleMain(sampleSpreadType=sampleSpreadType,totalPopNum=50,
              targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,
-             spreadRatio=spreadRatio,InitialPopThresh=InitialPopThresh+2,outFname=outFname,isFileout=T,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAL_MODE)
+             spreadRatio=spreadRatio,InitialPopThresh=min(UNACCEPTABLEVAL-0.1,InitialPopThresh+7),outFname=outFname,isFileout=T,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAL_MODE)
   
   EvalFuncSetting$LossLimitPrice=originalLossLimitPrice
   

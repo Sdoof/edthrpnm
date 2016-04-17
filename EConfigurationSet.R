@@ -33,6 +33,9 @@ dviv_caldays=as.numeric(ConfigParameters["dviv_caldays",1])
 #Multipler of Position
 PosMultip=as.numeric(ConfigParameters["PosMultip",1])
 
+#Evalfunc unaccepted value
+UNACCEPTABLEVAL=20
+
 #Skewness Calculation
 TimeToExp_Limit_Closeness_G=as.numeric(ConfigParameters["TimeToExp_Limit_Closeness_G",1])
 
@@ -74,9 +77,6 @@ EvalFuncSetting[[27]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_GreekEffectEv
 
 names(EvalFuncSetting)<-EvFNames
 rm(EvFNames)
-
-
-
 
 #MuLtipler for creating initial populaitons
 Optimize_ml=as.numeric(ConfigParameters["Optimize_ml",1])

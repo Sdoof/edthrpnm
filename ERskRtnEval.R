@@ -7,7 +7,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
                             Delta_Direct_Prf,Vega_Direct_Prf,
                             Delta_Neutral_Offset,Vega_Neutral_Offset){
   #returned when the spread is not appropriate
-  unacceptableVal=10
+  unacceptableVal=UNACCEPTABLEVAL
   
   if(isDebug){
     cat("\n###################### eval func start\n")
