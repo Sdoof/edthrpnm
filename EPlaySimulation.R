@@ -61,7 +61,7 @@ histIV %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")<=max(as.Date(opchain$Da
   dplyr::arrange(desc(as.Date(Date,format="%Y/%m/%d"))) %>% head(n=dviv_caldays) -> histIV
 
 ##Spreads to be evaluated loaded
-rf<-paste(ResultFiles_Path_G,Underying_Symbol_G,"_EvalPosition.csv",sep="")
+rf<-paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition.csv",sep="")
 evalPositions<-read.table(rf,header=F,sep=",",colClasses="numeric")
 
 if(length(evalPositions)>length(opchain$Position)){
