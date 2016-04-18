@@ -1,5 +1,5 @@
 ##
-# Combine  EvalCnd and make uniq UDLY_EvalPosition
+# Combine  EvalCnd and make uniq UDLY-EvalPosition
 library(RQuantLib)
 library(ggplot2)
 library(dplyr)
@@ -97,7 +97,7 @@ system(st) ;rm(st)
 tryCatch({
   evalPositions %>% filter(ThetaEffect>0) %>% distinct() -> evalPositions_Theta
   rownames(evalPositions_Theta) <- c(1:nrow(evalPositions_Theta))
-  write.table(evalPositions_Theta,paste(ResultFiles_Path_G,Underying_Symbol_G,"_EvalPosition_Theta.csv",sep=""),row.names
+  write.table(evalPositions_Theta,paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition_Theta.csv",sep=""),row.names
               = F,col.names=F,sep=",",append=F)},
   error=function(e){
     message(e)
@@ -106,14 +106,14 @@ tryCatch({
 tryCatch({
   evalPositions %>% filter(ThetaEffect<=0) %>% distinct() -> evalPositions_Gamma
   rownames(evalPositions_Gamma) <- c(1:nrow(evalPositions_Gamma))
-  write.table(evalPositions_Gamma,paste(ResultFiles_Path_G,Underying_Symbol_G,"_EvalPosition_Gamma.csv",sep=""),row.names
+  write.table(evalPositions_Gamma,paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition_Gamma.csv",sep=""),row.names
               = F,col.names=F,sep=",",append=F)},
   error=function(e){
     message(e)
   }
 )
 #Write EvalPosition files
-write.table(evalPositions,paste(ResultFiles_Path_G,Underying_Symbol_G,"_EvalPosition.csv",sep=""),row.names
+write.table(evalPositions,paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition.csv",sep=""),row.names
             = F,col.names=F,sep=",",append=F)
 
 rm(list=ls())
