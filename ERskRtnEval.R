@@ -165,7 +165,18 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   }
   
   #c3 profit
+  
   c3<- sum(c(profit_hdays_vc_minus,profit_hdays,profit_hdays_vc_plus)*weight_IV)
+  
+  # ROIC
+  profit_expctd=c3
+  ROIC=1.0
+  if(profit_expctd<0){
+    ROIC=0.0
+  }else if(maxLoss<0){
+    ROIC=profit_expctd/(-maxLoss)
+  }
+    
   #c8 metric
   c8<- profit_sd
   if(Setting$EvalConvex)
@@ -317,7 +328,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   # total cost and penalty
   val<-cost 
   
-  if(isDetail){cat(" :val",val,"\n")}
+  if(isDetail){cat(" :val",val,"\n");cat(" :exp prft",profit_expctd," maxloss:",maxLoss," :ROIC",ROIC,"\n")}
   return(val)
 }
 
