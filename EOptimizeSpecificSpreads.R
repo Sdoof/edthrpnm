@@ -123,7 +123,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
   EvalFuncSetting$LossLimitPrice=originalLossLimitPrice
   
   #file handling
-  tmp<-read.table(outFname,header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
+  tmp<-read.table(outFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
   tmp %>% arrange(.[,length(opchain$Position)+1])  %>% #select(.,1:length(opchain$Position)) %>% 
     distinct() -> tmp
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
@@ -156,88 +156,13 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
   EvalFuncSetting$LossLimitPrice=originalLossLimitPrice
   
   #file handling
-  tmp<-read.table(outFname,header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
+  tmp<-read.table(outFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
   tmp %>% arrange(.[,length(opchain$Position)+1])  %>% #select(.,1:length(opchain$Position)) %>% 
     distinct() -> tmp
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
   #pool setting
   tmp %>% arrange(.[,length(opchain$Position)+1]) %>% head(min(1000,max(4,nrow(.)/2))) -> tmp
   pools<<-list(list(c(1,0,0),tmp))
-}
-
-### DIAGONAL Candiates for Combination
-sampleSpreadType=DIAGONAL_SMPLING
-if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
-  targetExpDate=TARGET_EXPDATE
-  targetExpDate_f=TARGET_EXPDATE_FRONT
-  targetExpDate_b=TARGET_EXPDATE_BACK
-  spreadRatio=c(1,1,1)
-  totalPopNum=200
-  
-  #output file name
-  outFname=createOutFname(targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,spreadRatio=spreadRatio,EvalFuncSetting=EvalFuncSetting)
-  
-  #sampling
-  originalLossLimitPrice=EvalFuncSetting$LossLimitPrice
-  EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*max(spreadRatio)
-  
-  sampleMain(sampleSpreadType=sampleSpreadType,totalPopNum=totalPopNum,
-             targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,
-             spreadRatio=spreadRatio,InitialPopThresh=InitialPopThresh,outFname=outFname,isFileout=T,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAL_MODE)
-  
-  EvalFuncSetting$LossLimitPrice=originalLossLimitPrice
-  
-  #file handling
-  tmp<-read.table(outFname,header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
-  tmp %>% arrange(.[,length(opchain$Position)+1])  %>%  #select(.,1:length(opchain$Position)) %>% 
-    distinct() -> tmp
-  write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
-}
-
-###CALL_BEAR_SPREAD_PLUS_SINGLE_DIAGONAL
-sampleSpreadType=CALL_BEAR_SPREAD_PLUS_SINGLE_DIAGONAL_SMPLING
-if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
-  targetExpDate=TARGET_EXPDATE
-  targetExpDate_f=TARGET_EXPDATE_FRONT
-  targetExpDate_b=TARGET_EXPDATE_BACK
-  totalPopNum=30000
-  
-  #spread ratio 1
-  spreadRatio=c(1,1,1)
-  
-  #output file name
-  outFname=createOutFname(targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,spreadRatio=spreadRatio,EvalFuncSetting=EvalFuncSetting)
-  
-  #sampling
-  originalLossLimitPrice=EvalFuncSetting$LossLimitPrice
-  EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*max(spreadRatio)
-  
-  sampleMain(sampleSpreadType=sampleSpreadType,totalPopNum=totalPopNum,
-             targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,
-             spreadRatio=spreadRatio,InitialPopThresh=InitialPopThresh,outFname=outFname,isFileout=T,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAL_MODE)
-  
-  EvalFuncSetting$LossLimitPrice=originalLossLimitPrice
-  
-  #file handling
-  tmp<-read.table(outFname,header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
-  tmp %>% arrange(.[,length(opchain$Position)+1])  %>% #select(.,1:length(opchain$Position)) %>% 
-    distinct() -> tmp
-  write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
-  
-  #spread ratio 2
-  #spreadRatio=c(2,1,1)
-  
-  #outFname=createOutFname(targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,spreadRatio=spreadRatio,EvalFuncSetting=EvalFuncSetting)
-  
-  #sampling
-  #originalLossLimitPrice=EvalFuncSetting$LossLimitPrice
-  #EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*max(spreadRatio)
-  
-  #sampleMain(sampleSpreadType=sampleSpreadType,totalPopNum=totalPopNum,
-  #           targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,
-  #           spreadRatio=spreadRatio,InitialPopThresh=InitialPopThresh,outFname=outFname,isFileout=T,isDebug=F,isDetail=F)
-  
-  #EvalFuncSetting$LossLimitPrice=originalLossLimitPrice
 }
 
 ###CALL_BEAR_SPREAD_PLUS_DOUBLE_DIAGONAL
@@ -262,11 +187,15 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
   originalLossLimitPrice=EvalFuncSetting$LossLimitPrice
   EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*max(spreadRatio)
   
-  sampleMain(sampleSpreadType=sampleSpreadType,totalPopNum=50,
+  originalWeight_Drift=EvalFuncSetting$Weight_Drift
+  EvalFuncSetting$Weight_Drift=0.0
+  
+  sampleMain(sampleSpreadType=sampleSpreadType,totalPopNum=100,
              targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,
              spreadRatio=spreadRatio,InitialPopThresh=min(UNACCEPTABLEVAL-0.1,InitialPopThresh+7),outFname=outFname,isFileout=T,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAL_MODE)
   
   EvalFuncSetting$LossLimitPrice=originalLossLimitPrice
+  EvalFuncSetting$Weight_Drift=originalWeight_Drift
   
   #file handling
   tmp<-read.table(outFname,header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
@@ -275,7 +204,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
  
    #pool setting
-  tmp %>% arrange(.[,length(opchain$Position)+1]) %>% head(min(10,max(4,nrow(.)/2))) -> tmp
+  tmp %>% arrange(.[,length(opchain$Position)+1]) %>% head(min(20,max(4,nrow(.)/2))) -> tmp
   pools<<-list(list(c(1,0,0),tmp))
   
   ##
@@ -306,7 +235,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
   rm(pools)
   
   #file handling
-  tmp<-read.table(outFname,header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
+  tmp<-read.table(outFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
   tmp %>% arrange(.[,length(opchain$Position)+1])  %>% #select(.,1:length(opchain$Position)) %>% 
     distinct() -> tmp
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
@@ -347,19 +276,23 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
   originalLossLimitPrice=EvalFuncSetting$LossLimitPrice
   EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*max(spreadRatio)
   
-  sampleMain(sampleSpreadType=sampleSpreadType,totalPopNum=50,
+  originalWeight_Drift=EvalFuncSetting$Weight_Drift
+  EvalFuncSetting$Weight_Drift=0.0
+  
+  sampleMain(sampleSpreadType=sampleSpreadType,totalPopNum=100,
              targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,
              spreadRatio=spreadRatio,InitialPopThresh=min(UNACCEPTABLEVAL-0.1,InitialPopThresh+7),outFname=outFname,isFileout=T,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAL_MODE)
   
   EvalFuncSetting$LossLimitPrice=originalLossLimitPrice
+  EvalFuncSetting$Weight_Drift=originalWeight_Drift
   
   #file handling
-  tmp<-read.table(outFname,header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
+  tmp<-read.table(outFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
   tmp %>% arrange(.[,length(opchain$Position)+1])  %>% #select(.,1:length(opchain$Position)) %>% 
     distinct() -> tmp
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
   #pool setting
-  tmp %>% arrange(.[,length(opchain$Position)+1]) %>% head(min(20,max(4,nrow(.)/2))) -> tmp
+  tmp %>% arrange(.[,length(opchain$Position)+1]) %>% head(min(40,max(4,nrow(.)/2))) -> tmp
   pools<<-list(list(c(1,0,0),tmp))
 
   ##
@@ -390,7 +323,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
   rm(pools)
   
   #file handling
-  tmp<-read.table(outFname,header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
+  tmp<-read.table(outFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
   tmp %>% arrange(.[,length(opchain$Position)+1])  %>% #select(.,1:length(opchain$Position)) %>% 
     distinct() -> tmp
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
@@ -437,7 +370,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
   EvalFuncSetting$LossLimitPrice=originalLossLimitPrice
   
   #file handling
-  tmp<-read.table(outFname,header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
+  tmp<-read.table(outFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
   tmp %>% arrange(.[,length(opchain$Position)+1])  %>% #select(.,1:length(opchain$Position)) %>% 
     distinct() -> tmp
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
@@ -484,7 +417,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
   EvalFuncSetting$LossLimitPrice=originalLossLimitPrice
   
   #file handling
-  tmp<-read.table(outFname,header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
+  tmp<-read.table(outFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
   tmp %>% arrange(.[,length(opchain$Position)+1])  %>% #select(.,1:length(opchain$Position)) %>% 
     distinct() -> tmp
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
@@ -503,6 +436,81 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
   #            spreadRatio=spreadRatio,InitialPopThresh=InitialPopThresh,outFname=outFname,isFileout=T,isDebug=F,isDetail=F)
   # 
   # EvalFuncSetting$LossLimitPrice=originalLossLimitPrice
+}
+
+### DIAGONAL Candiates for Combination
+sampleSpreadType=DIAGONAL_SMPLING
+if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
+  targetExpDate=TARGET_EXPDATE
+  targetExpDate_f=TARGET_EXPDATE_FRONT
+  targetExpDate_b=TARGET_EXPDATE_BACK
+  spreadRatio=c(1,1,1)
+  totalPopNum=200
+  
+  #output file name
+  outFname=createOutFname(targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,spreadRatio=spreadRatio,EvalFuncSetting=EvalFuncSetting)
+  
+  #sampling
+  originalLossLimitPrice=EvalFuncSetting$LossLimitPrice
+  EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*max(spreadRatio)
+  
+  sampleMain(sampleSpreadType=sampleSpreadType,totalPopNum=totalPopNum,
+             targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,
+             spreadRatio=spreadRatio,InitialPopThresh=InitialPopThresh,outFname=outFname,isFileout=T,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAL_MODE)
+  
+  EvalFuncSetting$LossLimitPrice=originalLossLimitPrice
+  
+  #file handling
+  tmp<-read.table(outFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
+  tmp %>% arrange(.[,length(opchain$Position)+1])  %>%  #select(.,1:length(opchain$Position)) %>% 
+    distinct() -> tmp
+  write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
+}
+
+###CALL_BEAR_SPREAD_PLUS_SINGLE_DIAGONAL
+sampleSpreadType=CALL_BEAR_SPREAD_PLUS_SINGLE_DIAGONAL_SMPLING
+if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
+  targetExpDate=TARGET_EXPDATE
+  targetExpDate_f=TARGET_EXPDATE_FRONT
+  targetExpDate_b=TARGET_EXPDATE_BACK
+  totalPopNum=30000
+  
+  #spread ratio 1
+  spreadRatio=c(1,1,1)
+  
+  #output file name
+  outFname=createOutFname(targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,spreadRatio=spreadRatio,EvalFuncSetting=EvalFuncSetting)
+  
+  #sampling
+  originalLossLimitPrice=EvalFuncSetting$LossLimitPrice
+  EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*max(spreadRatio)
+  
+  sampleMain(sampleSpreadType=sampleSpreadType,totalPopNum=totalPopNum,
+             targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,
+             spreadRatio=spreadRatio,InitialPopThresh=InitialPopThresh,outFname=outFname,isFileout=T,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAL_MODE)
+  
+  EvalFuncSetting$LossLimitPrice=originalLossLimitPrice
+  
+  #file handling
+  tmp<-read.table(outFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
+  tmp %>% arrange(.[,length(opchain$Position)+1])  %>% #select(.,1:length(opchain$Position)) %>% 
+    distinct() -> tmp
+  write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
+  
+  #spread ratio 2
+  #spreadRatio=c(2,1,1)
+  
+  #outFname=createOutFname(targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,spreadRatio=spreadRatio,EvalFuncSetting=EvalFuncSetting)
+  
+  #sampling
+  #originalLossLimitPrice=EvalFuncSetting$LossLimitPrice
+  #EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*max(spreadRatio)
+  
+  #sampleMain(sampleSpreadType=sampleSpreadType,totalPopNum=totalPopNum,
+  #           targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,
+  #           spreadRatio=spreadRatio,InitialPopThresh=InitialPopThresh,outFname=outFname,isFileout=T,isDebug=F,isDetail=F)
+  
+  #EvalFuncSetting$LossLimitPrice=originalLossLimitPrice
 }
 
 
