@@ -28,7 +28,7 @@ rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre_Last.csv",sep="")
 opchain<-read.table(rf,header=T,sep=",") ; rm(rf)
 
 ##evaluated position
-EvalPos_fn=paste(ResultFiles_Path_G,Underying_Symbol_G,"_EvalPosition_Last.csv",sep='')
+EvalPos_fn=paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition_Last.csv",sep='')
 #Here you spicify which position should be analyzed.
 eval_pos_idx=3
 ##Spread Position loaded to be evaluated.
@@ -90,7 +90,7 @@ sink()
 rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep="")
 opchain_today<-read.table(rf,header=T,sep=",") ; rm(rf)
 
-EvalPos_fn=paste(ResultFiles_Path_G,Underying_Symbol_G,"_EvalPosition.csv",sep='')
+EvalPos_fn=paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition.csv",sep='')
 EvalPos_table<-read.table(EvalPos_fn,header=F,sep=",",colClasses="numeric")
 
 # Today's Spreads compared
