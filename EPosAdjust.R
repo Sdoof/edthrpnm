@@ -77,9 +77,9 @@ for(ithPos in 1:nrow(evalPositions)) {
 
 (score_v);(posnums_v)
 
-#Write to the UDL_EvalPosition.csv. The table has 2 more columns.
+#Write to the UDL-EvalPosition.csv. The table has 2 more columns.
 #One Each target Spread's evaluation score. The Other Original Spread's evaluation score. 
-write.table(cbind(evalPositions,score_v,orig_score,posnums_v),paste(ResultFiles_Path_G,Underying_Symbol_G,"_EvalPosition.csv",sep=""),sep=",",
+write.table(cbind(evalPositions,score_v,orig_score,posnums_v),paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition.csv",sep=""),sep=",",
             quote=T,col.names=F,row.names=F,append=F)
 
 source('./EPlaySimulation.R',encoding = 'UTF-8')
