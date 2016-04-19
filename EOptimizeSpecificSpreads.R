@@ -204,7 +204,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
  
    #pool setting
-  tmp %>% arrange(.[,length(opchain$Position)+1]) %>% head(min(20,max(4,nrow(.)/2))) -> tmp
+  tmp %>% arrange(.[,length(opchain$Position)+1]) %>% head(min(20,max(4,nrow(.)))) -> tmp
   pools<<-list(list(c(1,0,0),tmp))
   
   ##
