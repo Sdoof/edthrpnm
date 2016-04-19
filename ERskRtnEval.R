@@ -328,7 +328,10 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   # total cost and penalty
   val<-cost 
   
-  if(isDetail){cat(" :val",val,"\n");cat(" :exp prft",profit_expctd," maxloss:",maxLoss," :ROIC",ROIC,"\n")}
+  if(isDetail){
+    ROIC_anlzd=ROIC*(sqrt(252/Setting$holdDays))
+    cat(" :val",val,"\n");cat(" :exp prft",profit_expctd," maxloss:",maxLoss," :ROIC",ROIC," :ROIC(anlzd)",ROIC_anlzd,"\n")
+    }
   return(val)
 }
 
