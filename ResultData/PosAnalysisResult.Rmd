@@ -25,7 +25,7 @@ output: html_document
 EvalPos_fn=paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition.csv",sep='')
 
 #Here you spicify which position should be analyzed.
-DrawSpreads=c(1:50)
+DrawSpreads=c(1:20)
 
 #UDLY draw limit. given absolute % value
 UDLY_DrawRange<-0.16
@@ -42,14 +42,17 @@ ShowAPITicket=TRUE
 #Show Evaluation Detail
 ShowEvaluationDetail=TRUE
 
+#show evaluation function's debug mode
+ShowDebugMode=TRUE
+
 #VolatilitySensitivityChange
-VolatilitySensitivityChange=0.2
+VolatilitySensitivityChange=0.3
 
 #DrawLineSizeMax
 DrawLineSizeMax=1.4
 
 #First day line mede Blank
-FirstDayLineMadeBlank=F
+FirstDayLineMadeBlank=FALSE
 
 # set days interval between which the position is analyzed step by step.
 stepdays=as.numeric(ConfigParameters["AnalyStepdays",1])
@@ -119,7 +122,7 @@ for(eval_pos_idx in DrawSpreads){
   #Evaluation Details
   if(ShowEvaluationDetail){
     posnum<-sum(getPutCallnOfthePosition(evaPos))
-    obj_Income_sgmd(evaPos,EvalFuncSetting,isDebug=FALSE,isDetail=TRUE,
+    obj_Income_sgmd(evaPos,EvalFuncSetting,isDebug=ShowDebugMode,isDetail=TRUE,
                     udlStepNum=EvalFuncSetting$UdlStepNum,udlStepPct=EvalFuncSetting$UdlStepPct,
                     maxposnum=EvalFuncSetting$Maxposnum,PosMultip=PosMultip,
                     tail_rate=EvalFuncSetting$Tail_rate,lossLimitPrice=EvalFuncSetting$LossLimitPrice,
