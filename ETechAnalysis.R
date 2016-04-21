@@ -3,6 +3,8 @@ library(ggplot2)
 library(plyr)
 library(dplyr)
 library(TTR)
+library(xts)
+library(dygraphs)
 rm(list=ls())
 source('./ESourceRCode.R',encoding = 'UTF-8')
 
@@ -56,6 +58,27 @@ techAnalyDf=data.frame(TSdata[,c("Date","Open","High","Low","Close")][1:nrow_tec
                        ivCtOSpikeNSd=ivCtOSpikeNSd[1:nrow_tech])
 
 rownames(techAnalyDf) <- c(1:nrow(techAnalyDf))
+str(techAnalyDf)
+#delte Factor
+techAnalyDf$Date <- as.character(techAnalyDf$Date)
+str(techAnalyDf)
 
+##dygraph
 
+tmp = as.POSIXct(strptime(techAnalyDf$Date, 
+                            format="%Y/%m/%d"))
+
+close_xts<- xts(techAnalyDf$Close,order.by=tmp,frequency=252)
+mavg_xts<- xts(techAnalyDf$mavg,order.by=tmp,frequency=252)
+bbUp_xts<- xts(techAnalyDf$up,order.by=tmp,frequency=252)
+bbDn_xts<- xts(techAnalyDf$dn,order.by=tmp,frequency=252)
+
+chart_xts <- cbind(close_xts,mavg_xts,bbUp_xts,bbDn_xts)
+
+dygraph(chart_xts,ylab="Value", 
+        main="TSData Tech Analysis Chart")  %>%
+  dySeries("..1",label="Close") %>%
+  dySeries(c("..3","..2","..4"), label = "BB") %>%
+  #dyOptions(colors = c("blue","brown")) %>%
+  dyRangeSelector()
 
