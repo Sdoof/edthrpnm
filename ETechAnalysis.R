@@ -63,6 +63,8 @@ str(techAnalyDf)
 techAnalyDf$Date <- as.character(techAnalyDf$Date)
 str(techAnalyDf)
 
+ifelse(abs(techAnalyDf$ivCtOSpikeNSd)>2,techAnalyDf$ivCtOSpikeNSd,0)-> techAnalyDf$ivCtOSpikeNSd_thresh
+
 ##dygraph
 
 tmp = as.POSIXct(strptime(techAnalyDf$Date, 
@@ -72,13 +74,17 @@ close_xts<- xts(techAnalyDf$Close,order.by=tmp,frequency=252)
 mavg_xts<- xts(techAnalyDf$mavg,order.by=tmp,frequency=252)
 bbUp_xts<- xts(techAnalyDf$up,order.by=tmp,frequency=252)
 bbDn_xts<- xts(techAnalyDf$dn,order.by=tmp,frequency=252)
+ivCtOSpikeNSd_xts<-xts(techAnalyDf$ivCtOSpikeNSd_thresh,order.by=tmp,frequency=252)
 
-chart_xts <- cbind(close_xts,mavg_xts,bbUp_xts,bbDn_xts)
+chart_xts <- cbind(close_xts,mavg_xts,bbUp_xts,bbDn_xts,ivCtOSpikeNSd_xts)
 
 dygraph(chart_xts,ylab="Value", 
         main="TSData Tech Analysis Chart")  %>%
   dySeries("..1",label="Close") %>%
   dySeries(c("..3","..2","..4"), label = "BB") %>%
+  dySeries("..5",label="SpikeNSd",stepPlot = TRUE, fillGraph = TRUE,axis = 'y2')  %>%
+  dyAxis("y", label = "Value") %>%
+  dyAxis("y2", label = "SpikeNSd") %>%
   #dyOptions(colors = c("blue","brown")) %>%
   dyRangeSelector()
 
