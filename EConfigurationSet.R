@@ -44,7 +44,7 @@ EvFNames <- c("holdDays","UdlStepNum","UdlStepPct","Posnum","Tail_rate","LossLim
               "HV_IV_Adjust_Ratio","Weight_Drift","Delta_Thresh_Minus","Delta_Thresh_Plus","Vega_Thresh_Minus","Vega_Thresh_Plus",
               "Delta_Direct_Prf","Vega_Direct_Prf","Delta_Neutral_Offset","Vega_Neutral_Offset",
               "Profit_Coef","AdvEffect_Coef","AllEffect_Coef","DrctlEffect_Coef","MaxLoss_Coef",
-              "SigmoidA_Numerator","SigmoidA_Denominator","ThetaEffectPositive","EvalConvex","DeltaHedge","GreekEfctOnHldD")
+              "SigmoidA_Numerator","SigmoidA_Denominator","ExpIVChange_Multiple","ThetaEffectPositive","EvalConvex","DeltaHedge","GreekEfctOnHldD")
 EvalFuncSetting<-vector("list",length(EvFNames))
 
 EvalFuncSetting[[1]]<-as.numeric(ConfigParameters["holdDays",1])
@@ -70,10 +70,11 @@ EvalFuncSetting[[20]]<-as.numeric(ConfigParameters["EvalFnc_DrctlEffect_Coef",1]
 EvalFuncSetting[[21]]<-as.numeric(ConfigParameters["EvalFnc_MaxLoss_Coef",1])
 EvalFuncSetting[[22]]<-as.numeric(ConfigParameters["EvalFnc_SigmoidA_Numerator",1])
 EvalFuncSetting[[23]]<-as.numeric(ConfigParameters["EvalFnc_SigmoidA_Denominator",1])
-EvalFuncSetting[[24]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_ThetaEffectPositive",1])==1,TRUE,FALSE)
-EvalFuncSetting[[25]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_EvalConvex",1])==1,TRUE,FALSE)
-EvalFuncSetting[[26]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_DeltaHedgeToEvalProfit",1])==1,TRUE,FALSE)
-EvalFuncSetting[[27]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_GreekEffectEvalOnHoldDay",1])==1,TRUE,FALSE)
+EvalFuncSetting[[24]]<-as.numeric(ConfigParameters["EvalFnc_ExpIVChange_Multiple",1])
+EvalFuncSetting[[25]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_ThetaEffectPositive",1])==1,TRUE,FALSE)
+EvalFuncSetting[[26]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_EvalConvex",1])==1,TRUE,FALSE)
+EvalFuncSetting[[27]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_DeltaHedgeToEvalProfit",1])==1,TRUE,FALSE)
+EvalFuncSetting[[28]]<-as.numeric(ConfigParameters["EvalFnc_GreekEffectEvalOnHoldDay",1])
 
 names(EvalFuncSetting)<-EvFNames
 rm(EvFNames)
