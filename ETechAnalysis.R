@@ -8,9 +8,15 @@ library(dygraphs)
 rm(list=ls())
 source('./ESourceRCode.R',encoding = 'UTF-8')
 
+#Total TS Data Num
+TS_DATA_NUM=2000
+
+#moving average day
+MV_AVRAGE_DAYNUM=c(20)
+
 #read data file
 datafile_name=paste(DataFiles_Path_G,Underying_Symbol_G,"_IV.csv",sep="")
-TSdata<-read.table(datafile_name,header=T,sep=",",nrows=2000)
+TSdata<-read.table(datafile_name,header=T,sep=",",nrows=TS_DATA_NUM)
 
 ###
 ##  Close to Open Spike
@@ -19,12 +25,12 @@ length(TSdata[,c("Close")])
 tmp<-replace(TSdata$Close,rep(1:length(TSdata$Close)-1),TSdata$Close[2:length(TSdata$Close)])
 tmp<-replace(TSdata[,c("Close")],rep(1:length(TSdata[,c("Close")])-1),TSdata[,c("Close")][2:length(TSdata[,c("Close")])])
 
-length(tmp)
+#length(tmp)
 tmp[1:length(TSdata$Close)-1]->tmp
-length(tmp)
-tmp
-tmp[1:20]
-tail(tmp)
+#length(tmp)
+#tmp
+#tmp[1:20]
+#tail(tmp)
 
 # CLose to Open SPike %
 ivCtOSpikePct=TSdata$Open[1:length(tmp)]/tmp
@@ -38,8 +44,8 @@ ivCtOSpikeNSd=(ivCtOSpikePct-1)/sd(ivCtOSpikePct)
 ivCtOSpikeNSd[!is.na(ivCtOSpikeNSd)]
 
 ###
-##   Open/Close technical Indicator
-daynum=30
+##  Technical Indicator
+daynum=MV_AVRAGE_DAYNUM[1]
 #Moving Average
 sma<-SMA(TSdata[,c("Close")], n=daynum)
 sma<-sma[!is.na(sma)]
@@ -82,9 +88,9 @@ dygraph(chart_xts,ylab="Value",
         main="TSData Tech Analysis Chart")  %>%
   dySeries("..1",label="Close") %>%
   dySeries(c("..3","..2","..4"), label = "BB") %>%
-  dySeries("..5",label="SpikeNSd",stepPlot = TRUE, fillGraph = TRUE,axis = 'y2')  %>%
+  dySeries("..5",label="SpikeNSd") %>%
   dyAxis("y", label = "Value") %>%
-  dyAxis("y2", label = "SpikeNSd") %>%
+  #dyAxis("y2", label = "SpikeNSd") %>%
   #dyOptions(colors = c("blue","brown")) %>%
   dyRangeSelector()
 
