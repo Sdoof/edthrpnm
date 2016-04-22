@@ -69,6 +69,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   expIVChange<-histIV$IVIDX[1]*(exp(dviv*sqrt(Setting$holdDays))-1)
   #Volatility Change percent
   vol_chg=expIVChange/histIV$IVIDX[1]
+  vol_chg=vol_chg*Setting$ExpIVChange_Multiple
   
   #PositionStepDays data frame of Volatility UP scenario
   posStepDays_vc_plus<-posStepDays_vc
@@ -201,20 +202,20 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   #  default holding day
   posEvalTbl<-posStepDays$scene[[length(posStepDays)]]
   #not default, averaging 1st Day and holdDay
-  if(Setting$GreekEfctOnHldD){
+  if(Setting$GreekEfctOnHldD>0){
     if(isDebug){cat(" (:GreekEfctOnHldD)",Setting$holdDays)}
     posEvalTbl_1<-posStepDays$scene[[1]]
     posEvalTbl_hd<-posStepDays$scene[[length(posStepDays)]]
-    #averaging
-    posEvalTbl$Delta=(posEvalTbl_1$Delta+posEvalTbl_hd$Delta)/2
-    posEvalTbl$Gamma=(posEvalTbl_1$Gamma+posEvalTbl_hd$Gamma)/2
-    posEvalTbl$Vega=(posEvalTbl_1$Vega+posEvalTbl_hd$Vega)/2
-    posEvalTbl$Theta=(posEvalTbl_1$Theta+posEvalTbl_hd$Theta)/2
-    posEvalTbl$DeltaEffect=(posEvalTbl_1$DeltaEffect+posEvalTbl_hd$DeltaEffect)/2
-    posEvalTbl$GammaEffect=(posEvalTbl_1$GammaEffect+posEvalTbl_hd$GammaEffect)/2
-    posEvalTbl$VegaEffect=(posEvalTbl_1$VegaEffect+posEvalTbl_hd$VegaEffect)/2
-    posEvalTbl$ThetaEffect=(posEvalTbl_1$ThetaEffect+posEvalTbl_hd$ThetaEffect)/2
-    posEvalTbl$IVIDX=(posEvalTbl_1$IVIDX+posEvalTbl_hd$IVIDX)/2
+    #weighting
+    posEvalTbl$Delta=posEvalTbl_1$Delta*(1-Setting$GreekEfctOnHldD)+posEvalTbl_hd$Delta*Setting$GreekEfctOnHldD
+    posEvalTbl$Gamma=posEvalTbl_1$Gamma*(1-Setting$GreekEfctOnHldD)+posEvalTbl_hd$Gamma*Setting$GreekEfctOnHldD
+    posEvalTbl$Vega=posEvalTbl_1$Vega*(1-Setting$GreekEfctOnHldD)+posEvalTbl_hd$Vega*Setting$GreekEfctOnHldD
+    posEvalTbl$Theta=posEvalTbl_1$Theta*(1-Setting$GreekEfctOnHldD)+posEvalTbl_hd$Theta*Setting$GreekEfctOnHldD
+    posEvalTbl$DeltaEffect=posEvalTbl_1$DeltaEffect*(1-Setting$GreekEfctOnHldD)+posEvalTbl_hd$DeltaEffect*Setting$GreekEfctOnHldD
+    posEvalTbl$GammaEffect=posEvalTbl_1$GammaEffect*(1-Setting$GreekEfctOnHldD)+posEvalTbl_hd$GammaEffect*Setting$GreekEfctOnHldD
+    posEvalTbl$VegaEffect=posEvalTbl_1$VegaEffect*(1-Setting$GreekEfctOnHldD)+posEvalTbl_hd$VegaEffect*Setting$GreekEfctOnHldD
+    posEvalTbl$ThetaEffect=posEvalTbl_1$ThetaEffect*(1-Setting$GreekEfctOnHldD)+posEvalTbl_hd$ThetaEffect*Setting$GreekEfctOnHldD
+    posEvalTbl$IVIDX=posEvalTbl_1$IVIDX*(1-Setting$GreekEfctOnHldD)+posEvalTbl_hd$IVIDX*Setting$GreekEfctOnHldD
   }
   
   ##
