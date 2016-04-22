@@ -207,15 +207,15 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
     posEvalTbl_1<-posStepDays$scene[[1]]
     posEvalTbl_hd<-posStepDays$scene[[length(posStepDays)]]
     #weighting
-    posEvalTbl$Delta=posEvalTbl_1$Delta*(1-Setting$GreekEfctOnHldD)+posEvalTbl_hd$Delta*Setting$GreekEfctOnHldD
-    posEvalTbl$Gamma=posEvalTbl_1$Gamma*(1-Setting$GreekEfctOnHldD)+posEvalTbl_hd$Gamma*Setting$GreekEfctOnHldD
-    posEvalTbl$Vega=posEvalTbl_1$Vega*(1-Setting$GreekEfctOnHldD)+posEvalTbl_hd$Vega*Setting$GreekEfctOnHldD
-    posEvalTbl$Theta=posEvalTbl_1$Theta*(1-Setting$GreekEfctOnHldD)+posEvalTbl_hd$Theta*Setting$GreekEfctOnHldD
-    posEvalTbl$DeltaEffect=posEvalTbl_1$DeltaEffect*(1-Setting$GreekEfctOnHldD)+posEvalTbl_hd$DeltaEffect*Setting$GreekEfctOnHldD
-    posEvalTbl$GammaEffect=posEvalTbl_1$GammaEffect*(1-Setting$GreekEfctOnHldD)+posEvalTbl_hd$GammaEffect*Setting$GreekEfctOnHldD
-    posEvalTbl$VegaEffect=posEvalTbl_1$VegaEffect*(1-Setting$GreekEfctOnHldD)+posEvalTbl_hd$VegaEffect*Setting$GreekEfctOnHldD
-    posEvalTbl$ThetaEffect=posEvalTbl_1$ThetaEffect*(1-Setting$GreekEfctOnHldD)+posEvalTbl_hd$ThetaEffect*Setting$GreekEfctOnHldD
-    posEvalTbl$IVIDX=posEvalTbl_1$IVIDX*(1-Setting$GreekEfctOnHldD)+posEvalTbl_hd$IVIDX*Setting$GreekEfctOnHldD
+    posEvalTbl$Delta=posEvalTbl_1$Delta*Setting$GreekEfctOnHldD+posEvalTbl_hd$Delta*(1-Setting$GreekEfctOnHldD)
+    posEvalTbl$Gamma=posEvalTbl_1$Gamma*Setting$GreekEfctOnHldD+posEvalTbl_hd$Gamma*(1-Setting$GreekEfctOnHldD)
+    posEvalTbl$Vega=posEvalTbl_1$Vega*Setting$GreekEfctOnHldD+posEvalTbl_hd$Vega*(1-Setting$GreekEfctOnHldD)
+    posEvalTbl$Theta=posEvalTbl_1$Theta*Setting$GreekEfctOnHldD+posEvalTbl_hd$Theta*(1-Setting$GreekEfctOnHldD)
+    posEvalTbl$DeltaEffect=posEvalTbl_1$DeltaEffect*Setting$GreekEfctOnHldD+posEvalTbl_hd$DeltaEffect*(1-Setting$GreekEfctOnHldD)
+    posEvalTbl$GammaEffect=posEvalTbl_1$GammaEffect*Setting$GreekEfctOnHldD+posEvalTbl_hd$GammaEffect*(1-Setting$GreekEfctOnHldD)
+    posEvalTbl$VegaEffect=posEvalTbl_1$VegaEffect*Setting$GreekEfctOnHldD+posEvalTbl_hd$VegaEffect*(1-Setting$GreekEfctOnHldD)
+    posEvalTbl$ThetaEffect=posEvalTbl_1$ThetaEffect*Setting$GreekEfctOnHldD+posEvalTbl_hd$ThetaEffect*(1-Setting$GreekEfctOnHldD)
+    posEvalTbl$IVIDX=posEvalTbl_1$IVIDX*Setting$GreekEfctOnHldD+posEvalTbl_hd$IVIDX*(1-Setting$GreekEfctOnHldD)
   }
   
   ##
