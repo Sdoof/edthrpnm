@@ -92,10 +92,15 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   sd_multp<-Setting$holdDays
   anlzd_sd<-histIV$IVIDX[1]*Setting$HV_IV_Adjust_Ratio
   sd_hd<-(anlzd_sd/sqrt(252/sd_multp))
+  sd_hd_1d<-(anlzd_sd/sqrt(252/1))
   #f.y.i sd_hd<-exp(anlzd_sd*sqrt(sd_multp/252))-1 #exponential expression
   weight<-dnorm(udlChgPct,mean=sd_multp/252*Setting$Weight_Drift,sd=sd_hd)*sd_hd / sum(dnorm(udlChgPct,mean=sd_multp/252*Setting$Weight_Drift,sd=sd_hd)*sd_hd)
-  weight_Effect<-dnorm(udlChgPct,mean=sd_multp/252*Setting$Weight_Drift_GreekEffect,sd=sd_hd)*sd_hd / sum(dnorm(udlChgPct,mean=sd_multp/252*Setting$Weight_Drift_GreekEffect,sd=sd_hd)*sd_hd)
-  if(isDetail){cat(":(weight hdday)",weight);cat(":(weightEffect hdday)",weight_Effect)}
+  weight_Effect_hd<-dnorm(udlChgPct,mean=sd_multp/252*Setting$Weight_Drift_GreekEffect,sd=sd_hd)*sd_hd / sum(dnorm(udlChgPct,mean=sd_multp/252*Setting$Weight_Drift_GreekEffect,sd=sd_hd)*sd_hd)
+  weight_Effect_1d<-dnorm(udlChgPct,mean=1/252*Setting$Weight_Drift_GreekEffect,sd=sd_hd_1d)*sd_hd_1d / sum(dnorm(udlChgPct,mean=1/252*Setting$Weight_Drift_GreekEffect,sd=sd_hd_1d)*sd_hd_1d)
+  #average weighted weight_Effect
+  weight_Effect=weight_Effect_1d*Setting$GreekEfctOnHldD+weight_Effect_hd*(1-Setting$GreekEfctOnHldD)
+  
+  if(isDetail){cat(":(weight hdday)",weight);cat(":(weightEffect hdday)",weight_Effect_hd);cat(":(weightEffect 1ay)",weight_Effect_1d);cat(":(weightEffect)",weight_Effect)}
   
   #vertical (Implied Volatility) weight
   IVChgPct<-seq(histIV$IVIDX[1]-expIVChange,histIV$IVIDX[1]+expIVChange,length=3)
