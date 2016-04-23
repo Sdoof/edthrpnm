@@ -94,7 +94,8 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   sd_hd<-(anlzd_sd/sqrt(252/sd_multp))
   #f.y.i sd_hd<-exp(anlzd_sd*sqrt(sd_multp/252))-1 #exponential expression
   weight<-dnorm(udlChgPct,mean=sd_multp/252*Setting$Weight_Drift,sd=sd_hd)*sd_hd / sum(dnorm(udlChgPct,mean=sd_multp/252*Setting$Weight_Drift,sd=sd_hd)*sd_hd)
-  if(isDetail){cat(":(weight hdday)",weight)}
+  weight_Effect<-dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd / sum(dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd)
+  if(isDetail){cat(":(weight hdday)",weight);cat(":(weightEffect hdday)",weight_Effect)}
   
   #vertical (Implied Volatility) weight
   IVChgPct<-seq(histIV$IVIDX[1]-expIVChange,histIV$IVIDX[1]+expIVChange,length=3)
@@ -221,17 +222,17 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   ##
   # Constraint 4. ThetaEffect. This should be soft constraint
   if(Setting$ThetaEffectPositive){
-    theta_ttl<-sum(posEvalTbl$Theta*weight)
+    theta_ttl<-sum(posEvalTbl$Theta*weight_Effect)
     if(isDetail){cat(" :(thta_ttl)",theta_ttl)}
-    if(isDetail){cat(" :(thta_ini)",thePositionGrk$ThetaEffect);cat(" :(thta_wt)",sum(posEvalTbl$ThetaEffect*weight))}
+    if(isDetail){cat(" :(thta_ini)",thePositionGrk$ThetaEffect);cat(" :(thta_wt)",sum(posEvalTbl$ThetaEffect*weight_Effect))}
     if(theta_ttl<0)
       return(unacceptableVal)
   }
   
   ##
   # Advantageous Effects.
-  c5<- sum((posEvalTbl$GammaEffect+posEvalTbl$ThetaEffect)*weight)+VommaEffect
-  if(isDetail){cat(" :(GammaEffect)",sum(posEvalTbl$GammaEffect*weight)," :(ThetaEffect)",sum(posEvalTbl$ThetaEffect*weight),
+  c5<- sum((posEvalTbl$GammaEffect+posEvalTbl$ThetaEffect)*weight_Effect)+VommaEffect
+  if(isDetail){cat(" :(GammaEffect)",sum(posEvalTbl$GammaEffect*weight_Effect)," :(ThetaEffect)",sum(posEvalTbl$ThetaEffect*weight_Effect),
                    " :c5(AdvEffect_wght)",c5)}
   
   ##
@@ -245,8 +246,8 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   Delta_Effect_revised_offset<- (-abs(Delta_revised_offset))*expPriceChange
   if(isDetail){cat(" :(expPriceChange)",expPriceChange," :(Delta Offset)",Delta_revised_offset," :(DeltaE offset)",Delta_Effect_revised_offset)}
   
-  Delta_revised_offset<-sum(Delta_revised_offset*weight)
-  Delta_Effect_revised_offset<-sum(Delta_Effect_revised_offset*weight)
+  Delta_revised_offset<-sum(Delta_revised_offset*weight_Effect)
+  Delta_Effect_revised_offset<-sum(Delta_Effect_revised_offset*weight_Effect)
   if(isDetail){cat(" :(DeltaE_wght)",Delta_Effect_revised_offset," :(Delta_wght)",Delta_revised_offset)}
   
   ###Delta_Thresh_Minus,Delta_Thresh_Plus
@@ -269,8 +270,8 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   #     cat(" :(expIVChange)",expIVChange," :(Vega Offset)",Vega_revised_offset," :(VegaE offset)",Vega_Effect_revised_offset)
   #     
   #   }
-  #   Vega_revised_offset<-sum(Vega_revised_offset*weight)
-  #   Vega_Effect_revised_offset<-sum(Vega_Effect_revised_offset*weight)
+  #   Vega_revised_offset<-sum(Vega_revised_offset*weight_Effect)
+  #   Vega_Effect_revised_offset<-sum(Vega_Effect_revised_offset*weight_Effect)
   #   if(isDetail){
   #     cat(" :(VegaE_Wght)",Vega_Effect_revised_offset," :(Vega_Wght)",Vega_revised_offset)
   #   }
