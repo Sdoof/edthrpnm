@@ -94,7 +94,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   sd_hd<-(anlzd_sd/sqrt(252/sd_multp))
   #f.y.i sd_hd<-exp(anlzd_sd*sqrt(sd_multp/252))-1 #exponential expression
   weight<-dnorm(udlChgPct,mean=sd_multp/252*Setting$Weight_Drift,sd=sd_hd)*sd_hd / sum(dnorm(udlChgPct,mean=sd_multp/252*Setting$Weight_Drift,sd=sd_hd)*sd_hd)
-  weight_Effect<-dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd / sum(dnorm(udlChgPct,mean=0,sd=sd_hd)*sd_hd)
+  weight_Effect<-dnorm(udlChgPct,mean=sd_multp/252*Setting$Weight_Drift_GreekEffect,sd=sd_hd)*sd_hd / sum(dnorm(udlChgPct,mean=sd_multp/252*Setting$Weight_Drift_GreekEffect,sd=sd_hd)*sd_hd)
   if(isDetail){cat(":(weight hdday)",weight);cat(":(weightEffect hdday)",weight_Effect)}
   
   #vertical (Implied Volatility) weight
