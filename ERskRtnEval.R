@@ -103,8 +103,9 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   if(isDetail){cat(":(weight hdday)",weight);cat(":(weightEffect hdday)",weight_Effect_hd);cat(":(weightEffect 1ay)",weight_Effect_1d);cat(":(weightEffect)",weight_Effect)}
   
   #vertical (Implied Volatility) weight
+  cor_tmp=get.Volatility.Level.Regression(Days=Setting$holdDays)$cor
   IVChgPct<-seq(histIV$IVIDX[1]-expIVChange,histIV$IVIDX[1]+expIVChange,length=3)
-  sd_iv=histIV$IVIDX[1]*(exp(annuual.daily.volatility(histIV$IVIDX)$daily*sqrt(Setting$holdDays))-1)*sqrt(1-PC1dCtC_IVCF1dCtC$cor*PC1dCtC_IVCF1dCtC$cor)
+  sd_iv=histIV$IVIDX[1]*(exp(annuual.daily.volatility(histIV$IVIDX)$daily*sqrt(Setting$holdDays))-1)*sqrt(1-cor_tmp*cor_tmp)
   weight_IV=dnorm(IVChgPct,mean=histIV$IVIDX[1],sd=sd_iv)/sum(dnorm(IVChgPct,mean=histIV$IVIDX[1],sd=sd_iv))
   if(isDetail){cat(":(weight_IV )",weight_IV)}
   
@@ -336,7 +337,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   val<-cost 
   
   if(isDetail){
-    ROIC_anlzd=ROIC*(sqrt(252/Setting$holdDays))
+    ROIC_anlzd=ROIC*252/Setting$holdDays
     cat(" :val",val,"\n");cat(" :exp prft",profit_expctd," maxloss:",maxLoss," :ROIC",ROIC," :ROIC(anlzd)",ROIC_anlzd,"\n")
     }
   return(val)
