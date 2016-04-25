@@ -6,7 +6,7 @@ rm(list=ls())
 source('./ESourceRCode.R',encoding = 'UTF-8')
 
 #data row num
-DATA_NUM=1300
+DATA_NUM=2000
 
 #read data file
 rf_<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Hist.csv",sep="")
