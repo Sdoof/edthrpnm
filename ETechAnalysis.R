@@ -134,5 +134,12 @@ for(i in 1:(TS_DATA_NUM-MV_AVRAGE_DAYNUM[1])){
   histVol[i,"HV"]=vol_tmp
 }
 
+HV_xts<- xts(histVol,order.by=date_s,frequency=252)
+volcomp_xts<- cbind(close_xts,HV_xts)
 
-
+dygraph(volcomp_xts,ylab="IV and HV", 
+        main="Volatility Comparison")  %>%
+  dySeries("..1",label="IV") %>%
+  dySeries("HV",label="HV") %>%
+  #dyOptions(colors = c("blue","brown")) %>%
+  dyRangeSelector()
