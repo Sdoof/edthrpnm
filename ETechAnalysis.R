@@ -89,7 +89,7 @@ ivCtOSpikeNSd_xts<-xts(techAnalyDf$ivCtOSpikeNSd_thresh,order.by=date_s,frequenc
 chart_xts <- cbind(close_xts,mavg_xts,bbUp_xts,bbDn_xts)
 
 dygraph(chart_xts,ylab="Value", 
-        main="TSData Tech Analysis Chart")  %>%
+        main=paste(Underying_Symbol_G," IV Analysis",sep=""))  %>%
   dySeries("..1",label="Close") %>%
   #dySeries("..3",label="UpB") %>%
   #dySeries("..2",label="MAVG") %>%
@@ -111,7 +111,7 @@ BWdth_xts<- xts(BWdth,order.by=date_s,frequency=252)
 bbind_xts<- cbind(pctB_xts,BWdth_xts)
 
 dygraph(bbind_xts,ylab="pctB and BWdth", 
-        main="BB Indicator")  %>%
+        main=paste(Underying_Symbol_G," BB Indicator",sep=""))  %>%
   dySeries("..1",label="pctB") %>%
   dySeries("..2",label="BWdth",axis = 'y2') %>%
   dyOptions(colors = c("blue","brown")) %>%
@@ -138,7 +138,7 @@ HV_xts<- xts(histVol,order.by=date_s,frequency=252)
 volcomp_xts<- cbind(close_xts,HV_xts)
 
 dygraph(volcomp_xts,ylab="IV and HV", 
-        main="Volatility Comparison")  %>%
+        main=paste(Underying_Symbol_G," Volatility Comparison",sep=""))  %>%
   dySeries("..1",label="IV") %>%
   dySeries("HV",label="HV") %>%
   #dyOptions(colors = c("blue","brown")) %>%
