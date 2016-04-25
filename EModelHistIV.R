@@ -5,11 +5,14 @@ library(dplyr)
 rm(list=ls())
 source('./ESourceRCode.R',encoding = 'UTF-8')
 
+#data row num
+DATA_NUM=1300
+
 #read data file
 rf_<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Hist.csv",sep="")
-histPrc_<-read.table(rf_,header=T,sep=",",nrows=2000)
+histPrc_<-read.table(rf_,header=T,sep=",",nrows=DATA_NUM)
 rf_<-paste(DataFiles_Path_G,Underying_Symbol_G,"_IV.csv",sep="")
-histIV_<-read.table(rf_,header=T,sep=",",nrows=2000)
+histIV_<-read.table(rf_,header=T,sep=",",nrows=DATA_NUM)
 rm(rf_)
 #show Realized and Impled Volatility
 cat("Realized Vol(30d anlzd)",annuual.daily.volatility(histPrc_$Close[1:30])$anlzd*100,"IV",histIV_$Close[1])
