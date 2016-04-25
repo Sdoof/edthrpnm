@@ -22,7 +22,7 @@ cat("Realized Vol(200d anlzd)",annuual.daily.volatility(histPrc_$Close[1:200])$a
 
 ##Regression : n day price move(price chg% plus SD(IV)) to IV change fcation(%)
 #Regression from start_day_ ago to num_day_ business days
-start_day_<-1;num_day_<-400
+start_day_<-1;num_day_<-min(400,DATA_NUM)
 
 #####
 ##   3d
