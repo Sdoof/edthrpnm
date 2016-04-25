@@ -89,7 +89,7 @@ createOutFname<-function(targetExpDate,targetExpDate_f,targetExpDate_b,spreadRat
                  "HIVR$",EvalFuncSetting$HV_IV_Adjust_Ratio,"-",
                  "cvx$",ifelse(EvalFuncSetting$EvalConvex,"T","F"),"-",
                  "VDrt$",mean(EvalFuncSetting$Vega_Direct_Prf),"-",
-                 "GkA$",ifelse(EvalFuncSetting$GreekEfctOnHldD,"T","F"),"-",
+                 "GkA$",EvalFuncSetting$GreekEfctOnHldD,"-",
                  "dft$",EvalFuncSetting$Weight_Drift*100,"-",
                  "DHg$",ifelse(EvalFuncSetting$DeltaHedge,"T","F"),"-",
                  "sgd$",EvalFuncSetting$SigmoidA_Numerator,"_",EvalFuncSetting$SigmoidA_Denominator,"-",
