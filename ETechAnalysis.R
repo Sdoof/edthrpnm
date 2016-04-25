@@ -9,7 +9,7 @@ rm(list=ls())
 source('./ESourceRCode.R',encoding = 'UTF-8')
 
 #Total TS Data Num
-TS_DATA_NUM=1360
+TS_DATA_NUM=2000
 
 #moving average day
 MV_AVRAGE_DAYNUM=c(20)
@@ -116,3 +116,23 @@ dygraph(bbind_xts,ylab="pctB and BWdth",
   dySeries("..2",label="BWdth",axis = 'y2') %>%
   dyOptions(colors = c("blue","brown")) %>%
   dyRangeSelector()
+
+### Comparison of HV and IV
+#read data file
+datafile_name=paste(DataFiles_Path_G,Underying_Symbol_G,"_Hist.csv",sep="")
+TSdata2<-read.table(datafile_name,header=T,sep=",",nrows=TS_DATA_NUM)
+
+udlCloseChg=TSdata2$PC1dCtC
+
+histVol = matrix(rep(0,(TS_DATA_NUM-MV_AVRAGE_DAYNUM[1])), nrow = (TS_DATA_NUM-MV_AVRAGE_DAYNUM[1]), ncol = 1)
+colnames(histVol) <- c("HV")
+
+for(i in 1:(TS_DATA_NUM-MV_AVRAGE_DAYNUM[1])){
+  vol_tmp=annuual.daily.volatility(udlClose[i:(MV_AVRAGE_DAYNUM+i-1)])$anlzd*100
+  sd_tmp=sd(udlCloseChg[i:(MV_AVRAGE_DAYNUM+i-1)])*sqrt(252)*100
+  cat(i," ",vol_tmp," sd",sd_tmp,"\n")
+  histVol[i,"HV"]=vol_tmp
+}
+
+
+
