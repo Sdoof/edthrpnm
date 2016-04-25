@@ -15,8 +15,11 @@ TS_DATA_NUM=2000
 MV_AVRAGE_DAYNUM=c(20)
 
 #read data file
-datafile_name=paste(DataFiles_Path_G,Underying_Symbol_G,"_IV.csv",sep="")
-TSdata<-read.table(datafile_name,header=T,sep=",",nrows=TS_DATA_NUM)
+TSdata<-read.table(paste(DataFiles_Path_G,Underying_Symbol_G,"_IV.csv",sep=""),
+                   header=T,sep=",",nrows=TS_DATA_NUM)
+
+TSdata2<-read.table(paste(DataFiles_Path_G,Underying_Symbol_G,"_Hist.csv",sep="")
+                    ,header=T,sep=",",nrows=TS_DATA_NUM)
 
 ###
 ##  Close to Open Spike
@@ -98,7 +101,6 @@ dygraph(chart_xts,ylab="Value",
   #dySeries("..5",label="SpikeNSd") %>%
   dyAxis("y", label = "Value") %>%
   #dyAxis("y2", label = "SpikeNSd") %>%
-  #dyOptions(colors = c("blue","brown")) %>%
   dyRangeSelector()
 
 ## pctB  and BWidth
@@ -118,10 +120,7 @@ dygraph(bbind_xts,ylab="pctB and BWdth",
   dyRangeSelector()
 
 ### Comparison of HV and IV
-#read data file
-datafile_name=paste(DataFiles_Path_G,Underying_Symbol_G,"_Hist.csv",sep="")
-TSdata2<-read.table(datafile_name,header=T,sep=",",nrows=TS_DATA_NUM)
-
+udlClose=TSdata2$Close
 udlCloseChg=TSdata2$PC1dCtC
 
 histVol = matrix(rep(0,(TS_DATA_NUM-MV_AVRAGE_DAYNUM[1])), nrow = (TS_DATA_NUM-MV_AVRAGE_DAYNUM[1]), ncol = 1)
@@ -134,6 +133,7 @@ for(i in 1:(TS_DATA_NUM-MV_AVRAGE_DAYNUM[1])){
   histVol[i,"HV"]=vol_tmp
 }
 
+#graphing Comparison of HV and IV
 HV_xts<- xts(histVol,order.by=date_s,frequency=252)
 volcomp_xts<- cbind(close_xts,HV_xts)
 
@@ -143,3 +143,11 @@ dygraph(volcomp_xts,ylab="IV and HV",
   dySeries("HV",label="HV") %>%
   #dyOptions(colors = c("blue","brown")) %>%
   dyRangeSelector()
+
+#graphing HV only
+dygraph(HV_xts,ylab="IV", 
+        main=paste(Underying_Symbol_G," Historical Volatility",sep=""))  %>%
+  dySeries("HV",label="HV") %>%
+  #dyOptions(colors = c("blue","brown")) %>%
+  dyRangeSelector()
+
