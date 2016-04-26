@@ -317,7 +317,7 @@ makeNotAdjustedBySkewATMiv <- function(opch){
 opchain<-makePosition(opchain)
 
 ##
-# c(IronCondor{VerticalSpread},DIAGONAL_BACK,DIAGONAL_FRONT)
+# c(IronCondor{VerticalSpread},DIAGONAL_FRONT,DIAGONAL_BACK)
 # # DIAGONAL Near ATM combination
 #    Delta_Limit_MAX=c(0.5,0.6,0.53),Delta_Limit_MIN=c(0.10,0.1,0.1),
 # # DIAGONAL OOM combination
@@ -327,12 +327,16 @@ filterPosition <- function(opchain,
                            TARGET_EXPDATE,TARGET_EXPDATE_FRONT,TARGET_EXPDATE_BACK){
   ##
   #  Filter Target Ranges 
-  # VerticalSpread (1:%%15 2:%%25 3:%%15 and %%25)
+  # VerticalSpread (1:PriceInterval 2:25 3:PriceInterval and 25)
   VerticalSpread_FilterPtn=1
+  
+  # selected price pattern
+  PriceInterval=15
+  Remainder=0
   
   if(VerticalSpread_FilterPtn==1 || VerticalSpread_FilterPtn==3){
     opchain %>%  dplyr::filter(ExpDate==TARGET_EXPDATE) %>% dplyr::filter(abs(Delta)>Delta_Limit_MIN[1])  %>% 
-    dplyr::filter(abs(Delta)<Delta_Limit_MAX[1]) %>% dplyr::filter((Strike%%15)==0) -> opchain_cal1_2
+    dplyr::filter(abs(Delta)<Delta_Limit_MAX[1]) %>% dplyr::filter((Strike%%PriceInterval)==Remainder) -> opchain_cal1_2
     
     if(VerticalSpread_FilterPtn==1)
       opchain_cal1<-opchain_cal1_2
@@ -348,10 +352,10 @@ filterPosition <- function(opchain,
     distinct() -> opchain_cal1
   
   opchain %>%  dplyr::filter(ExpDate==TARGET_EXPDATE_BACK) %>% dplyr::filter(abs(Delta)>Delta_Limit_MIN[3])  %>% 
-    dplyr::filter(abs(Delta)<Delta_Limit_MAX[3]) %>% dplyr::filter((Strike%%15)==0) -> opchain_cal2
+    dplyr::filter(abs(Delta)<Delta_Limit_MAX[3]) %>% dplyr::filter((Strike%%PriceInterval)==Remainder) -> opchain_cal2
  
   opchain %>%  dplyr::filter(ExpDate==TARGET_EXPDATE_FRONT) %>% dplyr::filter(abs(Delta)>Delta_Limit_MIN[2])  %>% 
-    dplyr::filter(abs(Delta)<Delta_Limit_MAX[2]) %>% dplyr::filter((Strike%%15)==0) -> opchain_cal3
+    dplyr::filter(abs(Delta)<Delta_Limit_MAX[2]) %>% dplyr::filter((Strike%%PriceInterval)==Remainder) -> opchain_cal3
   
   #Join
   opchain_cal1 %>%  dplyr::full_join(opchain_cal2) %>% dplyr::full_join(opchain_cal3) %>%
