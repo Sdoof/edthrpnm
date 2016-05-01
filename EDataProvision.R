@@ -321,9 +321,9 @@ opchain<-makePosition(opchain)
 # # DIAGONAL Near ATM combination
 #    Delta_Limit_MAX=c(0.5,0.6,0.53),Delta_Limit_MIN=c(0.10,0.1,0.1),
 # # DIAGONAL OOM combination
-#    Delta_Limit_MAX=c(0.5,0.35,0.4),Delta_Limit_MIN=c(0.10,0.05,0.1),
+#    Delta_Limit_MAX=c(0.5,0.35,0.4),Delta_Limit_MIN=c(0.10,0.05,0.05),
 filterPosition <- function(opchain,
-                           Delta_Limit_MAX=c(0.5,0.6,0.53),Delta_Limit_MIN=c(0.10,0.1,0.1),
+                           Delta_Limit_MAX=c(0.5,0.35,0.4),Delta_Limit_MIN=c(0.10,0.05,0.05),
                            TARGET_EXPDATE,TARGET_EXPDATE_FRONT,TARGET_EXPDATE_BACK){
   ##
   #  Filter Target Ranges 
@@ -332,7 +332,7 @@ filterPosition <- function(opchain,
   
   # selected price pattern
   PriceInterval=15
-  Remainder=0
+  Remainder=5
   
   if(VerticalSpread_FilterPtn==1 || VerticalSpread_FilterPtn==3){
     opchain %>%  dplyr::filter(ExpDate==TARGET_EXPDATE) %>% dplyr::filter(abs(Delta)>Delta_Limit_MIN[1])  %>% 
@@ -383,7 +383,6 @@ filterForFOPPosition <- function(opchain,HowfarOOM_MIN=0,OOM_Limit_V=c(0.09,0.09
   
   return(opchain)
 }
-
 
 #just check the result before going throught the rest
 opchain_check<-filterPosition(opchain,TARGET_EXPDATE=TARGET_EXPDATE,TARGET_EXPDATE_FRONT=TARGET_EXPDATE_FRONT,TARGET_EXPDATE_BACK=TARGET_EXPDATE_BACK)
