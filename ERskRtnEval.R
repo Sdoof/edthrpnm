@@ -27,8 +27,8 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   if(isDebug){cat("initail position\n");print(thePositionGrk)}
   
   #posEvalTble after 1 day and holdDay
-  udlStepNum<-udlStepNum
-  udlStepPct<-udlStepPct
+  udlStepNum<-Setting$UdlStepNum
+  udlStepPct<-Setting$UdlStepPct
   udlChgPct<-seq(-udlStepPct*udlStepNum,udlStepPct*udlStepNum,length=(2*udlStepNum)+1)
   
   #weighting calculate
@@ -332,11 +332,17 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   if(isDetail){cat(" :Coef_Drct",Setting$DrctlEffect_Coef,"x",c6,"+:Coef_AllE",Setting$AllEffect_Coef,"x",c7,"+ :Coef_MaxLoss(SD)",Setting$MaxLoss_Coef,"x",c8,"= Numr",A)}
   if(isDetail){cat(" :Coef_Adv",Setting$AdvEffect_Coef,"x",c5,"+:Coef_Prft",Setting$Profit_Coef,"x",c3,"= Denom",B)}
   
-  sigA<-sigmoid(A,a=Setting$SigmoidA_Numerator,b=0)
-  sigB<-sigmoid(B,a=Setting$SigmoidA_Denominator,b=0)
-  
-  cost<-sigA/sigB
-  if(isDetail){cat(" :(sigA)",sigA,":(sigB)",sigB," :cost(sigA/sigB)",cost)}
+  cost=unacceptableVal
+  if(Setting$EvalSigmoidFunc==TRUE){
+    sigA<-sigmoid(A,a=Setting$SigmoidA_Numerator,b=0)
+    sigB<-sigmoid(B,a=Setting$SigmoidA_Denominator,b=0)
+    cost<-sigA/sigB
+    if(isDetail){cat(" :(sigA)",sigA,":(sigB)",sigB," :cost(sigA/sigB)",cost)}
+  }else{
+    if(B>0)
+      cost=((A-B)/B)
+    if(isDetail){cat(" :cost",cost)}
+  }
   
   ##
   # total cost and penalty
