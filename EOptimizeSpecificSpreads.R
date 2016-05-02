@@ -188,15 +188,11 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
   originalLossLimitPrice=EvalFuncSetting$LossLimitPrice
   EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*max(spreadRatio)
   
-  originalWeight_Drift=EvalFuncSetting$Weight_Drift
-  EvalFuncSetting$Weight_Drift=0.0
-  
   sampleMain(sampleSpreadType=sampleSpreadType,totalPopNum=100,
              targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,
              spreadRatio=spreadRatio,InitialPopThresh=min(UNACCEPTABLEVAL-0.1,InitialPopThresh*2),outFname=outFname,isFileout=T,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
   
   EvalFuncSetting$LossLimitPrice=originalLossLimitPrice
-  EvalFuncSetting$Weight_Drift=originalWeight_Drift
   
   #file handling
   tmp<-read.table(outFname,header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
@@ -277,15 +273,11 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
   originalLossLimitPrice=EvalFuncSetting$LossLimitPrice
   EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*max(spreadRatio)
   
-  originalWeight_Drift=EvalFuncSetting$Weight_Drift
-  EvalFuncSetting$Weight_Drift=0.0
-  
   sampleMain(sampleSpreadType=sampleSpreadType,totalPopNum=100,
              targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,
              spreadRatio=spreadRatio,InitialPopThresh=min(UNACCEPTABLEVAL-0.1,InitialPopThresh*2),outFname=outFname,isFileout=T,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
   
   EvalFuncSetting$LossLimitPrice=originalLossLimitPrice
-  EvalFuncSetting$Weight_Drift=originalWeight_Drift
   
   #file handling
   tmp<-read.table(outFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
