@@ -282,6 +282,7 @@ fxFutContractList = [
                      makeFxFutContract(sym='JPY', exp='201609', multip=''),
                      makeFxFutContract(sym='EUR', exp='201609', multip=''),
                      makeFxFutContract(sym='GBP', exp='201609', multip=''),
+                     makeFxFutContract(sym='JPY', exp='201612', multip=''),
                      makeFxFutContract(sym='EUR', exp='201612', multip=''),
                      makeFxFutContract(sym='GBP', exp='201612', multip='')
                      ]
