@@ -70,6 +70,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   #Volatility Change percent
   vol_chg=expIVChange/histIV$IVIDX[1]
   vol_chg=vol_chg*Setting$ExpIVChange_Multiple
+  if(isDetail){cat(" :(IV change%)",vol_chg)}
   
   #PositionStepDays data frame of Volatility UP scenario
   posStepDays_vc_plus<-posStepDays_vc
