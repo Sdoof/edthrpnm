@@ -46,7 +46,14 @@ ShowEvaluationDetail=TRUE
 ShowDebugMode=F
 
 #VolatilitySensitivityChange
-VolatilitySensitivityChange=0.3
+dviv = annuual.daily.volatility(histIV$IVIDX)$daily
+#Calculate Expected IV change
+dviv = dviv*0.7978846
+expIVChange<-histIV$IVIDX[1]*(exp(dviv*sqrt(EvalFuncSetting$holdDays))-1)
+#Volatility Change percent
+vol_chg=expIVChange/histIV$IVIDX[1]
+vol_chg=vol_chg*EvalFuncSetting$ExpIVChange_Multiple
+VolatilitySensitivityChange=vol_chg
 
 #DrawLineSizeMax
 DrawLineSizeMax=1.4
