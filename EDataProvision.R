@@ -81,8 +81,12 @@ makeFOPChainContainer<-function(){
   opch_pr_ %>% left_join(futPrc_,by="Date") -> tmp
   tmp$Tdiff = as.numeric(difftime(as.Date(tmp$FutExpDate,format="%Y/%m/%d"),as.Date(tmp$ExpDate,format="%Y/%m/%d")), units="days")
   tmp %>% filter(Tdiff>=0) -> tmp
-  tmp %>% group_by(Strike,ContactName,Date,ExpDate,TYPE,Bid,Ask,Price) %>% summarise(UDLY=UDLY[which.min(Tdiff)],FutExpDate=FutExpDate[which.min(Tdiff)],
-                                                           TdiffMin=min(Tdiff)) %>% as.data.frame() -> tmp
+  tmp %>% group_by(Strike,Date,ExpDate,TYPE) %>% summarise(ContactName=ContactName[which.min(Tdiff)],
+                                                           Last=Last[which.min(Tdiff)],Bid=Bid[which.min(Tdiff)],
+                                                           Ask=Ask[which.min(Tdiff)],Price=Price[which.min(Tdiff)],
+                                                                       UDLY=UDLY[which.min(Tdiff)],
+                                                                       FutExpDate=FutExpDate[which.min(Tdiff)],
+                                                          TdiffMin=min(Tdiff)) %>% as.data.frame() -> tmp
   tmp %>% arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="%Y/%m/%d"),desc(TYPE),Strike) -> tmp
   
   #reassigne tmp as opch_pr_
@@ -94,10 +98,10 @@ makeFOPChainContainer<-function(){
   # Approximate Forward Rate
   time_DateToFutExpDate=as.numeric(difftime(as.Date(opch_pr_$FutExpDate,format="%Y/%m/%d"),as.Date(opch_pr_$Date,format="%Y/%m/%d")), units="days")/365
   opch_pr_$DateToFutExpDate=time_DateToFutExpDate
-  opch_pr_ %>% group_by(UDLY) %>% summarise(DateToFutExpDate=DateToFutExpDate[which.min(DateToFutExpDate)],
-                                            Date=Date[which.min(DateToFutExpDate)],
-                                            FutExpDate=FutExpDate[which.min(DateToFutExpDate)]) %>% as.data.frame() -> tmp
+  opch_pr_ %>% group_by(Date,FutExpDate) %>% summarise(UDLY=UDLY[which.min(DateToFutExpDate)],
+                                                                      DateToFutExpDate=DateToFutExpDate[which.min(DateToFutExpDate)])  %>% as.data.frame() -> tmp
   tmp %>% arrange(desc(as.Date(Date,format="%Y/%m/%d")),as.Date(FutExpDate,format="%Y/%m/%d")) -> tmp
+  
   # approximate forward rate by using 2 latest FUT Price, solving the equation that the 1st FUT's Spot price equals 2nd one.
   # for the details, consult paper specification
   fwrd_rate=divYld_G
