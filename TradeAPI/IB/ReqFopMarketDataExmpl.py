@@ -249,18 +249,24 @@ def writeToFile(sectype,symbol):
 
 # -- main  ---------------------------------------------------------------------
 fxFutOpContractList = [
-                       makeFxFutOptContract(sym='JPY', exp='20160506', strike='', right='C', multip=''),
-                       makeFxFutOptContract(sym='JPY', exp='20160506', strike='', right='P', multip=''),
-                       makeFxFutOptContract(sym='EUR', exp='20160506', strike='', right='C', multip=''),
-                       makeFxFutOptContract(sym='EUR', exp='20160506', strike='', right='P', multip=''),
-                       makeFxFutOptContract(sym='GBP', exp='20160506', strike='', right='C', multip=''),
-                       makeFxFutOptContract(sym='GBP', exp='20160506', strike='', right='P', multip=''),
                        makeFxFutOptContract(sym='JPY', exp='20160603', strike='', right='C', multip=''),
                        makeFxFutOptContract(sym='JPY', exp='20160603', strike='', right='P', multip=''),
                        makeFxFutOptContract(sym='EUR', exp='20160603', strike='', right='C', multip=''),
                        makeFxFutOptContract(sym='EUR', exp='20160603', strike='', right='P', multip=''),
                        makeFxFutOptContract(sym='GBP', exp='20160603', strike='', right='C', multip=''),
                        makeFxFutOptContract(sym='GBP', exp='20160603', strike='', right='P', multip=''),
+                       makeFxFutOptContract(sym='JPY', exp='20160708', strike='', right='C', multip=''),
+                       makeFxFutOptContract(sym='JPY', exp='20160708', strike='', right='P', multip=''),
+                       makeFxFutOptContract(sym='EUR', exp='20160708', strike='', right='C', multip=''),
+                       makeFxFutOptContract(sym='EUR', exp='20160708', strike='', right='P', multip=''),
+                       makeFxFutOptContract(sym='GBP', exp='20160708', strike='', right='C', multip=''),
+                       makeFxFutOptContract(sym='GBP', exp='20160708', strike='', right='P', multip=''),
+                       makeFxFutOptContract(sym='JPY', exp='20160805', strike='', right='C', multip=''),
+                       makeFxFutOptContract(sym='JPY', exp='20160805', strike='', right='P', multip=''),
+                       makeFxFutOptContract(sym='EUR', exp='20160805', strike='', right='C', multip=''),
+                       makeFxFutOptContract(sym='EUR', exp='20160805', strike='', right='P', multip=''),
+                       makeFxFutOptContract(sym='GBP', exp='20160805', strike='', right='C', multip=''),
+                       makeFxFutOptContract(sym='GBP', exp='20160805', strike='', right='P', multip=''),
                        makeFxFutOptContract(sym='JPY', exp='20160909', strike='', right='C', multip=''),
                        makeFxFutOptContract(sym='JPY', exp='20160909', strike='', right='P', multip=''),
                        makeFxFutOptContract(sym='EUR', exp='20160909', strike='', right='C', multip=''),
@@ -276,6 +282,7 @@ fxFutContractList = [
                      makeFxFutContract(sym='JPY', exp='201609', multip=''),
                      makeFxFutContract(sym='EUR', exp='201609', multip=''),
                      makeFxFutContract(sym='GBP', exp='201609', multip=''),
+                     makeFxFutContract(sym='JPY', exp='201612', multip=''),
                      makeFxFutContract(sym='EUR', exp='201612', multip=''),
                      makeFxFutContract(sym='GBP', exp='201612', multip='')
                      ]
