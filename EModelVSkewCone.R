@@ -7,7 +7,7 @@ source('./ESourceRCode.R',encoding = 'UTF-8')
 
 #MAX ExpToDate for Skew Regression
 SkewRegressionTimeToExpDateMin<-1.4
-SkewRegressionTimeToExpDateMax<-3.2
+SkewRegressionTimeToExpDateMax<-3.5
 
 #We get regression only past this day. Currently reflected on Skew only.
 #should apply Vcone, etc.
@@ -117,7 +117,7 @@ getNmlzdSkewTypEVplot<-function(op_right){
 
 #Only OOM for Put/Call
 vplot<-getNmlzdSkewMoneynessVplot(0)
-(ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV),size=TimeToExpDate/2,colour=Date))+geom_point(alpha=0.2))
+(ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV),colour=TimeToExpDate))+geom_point(alpha=0.2))
 (ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV)))+geom_point(alpha=0.2))
 #smooth splines
 models <- (get.skew.regression.Models(vplot,regtype=5,df=7))
