@@ -9,7 +9,7 @@ rm(list=ls())
 source('./ESourceRCode.R',encoding = 'UTF-8')
 
 #Initial Population evalfunc value
-InitialPopThresh=5.0
+InitialPopThresh=7.0
 
 #Debug, Detail Mode
 IS_DEBUG_MODE=F
@@ -56,14 +56,14 @@ SpreadTypeNames[[PUT_BULL_SPREAD_SMPLING]]="PUT_BULL_SPREAD"
 SpreadTypeToDir<-vector("list",length(SpreadTypeNames))
 SpreadTypeToDir[[IRON_CONDOR_SMPLING]]=1
 SpreadTypeToDir[[DIAGONAL_SMPLING]]=0
-SpreadTypeToDir[[DOUBLE_DIAGONAL_SMPLING]]=0
+SpreadTypeToDir[[DOUBLE_DIAGONAL_SMPLING]]=4
 SpreadTypeToDir[[IRON_CONDOR_PLUS_SINGLE_DIAGONAL_SMPLING]]=0
 SpreadTypeToDir[[IRON_CONDOR_PLUS_DOUBLE_DIAGONAL_SMPLING]]=0
 SpreadTypeToDir[[CALL_BEAR_SPREAD_SMPLING]]=0
 SpreadTypeToDir[[CALL_BEAR_SPREAD_PLUS_SINGLE_DIAGONAL_SMPLING]]=0
 SpreadTypeToDir[[CALL_BEAR_SPREAD_PLUS_DOUBLE_DIAGONAL_SMPLING]]=3
 SpreadTypeToDir[[PUT_BULL_SPREAD_PLUS_DOUBLE_DIAGONAL_SMPLING]]=2
-SpreadTypeToDir[[POOL_PLUS_SINGLE_DIAGONAL_SMPLING]]=0
+SpreadTypeToDir[[POOL_PLUS_SINGLE_DIAGONAL_SMPLING]]=4
 SpreadTypeToDir[[POOL_PLUS_DOUBLE_DIAGONAL_SMPLING]]=1
 
 #Which directory(folder) this instance belongs
@@ -74,27 +74,27 @@ if(length(grep("2", ConfigFileName_G))>=1)
   dirInstance=2
 if(length(grep("3", ConfigFileName_G))>=1)
   dirInstance=3
-#dirInstance=3
+#dirInstance=1
 
 #Check Option
 (opchain)
 
 #functions used for this script only
 createOutFname<-function(targetExpDate,targetExpDate_f,targetExpDate_b,spreadRatio,EvalFuncSetting){
-  outFname=paste(".\\ResultData\\",Underying_Symbol_G,"-",SpreadTypeNames[[sampleSpreadType]],"-",spreadRatio[1],spreadRatio[2],spreadRatio[3],"-",
+  outFname=paste(".\\ResultData\\",Underying_Symbol_G,"-",SpreadTypeNames[[sampleSpreadType]],"-",
                  EvalFuncSetting$UdlStepPct*1000,"x",EvalFuncSetting$UdlStepNum,"-",EvalFuncSetting$holdDays,"d-",EvalFuncSetting$Profit_Coef,"_",EvalFuncSetting$AdvEffect_Coef,"-",
                  EvalFuncSetting$DrctlEffect_Coef,"_",EvalFuncSetting$MaxLoss_Coef,"-",
-                 "LLt$",EvalFuncSetting$LossLimitPrice,"-",
-                 "DTh$",EvalFuncSetting$Delta_Thresh_Plus[1],"_",EvalFuncSetting$Delta_Thresh_Minus[1],"-",
-                 "VTh$",EvalFuncSetting$Vega_Thresh_Plus[1],"_",EvalFuncSetting$Vega_Thresh_Minus[1],"-",
+                 "DOf$",EvalFuncSetting$Delta_Neutral_Offset[1],"-",
+                 "DTh$",EvalFuncSetting$Delta_Thresh_Minus[1],"-",EvalFuncSetting$Delta_Thresh_Plus[1],"_",
+                 "VOf$",EvalFuncSetting$Vega_Neutral_Offset[1],"-",
+                 "VTh$",EvalFuncSetting$Vega_Thresh_Minus[1],"-",EvalFuncSetting$Vega_Thresh_Plus[1],"_",
                  "HIVR$",EvalFuncSetting$HV_IV_Adjust_Ratio,"-",
-                 "cvx$",ifelse(EvalFuncSetting$EvalConvex,"T","F"),"-",
-                 "VDrt$",mean(EvalFuncSetting$Vega_Direct_Prf),"-",
-                 "GkA$",EvalFuncSetting$GreekEfctOnHldD,"-",
-                 "dft$",EvalFuncSetting$Weight_Drift*100,"-",
-                 "DHg$",ifelse(EvalFuncSetting$DeltaHedge,"T","F"),"-",
-                 "sgd$",EvalFuncSetting$SigmoidA_Numerator,"_",EvalFuncSetting$SigmoidA_Denominator,"-",
-                 "tgD$",format(as.Date(targetExpDate,format="%Y/%m/%d"),"%m%d"),"_",format(as.Date(targetExpDate_f,format="%Y/%m/%d"),"%m%d"),"_",format(as.Date(targetExpDate_b,format="%Y/%m/%d"),"%m%d"),
+                 "GkW$",EvalFuncSetting$GreekEfctOnHldD,"-",
+                 "Cvx$",ifelse(EvalFuncSetting$EvalConvex,"T","F"),"-",
+                 "LLt$",EvalFuncSetting$LossLimitPrice,"-",
+                 "Dft$",EvalFuncSetting$Weight_Drift*100,"-",
+                 "Skw$",EvalFuncSetting$Weight_Skew,"-",
+                 "TgD$",format(as.Date(targetExpDate,format="%Y/%m/%d"),"%m%d"),"_",format(as.Date(targetExpDate_f,format="%Y/%m/%d"),"%m%d"),"_",format(as.Date(targetExpDate_b,format="%Y/%m/%d"),"%m%d"),
                  ".csv",sep="")
   return(outFname)
 }
