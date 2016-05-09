@@ -81,6 +81,9 @@ makeFOPChainContainer<-function(){
   opch_pr_ %>% left_join(futPrc_,by="Date") -> tmp
   tmp$Tdiff = as.numeric(difftime(as.Date(tmp$FutExpDate,format="%Y/%m/%d"),as.Date(tmp$ExpDate,format="%Y/%m/%d")), units="days")
   tmp %>% filter(Tdiff>=0) -> tmp
+  
+  #groub_by(Some1,Some2,Some3) acts as Unique Key (One or combination of Attribute(s) ) 
+  #%>% Then other Columns(Attributes) are summarised.
   tmp %>% group_by(Strike,Date,ExpDate,TYPE) %>% summarise(ContactName=ContactName[which.min(Tdiff)],
                                                            Last=Last[which.min(Tdiff)],Bid=Bid[which.min(Tdiff)],
                                                            Ask=Ask[which.min(Tdiff)],Price=Price[which.min(Tdiff)],
@@ -336,7 +339,7 @@ filterPosition <- function(opchain,
   
   # selected price pattern
   PriceInterval=15
-  Remainder=5
+  Remainder=0
   
   if(VerticalSpread_FilterPtn==1 || VerticalSpread_FilterPtn==3){
     opchain %>%  dplyr::filter(ExpDate==TARGET_EXPDATE) %>% dplyr::filter(abs(Delta)>Delta_Limit_MIN[1])  %>% 
