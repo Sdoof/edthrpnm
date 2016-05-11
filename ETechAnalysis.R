@@ -21,6 +21,10 @@ TSdata<-read.table(paste(DataFiles_Path_G,Underying_Symbol_G,"_IV.csv",sep=""),
 TSdata2<-read.table(paste(DataFiles_Path_G,Underying_Symbol_G,"_Hist.csv",sep="")
                     ,header=T,sep=",",nrows=TS_DATA_NUM)
 
+
+##
+### Begin Of Function Definitions
+
 ###
 ##  Close to Open Spike Vector
 createCloseToOpenSpikeVec <- function(TSdata){
@@ -100,6 +104,12 @@ createHistVol<-function(Close,TS_DATA_NUM,MV_AVRAGE_DAYNUM #,CloseChg
   }
   return(histVol)
 }
+
+##
+### End Of Function Definitions
+
+## Main routine
+#
 
 # Close To Open SPike vector
 tmp<-createCloseToOpenSpikeVec(TSdata)
