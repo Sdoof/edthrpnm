@@ -330,7 +330,7 @@ opchain<-makePosition(opchain)
 # # DIAGONAL OOM combination
 #    Delta_Limit_MAX=c(0.5,0.35,0.4),Delta_Limit_MIN=c(0.10,0.05,0.05),
 filterPosition <- function(opchain,
-                           Delta_Limit_MAX=c(0.5,0.35,0.4),Delta_Limit_MIN=c(0.10,0.05,0.05),
+                           Delta_Limit_MAX=c(0.3,0.35,0.4),Delta_Limit_MIN=c(0.08,0.05,0.05),
                            TARGET_EXPDATE,TARGET_EXPDATE_FRONT,TARGET_EXPDATE_BACK){
   ##
   #  Filter Target Ranges 
