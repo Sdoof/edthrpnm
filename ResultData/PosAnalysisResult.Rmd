@@ -124,7 +124,7 @@ for(eval_pos_idx in DrawSpreads){
   opchain %>% dplyr::filter(Position!=0) -> thePosition
   
   #print thePosition
-  thePosition %>% select(Date,ExpDate,TYPE,Strike,Position,ContactName,Delta,OrigIV,IVIDX,Price,UDLY) %>% mutate(TYPE=ifelse(TYPE==OpType_Put_G,"Put","Call")) %>% print()
+  thePosition %>% select(Date,ExpDate,TYPE,Strike,Position,ContactName,Price,Delta,OrigIV,IVIDX,Vega,Theta,UDLY) %>% mutate(TYPE=ifelse(TYPE==OpType_Put_G,"Put","Call")) %>% print()
   
   #Evaluation Details
   if(ShowEvaluationDetail){
