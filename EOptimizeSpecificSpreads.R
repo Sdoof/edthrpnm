@@ -8,9 +8,6 @@ library(sn)
 rm(list=ls())
 source('./ESourceRCode.R',encoding = 'UTF-8')
 
-#Initial Population evalfunc value
-InitialPopThresh=7.0
-
 #Debug, Detail Mode
 IS_DEBUG_MODE=F
 IS_DETAIL_MODE=F
@@ -109,7 +106,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
   targetExpDate_f=targetExpDate
   targetExpDate_b=targetExpDate
   spreadRatio=c(1,1,1)
-  totalPopNum=200
+  totalPopNum=PopN_2
   
   #output file name
   outFname=createOutFname(targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,spreadRatio=spreadRatio,EvalFuncSetting=EvalFuncSetting)
@@ -142,7 +139,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
   targetExpDate_f=TARGET_EXPDATE_FRONT
   targetExpDate_b=TARGET_EXPDATE_BACK
   spreadRatio=c(1,1,1)
-  totalPopNum=30000
+  totalPopNum=PopN_1
   
   #output file name
   outFname=createOutFname(targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,spreadRatio=spreadRatio,EvalFuncSetting=EvalFuncSetting)
@@ -173,7 +170,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
   targetExpDate=TARGET_EXPDATE
   targetExpDate_f=TARGET_EXPDATE_FRONT
   targetExpDate_b=TARGET_EXPDATE_BACK
-  totalPopNum=30000
+  totalPopNum=PopN_1
   
   #spread ratio 1
   spreadRatio=c(1,1,1)
@@ -260,7 +257,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
   targetExpDate=TARGET_EXPDATE
   targetExpDate_f=TARGET_EXPDATE_FRONT
   targetExpDate_b=TARGET_EXPDATE_BACK
-  totalPopNum=30000
+  totalPopNum=PopN_1
   
   #spread ratio 1
   spreadRatio=c(1,1,1)
@@ -344,7 +341,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
   targetExpDate=TARGET_EXPDATE
   targetExpDate_f=TARGET_EXPDATE_FRONT
   targetExpDate_b=TARGET_EXPDATE_BACK
-  totalPopNum=30000
+  totalPopNum=PopN_1
   
   #spread ratio 1
   spreadRatio=c(1,1,1)
@@ -391,7 +388,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
   targetExpDate=TARGET_EXPDATE
   targetExpDate_f=TARGET_EXPDATE_FRONT
   targetExpDate_b=TARGET_EXPDATE_BACK
-  totalPopNum=15000
+  totalPopNum=PopN_1/2
   
   #spread ratio 1
   spreadRatio=c(1,1,1)
@@ -439,7 +436,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
   targetExpDate_f=TARGET_EXPDATE_FRONT
   targetExpDate_b=TARGET_EXPDATE_BACK
   spreadRatio=c(1,1,1)
-  totalPopNum=200
+  totalPopNum=PopN_2
   
   #output file name
   outFname=createOutFname(targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,spreadRatio=spreadRatio,EvalFuncSetting=EvalFuncSetting)
@@ -467,7 +464,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
   targetExpDate=TARGET_EXPDATE
   targetExpDate_f=TARGET_EXPDATE_FRONT
   targetExpDate_b=TARGET_EXPDATE_BACK
-  totalPopNum=30000
+  totalPopNum=PopN_1
   
   #spread ratio 1
   spreadRatio=c(1,1,1)
