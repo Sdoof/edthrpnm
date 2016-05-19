@@ -68,13 +68,14 @@ SpreadTypeToDir[[POOL_PLUS_DOUBLE_DIAGONAL_SMPLING]]=1
 
 #Which directory(folder) this instance belongs
 dirInstance=1
-if(length(grep("2", ConfigFileName_G))<1 && length(grep("3", ConfigFileName_G))<1 )
-  dirInstance=1
 if(length(grep("2", ConfigFileName_G))>=1)
   dirInstance=2
 if(length(grep("3", ConfigFileName_G))>=1)
   dirInstance=3
-#dirInstance=1
+if(length(grep("4", ConfigFileName_G))>=1)
+  dirInstance=4
+if(SpreadTypeSpecified>0)
+  dirInstance=SpreadTypeSpecified
 
 #Check Option
 (opchain)
