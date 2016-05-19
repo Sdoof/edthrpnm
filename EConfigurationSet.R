@@ -33,10 +33,13 @@ dviv_caldays=as.numeric(ConfigParameters["dviv_caldays",1])
 #Multipler of Position
 PosMultip=as.numeric(ConfigParameters["PosMultip",1])
 
+#Spread Type Specified
+SpreadTypeSpecified=max(0,as.numeric(ConfigParameters["Spread_Type",1]))
+
 #Evalfunc unaccepted value
 UNACCEPTABLEVAL=20
 
-#Skewness Calculation
+#Limit Closeness for Skewness Calculation
 TimeToExp_Limit_Closeness_G=as.numeric(ConfigParameters["TimeToExp_Limit_Closeness_G",1])
 
 #EvalFuncSetting
