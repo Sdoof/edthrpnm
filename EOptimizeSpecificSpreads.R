@@ -30,6 +30,7 @@ CALL_BEAR_SPREAD_SMPLING=6
 CALL_BEAR_SPREAD_PLUS_SINGLE_DIAGONAL_SMPLING=7
 CALL_BEAR_SPREAD_PLUS_DOUBLE_DIAGONAL_SMPLING=8
 PUT_BULL_SPREAD_PLUS_DOUBLE_DIAGONAL_SMPLING=9
+PUT_BULL_SPREAD_PLUS_SINGLE_DIAGONAL_SMPLING=14
 POOL_PLUS_SINGLE_DIAGONAL_SMPLING=10
 POOL_PLUS_DOUBLE_DIAGONAL_SMPLING=11
 CALL_BEAR_SPREAD_SMPLING=12
@@ -45,6 +46,7 @@ SpreadTypeNames[[CALL_BEAR_SPREAD_SMPLING]]="CALL_BEAR_SPREAD"
 SpreadTypeNames[[CALL_BEAR_SPREAD_PLUS_SINGLE_DIAGONAL_SMPLING]]="CALL_BEAR_SPREAD_PLUS_SINGLE_DIAGONAL"
 SpreadTypeNames[[CALL_BEAR_SPREAD_PLUS_DOUBLE_DIAGONAL_SMPLING]]="CALL_BEAR_SPREAD_PLUS_DOUBLE_DIAGONAL"
 SpreadTypeNames[[PUT_BULL_SPREAD_PLUS_DOUBLE_DIAGONAL_SMPLING]]="PUT_BULL_SPREAD_PLUS_DOUBLE_DIAGONAL"
+SpreadTypeNames[[PUT_BULL_SPREAD_PLUS_SINGLE_DIAGONAL_SMPLING]]="PUT_BULL_SPREAD_PLUS_SINGLE_DIAGONAL"
 SpreadTypeNames[[POOL_PLUS_SINGLE_DIAGONAL_SMPLING]]="POOL_PLUS_SINGLE_DIAGONAL"
 SpreadTypeNames[[POOL_PLUS_DOUBLE_DIAGONAL_SMPLING]]="POOL_PLUS_DOUBLE_DIAGONAL"
 SpreadTypeNames[[CALL_BEAR_SPREAD_SMPLING]]="CALL_BEAR_SPREAD"
@@ -60,6 +62,7 @@ SpreadTypeToDir[[CALL_BEAR_SPREAD_SMPLING]]=0
 SpreadTypeToDir[[CALL_BEAR_SPREAD_PLUS_SINGLE_DIAGONAL_SMPLING]]=0
 SpreadTypeToDir[[CALL_BEAR_SPREAD_PLUS_DOUBLE_DIAGONAL_SMPLING]]=3
 SpreadTypeToDir[[PUT_BULL_SPREAD_PLUS_DOUBLE_DIAGONAL_SMPLING]]=2
+SpreadTypeToDir[[PUT_BULL_SPREAD_PLUS_SINGLE_DIAGONAL_SMPLING]]=5
 SpreadTypeToDir[[POOL_PLUS_SINGLE_DIAGONAL_SMPLING]]=4
 SpreadTypeToDir[[POOL_PLUS_DOUBLE_DIAGONAL_SMPLING]]=1
 
@@ -460,6 +463,52 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
 
 ###CALL_BEAR_SPREAD_PLUS_SINGLE_DIAGONAL
 sampleSpreadType=CALL_BEAR_SPREAD_PLUS_SINGLE_DIAGONAL_SMPLING
+if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
+  targetExpDate=TARGET_EXPDATE
+  targetExpDate_f=TARGET_EXPDATE_FRONT
+  targetExpDate_b=TARGET_EXPDATE_BACK
+  totalPopNum=PopN_1
+  
+  #spread ratio 1
+  spreadRatio=c(1,1,1)
+  
+  #output file name
+  outFname=createOutFname(targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,spreadRatio=spreadRatio,EvalFuncSetting=EvalFuncSetting)
+  
+  #sampling
+  originalLossLimitPrice=EvalFuncSetting$LossLimitPrice
+  EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*max(spreadRatio)
+  
+  sampleMain(sampleSpreadType=sampleSpreadType,totalPopNum=totalPopNum,
+             targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,
+             spreadRatio=spreadRatio,InitialPopThresh=InitialPopThresh,outFname=outFname,isFileout=T,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
+  
+  EvalFuncSetting$LossLimitPrice=originalLossLimitPrice
+  
+  #file handling
+  tmp<-read.table(outFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
+  tmp %>% arrange(.[,length(opchain$Position)+1])  %>% #select(.,1:length(opchain$Position)) %>% 
+    distinct() -> tmp
+  write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
+  
+  #spread ratio 2
+  #spreadRatio=c(2,1,1)
+  
+  #outFname=createOutFname(targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,spreadRatio=spreadRatio,EvalFuncSetting=EvalFuncSetting)
+  
+  #sampling
+  #originalLossLimitPrice=EvalFuncSetting$LossLimitPrice
+  #EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*max(spreadRatio)
+  
+  #sampleMain(sampleSpreadType=sampleSpreadType,totalPopNum=totalPopNum,
+  #           targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,
+  #           spreadRatio=spreadRatio,InitialPopThresh=InitialPopThresh,outFname=outFname,isFileout=T,isDebug=F,isDetail=F)
+  
+  #EvalFuncSetting$LossLimitPrice=originalLossLimitPrice
+}
+
+###PUT_BULL_SPREAD_PLUS_SINGLE_DIAGONAL
+sampleSpreadType=PUT_BULL_SPREAD_PLUS_SINGLE_DIAGONAL_SMPLING
 if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
   targetExpDate=TARGET_EXPDATE
   targetExpDate_f=TARGET_EXPDATE_FRONT
