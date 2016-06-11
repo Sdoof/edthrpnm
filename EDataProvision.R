@@ -6,7 +6,7 @@ source('./ESourceRCode.R',encoding = 'UTF-8')
 
 #switch: only for today or multiple days for skew calculation
 ProcessFileName=paste("_OPChain_Pre.csv",sep="")
-isSkewCalc=T
+isSkewCalc=F
 #set TRUE if this opchain is for Future Option 
 isFOP=F
 #set TRUE if this is today's new position, or (already holding position) set FALSE,
@@ -325,8 +325,10 @@ opchain<-makePosition(opchain)
 
 ##
 # c(IronCondor{VerticalSpread},DIAGONAL_FRONT,DIAGONAL_BACK)
+# OOM Delta_Limit_MAX=c(0.15,0.18,0.18),Delta_Limit_MIN=c(0.05,0.05,0.05),
+# MOM Delta_Limit_MAX=c(0.15,0.40,0.40),Delta_Limit_MIN=c(0.05,0.18,0.18),
 filterPosition <- function(opchain,
-                           Delta_Limit_MAX=c(0.26,0.26,0.26),Delta_Limit_MIN=c(0.06,0.05,0.05),
+                           Delta_Limit_MAX=c(0.15,0.18,0.18),Delta_Limit_MIN=c(0.05,0.05,0.05),
                            TARGET_EXPDATE,TARGET_EXPDATE_FRONT,TARGET_EXPDATE_BACK){
   ##
   #  Filter Target Ranges 
