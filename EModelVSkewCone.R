@@ -6,8 +6,8 @@ rm(list=ls())
 source('./ESourceRCode.R',encoding = 'UTF-8')
 
 #MAX ExpToDate for Skew Regression
-SkewRegressionTimeToExpDateMin<-1.4
-SkewRegressionTimeToExpDateMax<-3.5
+SkewRegressionTimeToExpDateMin<-1.6
+SkewRegressionTimeToExpDateMax<-3.2
 
 #We get regression only past this day. Currently reflected on Skew only.
 #should apply Vcone, etc.
@@ -122,7 +122,7 @@ vplot<-getNmlzdSkewMoneynessVplot(0)
 #smooth splines
 models <- (get.skew.regression.Models(vplot,regtype=5,df=7))
 get.predicted.skew(models,regtype=5,xmin=-1,x_by=0)
-(predict.c<-get.predicted.skew(models,regtype=5,xmin=-2.0,xmax=1.5))
+(predict.c<-get.predicted.skew(models,regtype=5,xmin=-3.0,xmax=1.5))
 (ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV)))+geom_point(alpha=0.2)+
   geom_line(data=data.frame(Moneyness.Nm=predict.c$x,IV2ATMIV=predict.c$y),aes(Moneyness.Nm,IV2ATMIV),color="red"))
 #save and load model
@@ -138,7 +138,7 @@ vplot<-getNmlzdSkewTypEVplot(op_right=OpType_Put_G)
 models <- (get.skew.regression.Models(vplot,regtype=5,df=7))
 #smooth spline
 get.predicted.skew(models,regtype=5,xmin=-1,x_by=0)
-(predict.c<-get.predicted.skew(models,regtype=5,xmin=-2.0,xmax=1.5))
+(predict.c<-get.predicted.skew(models,regtype=5,xmin=-3.0,xmax=1.5))
 (ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV)))+geom_point(alpha=0.2)+
   geom_line(data=data.frame(Moneyness.Nm=predict.c$x,IV2ATMIV=predict.c$y),aes(Moneyness.Nm,IV2ATMIV),color="red"))
 #save and load model
