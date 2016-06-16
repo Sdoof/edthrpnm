@@ -21,7 +21,6 @@ TSdata<-read.table(paste(DataFiles_Path_G,Underying_Symbol_G,"_IV.csv",sep=""),
 TSdata2<-read.table(paste(DataFiles_Path_G,Underying_Symbol_G,"_Hist.csv",sep="")
                     ,header=T,sep=",",nrows=TS_DATA_NUM)
 
-
 ##
 ### Begin Of Function Definitions
 
@@ -87,6 +86,63 @@ createBBandsDf <- function(TSdata,TS_DATA_NUM,MV_AVRAGE_DAYNUM){
   bbandsDf$Date <- as.character(bbandsDf$Date)
   
   return(bbandsDf)
+}
+
+##
+# retrun BB elements as a Matrix in place of Df
+createBB <- function(TSdata,TS_DATA_NUM,MV_AVRAGE_DAYNUM){
+  mtrxCol=c(paste("BBmavg",MV_AVRAGE_DAYNUM,sep=""),"BBdn","BBup")
+  mtrxColN=length(mtrxCol)
+  bbands = matrix(rep(0,(TS_DATA_NUM-MV_AVRAGE_DAYNUM[1])*mtrxColN), nrow = (TS_DATA_NUM-MV_AVRAGE_DAYNUM[1]), ncol = mtrxColN)
+  colnames(bbands) <- mtrxCol
+  
+  for(i in 1:(TS_DATA_NUM-MV_AVRAGE_DAYNUM[1])){
+    bbands[i,mtrxCol[1]]=mean(TSdata[,c("Close")][i:(MV_AVRAGE_DAYNUM+i-1)])
+    #cat(sd(TSdata[,c("Close")][i:(MV_AVRAGE_DAYNUM+i-1)]),"\n")
+    bbands[i,mtrxCol[2]]=bbands[i,mtrxCol[1]]-2*sd(TSdata[,c("Close")][i:(MV_AVRAGE_DAYNUM+i-1)])
+    bbands[i,mtrxCol[3]]=bbands[i,mtrxCol[1]]+2*sd(TSdata[,c("Close")][i:(MV_AVRAGE_DAYNUM+i-1)])
+  }
+  return(bbands)
+}
+
+##
+# return TR elemets as a Matrix
+createTR <- function(TSdata,TS_DATA_NUM){
+  mtrxCol=c("TR")
+  mtrxColN=length(mtrxCol)
+  retMtrx = matrix(rep(0,(TS_DATA_NUM)*mtrxColN), nrow = (TS_DATA_NUM), ncol = mtrxColN)
+  colnames(retMtrx) <- mtrxCol
+  
+  AcdC=rev(TSdata[,c("Close")])
+  AcdH=rev(TSdata[,c("High")])
+  AcdL=rev(TSdata[,c("Low")])
+  
+  for(i in 2:TS_DATA_NUM){
+    retMtrx[i,mtrxCol[1]]=max(AcdH[i],AcdC[i-1])-min(AcdL[i],AcdC[i-1])
+  }
+  
+  retMtrx[,mtrxCol[1]]=rev(retMtrx[,mtrxCol[1]])
+  
+  retMtrx=matrix(retMtrx[-length(retMtrx[,mtrxCol[1]]),],nrow=length(retMtrx[,mtrxCol[1]])-1)
+  return(retMtrx)
+}
+
+##
+# return (Xday)MAVG elemets as a Matrix
+createSMA <- function(Data,TS_DATA_NUM,MV_AVRAGE_DAYNUM){
+  #Data=TSdata[,c("Close")]
+  mtrxCol=c(paste("SMA",MV_AVRAGE_DAYNUM,sep=""))
+  mtrxColN=length(mtrxCol)
+  retMtrx = matrix(rep(0,(TS_DATA_NUM-MV_AVRAGE_DAYNUM[1])*mtrxColN), nrow = (TS_DATA_NUM-MV_AVRAGE_DAYNUM[1]), ncol = mtrxColN)
+  colnames(retMtrx) <- mtrxCol
+  
+  for(i in 1:(TS_DATA_NUM-MV_AVRAGE_DAYNUM[1])){
+    retMtrx[i,mtrxCol[1]]=mean(Data[i:(MV_AVRAGE_DAYNUM+i-1)])
+  }
+  
+  
+  retMtrx[length(retMtrx[,mtrxCol[1]]),mtrxCol[1]]=NA
+  return(retMtrx)
 }
 
 ###
