@@ -113,6 +113,7 @@ createTR <- function(TSdata,TS_DATA_NUM){
   retMtrx = matrix(rep(0,(TS_DATA_NUM)*mtrxColN), nrow = (TS_DATA_NUM), ncol = mtrxColN)
   colnames(retMtrx) <- mtrxCol
   
+  #get ascending ordered vector
   AcdC=rev(TSdata[,c("Close")])
   AcdH=rev(TSdata[,c("High")])
   AcdL=rev(TSdata[,c("Low")])
@@ -122,13 +123,12 @@ createTR <- function(TSdata,TS_DATA_NUM){
   }
   
   retMtrx[,mtrxCol[1]]=rev(retMtrx[,mtrxCol[1]])
-  
   retMtrx=matrix(retMtrx[-length(retMtrx[,mtrxCol[1]]),],nrow=length(retMtrx[,mtrxCol[1]])-1)
   return(retMtrx)
 }
 
 ##
-# return (Xday)MAVG elemets as a Matrix
+# return (Xday)MAVG as a Matrix
 createSMA <- function(Data,TS_DATA_NUM,MV_AVRAGE_DAYNUM){
   #Data=TSdata[,c("Close")]
   mtrxCol=c(paste("SMA",MV_AVRAGE_DAYNUM,sep=""))
@@ -139,15 +139,29 @@ createSMA <- function(Data,TS_DATA_NUM,MV_AVRAGE_DAYNUM){
   for(i in 1:(TS_DATA_NUM-MV_AVRAGE_DAYNUM[1])){
     retMtrx[i,mtrxCol[1]]=mean(Data[i:(MV_AVRAGE_DAYNUM+i-1)])
   }
-  
-  
-  retMtrx[length(retMtrx[,mtrxCol[1]]),mtrxCol[1]]=NA
   return(retMtrx)
 }
 
-###
-##  creating Historical Volatility Vector(Matrix)
+##
+# create 1st order difference as a Matrix
+createDiff <- function(Data,TS_DATA_NUM){
+  #Data=TSdata[,c("Close")]
+  mtrxCol=c("Diff")
+  mtrxColN=length(mtrxCol)
+  retMtrx=matrix(rep(0,(TS_DATA_NUM)*mtrxColN), nrow = (TS_DATA_NUM), ncol = mtrxColN)
+  colnames(retMtrx) <- mtrxCol
+  
+  retMtrx[1,mtrxCol[1]]=Data[2]-Data[1]
+  for(i in 2:(TS_DATA_NUM-1)){
+    retMtrx[i,mtrxCol[1]]=(Data[i]-Data[i-1])/2+(Data[i+1]-Data[i])/2
+  }
+  retMtrx[TS_DATA_NUM,mtrxCol[1]]=Data[TS_DATA_NUM]-Data[TS_DATA_NUM-1]
+  
+  return(retMtrix)
+}
 
+###
+##  create Historical Volatility Matrix
 createHistVol<-function(Close,TS_DATA_NUM,MV_AVRAGE_DAYNUM #,CloseChg
 ){
   histVol = matrix(rep(0,(TS_DATA_NUM-MV_AVRAGE_DAYNUM[1])), nrow = (TS_DATA_NUM-MV_AVRAGE_DAYNUM[1]), ncol = 1)
