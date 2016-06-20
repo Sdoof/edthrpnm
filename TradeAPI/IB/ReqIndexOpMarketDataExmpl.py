@@ -247,8 +247,6 @@ def writeToFile(sectype,symbol):
 # -- main  ---------------------------------------------------------------------
 #18 elements finish in 4min15s
 opContractList = [
-    makeOptContract(sym='SPX', exp='20160630', strike='', right='P'),
-    makeOptContract(sym='SPX', exp='20160630', strike='', right='C'),
     makeOptContract(sym='SPX', exp='20160714', strike='', right='P'),
     makeOptContract(sym='SPX', exp='20160714', strike='', right='C'),
     makeOptContract(sym='SPX', exp='20160729', strike='', right='P'),
@@ -260,7 +258,9 @@ opContractList = [
     makeOptContract(sym='SPX', exp='20160915', strike='', right='P'),
     makeOptContract(sym='SPX', exp='20160915', strike='', right='C'),
     makeOptContract(sym='SPX', exp='20160930', strike='', right='P'),
-    makeOptContract(sym='SPX', exp='20160930', strike='', right='C')
+    makeOptContract(sym='SPX', exp='20160930', strike='', right='C'),
+    makeOptContract(sym='SPX', exp='20161020', strike='', right='P'),
+    makeOptContract(sym='SPX', exp='20161020', strike='', right='C')
 ]
 
 idxContractList = [
