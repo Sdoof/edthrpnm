@@ -106,7 +106,7 @@ createBB <- function(TSdata,TS_DATA_NUM,MV_AVRAGE_DAYNUM){
 }
 
 ##
-# return TR elemets as a Matrix
+# return TR(True Range) elemets as a Matrix
 createTR <- function(TSdata,TS_DATA_NUM){
   mtrxCol=c("TR")
   mtrxColN=length(mtrxCol)
@@ -128,7 +128,7 @@ createTR <- function(TSdata,TS_DATA_NUM){
 }
 
 ##
-# return (Xday)MAVG as a Matrix
+# return (Xday Simple) MAVG as a Matrix
 createSMA <- function(Data,TS_DATA_NUM,MV_AVRAGE_DAYNUM){
   #Data=TSdata[,c("Close")]
   mtrxCol=c(paste("SMA",MV_AVRAGE_DAYNUM,sep=""))
@@ -157,6 +157,35 @@ createDiff <- function(Data,TS_DATA_NUM){
   }
   retMtrx[TS_DATA_NUM,mtrxCol[1]]=Data[TS_DATA_NUM]-Data[TS_DATA_NUM-1]
   
+  return(retMtrix)
+}
+
+##
+# create Exponential Regression Slope(annualized) as a Matrix
+createExpReg <- function(Data,TS_DATA_NUM,DAY_NUM){
+  #Data=TSdata[,c("Close")]
+  #TS_DATA_NUM=length(Data)
+  mtrxCol=c("ExpRegSlope","ExpRegSlopeAnlzd","Intercept","RSq")
+  mtrxColN=length(mtrxCol)
+  retMtrx=matrix(rep(0,(TS_DATA_NUM-DAY_NUM)*mtrxColN), nrow = (TS_DATA_NUM-DAY_NUM), ncol = mtrxColN)
+  colnames(retMtrx) <- mtrxCol
+  
+  tmp=log(Data)
+  tmp=rev(tmp)
+  for(i in 1:(length(tmp)-DAY_NUM)){
+    tmp.lm<-lm(y~x, data=data.frame(x=(i:(i+DAY_NUM-1)), y=tmp[i:(i+DAY_NUM-1)]))
+    intercept=tmp.lm$coefficient[1]
+    slope=tmp.lm$coefficient[2]
+    slope_anlzd=(exp(slope)^252)-1
+    r_squared=summary(tmp.lm)$r.squared
+    retMtrx[i,mtrxCol[1]]=slope
+    retMtrx[i,mtrxCol[2]]=slope_anlzd
+    retMtrx[i,mtrxCol[3]]=intercept
+    retMtrx[i,mtrxCol[4]]=r_squared
+  }
+  tmp=c(rev(retMtrx[,mtrxCol[1]]),rev(retMtrx[,mtrxCol[2]]),rev(retMtrx[,mtrxCol[3]]),rev(retMtrx[,mtrxCol[4]]))
+  retMtrx=matrix(tmp,nrow=(TS_DATA_NUM-DAY_NUM), ncol = mtrxColN)
+  colnames(retMtrx) <- mtrxCol
   return(retMtrix)
 }
 
