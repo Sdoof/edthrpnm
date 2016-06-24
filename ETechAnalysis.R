@@ -24,8 +24,8 @@ TSdata2<-read.table(paste(DataFiles_Path_G,Underying_Symbol_G,"_Hist.csv",sep=""
 ##
 ### Begin Of Function Definitions
 
-###
-##  Close to Open Spike Vector
+##
+#  Close to Open Spike Vector
 createCloseToOpenSpikeVec <- function(TSdata){
   length(TSdata[,c("Close")])
   
@@ -60,9 +60,8 @@ createCloseToOpenSpikeVec <- function(TSdata){
   return(ret_)
 }
 
-###
-## create Bolinger Bands Dataframe
-
+##
+# create Bolinger Bands Dataframe
 createBBandsDf <- function(TSdata,TS_DATA_NUM,MV_AVRAGE_DAYNUM){
   bbands = matrix(rep(0,(TS_DATA_NUM-MV_AVRAGE_DAYNUM[1])*3), nrow = (TS_DATA_NUM-MV_AVRAGE_DAYNUM[1]), ncol = 3)
   colnames(bbands) <- c("dn","mavg","up")
@@ -143,10 +142,10 @@ createSMA <- function(Data,TS_DATA_NUM,MV_AVRAGE_DAYNUM){
 }
 
 ##
-# create 1st order difference as a Matrix
-createDiff <- function(Data,TS_DATA_NUM){
+# create 1st order Both Sides(+,-) difference as a Matrix
+createBothSidesDiff <- function(Data,TS_DATA_NUM){
   #Data=TSdata[,c("Close")]
-  mtrxCol=c("Diff")
+  mtrxCol=c("BSDiff")
   mtrxColN=length(mtrxCol)
   retMtrx=matrix(rep(0,(TS_DATA_NUM)*mtrxColN), nrow = (TS_DATA_NUM), ncol = mtrxColN)
   colnames(retMtrx) <- mtrxCol
@@ -156,6 +155,22 @@ createDiff <- function(Data,TS_DATA_NUM){
     retMtrx[i,mtrxCol[1]]=(Data[i]-Data[i-1])/2+(Data[i+1]-Data[i])/2
   }
   retMtrx[TS_DATA_NUM,mtrxCol[1]]=Data[TS_DATA_NUM]-Data[TS_DATA_NUM-1]
+  
+  return(retMtrix)
+}
+
+##
+# create normal 1st order difference as a Matrix
+createDiff <- function(Data,TS_DATA_NUM){
+  #Data=TSdata[,c("Close")]
+  mtrxCol=c("Diff")
+  mtrxColN=length(mtrxCol)
+  retMtrx=matrix(rep(0,(TS_DATA_NUM-1)*mtrxColN), nrow = (TS_DATA_NUM-1), ncol = mtrxColN)
+  colnames(retMtrx) <- mtrxCol
+  
+  for(i in 1:(TS_DATA_NUM-1)){
+    retMtrx[i,mtrxCol[1]]=Data[i]-Data[i+1]
+  }
   
   return(retMtrix)
 }
@@ -202,6 +217,7 @@ createExpReg <- function(Data,TS_DATA_NUM,DAY_NUM){
   tmp=c(rev(retMtrx[,mtrxCol[1]]),rev(retMtrx[,mtrxCol[2]]),rev(retMtrx[,mtrxCol[3]]),rev(retMtrx[,mtrxCol[4]]))
   retMtrx=matrix(tmp,nrow=(TS_DATA_NUM-DAY_NUM), ncol = mtrxColN)
   colnames(retMtrx) <- mtrxCol
+  
   return(retMtrix)
 }
 
