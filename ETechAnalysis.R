@@ -161,6 +161,22 @@ createDiff <- function(Data,TS_DATA_NUM){
 }
 
 ##
+# create Log Geometric Sequence as a Matrix
+createLogGeomSeq <- function(Data,TS_DATA_NUM){
+  #Data=TSdata[,c("Close")]
+  mtrxCol=c("LGRatio")
+  mtrxColN=length(mtrxCol)
+  retMtrx=matrix(rep(0,(TS_DATA_NUM-1)*mtrxColN), nrow = (TS_DATA_NUM-1), ncol = mtrxColN)
+  colnames(retMtrx) <- mtrxCol
+  
+  for(i in 1:(TS_DATA_NUM-1)){
+    retMtrx[i,mtrxCol[1]]=log(Data[i])-log(Data[i+1])#log(Data[i]/Data[i+1])
+  }
+  
+  return(retMtrix)
+}
+
+##
 # create Exponential Regression Slope(annualized) as a Matrix
 createExpReg <- function(Data,TS_DATA_NUM,DAY_NUM){
   #Data=TSdata[,c("Close")]
