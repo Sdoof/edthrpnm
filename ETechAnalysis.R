@@ -9,7 +9,7 @@ rm(list=ls())
 source('./ESourceRCode.R',encoding = 'UTF-8')
 
 #Total TS Data Num
-TS_DATA_NUM=2000
+TS_DATA_NUM=4100
 
 #moving average day
 MV_AVRAGE_DAYNUM=c(20)
@@ -123,13 +123,14 @@ createTR <- function(TSdata,TS_DATA_NUM){
   
   retMtrx[,mtrxCol[1]]=rev(retMtrx[,mtrxCol[1]])
   retMtrx=matrix(retMtrx[-length(retMtrx[,mtrxCol[1]]),],nrow=length(retMtrx[,mtrxCol[1]])-1)
+  colnames(retMtrx) <- mtrxCol
   return(retMtrx)
 }
 
 ##
 # return (Xday Simple) MAVG as a Matrix
 createSMA <- function(Data,TS_DATA_NUM,MV_AVRAGE_DAYNUM){
-  #Data=TSdata[,c("Close")]
+  Data=Data[,c("Close")]
   mtrxCol=c(paste("SMA",MV_AVRAGE_DAYNUM,sep=""))
   mtrxColN=length(mtrxCol)
   retMtrx = matrix(rep(0,(TS_DATA_NUM-MV_AVRAGE_DAYNUM[1])*mtrxColN), nrow = (TS_DATA_NUM-MV_AVRAGE_DAYNUM[1]), ncol = mtrxColN)
@@ -144,25 +145,25 @@ createSMA <- function(Data,TS_DATA_NUM,MV_AVRAGE_DAYNUM){
 ##
 # create 1st order Both Sides(+,-) difference as a Matrix
 createBothSidesDiff <- function(Data,TS_DATA_NUM){
-  #Data=TSdata[,c("Close")]
+  Data=Data[,c("Close")]
   mtrxCol=c("BSDiff")
   mtrxColN=length(mtrxCol)
   retMtrx=matrix(rep(0,(TS_DATA_NUM)*mtrxColN), nrow = (TS_DATA_NUM), ncol = mtrxColN)
   colnames(retMtrx) <- mtrxCol
   
-  retMtrx[1,mtrxCol[1]]=Data[2]-Data[1]
+  retMtrx[1,mtrxCol[1]]=Data[1]-Data[2]
   for(i in 2:(TS_DATA_NUM-1)){
-    retMtrx[i,mtrxCol[1]]=(Data[i]-Data[i-1])/2+(Data[i+1]-Data[i])/2
+    retMtrx[i,mtrxCol[1]]=(Data[i]-Data[i+1])/2+(Data[i-1]-Data[i])/2
   }
   retMtrx[TS_DATA_NUM,mtrxCol[1]]=Data[TS_DATA_NUM]-Data[TS_DATA_NUM-1]
   
-  return(retMtrix)
+  return(retMtrx)
 }
 
 ##
 # create normal 1st order difference as a Matrix
 createDiff <- function(Data,TS_DATA_NUM){
-  #Data=TSdata[,c("Close")]
+  Data=Data[,c("Close")]
   mtrxCol=c("Diff")
   mtrxColN=length(mtrxCol)
   retMtrx=matrix(rep(0,(TS_DATA_NUM-1)*mtrxColN), nrow = (TS_DATA_NUM-1), ncol = mtrxColN)
@@ -172,30 +173,30 @@ createDiff <- function(Data,TS_DATA_NUM){
     retMtrx[i,mtrxCol[1]]=Data[i]-Data[i+1]
   }
   
-  return(retMtrix)
+  return(retMtrx)
 }
 
 ##
 # create Log Geometric Sequence as a Matrix
 createLogGeomSeq <- function(Data,TS_DATA_NUM){
-  #Data=TSdata[,c("Close")]
-  mtrxCol=c("LGRatio")
+  Data=Data[,c("Close")]
+  mtrxCol=c("LGRatio","ExpRatio")
   mtrxColN=length(mtrxCol)
   retMtrx=matrix(rep(0,(TS_DATA_NUM-1)*mtrxColN), nrow = (TS_DATA_NUM-1), ncol = mtrxColN)
   colnames(retMtrx) <- mtrxCol
   
   for(i in 1:(TS_DATA_NUM-1)){
     retMtrx[i,mtrxCol[1]]=log(Data[i])-log(Data[i+1])#log(Data[i]/Data[i+1])
+    retMtrx[i,mtrxCol[2]]=exp(retMtrx[i,mtrxCol[1]])
   }
   
-  return(retMtrix)
+  return(retMtrx)
 }
 
 ##
 # create Exponential Regression Slope(annualized) as a Matrix
 createExpReg <- function(Data,TS_DATA_NUM,DAY_NUM){
-  #Data=TSdata[,c("Close")]
-  #TS_DATA_NUM=length(Data)
+  Data=Data[,c("Close")]
   mtrxCol=c("ExpRegSlope","ExpRegSlopeAnlzd","Intercept","RSq")
   mtrxColN=length(mtrxCol)
   retMtrx=matrix(rep(0,(TS_DATA_NUM-DAY_NUM)*mtrxColN), nrow = (TS_DATA_NUM-DAY_NUM), ncol = mtrxColN)
@@ -218,13 +219,14 @@ createExpReg <- function(Data,TS_DATA_NUM,DAY_NUM){
   retMtrx=matrix(tmp,nrow=(TS_DATA_NUM-DAY_NUM), ncol = mtrxColN)
   colnames(retMtrx) <- mtrxCol
   
-  return(retMtrix)
+  return(retMtrx)
 }
 
 ###
 ##  create Historical Volatility Matrix
 createHistVol<-function(Close,TS_DATA_NUM,MV_AVRAGE_DAYNUM #,CloseChg
 ){
+  Close=Close[,c("Close")]
   histVol = matrix(rep(0,(TS_DATA_NUM-MV_AVRAGE_DAYNUM[1])), nrow = (TS_DATA_NUM-MV_AVRAGE_DAYNUM[1]), ncol = 1)
   colnames(histVol) <- c("HV")
   for(i in 1:(TS_DATA_NUM-MV_AVRAGE_DAYNUM[1])){

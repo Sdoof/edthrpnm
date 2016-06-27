@@ -325,10 +325,10 @@ opchain<-makePosition(opchain)
 
 ##
 # c(IronCondor{VerticalSpread},DIAGONAL_FRONT,DIAGONAL_BACK)
-# OOM Delta_Limit_MAX=c(0.15,0.18,0.18),Delta_Limit_MIN=c(0.05,0.05,0.05),
+# OOM Delta_Limit_MAX=c(0.15,0.18,0.18),Delta_Limit_MIN=c(0.08,0.07,0.07),
 # MOM Delta_Limit_MAX=c(0.15,0.40,0.40),Delta_Limit_MIN=c(0.05,0.18,0.18),
 filterPosition <- function(opchain,
-                           Delta_Limit_MAX=c(0.15,0.18,0.18),Delta_Limit_MIN=c(0.05,0.05,0.05),
+                           Delta_Limit_MAX=c(0.15,0.18,0.18),Delta_Limit_MIN=c(0.08,0.07,0.07),
                            TARGET_EXPDATE,TARGET_EXPDATE_FRONT,TARGET_EXPDATE_BACK){
   ##
   #  Filter Target Ranges 
