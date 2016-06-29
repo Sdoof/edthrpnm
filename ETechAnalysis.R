@@ -61,45 +61,18 @@ createCloseToOpenSpikeVec <- function(Data){
 }
 
 ##
-# create Bolinger Bands Dataframe
-createBBandsDf <- function(Data,TS_DATA_NUM,MV_AVRAGE_DAYNUM){
-  bbands = matrix(rep(0,(TS_DATA_NUM-MV_AVRAGE_DAYNUM[1])*3), nrow = (TS_DATA_NUM-MV_AVRAGE_DAYNUM[1]), ncol = 3)
-  colnames(bbands) <- c("dn","mavg","up")
-  
-  for(i in 1:(TS_DATA_NUM-MV_AVRAGE_DAYNUM[1])){
-    #cat(mean(Data[,c("Close")][i:(MV_AVRAGE_DAYNUM+i-1)]),"\n")
-    bbands[i,"mavg"]=mean(Data[,c("Close")][i:(MV_AVRAGE_DAYNUM+i-1)])
-    #cat(sd(Data[,c("Close")][i:(MV_AVRAGE_DAYNUM+i-1)]),"\n")
-    bbands[i,"dn"]=bbands[i,"mavg"]-2*sd(Data[,c("Close")][i:(MV_AVRAGE_DAYNUM+i-1)])
-    bbands[i,"up"]=bbands[i,"mavg"]+2*sd(Data[,c("Close")][i:(MV_AVRAGE_DAYNUM+i-1)])
-  }
-  
-  #Data Frame 
-  nrow_tech=min(nrow(Data[,c("Close")]),nrow(bbands[,c("dn","up","mavg")]))
-  
-  bbandsDf=data.frame(Data[,c("Date","Open","High","Low","Close")][1:nrow_tech,],bbands[,c("dn","up","mavg")][1:nrow_tech,])
-  
-  rownames(bbandsDf) <- c(1:nrow(bbandsDf))
-  
-  #delte Factor
-  bbandsDf$Date <- as.character(bbandsDf$Date)
-  
-  return(bbandsDf)
-}
-
-##
 # retrun BB elements as a Matrix in place of Df
 createBB <- function(Data,TS_DATA_NUM,MV_AVRAGE_DAYNUM){
-  mtrxCol=c(paste("BBmavg",MV_AVRAGE_DAYNUM,sep=""),"BBdn","BBup")
+  mtrxCol=c("BBmavg","BBdn","BBup")
   mtrxColN=length(mtrxCol)
   bbands = matrix(rep(0,(TS_DATA_NUM-MV_AVRAGE_DAYNUM[1])*mtrxColN), nrow = (TS_DATA_NUM-MV_AVRAGE_DAYNUM[1]), ncol = mtrxColN)
   colnames(bbands) <- mtrxCol
   
   for(i in 1:(TS_DATA_NUM-MV_AVRAGE_DAYNUM[1])){
-    bbands[i,mtrxCol[1]]=mean(Data[,c("Close")][i:(MV_AVRAGE_DAYNUM+i-1)])
+    bbands[i,mtrxCol[1]]=mean(Data[i:(MV_AVRAGE_DAYNUM+i-1)])
     #cat(sd(Data[,c("Close")][i:(MV_AVRAGE_DAYNUM+i-1)]),"\n")
-    bbands[i,mtrxCol[2]]=bbands[i,mtrxCol[1]]-2*sd(Data[,c("Close")][i:(MV_AVRAGE_DAYNUM+i-1)])
-    bbands[i,mtrxCol[3]]=bbands[i,mtrxCol[1]]+2*sd(Data[,c("Close")][i:(MV_AVRAGE_DAYNUM+i-1)])
+    bbands[i,mtrxCol[2]]=bbands[i,mtrxCol[1]]-2*sd(Data[i:(MV_AVRAGE_DAYNUM+i-1)])
+    bbands[i,mtrxCol[3]]=bbands[i,mtrxCol[1]]+2*sd(Data[i:(MV_AVRAGE_DAYNUM+i-1)])
   }
   return(bbands)
 }
@@ -130,7 +103,7 @@ createTR <- function(Data,TS_DATA_NUM){
 ##
 # return (Xday Simple) MAVG as a Matrix
 createSMA <- function(Data,TS_DATA_NUM,MV_AVRAGE_DAYNUM){
-  Data=Data[,c("Close")]
+  #Data=Data[,c("Close")]
   mtrxCol=c(paste("SMA",MV_AVRAGE_DAYNUM,sep=""))
   mtrxColN=length(mtrxCol)
   retMtrx = matrix(rep(0,(TS_DATA_NUM-MV_AVRAGE_DAYNUM[1])*mtrxColN), nrow = (TS_DATA_NUM-MV_AVRAGE_DAYNUM[1]), ncol = mtrxColN)
@@ -145,7 +118,7 @@ createSMA <- function(Data,TS_DATA_NUM,MV_AVRAGE_DAYNUM){
 ##
 # create 1st order Both Sides(+,-) difference as a Matrix
 createBothSidesDiff <- function(Data,TS_DATA_NUM){
-  Data=Data[,c("Close")]
+  #Data=Data[,c("Close")]
   mtrxCol=c("BSDiff")
   mtrxColN=length(mtrxCol)
   retMtrx=matrix(rep(0,(TS_DATA_NUM)*mtrxColN), nrow = (TS_DATA_NUM), ncol = mtrxColN)
@@ -163,7 +136,7 @@ createBothSidesDiff <- function(Data,TS_DATA_NUM){
 ##
 # create normal 1st order difference as a Matrix
 createDiff <- function(Data,TS_DATA_NUM){
-  Data=Data[,c("Close")]
+  #Data=Data[,c("Close")]
   mtrxCol=c("Diff")
   mtrxColN=length(mtrxCol)
   retMtrx=matrix(rep(0,(TS_DATA_NUM-1)*mtrxColN), nrow = (TS_DATA_NUM-1), ncol = mtrxColN)
@@ -179,7 +152,7 @@ createDiff <- function(Data,TS_DATA_NUM){
 ##
 # create Log Geometric Sequence as a Matrix
 createLogGeomSeq <- function(Data,TS_DATA_NUM){
-  Data=Data[,c("Close")]
+  #Data=Data[,c("Close")]
   mtrxCol=c("LGRatio","ExpRatio")
   mtrxColN=length(mtrxCol)
   retMtrx=matrix(rep(0,(TS_DATA_NUM-1)*mtrxColN), nrow = (TS_DATA_NUM-1), ncol = mtrxColN)
@@ -196,7 +169,7 @@ createLogGeomSeq <- function(Data,TS_DATA_NUM){
 ##
 # create Exponential Regression Slope(annualized) as a Matrix
 createExpReg <- function(Data,TS_DATA_NUM,DAY_NUM){
-  Data=Data[,c("Close")]
+  #Data=Data[,c("Close")]
   mtrxCol=c("ExpRegSlope","ExpRegSlopeAnlzd","Intercept","RSq")
   mtrxColN=length(mtrxCol)
   retMtrx=matrix(rep(0,(TS_DATA_NUM-DAY_NUM)*mtrxColN), nrow = (TS_DATA_NUM-DAY_NUM), ncol = mtrxColN)
@@ -226,7 +199,7 @@ createExpReg <- function(Data,TS_DATA_NUM,DAY_NUM){
 ##  create Historical Volatility Matrix
 createHistVol<-function(Close,TS_DATA_NUM,MV_AVRAGE_DAYNUM #,CloseChg
 ){
-  Close=Close[,c("Close")]
+  #Close=Close[,c("Close")]
   histVol = matrix(rep(0,(TS_DATA_NUM-MV_AVRAGE_DAYNUM[1])), nrow = (TS_DATA_NUM-MV_AVRAGE_DAYNUM[1]), ncol = 1)
   colnames(histVol) <- c("HV")
   for(i in 1:(TS_DATA_NUM-MV_AVRAGE_DAYNUM[1])){
@@ -265,8 +238,7 @@ dygraph(chart_xts,ylab="Value", main="200SMA")  %>%
 
 ## TR. ATR
 tr_s=createTR(TSdata2,nrow(TSdata2))
-colnames(tr_s) <- c("Close")
-atr100_s=createSMA(tr_s,length(tr_s),100)
+atr100_s=createSMA(tr_s[,"TR"],length(tr_s[,"TR"]),100)
 #time  
 date_s = as.POSIXct(strptime(TSdata2[,"Date"], 
                              format="%Y/%m/%d",tz="UTC"))
@@ -292,7 +264,8 @@ ivCtOSpikePct<-tmp$ivCtOSpikePct
 ivCtOSpikeNSd<-tmp$ivCtOSpikeNSd
 
 # Bolinger Bands Dataframe
-bbDf=createBBandsDf(TSdata,TS_DATA_NUM,MV_AVRAGE_DAYNUM)
+#Matrix version BB should be used
+#bbDf=createBBandsDf(TSdata,TS_DATA_NUM,MV_AVRAGE_DAYNUM)
 
 # pctB  and BWidth
 pctB=(bbDf$Close-bbDf$dn)/(bbDf$up-bbDf$dn)
