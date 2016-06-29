@@ -12,7 +12,7 @@ source('./ESourceRCode.R',encoding = 'UTF-8')
 TS_DATA_NUM=4100
 
 #moving average day
-MV_AVRAGE_DAYNUM=c(20)
+MV_AVRAGE_DAYNUM=20
 
 #read data file
 TSdata<-read.table(paste(DataFiles_Path_G,Underying_Symbol_G,"_IV.csv",sep=""),
@@ -26,21 +26,21 @@ TSdata2<-read.table(paste(DataFiles_Path_G,Underying_Symbol_G,"_Hist.csv",sep=""
 
 ##
 #  Close to Open Spike Vector
-createCloseToOpenSpikeVec <- function(TSdata){
-  length(TSdata[,c("Close")])
+createCloseToOpenSpikeVec <- function(Data){
+  length(Data[,c("Close")])
   
-  tmp<-replace(TSdata$Close,rep(1:length(TSdata$Close)-1),TSdata$Close[2:length(TSdata$Close)])
-  tmp<-replace(TSdata[,c("Close")],rep(1:length(TSdata[,c("Close")])-1),TSdata[,c("Close")][2:length(TSdata[,c("Close")])])
+  tmp<-replace(Data$Close,rep(1:length(Data$Close)-1),Data$Close[2:length(Data$Close)])
+  tmp<-replace(Data[,c("Close")],rep(1:length(Data[,c("Close")])-1),Data[,c("Close")][2:length(Data[,c("Close")])])
   
   #length(tmp)
-  tmp[1:length(TSdata$Close)-1]->tmp
+  tmp[1:length(Data$Close)-1]->tmp
   #length(tmp)
   #tmp
   #tmp[1:20]
   #tail(tmp)
   
   # CLose to Open SPike %
-  ivCtOSpikePct=TSdata$Open[1:length(tmp)]/tmp
+  ivCtOSpikePct=Data$Open[1:length(tmp)]/tmp
   length(ivCtOSpikePct)
   ivCtOSpikePct
   mean(ivCtOSpikePct)
@@ -62,22 +62,22 @@ createCloseToOpenSpikeVec <- function(TSdata){
 
 ##
 # create Bolinger Bands Dataframe
-createBBandsDf <- function(TSdata,TS_DATA_NUM,MV_AVRAGE_DAYNUM){
+createBBandsDf <- function(Data,TS_DATA_NUM,MV_AVRAGE_DAYNUM){
   bbands = matrix(rep(0,(TS_DATA_NUM-MV_AVRAGE_DAYNUM[1])*3), nrow = (TS_DATA_NUM-MV_AVRAGE_DAYNUM[1]), ncol = 3)
   colnames(bbands) <- c("dn","mavg","up")
   
   for(i in 1:(TS_DATA_NUM-MV_AVRAGE_DAYNUM[1])){
-    #cat(mean(TSdata[,c("Close")][i:(MV_AVRAGE_DAYNUM+i-1)]),"\n")
-    bbands[i,"mavg"]=mean(TSdata[,c("Close")][i:(MV_AVRAGE_DAYNUM+i-1)])
-    #cat(sd(TSdata[,c("Close")][i:(MV_AVRAGE_DAYNUM+i-1)]),"\n")
-    bbands[i,"dn"]=bbands[i,"mavg"]-2*sd(TSdata[,c("Close")][i:(MV_AVRAGE_DAYNUM+i-1)])
-    bbands[i,"up"]=bbands[i,"mavg"]+2*sd(TSdata[,c("Close")][i:(MV_AVRAGE_DAYNUM+i-1)])
+    #cat(mean(Data[,c("Close")][i:(MV_AVRAGE_DAYNUM+i-1)]),"\n")
+    bbands[i,"mavg"]=mean(Data[,c("Close")][i:(MV_AVRAGE_DAYNUM+i-1)])
+    #cat(sd(Data[,c("Close")][i:(MV_AVRAGE_DAYNUM+i-1)]),"\n")
+    bbands[i,"dn"]=bbands[i,"mavg"]-2*sd(Data[,c("Close")][i:(MV_AVRAGE_DAYNUM+i-1)])
+    bbands[i,"up"]=bbands[i,"mavg"]+2*sd(Data[,c("Close")][i:(MV_AVRAGE_DAYNUM+i-1)])
   }
   
   #Data Frame 
-  nrow_tech=min(nrow(TSdata[,c("Close")]),nrow(bbands[,c("dn","up","mavg")]))
+  nrow_tech=min(nrow(Data[,c("Close")]),nrow(bbands[,c("dn","up","mavg")]))
   
-  bbandsDf=data.frame(TSdata[,c("Date","Open","High","Low","Close")][1:nrow_tech,],bbands[,c("dn","up","mavg")][1:nrow_tech,])
+  bbandsDf=data.frame(Data[,c("Date","Open","High","Low","Close")][1:nrow_tech,],bbands[,c("dn","up","mavg")][1:nrow_tech,])
   
   rownames(bbandsDf) <- c(1:nrow(bbandsDf))
   
@@ -89,33 +89,33 @@ createBBandsDf <- function(TSdata,TS_DATA_NUM,MV_AVRAGE_DAYNUM){
 
 ##
 # retrun BB elements as a Matrix in place of Df
-createBB <- function(TSdata,TS_DATA_NUM,MV_AVRAGE_DAYNUM){
+createBB <- function(Data,TS_DATA_NUM,MV_AVRAGE_DAYNUM){
   mtrxCol=c(paste("BBmavg",MV_AVRAGE_DAYNUM,sep=""),"BBdn","BBup")
   mtrxColN=length(mtrxCol)
   bbands = matrix(rep(0,(TS_DATA_NUM-MV_AVRAGE_DAYNUM[1])*mtrxColN), nrow = (TS_DATA_NUM-MV_AVRAGE_DAYNUM[1]), ncol = mtrxColN)
   colnames(bbands) <- mtrxCol
   
   for(i in 1:(TS_DATA_NUM-MV_AVRAGE_DAYNUM[1])){
-    bbands[i,mtrxCol[1]]=mean(TSdata[,c("Close")][i:(MV_AVRAGE_DAYNUM+i-1)])
-    #cat(sd(TSdata[,c("Close")][i:(MV_AVRAGE_DAYNUM+i-1)]),"\n")
-    bbands[i,mtrxCol[2]]=bbands[i,mtrxCol[1]]-2*sd(TSdata[,c("Close")][i:(MV_AVRAGE_DAYNUM+i-1)])
-    bbands[i,mtrxCol[3]]=bbands[i,mtrxCol[1]]+2*sd(TSdata[,c("Close")][i:(MV_AVRAGE_DAYNUM+i-1)])
+    bbands[i,mtrxCol[1]]=mean(Data[,c("Close")][i:(MV_AVRAGE_DAYNUM+i-1)])
+    #cat(sd(Data[,c("Close")][i:(MV_AVRAGE_DAYNUM+i-1)]),"\n")
+    bbands[i,mtrxCol[2]]=bbands[i,mtrxCol[1]]-2*sd(Data[,c("Close")][i:(MV_AVRAGE_DAYNUM+i-1)])
+    bbands[i,mtrxCol[3]]=bbands[i,mtrxCol[1]]+2*sd(Data[,c("Close")][i:(MV_AVRAGE_DAYNUM+i-1)])
   }
   return(bbands)
 }
 
 ##
 # return TR(True Range) elemets as a Matrix
-createTR <- function(TSdata,TS_DATA_NUM){
+createTR <- function(Data,TS_DATA_NUM){
   mtrxCol=c("TR")
   mtrxColN=length(mtrxCol)
   retMtrx = matrix(rep(0,(TS_DATA_NUM)*mtrxColN), nrow = (TS_DATA_NUM), ncol = mtrxColN)
   colnames(retMtrx) <- mtrxCol
   
   #get ascending ordered vector
-  AcdC=rev(TSdata[,c("Close")])
-  AcdH=rev(TSdata[,c("High")])
-  AcdL=rev(TSdata[,c("Low")])
+  AcdC=rev(Data[,c("Close")])
+  AcdH=rev(Data[,c("High")])
+  AcdL=rev(Data[,c("Low")])
   
   for(i in 2:TS_DATA_NUM){
     retMtrx[i,mtrxCol[1]]=max(AcdH[i],AcdC[i-1])-min(AcdL[i],AcdC[i-1])
@@ -241,8 +241,50 @@ createHistVol<-function(Close,TS_DATA_NUM,MV_AVRAGE_DAYNUM #,CloseChg
 ##
 ### End Of Function Definitions
 
-## Main routine
-#
+##
+#  Price analysis example
+
+## SMA
+sma200=createSMA(TSdata2[,"Close"],nrow(TSdata2),200)
+
+#time
+date_s = as.POSIXct(strptime(TSdata2[,"Date"], 
+                             format="%Y/%m/%d",tz="UTC"))
+date_s=date_s[1:length(sma200)]
+close_sma200=TSdata2[1:length(sma200),"Close"]
+##dygraph 
+close_xts<- xts(close_sma200,order.by=date_s,frequency=252)
+sma200_xts<- xts(sma200[,"SMA200"],order.by=date_s,frequency=252)
+chart_xts <- cbind(close_xts,sma200_xts)
+
+dygraph(chart_xts,ylab="Value", main="200SMA")  %>%
+  dySeries("..1",label="Close") %>%
+  dySeries("..2",label="200SMA") %>%
+  dyAxis("y", label = "Value") %>%
+  dyRangeSelector()
+
+## TR. ATR
+tr_s=createTR(TSdata2,nrow(TSdata2))
+colnames(tr_s) <- c("Close")
+atr100_s=createSMA(tr_s,length(tr_s),100)
+#time  
+date_s = as.POSIXct(strptime(TSdata2[,"Date"], 
+                             format="%Y/%m/%d",tz="UTC"))
+tr_s=tr_s[1:length(atr100_s)]
+date_s=date_s[1:length(atr100_s)]
+atr100_s=atr100_s[1:length(atr100_s)]
+##dygraph
+tr_xts=xts(tr_s,order.by=date_s,frequency=252)
+atr100_xts=xts(atr100_s,order.by=date_s,frequency=252)
+chart_xts <- cbind(tr_xts,atr100_xts)
+
+dygraph(chart_xts,ylab="Value", main="TR ATR")  %>%
+  dySeries("..1",label="TR") %>%
+  dySeries("..2",label="ATR") %>%
+  dyAxis("y", label = "Value") %>%
+  dyRangeSelector()
+
+#VOlatility analysis example
 
 # Close To Open SPike vector
 tmp<-createCloseToOpenSpikeVec(TSdata)
