@@ -11,9 +11,6 @@ source('./ESourceRCode.R',encoding = 'UTF-8')
 #Total TS Data Num
 TS_DATA_NUM=4100
 
-#moving average day
-MV_AVRAGE_DAYNUM=20
-
 #read data file
 TSdata<-read.table(paste(DataFiles_Path_G,Underying_Symbol_G,"_IV.csv",sep=""),
                    header=T,sep=",",nrows=TS_DATA_NUM)
@@ -32,12 +29,7 @@ createCloseToOpenSpikeVec <- function(Data){
   tmp<-replace(Data$Close,rep(1:length(Data$Close)-1),Data$Close[2:length(Data$Close)])
   tmp<-replace(Data[,c("Close")],rep(1:length(Data[,c("Close")])-1),Data[,c("Close")][2:length(Data[,c("Close")])])
   
-  #length(tmp)
   tmp[1:length(Data$Close)-1]->tmp
-  #length(tmp)
-  #tmp
-  #tmp[1:20]
-  #tail(tmp)
   
   # CLose to Open SPike %
   ivCtOSpikePct=Data$Open[1:length(tmp)]/tmp
@@ -79,16 +71,16 @@ createBB <- function(Data,TS_DATA_NUM,MV_AVRAGE_DAYNUM){
 
 ##
 # return TR(True Range) elemets as a Matrix
-createTR <- function(Data,TS_DATA_NUM){
+createTR <- function(DataClose,DataHigh,DataLow,TS_DATA_NUM){
   mtrxCol=c("TR")
   mtrxColN=length(mtrxCol)
   retMtrx = matrix(rep(0,(TS_DATA_NUM)*mtrxColN), nrow = (TS_DATA_NUM), ncol = mtrxColN)
   colnames(retMtrx) <- mtrxCol
   
   #get ascending ordered vector
-  AcdC=rev(Data[,c("Close")])
-  AcdH=rev(Data[,c("High")])
-  AcdL=rev(Data[,c("Low")])
+  AcdC=rev(DataClose)
+  AcdH=rev(DataHigh)
+  AcdL=rev(DataLow)
   
   for(i in 2:TS_DATA_NUM){
     retMtrx[i,mtrxCol[1]]=max(AcdH[i],AcdC[i-1])-min(AcdL[i],AcdC[i-1])
@@ -103,8 +95,7 @@ createTR <- function(Data,TS_DATA_NUM){
 ##
 # return (Xday Simple) MAVG as a Matrix
 createSMA <- function(Data,TS_DATA_NUM,MV_AVRAGE_DAYNUM){
-  #Data=Data[,c("Close")]
-  mtrxCol=c(paste("SMA",MV_AVRAGE_DAYNUM,sep=""))
+  mtrxCol=c("SMA")
   mtrxColN=length(mtrxCol)
   retMtrx = matrix(rep(0,(TS_DATA_NUM-MV_AVRAGE_DAYNUM[1])*mtrxColN), nrow = (TS_DATA_NUM-MV_AVRAGE_DAYNUM[1]), ncol = mtrxColN)
   colnames(retMtrx) <- mtrxCol
@@ -118,7 +109,6 @@ createSMA <- function(Data,TS_DATA_NUM,MV_AVRAGE_DAYNUM){
 ##
 # create 1st order Both Sides(+,-) difference as a Matrix
 createBothSidesDiff <- function(Data,TS_DATA_NUM){
-  #Data=Data[,c("Close")]
   mtrxCol=c("BSDiff")
   mtrxColN=length(mtrxCol)
   retMtrx=matrix(rep(0,(TS_DATA_NUM)*mtrxColN), nrow = (TS_DATA_NUM), ncol = mtrxColN)
@@ -136,7 +126,6 @@ createBothSidesDiff <- function(Data,TS_DATA_NUM){
 ##
 # create normal 1st order difference as a Matrix
 createDiff <- function(Data,TS_DATA_NUM){
-  #Data=Data[,c("Close")]
   mtrxCol=c("Diff")
   mtrxColN=length(mtrxCol)
   retMtrx=matrix(rep(0,(TS_DATA_NUM-1)*mtrxColN), nrow = (TS_DATA_NUM-1), ncol = mtrxColN)
@@ -152,7 +141,6 @@ createDiff <- function(Data,TS_DATA_NUM){
 ##
 # create Log Geometric Sequence as a Matrix
 createLogGeomSeq <- function(Data,TS_DATA_NUM){
-  #Data=Data[,c("Close")]
   mtrxCol=c("LGRatio","ExpRatio")
   mtrxColN=length(mtrxCol)
   retMtrx=matrix(rep(0,(TS_DATA_NUM-1)*mtrxColN), nrow = (TS_DATA_NUM-1), ncol = mtrxColN)
@@ -169,7 +157,6 @@ createLogGeomSeq <- function(Data,TS_DATA_NUM){
 ##
 # create Exponential Regression Slope(annualized) as a Matrix
 createExpReg <- function(Data,TS_DATA_NUM,DAY_NUM){
-  #Data=Data[,c("Close")]
   mtrxCol=c("ExpRegSlope","ExpRegSlopeAnlzd","Intercept","RSq")
   mtrxColN=length(mtrxCol)
   retMtrx=matrix(rep(0,(TS_DATA_NUM-DAY_NUM)*mtrxColN), nrow = (TS_DATA_NUM-DAY_NUM), ncol = mtrxColN)
@@ -199,9 +186,9 @@ createExpReg <- function(Data,TS_DATA_NUM,DAY_NUM){
 ##  create Historical Volatility Matrix
 createHistVol<-function(Close,TS_DATA_NUM,MV_AVRAGE_DAYNUM #,CloseChg
 ){
-  #Close=Close[,c("Close")]
+  mtrxCol=c("HV")
   histVol = matrix(rep(0,(TS_DATA_NUM-MV_AVRAGE_DAYNUM[1])), nrow = (TS_DATA_NUM-MV_AVRAGE_DAYNUM[1]), ncol = 1)
-  colnames(histVol) <- c("HV")
+  colnames(histVol) <- mtrxCol
   for(i in 1:(TS_DATA_NUM-MV_AVRAGE_DAYNUM[1])){
     vol_tmp=annuual.daily.volatility(Close[i:(MV_AVRAGE_DAYNUM+i-1)])$anlzd*100
     #sd_tmp=sd(CloseChg[i:(MV_AVRAGE_DAYNUM+i-1)])*sqrt(252)*100
@@ -217,7 +204,7 @@ createHistVol<-function(Close,TS_DATA_NUM,MV_AVRAGE_DAYNUM #,CloseChg
 ##
 #  Price analysis example
 
-## SMA
+### SMA ###
 sma200=createSMA(TSdata2[,"Close"],nrow(TSdata2),200)
 
 #time
@@ -236,8 +223,8 @@ dygraph(chart_xts,ylab="Value", main="200SMA")  %>%
   dyAxis("y", label = "Value") %>%
   dyRangeSelector()
 
-## TR. ATR
-tr_s=createTR(TSdata2,nrow(TSdata2))
+### TR. ATR ###
+tr_s=createTR(TSdata2[,"Close"],TSdata2[,"High"],TSdata2[,"Low"],nrow(TSdata2))
 atr100_s=createSMA(tr_s[,"TR"],length(tr_s[,"TR"]),100)
 #time  
 date_s = as.POSIXct(strptime(TSdata2[,"Date"], 
@@ -265,33 +252,26 @@ ivCtOSpikeNSd<-tmp$ivCtOSpikeNSd
 
 # Bolinger Bands Dataframe
 #Matrix version BB should be used
-#bbDf=createBBandsDf(TSdata,TS_DATA_NUM,MV_AVRAGE_DAYNUM)
+bolbands=createBB(TSdata[,"Close"],nrow(TSdata),20)
 
 # pctB  and BWidth
-pctB=(bbDf$Close-bbDf$dn)/(bbDf$up-bbDf$dn)
-BWdth=(bbDf$up-bbDf$dn)/(bbDf$mavg)
-
-# historical Volatilty vector
-histVol=createHistVol(Close=TSdata2$Close,TS_DATA_NUM=TS_DATA_NUM,MV_AVRAGE_DAYNUM=MV_AVRAGE_DAYNUM#,TSdata2$PC1dCtC
-)
+pctB=(TSdata[,"Close"][1:length(bolbands[,"BBdn"])]-bolbands[,"BBdn"])/(bolbands[,"BBup"]-bolbands[,"BBdn"])
+BWdth=(bolbands[,"BBup"]-bolbands[,"BBdn"])/(bolbands[,"BBmavg"])
 
 # Data format standarizee dor dygraph
-date_s = as.POSIXct(strptime(bbDf$Date, 
+date_s = as.POSIXct(strptime(TSdata[,"Date"], 
                              format="%Y/%m/%d",tz="UTC"))
+date_s=date_s=date_s[1:nrow(bolbands)]
 
 ##dygraph BB
-close_xts<- xts(bbDf$Close,order.by=date_s,frequency=252)
-mavg_xts<- xts(bbDf$mavg,order.by=date_s,frequency=252)
-bbUp_xts<- xts(bbDf$up,order.by=date_s,frequency=252)
-bbDn_xts<- xts(bbDf$dn,order.by=date_s,frequency=252)
+close_xts<- xts(TSdata[,"Close"][1:nrow(histVol)],order.by=date_s,frequency=252)
+mavg_xts<- xts(bolbands[,"BBmavg"],order.by=date_s,frequency=252)
+bbUp_xts<- xts(bolbands[,"BBup"],order.by=date_s,frequency=252)
+bbDn_xts<- xts(bolbands[,"BBdn"],order.by=date_s,frequency=252)
 chart_xts <- cbind(close_xts,mavg_xts,bbUp_xts,bbDn_xts)
 
-dygraph(chart_xts,ylab="Value", 
-        main=paste(Underying_Symbol_G," IV Analysis",sep=""))  %>%
+dygraph(chart_xts,ylab="Value", main="IV BB")  %>%
   dySeries("..1",label="Close") %>%
-  #dySeries("..3",label="UpB") %>%
-  #dySeries("..2",label="MAVG") %>%
-  #dySeries("..4",label="LowB") %>%
   dySeries(c("..3","..2","..4"), label = "BB") %>%
   dyAxis("y", label = "Value") %>%
   dyRangeSelector()
@@ -306,19 +286,50 @@ bbind_xts<- cbind(pctB_xts,BWdth_xts)
 dygraph(bbind_xts,ylab="pctB and BWdth", 
         main=paste(Underying_Symbol_G," BB Indicator",sep=""))  %>%
   dySeries("..1",label="pctB") %>%
+  #### y2 axix
   dySeries("..2",label="BWdth",axis = 'y2') %>%
-  #dyOptions(colors = c("blue","brown")) %>%
   dyRangeSelector()
 
 #graphing Comparison of HV and IV
+
+# historical Volatilty vector
+histVol=createHistVol(Close=TSdata2[,"Close"],
+                      TS_DATA_NUM=nrow(TSdata2),
+                      MV_AVRAGE_DAYNUM=30)
+
+date_s = as.POSIXct(strptime(TSdata[,"Date"], 
+                             format="%Y/%m/%d",tz="UTC"))
+date_s=date_s[1:nrow(histVol)]
+
+#time series
 HV_xts<- xts(histVol,order.by=date_s,frequency=252)
-close_xts<- xts(bbDf$Close,order.by=date_s,frequency=252)
+close_xts<- xts(TSdata[,"Close"][1:nrow(histVol)],order.by=date_s,frequency=252)
 volcomp_xts<- cbind(close_xts,HV_xts)
 
 dygraph(volcomp_xts,ylab="IV and HV", 
         main=paste(Underying_Symbol_G," Volatility Comparison",sep=""))  %>%
   dySeries("..1",label="IV") %>%
   dySeries("HV",label="HV") %>%
+  #dyOptions(colors = c("blue","brown")) %>%
+  dyRangeSelector()
+
+#HVIVR
+HVIVR=histVol/TSdata[,"Close"][1:nrow(histVol)]
+colnames(HVIVR)=c("HVIVR")
+AHVIVR=createSMA(HVIVR[,"HVIVR"],nrow(HVIVR),30)
+colnames(AHVIVR)=c("AHVIVR")
+
+date_s = as.POSIXct(strptime(TSdata[,"Date"], 
+                             format="%Y/%m/%d",tz="UTC"))
+date_s=date_s[1:nrow(AHVIVR)]
+
+HVIVR_xts<- xts(HVIVR[,"HVIVR"][1:nrow(AHVIVR)],order.by=date_s,frequency=252)
+AHVIVR_xts<- xts(AHVIVR,order.by=date_s,frequency=252)
+volcomp_xts<- cbind(HVIVR_xts,AHVIVR_xts)
+
+dygraph(volcomp_xts,ylab="HVIVR and AHVIVR", main="HVIVR and AHVIVR")  %>%
+  dySeries("..1",label="HVIVR") %>%
+  dySeries("AHVIVR",label="AHVIVR") %>%
   #dyOptions(colors = c("blue","brown")) %>%
   dyRangeSelector()
 
