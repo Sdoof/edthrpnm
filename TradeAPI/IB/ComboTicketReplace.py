@@ -71,11 +71,12 @@ if __name__ == '__main__':
     #look into queTickets
     while True:
         try:
+            ##
+            # First Ticket
             tkpkg=queTickets.popleft()
             #print(tkpkg.symbolTicket,tkpkg.expiryTicket,tkpkg.strikeTicket,tkpkg.rightTicket,
             #      tkpkg.buySell,tkpkg.comboRatio,tkpkg.limitPrice_G,tkpkg.qTY_G)
 
-            ###
             ##  First Ticket info
             SymbolTicket=tkpkg.symbolTicket
             ExpiryTicket=tkpkg.expiryTicket
@@ -96,7 +97,7 @@ if __name__ == '__main__':
                        Leg[legitem].m_right, Leg[legitem].m_strike, Leg[legitem].m_expiry))
             raw_input('Spread leg info correct?')
 
-            #deep copy for replacement
+            # deep copy for replacement
             ST_A=copy.deepcopy(SymbolTicket)
             Exp_A=copy.deepcopy(ExpiryTicket)
             Str_A=copy.deepcopy(StrikeTicket)
@@ -106,13 +107,12 @@ if __name__ == '__main__':
             LmitP_A=copy.deepcopy(LimitPrice_G)
             QTY_A=copy.deepcopy(QTY_G)
 
-
-
+            ##
+            # Second Ticket
             tkpkg = queTickets.popleft()
             #print(tkpkg.symbolTicket, tkpkg.expiryTicket, tkpkg.strikeTicket, tkpkg.rightTicket,
             #      tkpkg.buySell, tkpkg.comboRatio, tkpkg.limitPrice_G, tkpkg.qTY_G)
 
-            ###
             ##  Second Ticket info
             SymbolTicket = tkpkg.symbolTicket
             ExpiryTicket = tkpkg.expiryTicket
@@ -122,7 +122,6 @@ if __name__ == '__main__':
             ComboRatio = tkpkg.comboRatio
             LimitPrice_G = tkpkg.limitPrice_G
             QTY_G = tkpkg.qTY_G
-
 
             ## Makeing Leg Lists from APT Ticket
             Leg = processAPITicket(SymbolTicket, ExpiryTicket, StrikeTicket, RightTicket)
@@ -145,7 +144,7 @@ if __name__ == '__main__':
             QTY_B = copy.deepcopy(QTY_G)
 
             #Original combo
-            print("original")
+            print("\nOriginal Ticket Elements")
             print(ST_A, Exp_A, Str_A, Right_A, BS_A, CmbR_A, LmitP_A, QTY_A)
             print(ST_B, Exp_B, Str_B, Right_B, BS_B, CmbR_B, LmitP_B, QTY_B)
 
@@ -174,15 +173,25 @@ if __name__ == '__main__':
             CmbR_B[0]=TMP_CmbR
             #print(ST_B, Exp_B, Str_B, Right_B, BS_B, CmbR_B, LmitP_B, QTY_B)
 
-            #showing result
-
+            #Replaced Tickets
+            print("\nTicket Replaced")
             print("SymbolTicket = %s; ExpiryTicket = %s; StrikeTicket = %s; RightTicket = %s; "
                   "BuySell = %s; ComboRatio = %s; LimitPrice_G = %s; QTY_G =%s" %
                   (ST_A,Exp_A,Str_A,Right_A,BS_A,CmbR_A,LmitP_A,QTY_A))
-
             print("SymbolTicket = %s; ExpiryTicket = %s; StrikeTicket = %s; RightTicket = %s; "
                   "BuySell = %s; ComboRatio = %s; LimitPrice_G = %s; QTY_G =%s" %
                   (ST_B, Exp_B, Str_B, Right_B, BS_B, CmbR_B, LmitP_B, QTY_B))
+
+            #Replaced Tickets Reversed
+            print("\nReplaced Ticket Reversed")
+            print("SymbolTicket = %s; ExpiryTicket = %s; StrikeTicket = %s; RightTicket = %s; "
+                  "BuySell = %s; ComboRatio = %s; LimitPrice_G = %s; QTY_G =%s" %
+                  (list(reversed(ST_A)),list(reversed(Exp_A)),list(reversed(Str_A)),list(reversed(Right_A)),
+                   list(reversed(BS_A)),list(reversed(CmbR_A)), LmitP_A, QTY_A))
+            print("SymbolTicket = %s; ExpiryTicket = %s; StrikeTicket = %s; RightTicket = %s; "
+                  "BuySell = %s; ComboRatio = %s; LimitPrice_G = %s; QTY_G =%s" %
+                  (list(reversed(ST_B)), list(reversed(Exp_B)), list(reversed(Str_B)), list(reversed(Right_B)),
+                   list(reversed(BS_B)), list(reversed(CmbR_B)), LmitP_B, QTY_B))
 
         except IndexError:
             break
