@@ -259,6 +259,8 @@ opContractList = [
     makeOptContract(sym='SPX', exp='20161020', strike='', right='C'),
     makeOptContract(sym='SPX', exp='20161031', strike='', right='P'),
     makeOptContract(sym='SPX', exp='20161031', strike='', right='C'),
+    makeOptContract(sym='SPX', exp='20161117', strike='', right='P'),
+    makeOptContract(sym='SPX', exp='20161117', strike='', right='C'),
     makeOptContract(sym='SPX', exp='20161130', strike='', right='P'),
     makeOptContract(sym='SPX', exp='20161130', strike='', right='C')
 ]
