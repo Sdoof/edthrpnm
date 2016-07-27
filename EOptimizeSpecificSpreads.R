@@ -66,17 +66,6 @@ SpreadTypeToDir[[PUT_BULL_SPREAD_PLUS_SINGLE_DIAGONAL_SMPLING]]=5
 SpreadTypeToDir[[POOL_PLUS_SINGLE_DIAGONAL_SMPLING]]=c(7,4,9)
 SpreadTypeToDir[[POOL_PLUS_DOUBLE_DIAGONAL_SMPLING]]=c(1,8,9)
 
-#Which directory(folder) this instance belongs
-dirInstance=1
-if(length(grep("2", ConfigFileName_G))>=1)
-  dirInstance=2
-if(length(grep("3", ConfigFileName_G))>=1)
-  dirInstance=3
-if(length(grep("4", ConfigFileName_G))>=1)
-  dirInstance=4
-if(SpreadTypeSpecified>0)
-  dirInstance=SpreadTypeSpecified
-
 #Check Option
 (opchain)
 
@@ -104,7 +93,7 @@ createOutFname<-function(targetExpDate,targetExpDate_f,targetExpDate_b,spreadRat
 
 ###IRON_CONDOR Candidates for Combination
 sampleSpreadType=IRON_CONDOR_SMPLING
-if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
+if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   targetExpDate=TARGET_EXPDATE
   targetExpDate_f=targetExpDate
   targetExpDate_b=targetExpDate
@@ -136,7 +125,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
 }
 ### DIAGONAL Candiates for Combination
 sampleSpreadType=DIAGONAL_SMPLING
-if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
+if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   targetExpDate=TARGET_EXPDATE
   targetExpDate_f=TARGET_EXPDATE_FRONT
   targetExpDate_b=TARGET_EXPDATE_BACK
@@ -169,7 +158,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
 
 ### DOUBLE DIAGONAL Candiates for Combination
 sampleSpreadType=DOUBLE_DIAGONAL_SMPLING
-if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
+if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   targetExpDate=TARGET_EXPDATE
   targetExpDate_f=TARGET_EXPDATE_FRONT
   targetExpDate_b=TARGET_EXPDATE_BACK
@@ -201,7 +190,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
 
 ###CALL_BEAR_SPREAD_PLUS_DOUBLE_DIAGONAL
 sampleSpreadType=CALL_BEAR_SPREAD_PLUS_DOUBLE_DIAGONAL_SMPLING
-if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
+if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   targetExpDate=TARGET_EXPDATE
   targetExpDate_f=TARGET_EXPDATE_FRONT
   targetExpDate_b=TARGET_EXPDATE_BACK
@@ -288,7 +277,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
 
 ###PUT_BULL_SPREAD_PLUS_DOUBLE_DIAGONAL_SMPLING
 sampleSpreadType=PUT_BULL_SPREAD_PLUS_DOUBLE_DIAGONAL_SMPLING
-if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
+if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   targetExpDate=TARGET_EXPDATE
   targetExpDate_f=TARGET_EXPDATE_FRONT
   targetExpDate_b=TARGET_EXPDATE_BACK
@@ -372,7 +361,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
 
 ### POOL_PLUS_SINGLE_DIAGONAL_SMPLING
 sampleSpreadType=POOL_PLUS_SINGLE_DIAGONAL_SMPLING
-if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
+if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   targetExpDate=TARGET_EXPDATE
   targetExpDate_f=TARGET_EXPDATE_FRONT
   targetExpDate_b=TARGET_EXPDATE_BACK
@@ -419,7 +408,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
 
 ###POOL_PLUS_DOUBLE_DIAGONAL_SMPLING
 sampleSpreadType=POOL_PLUS_DOUBLE_DIAGONAL_SMPLING
-if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
+if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   targetExpDate=TARGET_EXPDATE
   targetExpDate_f=TARGET_EXPDATE_FRONT
   targetExpDate_b=TARGET_EXPDATE_BACK
@@ -466,7 +455,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
 
 ###CALL_BEAR_SPREAD_PLUS_SINGLE_DIAGONAL
 sampleSpreadType=CALL_BEAR_SPREAD_PLUS_SINGLE_DIAGONAL_SMPLING
-if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
+if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   targetExpDate=TARGET_EXPDATE
   targetExpDate_f=TARGET_EXPDATE_FRONT
   targetExpDate_b=TARGET_EXPDATE_BACK
@@ -512,7 +501,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
 
 ###PUT_BULL_SPREAD_PLUS_SINGLE_DIAGONAL
 sampleSpreadType=PUT_BULL_SPREAD_PLUS_SINGLE_DIAGONAL_SMPLING
-if(max(SpreadTypeToDir[[sampleSpreadType]]==dirInstance)){
+if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   targetExpDate=TARGET_EXPDATE
   targetExpDate_f=TARGET_EXPDATE_FRONT
   targetExpDate_b=TARGET_EXPDATE_BACK

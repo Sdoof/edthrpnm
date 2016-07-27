@@ -115,8 +115,21 @@ histIV %>% #dplyr::filter(as.Date(Date,format="%Y/%m/%d")<=max(as.Date(opchain$D
 ##
 # opchain,position,histIV,iniPos must exist as Global Variables.
 
+#Which directory(folder) this instance belongs
+dirInstance=""
+if(length(grep("2", ConfigFileName_G))>=1)
+  dirInstance=2
+if(length(grep("3", ConfigFileName_G))>=1)
+  dirInstance=3
+if(length(grep("4", ConfigFileName_G))>=1)
+  dirInstance=4
+
 #Option Chain and Position Data. Here we use UDL_Positions_Pre
 rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep="")
+tmp_datafile=paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre",dirInstance,".csv",sep="")
+if(file.exists(tmp_datafile))
+  rf<-tmp_datafile
+
 #型を厳密に指定して読み込む場合
 # headset <- read.table(rf,header=T,sep=",",stringsAsFactors=F,nrows=1)
 # classes <- sapply(headset, class)
