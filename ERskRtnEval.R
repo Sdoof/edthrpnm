@@ -107,7 +107,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   if(isDetail){
     cat(" :(weight hdday)",weight)#;cat(" :(weightEffect hdday)",weight_Effect_hd);cat(" :(weightEffect 1ay)",weight_Effect_1d)
     cat(" :(weightEffect)",weight_Effect)
-    }
+  }
   
   #vertical (Implied Volatility) weight
   cor_tmp=get.Volatility.Level.Regression(Days=Setting$holdDays)$cor
@@ -191,7 +191,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   }else if(maxLoss<0){
     ROIC=profit_expctd/(-maxLoss)
   }
-    
+  
   #c8 metric
   c8<- profit_sd
   if(Setting$EvalConvex)
@@ -352,7 +352,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   if(isDetail){
     ROIC_anlzd=ROIC*252/Setting$holdDays
     cat(" :(val)",val,"\n");cat(" :(exp prft)",profit_expctd," :(maxloss):",maxLoss," :(ROIC)",ROIC," :(ROIC anlzd)",ROIC_anlzd,"\n")
-    }
+  }
   return(val)
 }
 
@@ -570,7 +570,7 @@ createPositionEvalTable<-function(position,udlStepNum,udlStepPct,multi,hdd,HV_IV
   posEvalTbl %>% group_by(udlChgPct) %>% do(pos=position) -> posEvalTbl
   #Modify pos based on scenario
   posEvalTbl %>% group_by(udlChgPct) %>% do(pos=reflectPosChg(process_df=.,days=hdd)) -> posEvalTbl
-
+  
   #cat("HV_IV_Adjust_Ratio (createPositionEvalTable):",HV_IV_Adjust_Ratio)
   
   ##
@@ -781,8 +781,8 @@ sampleMain<-function(sampleSpreadType,totalPopNum,targetExpDate,targetExpDate_f,
                              targetExpDate=targetExpDate,isDebug=isDebug,isDetail=idDetail)
       
       z=sampleDiagonalSpread(targetOpTyep=ifelse(runif(1)<=0.500000,OpType_Put_G,OpType_Call_G),
-                           diagonalType=ifelse(runif(1)<=0.500000,DIAGONAL_TYPE_LONG,DIAGONAL_TYPE_SHORT),
-                           targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,isDebug=isDebug,isDetail=idDetail)
+                             diagonalType=ifelse(runif(1)<=0.500000,DIAGONAL_TYPE_LONG,DIAGONAL_TYPE_SHORT),
+                             targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,isDebug=isDebug,isDetail=idDetail)
       x<-y*spreadRatio[1]+z*spreadRatio[2]
       
     }else if(sampleSpreadType==PUT_BULL_SPREAD_PLUS_SINGLE_DIAGONAL_SMPLING){
@@ -800,7 +800,7 @@ sampleMain<-function(sampleSpreadType,totalPopNum,targetExpDate,targetExpDate_f,
       z=sampleDiagonalSpread(targetOpTyep=OpType_Put_G,
                              diagonalType=ifelse(runif(1)<=0.500000,DIAGONAL_TYPE_LONG,DIAGONAL_TYPE_SHORT),
                              targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,isDebug=isDebug,isDetail=idDetail)
-    
+      
       w=sampleDiagonalSpread(targetOpTyep=ifelse(runif(1)<=0.500000,OpType_Put_G,OpType_Call_G),
                              diagonalType=ifelse(runif(1)<=0.500000,DIAGONAL_TYPE_LONG,DIAGONAL_TYPE_SHORT),
                              targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,isDebug=isDebug,isDetail=idDetail)
@@ -846,6 +846,48 @@ sampleMain<-function(sampleSpreadType,totalPopNum,targetExpDate,targetExpDate_f,
                              targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,isDebug=isDebug,isDetail=idDetail)
       
       x<-y*spreadRatio[1]+z*spreadRatio[2]
+    }else if(sampleSpreadType==FILE_PLUS_VERTICAL_CREDIT_SPREAD){
+      
+      s1<-pools[[ 1 ]][[2]][ceiling(runif(1, min=1e-320, max=nrow(pools[[1]][[2]]))), ]
+      y<-unlist(s1[1:length(iniPos)]);s1_score<-as.numeric(s1[length(s1)])
+      
+      if(runif(1)<=0.500000){
+        z=sampleVerticalSpread(targetOpTyep=OpType_Put_G,
+                               verticalType=BULL_VERTICAL_SPREAD_TYPE,
+                               targetExpDate=targetExpDate,isDebug=isDebug,isDetail=idDetail)
+      }else {
+        z=sampleVerticalSpread(targetOpTyep=OpType_Call_G,
+                               verticalType=BEAR_VERTICAL_SPREAD_TYPE,
+                               targetExpDate=targetExpDate,isDebug=isDebug,isDetail=idDetail)
+      }
+      x<-y*spreadRatio[1]+z*spreadRatio[2]
+    }else if(sampleSpreadType==FILE_PLUS_VERTICAL_DEBT_SPREAD){
+      
+      s1<-pools[[ 1 ]][[2]][ceiling(runif(1, min=1e-320, max=nrow(pools[[1]][[2]]))), ]
+      y<-unlist(s1[1:length(iniPos)]);s1_score<-as.numeric(s1[length(s1)])
+      
+      if(runif(1)<=0.500000){
+        z=sampleVerticalSpread(targetOpTyep=OpType_Put_G,
+                               verticalType=BEAR_VERTICAL_SPREAD_TYPE,
+                               targetExpDate=targetExpDate,isDebug=isDebug,isDetail=idDetail)
+      }else {
+        z=sampleVerticalSpread(targetOpTyep=OpType_Call_G,
+                               verticalType=BULL_VERTICAL_SPREAD_TYPE,
+                               targetExpDate=targetExpDate,isDebug=isDebug,isDetail=idDetail)
+      }
+      x<-y*spreadRatio[1]+z*spreadRatio[2]
+    }else if(sampleSpreadType==FILE_PLUS_IRON_CONDOR){
+      
+      s1<-pools[[ 1 ]][[2]][ceiling(runif(1, min=1e-320, max=nrow(pools[[1]][[2]]))), ]
+      y<-unlist(s1[1:length(iniPos)]);s1_score<-as.numeric(s1[length(s1)])
+      
+      z=sampleVerticalSpread(targetOpTyep=OpType_Put_G,
+                             verticalType=BULL_VERTICAL_SPREAD_TYPE,
+                             targetExpDate=targetExpDate,isDebug=isDebug,isDetail=idDetail)
+      w=sampleVerticalSpread(targetOpTyep=OpType_Call_G,
+                             verticalType=BEAR_VERTICAL_SPREAD_TYPE,
+                             targetExpDate=targetExpDate,isDebug=isDebug,isDetail=idDetail)
+      x<-y*spreadRatio[1]+(z+w)*spreadRatio[2]
     }
     
     if(isDetail)
@@ -964,7 +1006,7 @@ create_initial_exact_PutCall_polulation<-function(popnum,type,EvalFuncSetting,th
     posnum<-putn +calln
     tryCatch(
       val<-obj_Income_sgmd(x,EvalFuncSetting,isDebug=isDebug,isDetail=isDetail,
-      #val<-obj_fixedpt_sgmd(x,EvalFuncSetting,isDebug=isDebug,isDetail=isDetail,
+                           #val<-obj_fixedpt_sgmd(x,EvalFuncSetting,isDebug=isDebug,isDetail=isDetail,
                            udlStepNum=EvalFuncSetting$UdlStepNum,udlStepPct=EvalFuncSetting$UdlStepPct,
                            maxposnum=EvalFuncSetting$Maxposnum,PosMultip=PosMultip,
                            tail_rate=EvalFuncSetting$Tail_rate,lossLimitPrice=EvalFuncSetting$LossLimitPrice,
@@ -1062,12 +1104,12 @@ create_combined_population<-function(popnum,EvalFuncSetting,thresh,plelem,ml,fna
     #evaluate    
     tryCatch(
       val<-obj_Income_sgmd(x_new,EvalFuncSetting,isDebug=isDebug,isDetail=isDebug,
-      #val<-obj_fixedpt_sgmd(x_new,EvalFuncSetting,isDebug=isDebug,isDetail=isDebug,
-                            udlStepNum=EvalFuncSetting$UdlStepNum,udlStepPct=EvalFuncSetting$UdlStepPct,
-                            maxposnum=EvalFuncSetting$Maxposnum,PosMultip=PosMultip,
-                            tail_rate=EvalFuncSetting$Tail_rate,lossLimitPrice=EvalFuncSetting$LossLimitPrice,
-                            Delta_Direct_Prf=EvalFuncSetting$Delta_Direct_Prf[posnum],Vega_Direct_Prf=EvalFuncSetting$Vega_Direct_Prf[posnum],
-                            Delta_Neutral_Offset=EvalFuncSetting$Delta_Neutral_Offset[posnum],Vega_Neutral_Offset=EvalFuncSetting$Vega_Neutral_Offset[posnum]),
+                           #val<-obj_fixedpt_sgmd(x_new,EvalFuncSetting,isDebug=isDebug,isDetail=isDebug,
+                           udlStepNum=EvalFuncSetting$UdlStepNum,udlStepPct=EvalFuncSetting$UdlStepPct,
+                           maxposnum=EvalFuncSetting$Maxposnum,PosMultip=PosMultip,
+                           tail_rate=EvalFuncSetting$Tail_rate,lossLimitPrice=EvalFuncSetting$LossLimitPrice,
+                           Delta_Direct_Prf=EvalFuncSetting$Delta_Direct_Prf[posnum],Vega_Direct_Prf=EvalFuncSetting$Vega_Direct_Prf[posnum],
+                           Delta_Neutral_Offset=EvalFuncSetting$Delta_Neutral_Offset[posnum],Vega_Neutral_Offset=EvalFuncSetting$Vega_Neutral_Offset[posnum]),
       error=function(e){
         message(e)
         val<-(thresh+1.0)
@@ -1235,8 +1277,8 @@ adjustPosChgInner<-function(process_df,base_vol_chg=0){
 # Now this function change only Base Volatility Level.
 # so arguments other than base_vol_chg does not affect anything.
 adjustPosChg<-function(process_df,base_vol_chg=0,multi,hdd,HV_IV_Adjust_Ratio,isDebug=FALSE){
- 
-   if(isDebug){
+  
+  if(isDebug){
     print(process_df)
   }
   
@@ -1317,6 +1359,6 @@ getPositionGreeks<-function(position,multi,hdd,HV_IV_Adjust_Ratio){
   
   data.frame(Price=price,Delta=delta,Gamma=gamma,Theta=theta,Vega=vega,UDLY=udly,
              ThetaEffect=thetaEffect,GammaEffect=gammaEffect,DeltaEffect=deltaEffect,VegaEffect=vegaEffect)
-
+  
 }
 
