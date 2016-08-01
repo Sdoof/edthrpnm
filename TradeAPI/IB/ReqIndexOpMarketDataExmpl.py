@@ -262,7 +262,15 @@ opContractList = [
     makeOptContract(sym='SPX', exp='20161130', strike='', right='P'),
     makeOptContract(sym='SPX', exp='20161130', strike='', right='C'),
     makeOptContract(sym='SPX', exp='20161215', strike='', right='P'),
-    makeOptContract(sym='SPX', exp='20161215', strike='', right='C')
+    makeOptContract(sym='SPX', exp='20161215', strike='', right='C'),
+    makeOptContract(sym='RUT', exp='20160831', strike='', right='P'),
+    makeOptContract(sym='RUT', exp='20160831', strike='', right='C'),
+    makeOptContract(sym='RUT', exp='20160915', strike='', right='P'),
+    makeOptContract(sym='RUT', exp='20160915', strike='', right='C'),
+    makeOptContract(sym='RUT', exp='20161020', strike='', right='P'),
+    makeOptContract(sym='RUT', exp='20161020', strike='', right='C'),
+    makeOptContract(sym='RUT', exp='20161215', strike='', right='P'),
+    makeOptContract(sym='RUT', exp='20161215', strike='', right='C')
 ]
 
 idxContractList = [
