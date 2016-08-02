@@ -18,7 +18,7 @@ priceInfoDict = {}
 SPX_Strike_Max=2450
 SPX_Strike_Min=1600
 RUT_Strike_Max=1500
-RUT_Strike_Min=700
+RUT_Strike_Min=800
 
 class ContractPrice:
     def __init__(self):
@@ -261,10 +261,10 @@ opContractList = [
     makeOptContract(sym='SPX', exp='20161130', strike='', right='C'),
     makeOptContract(sym='SPX', exp='20161215', strike='', right='P'),
     makeOptContract(sym='SPX', exp='20161215', strike='', right='C'),
-    makeOptContract(sym='RUT', exp='20160831', strike='', right='P'),
-    makeOptContract(sym='RUT', exp='20160831', strike='', right='C'),
     makeOptContract(sym='RUT', exp='20160915', strike='', right='P'),
     makeOptContract(sym='RUT', exp='20160915', strike='', right='C'),
+    makeOptContract(sym='RUT', exp='20160930', strike='', right='P'),
+    makeOptContract(sym='RUT', exp='20160930', strike='', right='C'),
     makeOptContract(sym='RUT', exp='20161020', strike='', right='P'),
     makeOptContract(sym='RUT', exp='20161020', strike='', right='C'),
     makeOptContract(sym='RUT', exp='20161215', strike='', right='P'),
