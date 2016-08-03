@@ -16,8 +16,8 @@ orderIdMktReqContractDict = None
 priceInfoDict = {}
 
 SPX_Strike_Max=2450
-SPX_Strike_Min=1600
-RUT_Strike_Max=1500
+SPX_Strike_Min=1400
+RUT_Strike_Max=1600
 RUT_Strike_Min=800
 
 class ContractPrice:
