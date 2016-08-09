@@ -16,9 +16,9 @@ orderIdMktReqContractDict = None
 priceInfoDict = {}
 
 SPX_Strike_Max=2450
-SPX_Strike_Min=1000
-RUT_Strike_Max=1500
-RUT_Strike_Min=700
+SPX_Strike_Min=1400
+RUT_Strike_Max=1600
+RUT_Strike_Min=800
 
 class ContractPrice:
     def __init__(self):
@@ -247,8 +247,6 @@ def writeToFile(sectype,symbol):
 # -- main  ---------------------------------------------------------------------
 #18 elements finish in 4min15s
 opContractList = [
-    makeOptContract(sym='SPX', exp='20160831', strike='', right='P'),
-    makeOptContract(sym='SPX', exp='20160831', strike='', right='C'),
     makeOptContract(sym='SPX', exp='20160915', strike='', right='P'),
     makeOptContract(sym='SPX', exp='20160915', strike='', right='C'),
     makeOptContract(sym='SPX', exp='20160930', strike='', right='P'),
@@ -263,10 +261,10 @@ opContractList = [
     makeOptContract(sym='SPX', exp='20161130', strike='', right='C'),
     makeOptContract(sym='SPX', exp='20161215', strike='', right='P'),
     makeOptContract(sym='SPX', exp='20161215', strike='', right='C'),
-    makeOptContract(sym='RUT', exp='20160831', strike='', right='P'),
-    makeOptContract(sym='RUT', exp='20160831', strike='', right='C'),
     makeOptContract(sym='RUT', exp='20160915', strike='', right='P'),
     makeOptContract(sym='RUT', exp='20160915', strike='', right='C'),
+    makeOptContract(sym='RUT', exp='20160930', strike='', right='P'),
+    makeOptContract(sym='RUT', exp='20160930', strike='', right='C'),
     makeOptContract(sym='RUT', exp='20161020', strike='', right='P'),
     makeOptContract(sym='RUT', exp='20161020', strike='', right='C'),
     makeOptContract(sym='RUT', exp='20161215', strike='', right='P'),
