@@ -31,14 +31,6 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   udlStepPct<-Setting$UdlStepPct
   udlChgPct<-seq(-udlStepPct*udlStepNum,udlStepPct*udlStepNum,length=(2*udlStepNum)+1)
   
-  #weighting calculate
-  #sd_multp<- (1)
-  #anlzd_sd<-histIV$IVIDX[1]*Setting$HV_IV_Adjust_Ratio
-  #sd_hd<-(anlzd_sd/sqrt(252/sd_multp))
-  #f.y.i sd_hd<-exp(anlzd_sd*sqrt(sd_multp/252))-1 #exponential expression
-  #weight<-dnorm(udlChgPct,mean=sd_multp/252*Setting$Weight_Drift,sd=sd_hd)*sd_hd / sum(dnorm(udlChgPct,mean=sd_multp/252*Setting$Weight_Drift,sd=sd_hd)*sd_hd)
-  #if(isDebug){cat(":(weight 1stDay)",weight)}
-  
   #dATMIV/dIVIDX 1 day regression result
   posStepDays<-data.frame(days=c(1,Setting$holdDays))
   posStepDays %>% group_by(days) %>%
@@ -48,11 +40,18 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   #Use for checking volatility sensitivity later
   posStepDays_vc<-posStepDays
   
-  #holdDay changes
-  posStepDays %>% group_by(days) %>% rowwise() %>%
-    do(days=.$days,scene2=adjustPosChg(.$scene,base_vol_chg=0,
-                                       multi=PosMultip,hdd=Setting$holdDays,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)) -> tmp
-  unlist(tmp$days) -> posStepDays$days ; tmp$scene2 -> posStepDays$scene ;rm(tmp)
+  ## In adjustPosChg, 
+  #    1. change IVIDX=IVIDX*(1+base_vol_chg) ividx_up_dn=base_vol_chg
+  #    2. change ATMIV using get.Volatility.Change.Regression.Result(ividx_up_dn)
+  #    3. change OrigIV = ATMIV*skewRegressionResult
+  #
+  #   But already ATMIV has been changed in reflectPosChg of createPositionEvalTable.
+  #   Does this process really need? I don't think so. So comment out folowing lines.
+  #
+  #posStepDays %>% group_by(days) %>% rowwise() %>%
+  #  do(days=.$days,scene2=adjustPosChg(.$scene,base_vol_chg=0,
+  #                                     multi=PosMultip,hdd=Setting$holdDays,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)) -> tmp
+  #unlist(tmp$days) -> posStepDays$days ; tmp$scene2 -> posStepDays$scene ;rm(tmp)
   
   if(isDebug){cat("\n:(1st day evalTble)\n");print(posStepDays$scene[[1]])}
   if(isDebug){print(posStepDays$scene[[1]]$pos)}
@@ -95,11 +94,8 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   sd_hd<-(anlzd_sd/sqrt(252/sd_multp))
   sd_hd_1d<-(anlzd_sd/sqrt(252/1))
   #f.y.i sd_hd<-exp(anlzd_sd*sqrt(sd_multp/252))-1 #exponential expression
-  #weight<-dnorm(udlChgPct,mean=sd_multp/252*Setting$Weight_Drift,sd=sd_hd)*sd_hd / sum(dnorm(udlChgPct,mean=sd_multp/252*Setting$Weight_Drift,sd=sd_hd)*sd_hd)
   weight<-dsn(udlChgPct,xi=sd_multp/252*Setting$Weight_Drift,alpha=Setting$Weight_Skew*sd_hd,omega=sd_hd)/sum(dsn(udlChgPct,xi=sd_multp/252*Setting$Weight_Drift,alpha=Setting$Weight_Skew*sd_hd,omega=sd_hd))
-  #weight_Effect_hd<-dnorm(udlChgPct,mean=sd_multp/252*Setting$Weight_Drift_GreekEffect,sd=sd_hd)*sd_hd / sum(dnorm(udlChgPct,mean=sd_multp/252*Setting$Weight_Drift_GreekEffect,sd=sd_hd)*sd_hd)
   weight_Effect_hd<-dsn(udlChgPct,xi=sd_multp/252*Setting$Weight_Drift_GreekEffect,alpha=Setting$Weight_Drift_GreekEffect*sd_hd,omega=sd_hd) / sum(dsn(udlChgPct,xi=sd_multp/252*Setting$Weight_Drift_GreekEffect,alpha=Setting$Weight_Drift_GreekEffect*sd_hd,omega=sd_hd))
-  #weight_Effect_1d<-dnorm(udlChgPct,mean=1/252*Setting$Weight_Drift_GreekEffect,sd=sd_hd_1d)*sd_hd_1d / sum(dnorm(udlChgPct,mean=1/252*Setting$Weight_Drift_GreekEffect,sd=sd_hd_1d)*sd_hd_1d)
   weight_Effect_1d<-dsn(udlChgPct,xi=1/252*Setting$Weight_Drift_GreekEffect,alpha=Setting$Weight_Drift_GreekEffect*sd_hd_1d,omega=sd_hd_1d) / sum(dsn(udlChgPct,xi=1/252*Setting$Weight_Drift_GreekEffect,alpha=Setting$Weight_Drift_GreekEffect*sd_hd_1d,omega=sd_hd_1d))
   #average weighted weight_Effect
   weight_Effect=weight_Effect_1d*Setting$GreekEfctOnHldD+weight_Effect_hd*(1-Setting$GreekEfctOnHldD)
@@ -275,36 +271,11 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   
   ##
   #    Vega
-  ##Vega_Neutral_Offset
-  #   expIVChange<-getExpectedValueChange(base=posEvalTbl$IVIDX,sd=annuual.daily.volatility(histIV$IVIDX)$daily,dtime=Setting$holdDays)*100
-  #   Vega_revised_offset<-posEvalTbl$Vega-Vega_Neutral_Offset
-  #   Vega_Effect_revised_offset<- (-abs(Vega_revised_offset))*expIVChange
-  #   if(isDetail){
-  #     cat(" :(expIVChange)",expIVChange," :(Vega Offset)",Vega_revised_offset," :(VegaE offset)",Vega_Effect_revised_offset)
-  #     
-  #   }
-  #   Vega_revised_offset<-sum(Vega_revised_offset*weight_Effect)
-  #   Vega_Effect_revised_offset<-sum(Vega_Effect_revised_offset*weight_Effect)
-  #   if(isDetail){
-  #     cat(" :(VegaE_Wght)",Vega_Effect_revised_offset," :(Vega_Wght)",Vega_revised_offset)
-  #   }
-  
-  ##Vega_Thresh_Minus,Vega_Thresh_Plus
-  #   VegaEffect_Comp<-(Vega_revised_offset<0)*(Vega_revised_offset<Setting$Vega_Thresh_Minus[length(position$TYPE)])*Vega_Effect_revised_offset+
-  #     (Vega_revised_offset>0)*(Vega_revised_offset>Setting$Vega_Thresh_Plus[length(position$TYPE)])*Vega_Effect_revised_offset
-  #    if(isDetail){
-  #     cat(" :betwn (Vega_Thresh_Minus)",Setting$Vega_Thresh_Minus[length(position$TYPE)],
-  #         " and (Vega_Thresh_Plus)",Setting$Vega_Thresh_Plus[length(position$TYPE)])
-  #     cat(" :(new VegaE_wght)",VegaEffect_Comp)
-  #    }
   VegaEffect_Comp = (-1)*abs(VegaEffectWithSign)
   Vega_revised_offset=Vega_True
   
-  #Vega_revised_offset=Vega_True-Vega_Neutral_Offset
-  #Vega_Effect_revised_offset= (-abs(Vega_revised_offset))*expIVChange
-  
   ##
-  # Vega_Direct_Prf,Delta_Direct_Prf reflected as coef
+  # Delta_Direct_Prf, Vega_Direct_Prf reflected as coef
   dlta_pref_coef<-(Delta_Direct_Prf==0)*(-1)+
     (Delta_Direct_Prf>0)*(Delta_revised_offset>=0)+(Delta_Direct_Prf>0)*(Delta_revised_offset<0)*(-1)+
     (Delta_Direct_Prf<0)*(Delta_revised_offset>=0)*(-1)+(Delta_Direct_Prf<0)*(Delta_revised_offset<0)
