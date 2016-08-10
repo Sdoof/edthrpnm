@@ -158,7 +158,7 @@ def subscribeContractList(opCont,con):
     theOrderId = nextOrderId
     con.reqContractDetails(theOrderId, opCont)
     #raw_input('wait for contractDetail press to continue')
-    sleep(2.5)
+    sleep(5)
     contractRemoveList = []
     for con_item in range(len(contractRestoreList)):
         con_each = contractRestoreList[con_item]
@@ -247,8 +247,6 @@ def writeToFile(sectype,symbol):
 # -- main  ---------------------------------------------------------------------
 #18 elements finish in 4min15s
 opContractList = [
-    makeOptContract(sym='SPX', exp='20160915', strike='', right='P'),
-    makeOptContract(sym='SPX', exp='20160915', strike='', right='C'),
     makeOptContract(sym='SPX', exp='20160930', strike='', right='P'),
     makeOptContract(sym='SPX', exp='20160930', strike='', right='C'),
     makeOptContract(sym='SPX', exp='20161020', strike='', right='P'),
@@ -267,6 +265,8 @@ opContractList = [
     makeOptContract(sym='RUT', exp='20160930', strike='', right='C'),
     makeOptContract(sym='RUT', exp='20161020', strike='', right='P'),
     makeOptContract(sym='RUT', exp='20161020', strike='', right='C'),
+    makeOptContract(sym='RUT', exp='20161031', strike='', right='P'),
+    makeOptContract(sym='RUT', exp='20161031', strike='', right='C'),
     makeOptContract(sym='RUT', exp='20161215', strike='', right='P'),
     makeOptContract(sym='RUT', exp='20161215', strike='', right='C')
 ]
@@ -308,7 +308,7 @@ if __name__ == '__main__':
         #raw_input('requesting Fx Futre Option length press any to continue ')
         subscribeDataRequest(con)
         #raw_input('cancel mktData %s press any to continue' % (orderIdMktReqContractDict.keys()))
-        sleep(12)
+        sleep(14)
         for req_order_id in orderIdMktReqContractDict.iterkeys():
             con.cancelMktData(req_order_id)
         #raw_input('Price data writing to file press to continue')
