@@ -281,7 +281,6 @@ idxContractList = [
 if __name__ == '__main__':
     # Server Access
     con = Connection.create(port=port_G, clientId=clientId_G)
-    # con.registerAll(MessageHandler)
     con.register(ErrorHandler, 'Error')
     con.register(NextValidIdHandler, 'NextValidId')
     con.register(MultiContractDetailsHandler, 'ContractDetails')
@@ -289,14 +288,9 @@ if __name__ == '__main__':
     con.register(TickPriceHandler, 'TickPrice')
     con.connect()
     con.setServerLogLevel(5)
-
-    # get mext Order Id
-    #raw_input('wait for nextOrderId')
+    # get next Order Id
     con.reqIds(1)
     sleep(1)
-
-    #raw_input('getting Fx Future Option Contract press any to continue')
-    print('getting Fx Future Option Contract')
 
     #Option Contract
     for opContract_item in range(len(opContractList)):
@@ -308,13 +302,15 @@ if __name__ == '__main__':
         #raw_input('requesting Fx Futre Option length press any to continue ')
         subscribeDataRequest(con)
         #raw_input('cancel mktData %s press any to continue' % (orderIdMktReqContractDict.keys()))
-        sleep(14)
+        sleep(13)
         for req_order_id in orderIdMktReqContractDict.iterkeys():
             con.cancelMktData(req_order_id)
         #raw_input('Price data writing to file press to continue')
         print('Price data writing to file press to continue')
-        sleep(2)
         con.disconnect()
+        sleep(2)
+        clientId_G=clientId_G+1
+        print('New connection clientId %s' % (clientId_G))
         con = Connection.create(port=port_G, clientId=clientId_G)
         # con.registerAll(MessageHandler)
         con.register(ErrorHandler, 'Error')
@@ -342,8 +338,10 @@ if __name__ == '__main__':
         for req_order_id in orderIdMktReqContractDict.iterkeys():
             con.cancelMktData(req_order_id)
         #raw_input('Price data writing to file press to continue')
-        sleep(2)
         con.disconnect()
+        sleep(2)
+        clientId_G=clientId_G+1
+        print('New connection clientId %s' % (clientId_G))
         con = Connection.create(port=port_G, clientId=clientId_G)
         # con.registerAll(MessageHandler)
         con.register(ErrorHandler, 'Error')
@@ -360,7 +358,6 @@ if __name__ == '__main__':
     # Receive the new OrderId sequence from the IB Server
     con.reqIds(1)
     sleep(2)
-
     # disconnect
     con.disconnect()
     sleep(3)
