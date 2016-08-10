@@ -45,13 +45,13 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   #    2. change ATMIV using get.Volatility.Change.Regression.Result(ividx_up_dn)
   #    3. change OrigIV = ATMIV*skewRegressionResult
   #
-  #   But already ATMIV has been changed in reflectPosChg of createPositionEvalTable.
-  #   Does this process really need? I don't think so. So comment out folowing lines.
+  #   But ATMIV has been already changed in reflectPosChg which is called from createPositionEvalTable.
+  #   Is this process really needed? I don't think so. So comment out folowing lines.
   #
-  #posStepDays %>% group_by(days) %>% rowwise() %>%
-  #  do(days=.$days,scene2=adjustPosChg(.$scene,base_vol_chg=0,
-  #                                     multi=PosMultip,hdd=Setting$holdDays,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)) -> tmp
-  #unlist(tmp$days) -> posStepDays$days ; tmp$scene2 -> posStepDays$scene ;rm(tmp)
+  # posStepDays %>% group_by(days) %>% rowwise() %>%
+  #   do(days=.$days,scene2=adjustPosChg(.$scene,base_vol_chg=0,
+  #                                      multi=PosMultip,hdd=Setting$holdDays,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)) -> tmp
+  # unlist(tmp$days) -> posStepDays$days ; tmp$scene2 -> posStepDays$scene ;rm(tmp)
   
   if(isDebug){cat("\n:(1st day evalTble)\n");print(posStepDays$scene[[1]])}
   if(isDebug){print(posStepDays$scene[[1]]$pos)}
@@ -152,11 +152,12 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
     profit_vector_vc_minus<-profit_vector_vc_minus-as.numeric(iniDelta)*(posEvalTbl$UDLY-mean(thePositionGrk$UDLY))
     profit_hdays_vc_minus<-sum(profit_vector_vc_minus*weight)
     if(isDetail){cat(" :(prft_vec_dh_vc-)",profit_vector_vc_minus);cat(" :(prft_wght_dh_vc-)",profit_hdays_vc_minus)}
-    
   }
   
   ##
   #  sd and max_loss
+  
+  # maxLoss
   maxLoss<-min(c(profit_vector,profit_vector_vc_plus,profit_vector_vc_minus))
   
   ## MaxLoss Constraint
@@ -166,17 +167,18 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
     }
     return(unacceptableVal)
   }
-  #calculating sd
+  
+  # calculating sd
   pdist<-c(rep(rep(profit_vector,times=round(weight*100)),times=round(weight_IV*100)[2]),
            rep(rep(profit_vector_vc_plus,times=round(weight*100)),times=round(weight_IV*100)[3]),
            rep(rep(profit_vector_vc_minus,times=round(weight*100)),times=round(weight_IV*100)[1]))
   profit_sd<-sd(pdist)
+  
   if(isDetail){
     cat(" :(profit_sd)",profit_sd);cat(" :(max_loss)",maxLoss);cat(" :(loss_limit_price)",Setting$LossLimitPrice)
   }
   
-  #c3 profit
-  
+  ## c3 profit
   c3<- sum(c(profit_hdays_vc_minus,profit_hdays,profit_hdays_vc_plus)*weight_IV)
   
   # ROIC
@@ -188,7 +190,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
     ROIC=profit_expctd/(-maxLoss)
   }
   
-  #c8 metric
+  ## c8 metric
   c8<- profit_sd
   if(Setting$EvalConvex)
     c8<- (-1)*maxLoss
@@ -247,7 +249,9 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   ##
   # Directional Effects.
   ##
-  #   Delta
+  
+  ##
+  #    Delta
   
   ##Delta_Neutral_Offset
   expPriceChange <- getExpectedValueChange(base=posEvalTbl$UDLY,sd=posEvalTbl$IVIDX*Setting$HV_IV_Adjust_Ratio, dtime=Setting$holdDays/252)
@@ -271,6 +275,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   
   ##
   #    Vega
+  
   VegaEffect_Comp = (-1)*abs(VegaEffectWithSign)
   Vega_revised_offset=Vega_True
   
@@ -334,7 +339,8 @@ getPosGreeks<-function(pos,greek,multi){
   pos_greek
 }
 
-#getGreekEffects
+###
+##  getGreekEffects
 
 getThetaEffect<-function(pos,greek,multi,hdd){
   theta<-getPosGreeks(pos=pos,greek=greek,multi=multi)
@@ -398,7 +404,8 @@ getVommaEffect<-function(pos,greek,ividx,dviv,multi,hdd){
 }
 
 
-#Factory of Volatility Level Regression Result
+##
+#  Factory of Volatility Level Regression Result
 get.Volatility.Level.Regression<-function(Days=holdDays,ctoc=TRUE){
   daysCandidate=c(1,3,5,7,12,18)
   daysdiff=abs(c(daysCandidate)-Days)
@@ -419,13 +426,18 @@ get.Volatility.Level.Regression<-function(Days=holdDays,ctoc=TRUE){
   }
 }
 
+##
+# Volatility Change Regression
+
 #read from get.Volatility.Change.Regression.Result to get specific regression values.
 get.VolChg<-function(model,month){
   chg<-predict(model,x=month)
   return(chg)
 }
 
-#get the ATMIV_pos/ATMIV_pre (Result of Vchg regression) as a vector for each position element
+#get VC.f(=ATMIV.f/IVIDX.f) as a vector for each position element.
+# where ATMIV.f=ATMIV_pos/ATMIV_pre, IVIDX.f= IVIDX_pos/IVIDX_pre. 
+# VC.f also depends on the option's TYPE, whether IVIDX went up or down, and TimeToExpPdate.
 get.Volatility.Change.Regression.Result<-function(pos,up_dn){
   atmiv_chg<-           (pos$TYPE==OpType_Put_G)*(up_dn>=0)*(get.VolChg(model=PutIVChgUp,month=pos$TimeToExpDate))$y
   atmiv_chg<-atmiv_chg+(pos$TYPE==OpType_Call_G)*(up_dn>=0)*(get.VolChg(model=CallIVChgUp,month=pos$TimeToExpDate))$y
@@ -434,13 +446,16 @@ get.Volatility.Change.Regression.Result<-function(pos,up_dn){
   atmiv_chg
 }
 
-#read from et.Volatility.Cone.Regression.Result to get specific regression values.
+##
+# Volatility Cone
+
+#read from get.Volatility.Cone.Regression.Result to get specific regression values.
 get.VCone<-function(model,month){
   cone<-predict(model,x=month)
   return(cone)
 }
 
-#get the ATMIV_pos/ATMIV_pre (Result of Vchg regression) as a vector for each position element
+#get the regression result as a vector for each position element.
 get.Volatility.Cone.Regression.Result<-function(optype,month){
   cone<-(optype==OpType_Put_G)*(get.VCone(model=PutVCone,month=month))$y
   cone<-cone+(optype==OpType_Call_G)*(get.VCone(model=CallVCone,month=month))$y
@@ -453,6 +468,19 @@ get.UDLY.Changed.Price<-function(udly,chg_pct){
   change<-udly*chg_pct
   change
 }
+
+
+##
+# hollowing NonZero Position from option chain(Opchain)
+hollowNonZeroPosition<-function(pos){
+  #opchain is global parameter. to avoid unnessary copying
+  opchain$Position<-pos
+  opchain %>% dplyr::filter(Position!=0) -> position
+  position
+}
+
+##
+#  Creation of Position Evaluation Table
 
 # operate to each position data frame based on scenaro changes
 # process_df is a data frame like this.
@@ -527,12 +555,6 @@ reflectPosChg<- function(process_df,days,IV_DEVIATION=0,MIN_IVIDX_CHG=(-0.5)){
   pos
 }
 
-hollowNonZeroPosition<-function(pos){
-  #opchain is global parameter. to avoid unnessary copying
-  opchain$Position<-pos
-  opchain %>% dplyr::filter(Position!=0) -> position
-  position
-}
 
 createPositionEvalTable<-function(position,udlStepNum,udlStepPct,multi,hdd,HV_IV_Adjust_Ratio){
   udlChgPct<-seq(-udlStepPct*udlStepNum,udlStepPct*udlStepNum,length=(2*udlStepNum)+1)
@@ -603,6 +625,8 @@ getIntrisicValue<-function(udly_price,position,multip){
     (udly_price-position$Strike)*(-position$TYPE)*multip*position$Position
 }
 
+##
+# Sampling related functions
 
 sampleVerticalSpread<-function(targetOpTyep,verticalType,targetExpDate,isDebug=FALSE,isDetail=FALSE){
   
@@ -680,54 +704,6 @@ sampleMain<-function(sampleSpreadType,totalPopNum,targetExpDate,targetExpDate_f,
                              targetExpDate=targetExpDate,isDebug=isDebug,isDetail=idDetail)
       x<-y+z
       x<-x*spreadRatio[1]
-      
-    }else if(sampleSpreadType==IRON_CONDOR_PLUS_SINGLE_DIAGONAL_SMPLING){
-      y=sampleVerticalSpread(targetOpTyep=OpType_Put_G,
-                             verticalType=BULL_VERTICAL_SPREAD_TYPE,
-                             targetExpDate=targetExpDate,isDebug=isDebug,isDetail=idDetail)
-      
-      z=sampleVerticalSpread(targetOpTyep=OpType_Call_G,
-                             verticalType=BEAR_VERTICAL_SPREAD_TYPE,
-                             targetExpDate=targetExpDate,isDebug=isDebug,isDetail=idDetail)
-      
-      w=sampleDiagonalSpread(targetOpTyep=ifelse(runif(1)<=0.500000,OpType_Put_G,OpType_Call_G),
-                             diagonalType=ifelse(runif(1)<=0.500000,DIAGONAL_TYPE_LONG,DIAGONAL_TYPE_SHORT),
-                             targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,isDebug=isDebug,isDetail=idDetail)
-      x<-(y+z)*spreadRatio[1]+w*spreadRatio[2]
-      
-    }else if(sampleSpreadType==CALL_BEAR_SPREAD_SMPLING){
-      y=sampleVerticalSpread(targetOpTyep=OpType_Call_G,
-                             verticalType=BEAR_VERTICAL_SPREAD_TYPE,
-                             targetExpDate=targetExpDate,isDebug=isDebug,isDetail=idDetail)
-      x<-y*spreadRatio[1]
-      
-    }else if(sampleSpreadType==PUT_BULL_SPREAD_SMPLING){
-      y=sampleVerticalSpread(targetOpTyep=OpType_Put_G,
-                             verticalType=BULL_VERTICAL_SPREAD_TYPE,
-                             targetExpDate=targetExpDate,isDebug=isDebug,isDetail=idDetail)
-      x<-y*spreadRatio[1]
-      
-    }else if(sampleSpreadType==IRON_CONDOR_PLUS_DOUBLE_DIAGONAL_SMPLING){
-      y=sampleVerticalSpread(targetOpTyep=OpType_Put_G,
-                             verticalType=BULL_VERTICAL_SPREAD_TYPE,
-                             targetExpDate=targetExpDate,isDebug=isDebug,isDetail=idDetail)
-      
-      z=sampleVerticalSpread(targetOpTyep=OpType_Call_G,
-                             verticalType=BEAR_VERTICAL_SPREAD_TYPE,
-                             targetExpDate=targetExpDate,isDebug=isDebug,isDetail=idDetail)
-      
-      diagonalType=ifelse(runif(1)<=0.500000,DIAGONAL_TYPE_LONG,DIAGONAL_TYPE_SHORT)
-      w=sampleDiagonalSpread(targetOpTyep=OpType_Put_G,
-                             diagonalType=diagonalType,
-                             targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,isDebug=isDebug,isDetail=idDetail)
-      
-      diagonalType=ifelse(runif(1)<=0.500000,DIAGONAL_TYPE_LONG,DIAGONAL_TYPE_SHORT)
-      v=sampleDiagonalSpread(targetOpTyep=OpType_Call_G,
-                             diagonalType=diagonalType,
-                             targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,isDebug=isDebug,isDetail=idDetail)
-      
-      x<-(y+z)*spreadRatio[1]+w*spreadRatio[2]+v*spreadRatio[3]
-      
     }else if(sampleSpreadType==DOUBLE_DIAGONAL_SMPLING){
       diagonalType=ifelse(runif(1)<=0.500000,DIAGONAL_TYPE_LONG,DIAGONAL_TYPE_SHORT)
       y=sampleDiagonalSpread(targetOpTyep=OpType_Put_G,
@@ -745,53 +721,16 @@ sampleMain<-function(sampleSpreadType,totalPopNum,targetExpDate,targetExpDate_f,
                              targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,isDebug=isDebug,isDetail=idDetail)
       
       x<-y*spreadRatio[1]
-    }else if(sampleSpreadType==CALL_BEAR_SPREAD_PLUS_SINGLE_DIAGONAL_SMPLING){
+    }else if(sampleSpreadType==POOL_PLUS_SINGLE_DIAGONAL_SMPLING){
       
-      y=sampleVerticalSpread(targetOpTyep=OpType_Call_G,
-                             verticalType=BEAR_VERTICAL_SPREAD_TYPE,
-                             targetExpDate=targetExpDate,isDebug=isDebug,isDetail=idDetail)
+      s1<-pools[[ 1 ]][[2]][ceiling(runif(1, min=1e-320, max=nrow(pools[[1]][[2]]))), ]
+      y<-unlist(s1[1:length(iniPos)]);s1_score<-as.numeric(s1[length(s1)])
       
       z=sampleDiagonalSpread(targetOpTyep=ifelse(runif(1)<=0.500000,OpType_Put_G,OpType_Call_G),
                              diagonalType=ifelse(runif(1)<=0.500000,DIAGONAL_TYPE_LONG,DIAGONAL_TYPE_SHORT),
                              targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,isDebug=isDebug,isDetail=idDetail)
+      
       x<-y*spreadRatio[1]+z*spreadRatio[2]
-      
-    }else if(sampleSpreadType==PUT_BULL_SPREAD_PLUS_SINGLE_DIAGONAL_SMPLING){
-      y=sampleVerticalSpread(targetOpTyep=OpType_Put_G,
-                             verticalType=BULL_VERTICAL_SPREAD_TYPE,
-                             targetExpDate=targetExpDate,isDebug=isDebug,isDetail=idDetail)
-      z=sampleDiagonalSpread(targetOpTyep=ifelse(runif(1)<=0.500000,OpType_Put_G,OpType_Call_G),
-                             diagonalType=ifelse(runif(1)<=0.500000,DIAGONAL_TYPE_LONG,DIAGONAL_TYPE_SHORT),
-                             targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,isDebug=isDebug,isDetail=idDetail)
-      x<-y*spreadRatio[1]+z*spreadRatio[2]
-    }else if(sampleSpreadType==CALL_BEAR_SPREAD_PLUS_DOUBLE_DIAGONAL_SMPLING){
-      y=sampleVerticalSpread(targetOpTyep=OpType_Call_G,
-                             verticalType=BEAR_VERTICAL_SPREAD_TYPE,
-                             targetExpDate=targetExpDate,isDebug=isDebug,isDetail=idDetail)
-      z=sampleDiagonalSpread(targetOpTyep=OpType_Put_G,
-                             diagonalType=ifelse(runif(1)<=0.500000,DIAGONAL_TYPE_LONG,DIAGONAL_TYPE_SHORT),
-                             targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,isDebug=isDebug,isDetail=idDetail)
-      
-      w=sampleDiagonalSpread(targetOpTyep=ifelse(runif(1)<=0.500000,OpType_Put_G,OpType_Call_G),
-                             diagonalType=ifelse(runif(1)<=0.500000,DIAGONAL_TYPE_LONG,DIAGONAL_TYPE_SHORT),
-                             targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,isDebug=isDebug,isDetail=idDetail)
-      
-      x<-y*spreadRatio[1]+(z+w)*spreadRatio[2]
-    }else if(sampleSpreadType==PUT_BULL_SPREAD_PLUS_DOUBLE_DIAGONAL_SMPLING){
-      y=sampleVerticalSpread(targetOpTyep=OpType_Put_G,
-                             verticalType=BULL_VERTICAL_SPREAD_TYPE,
-                             targetExpDate=targetExpDate,isDebug=isDebug,isDetail=idDetail)
-      
-      diagonalType=ifelse(runif(1)<=0.500000,DIAGONAL_TYPE_LONG,DIAGONAL_TYPE_SHORT)
-      z=sampleDiagonalSpread(targetOpTyep=OpType_Put_G,
-                             diagonalType=diagonalType,
-                             targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,isDebug=isDebug,isDetail=idDetail)
-      diagonalType=ifelse(runif(1)<=0.500000,DIAGONAL_TYPE_LONG,DIAGONAL_TYPE_SHORT)
-      w=sampleDiagonalSpread(targetOpTyep=OpType_Call_G,
-                             diagonalType=diagonalType,
-                             targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,isDebug=isDebug,isDetail=idDetail)
-      
-      x<-y*spreadRatio[1]+(z+w)*spreadRatio[2]
     }else if(sampleSpreadType==POOL_PLUS_DOUBLE_DIAGONAL_SMPLING){
       
       s1<-pools[[ 1 ]][[2]][ceiling(runif(1, min=1e-320, max=nrow(pools[[1]][[2]]))), ]
@@ -807,16 +746,6 @@ sampleMain<-function(sampleSpreadType,totalPopNum,targetExpDate,targetExpDate_f,
                              targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,isDebug=isDebug,isDetail=idDetail)
       
       x<-y*spreadRatio[1]+(z+w)*spreadRatio[2]
-    }else if(sampleSpreadType==POOL_PLUS_SINGLE_DIAGONAL_SMPLING){
-      
-      s1<-pools[[ 1 ]][[2]][ceiling(runif(1, min=1e-320, max=nrow(pools[[1]][[2]]))), ]
-      y<-unlist(s1[1:length(iniPos)]);s1_score<-as.numeric(s1[length(s1)])
-      
-      z=sampleDiagonalSpread(targetOpTyep=ifelse(runif(1)<=0.500000,OpType_Put_G,OpType_Call_G),
-                             diagonalType=ifelse(runif(1)<=0.500000,DIAGONAL_TYPE_LONG,DIAGONAL_TYPE_SHORT),
-                             targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,isDebug=isDebug,isDetail=idDetail)
-      
-      x<-y*spreadRatio[1]+z*spreadRatio[2]
     }else if(sampleSpreadType==FILE_PLUS_VERTICAL_CREDIT_SPREAD){
       
       s1<-pools[[ 1 ]][[2]][ceiling(runif(1, min=1e-320, max=nrow(pools[[1]][[2]]))), ]
@@ -858,6 +787,94 @@ sampleMain<-function(sampleSpreadType,totalPopNum,targetExpDate,targetExpDate_f,
       w=sampleVerticalSpread(targetOpTyep=OpType_Call_G,
                              verticalType=BEAR_VERTICAL_SPREAD_TYPE,
                              targetExpDate=targetExpDate,isDebug=isDebug,isDetail=idDetail)
+      x<-y*spreadRatio[1]+(z+w)*spreadRatio[2]
+    }else if(sampleSpreadType==IRON_CONDOR_PLUS_SINGLE_DIAGONAL_SMPLING){
+      y=sampleVerticalSpread(targetOpTyep=OpType_Put_G,
+                             verticalType=BULL_VERTICAL_SPREAD_TYPE,
+                             targetExpDate=targetExpDate,isDebug=isDebug,isDetail=idDetail)
+      
+      z=sampleVerticalSpread(targetOpTyep=OpType_Call_G,
+                             verticalType=BEAR_VERTICAL_SPREAD_TYPE,
+                             targetExpDate=targetExpDate,isDebug=isDebug,isDetail=idDetail)
+      
+      w=sampleDiagonalSpread(targetOpTyep=ifelse(runif(1)<=0.500000,OpType_Put_G,OpType_Call_G),
+                             diagonalType=ifelse(runif(1)<=0.500000,DIAGONAL_TYPE_LONG,DIAGONAL_TYPE_SHORT),
+                             targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,isDebug=isDebug,isDetail=idDetail)
+      x<-(y+z)*spreadRatio[1]+w*spreadRatio[2]
+    }else if(sampleSpreadType==CALL_BEAR_SPREAD_SMPLING){
+      y=sampleVerticalSpread(targetOpTyep=OpType_Call_G,
+                             verticalType=BEAR_VERTICAL_SPREAD_TYPE,
+                             targetExpDate=targetExpDate,isDebug=isDebug,isDetail=idDetail)
+      x<-y*spreadRatio[1]
+      
+    }else if(sampleSpreadType==PUT_BULL_SPREAD_SMPLING){
+      y=sampleVerticalSpread(targetOpTyep=OpType_Put_G,
+                             verticalType=BULL_VERTICAL_SPREAD_TYPE,
+                             targetExpDate=targetExpDate,isDebug=isDebug,isDetail=idDetail)
+      x<-y*spreadRatio[1]
+    }else if(sampleSpreadType==IRON_CONDOR_PLUS_DOUBLE_DIAGONAL_SMPLING){
+      y=sampleVerticalSpread(targetOpTyep=OpType_Put_G,
+                             verticalType=BULL_VERTICAL_SPREAD_TYPE,
+                             targetExpDate=targetExpDate,isDebug=isDebug,isDetail=idDetail)
+      
+      z=sampleVerticalSpread(targetOpTyep=OpType_Call_G,
+                             verticalType=BEAR_VERTICAL_SPREAD_TYPE,
+                             targetExpDate=targetExpDate,isDebug=isDebug,isDetail=idDetail)
+      
+      diagonalType=ifelse(runif(1)<=0.500000,DIAGONAL_TYPE_LONG,DIAGONAL_TYPE_SHORT)
+      w=sampleDiagonalSpread(targetOpTyep=OpType_Put_G,
+                             diagonalType=diagonalType,
+                             targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,isDebug=isDebug,isDetail=idDetail)
+      
+      diagonalType=ifelse(runif(1)<=0.500000,DIAGONAL_TYPE_LONG,DIAGONAL_TYPE_SHORT)
+      v=sampleDiagonalSpread(targetOpTyep=OpType_Call_G,
+                             diagonalType=diagonalType,
+                             targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,isDebug=isDebug,isDetail=idDetail)
+      
+      x<-(y+z)*spreadRatio[1]+w*spreadRatio[2]+v*spreadRatio[3]
+    }else if(sampleSpreadType==CALL_BEAR_SPREAD_PLUS_SINGLE_DIAGONAL_SMPLING){
+      
+      y=sampleVerticalSpread(targetOpTyep=OpType_Call_G,
+                             verticalType=BEAR_VERTICAL_SPREAD_TYPE,
+                             targetExpDate=targetExpDate,isDebug=isDebug,isDetail=idDetail)
+      
+      z=sampleDiagonalSpread(targetOpTyep=ifelse(runif(1)<=0.500000,OpType_Put_G,OpType_Call_G),
+                             diagonalType=ifelse(runif(1)<=0.500000,DIAGONAL_TYPE_LONG,DIAGONAL_TYPE_SHORT),
+                             targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,isDebug=isDebug,isDetail=idDetail)
+      x<-y*spreadRatio[1]+z*spreadRatio[2]
+    }else if(sampleSpreadType==PUT_BULL_SPREAD_PLUS_SINGLE_DIAGONAL_SMPLING){
+      y=sampleVerticalSpread(targetOpTyep=OpType_Put_G,
+                             verticalType=BULL_VERTICAL_SPREAD_TYPE,
+                             targetExpDate=targetExpDate,isDebug=isDebug,isDetail=idDetail)
+      z=sampleDiagonalSpread(targetOpTyep=ifelse(runif(1)<=0.500000,OpType_Put_G,OpType_Call_G),
+                             diagonalType=ifelse(runif(1)<=0.500000,DIAGONAL_TYPE_LONG,DIAGONAL_TYPE_SHORT),
+                             targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,isDebug=isDebug,isDetail=idDetail)
+      x<-y*spreadRatio[1]+z*spreadRatio[2]
+    }else if(sampleSpreadType==CALL_BEAR_SPREAD_PLUS_DOUBLE_DIAGONAL_SMPLING){
+      y=sampleVerticalSpread(targetOpTyep=OpType_Call_G,
+                             verticalType=BEAR_VERTICAL_SPREAD_TYPE,
+                             targetExpDate=targetExpDate,isDebug=isDebug,isDetail=idDetail)
+      z=sampleDiagonalSpread(targetOpTyep=OpType_Put_G,
+                             diagonalType=ifelse(runif(1)<=0.500000,DIAGONAL_TYPE_LONG,DIAGONAL_TYPE_SHORT),
+                             targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,isDebug=isDebug,isDetail=idDetail)
+      
+      w=sampleDiagonalSpread(targetOpTyep=ifelse(runif(1)<=0.500000,OpType_Put_G,OpType_Call_G),
+                             diagonalType=ifelse(runif(1)<=0.500000,DIAGONAL_TYPE_LONG,DIAGONAL_TYPE_SHORT),
+                             targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,isDebug=isDebug,isDetail=idDetail)
+      x<-y*spreadRatio[1]+(z+w)*spreadRatio[2]
+    }else if(sampleSpreadType==PUT_BULL_SPREAD_PLUS_DOUBLE_DIAGONAL_SMPLING){
+      y=sampleVerticalSpread(targetOpTyep=OpType_Put_G,
+                             verticalType=BULL_VERTICAL_SPREAD_TYPE,
+                             targetExpDate=targetExpDate,isDebug=isDebug,isDetail=idDetail)
+      
+      diagonalType=ifelse(runif(1)<=0.500000,DIAGONAL_TYPE_LONG,DIAGONAL_TYPE_SHORT)
+      z=sampleDiagonalSpread(targetOpTyep=OpType_Put_G,
+                             diagonalType=diagonalType,
+                             targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,isDebug=isDebug,isDetail=idDetail)
+      diagonalType=ifelse(runif(1)<=0.500000,DIAGONAL_TYPE_LONG,DIAGONAL_TYPE_SHORT)
+      w=sampleDiagonalSpread(targetOpTyep=OpType_Call_G,
+                             diagonalType=diagonalType,
+                             targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,isDebug=isDebug,isDetail=idDetail)
       x<-y*spreadRatio[1]+(z+w)*spreadRatio[2]
     }
     
