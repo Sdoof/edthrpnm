@@ -19,7 +19,7 @@ cat("Realized Vol(120d anlzd)",annuual.daily.volatility(histPrc$Close[1:120])$an
 cat("Realized Vol(200d anlzd)",annuual.daily.volatility(histPrc$Close[1:200])$anlzd*100,"IV",histIV$Close[1])
 
 ##
-# Price2IVIDX
+# Price2IVIDX called from saveP2IVReg
 #  histPrc : vector such as histPrc$Close, histIVDf : vector such as histIV$Close
 
 Price2IVIDX <- function(histPrc,histIV,dataNum,xDayInt,start_day=1){
@@ -51,6 +51,8 @@ Price2IVIDX <- function(histPrc,histIV,dataNum,xDayInt,start_day=1){
   return(ret)
 }
 
+##
+# save the regression result.
 saveP2IVReg<-function(histPrc,histIV,dataNum,xDayInt,start_day=1){
   tmp=Price2IVIDX(histPrc,histIV,dataNum,xDayInt,start_day)
   P2IVxd=tmp$P2IVxd
@@ -60,8 +62,10 @@ saveP2IVReg<-function(histPrc,histIV,dataNum,xDayInt,start_day=1){
   #linear regression
   norns.lm<-lm(IVCFxdCtC~PCxdCtC, data=P2IVxd)
   summary(norns.lm)
-  #gg_+geom_abline(intercept=norns.lm$coefficient[1],slope=norns.lm$coefficient[2],color="orange")
-  save.PC2IV(model=norns.lm,PC=getvarname(PC5dCtC),IVC=getvarname(IVCF5dCtC),cor=co,
+  save.PC2IV(model=norns.lm,
+             PC=paste("PC",xDayInt,"dCtC",sep=""),
+             IVC=paste("IVCF",xDayInt,"dCtC",sep=""),
+             cor=co,
              pcstat=c(mean(tmp$PCxdCtC),sd(tmp$PCxdCtC)),
              ivstat=c(mean(tmp$IVCFxdCtC),sd(tmp$IVCFxdCtC)))
  
@@ -76,24 +80,60 @@ saveP2IVReg<-function(histPrc,histIV,dataNum,xDayInt,start_day=1){
 
 ######
 ## 5d
-tmp=saveP2IVReg(histPrc$Close,histIV$Close,min(504,DATA_NUM),5)
+xDayInt=5
+tmp=saveP2IVReg(histPrc$Close,histIV$Close,min(504,DATA_NUM),xDayInt)
 (gg<-ggplot(tmp$P2IVxd,aes(x=PCxdCtC,y=IVCFxdCtC))+geom_point())
 gg+geom_abline(intercept=tmp$lm$coefficient[1],slope=tmp$lm$coefficient[2],color="orange")
 #Load test
-load.PC2IV(PC=getvarname(PC5dCtC),IVC=getvarname(IVCF5dCtC))
+load.PC2IV(PC=paste("PC",xDayInt,"dCtC",sep=""),IVC=paste("IVCF",xDayInt,"dCtC",sep=""))
 PC5dCtC_IVCF5dCtC
 
 #####
 ##   3d
+xDayInt=3
+tmp=saveP2IVReg(histPrc$Close,histIV$Close,min(504,DATA_NUM),xDayInt)
+(gg<-ggplot(tmp$P2IVxd,aes(x=PCxdCtC,y=IVCFxdCtC))+geom_point())
+gg+geom_abline(intercept=tmp$lm$coefficient[1],slope=tmp$lm$coefficient[2],color="orange")
+#Load test
+load.PC2IV(PC=paste("PC",xDayInt,"dCtC",sep=""),IVC=paste("IVCF",xDayInt,"dCtC",sep=""))
+PC3dCtC_IVCF3dCtC
 
 #####
 ##   7d
+xDayInt=7
+tmp=saveP2IVReg(histPrc$Close,histIV$Close,min(504,DATA_NUM),xDayInt)
+(gg<-ggplot(tmp$P2IVxd,aes(x=PCxdCtC,y=IVCFxdCtC))+geom_point())
+gg+geom_abline(intercept=tmp$lm$coefficient[1],slope=tmp$lm$coefficient[2],color="orange")
+#Load test
+load.PC2IV(PC=paste("PC",xDayInt,"dCtC",sep=""),IVC=paste("IVCF",xDayInt,"dCtC",sep=""))
+PC7dCtC_IVCF7dCtC
 
 #####
 ##  12d
+xDayInt=12
+tmp=saveP2IVReg(histPrc$Close,histIV$Close,min(504,DATA_NUM),xDayInt)
+(gg<-ggplot(tmp$P2IVxd,aes(x=PCxdCtC,y=IVCFxdCtC))+geom_point())
+gg+geom_abline(intercept=tmp$lm$coefficient[1],slope=tmp$lm$coefficient[2],color="orange")
+#Load test
+load.PC2IV(PC=paste("PC",xDayInt,"dCtC",sep=""),IVC=paste("IVCF",xDayInt,"dCtC",sep=""))
+PC12dCtC_IVCF12dCtC
 
 #####
 ##  18d
+xDayInt=18
+tmp=saveP2IVReg(histPrc$Close,histIV$Close,min(504,DATA_NUM),xDayInt)
+(gg<-ggplot(tmp$P2IVxd,aes(x=PCxdCtC,y=IVCFxdCtC))+geom_point())
+gg+geom_abline(intercept=tmp$lm$coefficient[1],slope=tmp$lm$coefficient[2],color="orange")
+#Load test
+load.PC2IV(PC=paste("PC",xDayInt,"dCtC",sep=""),IVC=paste("IVCF",xDayInt,"dCtC",sep=""))
+PC18dCtC_IVCF18dCtC
 
 #####
 ##   1d
+xDayInt=1
+tmp=saveP2IVReg(histPrc$Close,histIV$Close,min(504,DATA_NUM),xDayInt)
+(gg<-ggplot(tmp$P2IVxd,aes(x=PCxdCtC,y=IVCFxdCtC))+geom_point())
+gg+geom_abline(intercept=tmp$lm$coefficient[1],slope=tmp$lm$coefficient[2],color="orange")
+#Load test
+load.PC2IV(PC=paste("PC",xDayInt,"dCtC",sep=""),IVC=paste("IVCF",xDayInt,"dCtC",sep=""))
+PC1dCtC_IVCF1dCtC
