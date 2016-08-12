@@ -5,27 +5,70 @@ library(dplyr)
 rm(list=ls())
 source('./ESourceRCode.R',encoding = 'UTF-8')
 
-#data row num
-DATA_NUM=2000
+#Data Num.
+DATA_NUM=504 # about 2 years equivalent 
 
 #read data file
-histPrc<-read.table(paste(DataFiles_Path_G,Underying_Symbol_G,"_Hist.csv",sep=""),header=T,sep=",",nrows=DATA_NUM)
-histIV<-read.table(paste(DataFiles_Path_G,Underying_Symbol_G,"_IV.csv",sep=""),header=T,sep=",",nrows=DATA_NUM)
+histPrc<-read.table(paste(DataFiles_Path_G,Underying_Symbol_G,"_Hist.csv",sep=""),header=T,sep=",")
+histIV<-read.table(paste(DataFiles_Path_G,Underying_Symbol_G,"_IV.csv",sep=""),header=T,sep=",")
+
+#inner joing for modify data inconsistency
+dplyr::inner_join(histPrc, histIV, by = "Date")->injoinPrcIV
+histPrc=injoinPrcIV$Close.x
+histIV=injoinPrcIV$Close.y
+Date=injoinPrcIV$Date
 
 #show Realized and Impled Volatility
-cat("Realized Vol(30d anlzd)",annuual.daily.volatility(histPrc$Close[1:30])$anlzd*100,"IV",histIV$Close[1])
-cat("Realized Vol(60d anlzd)",annuual.daily.volatility(histPrc$Close[1:60])$anlzd*100,"IV",histIV$Close[1])
-cat("Realized Vol(120d anlzd)",annuual.daily.volatility(histPrc$Close[1:120])$anlzd*100,"IV",histIV$Close[1])
-cat("Realized Vol(200d anlzd)",annuual.daily.volatility(histPrc$Close[1:200])$anlzd*100,"IV",histIV$Close[1])
+cat("Realized Vol(30d anlzd)",annuual.daily.volatility(histPrc[1:30])$anlzd*100,"IV",histIV[1])
+cat("Realized Vol(60d anlzd)",annuual.daily.volatility(histPrc[1:60])$anlzd*100,"IV",histIV[1])
+cat("Realized Vol(120d anlzd)",annuual.daily.volatility(histPrc[1:120])$anlzd*100,"IV",histIV[1])
+cat("Realized Vol(200d anlzd)",annuual.daily.volatility(histPrc[1:200])$anlzd*100,"IV",histIV[1])
+
+#selective parmeters
+IS_SELECTIVE_HISTIV_REGR=T
+a_low=0.8
+d_low=10
+a_high=1.2
+d_high=10
+
+##
+# select Suffix
+selectSuffixForValidIV <- function(histIV,xDayInt,a_low,d_low,a_high,d_high){
+  theIV=histIV[1]
+  SelectInclude=(histIV>=theIV*a_low | histIV>=(theIV-d_low))&(histIV<=theIV*a_high | histIV<=(theIV+d_high))
+  
+  SelectIncludeShift=numeric((length(SelectInclude)-xDayInt))
+  
+  SelectIncludeShift[1:xDayInt]=SelectInclude[1:xDayInt]
+  for(i in 1:(length(SelectInclude)-xDayInt)){
+    SelectIncludeShift[i+xDayInt]=SelectInclude[i]|SelectInclude[i+xDayInt]
+  }
+  which(SelectIncludeShift==1)->suffix_slctd
+  
+  return(suffix_slctd)
+}
 
 ##
 # Price2IVIDX called from saveP2IVReg
 #  histPrc : vector such as histPrc$Close, histIVDf : vector such as histIV$Close
 
-Price2IVIDX <- function(histPrc,histIV,dataNum,xDayInt,start_day=1){
+Price2IVIDX <- function(histPrc,histIV,dataNum,xDayInt,start_day=1,effectiv_suffix=0){
   
   PCxdCtC<- PCndCtC(hist=histPrc,n=xDayInt)
   IVCFxdCtC<-IVCFndCtC(iv=histIV,n=xDayInt)
+  
+  if(length(effectiv_suffix)>2){
+    PCxdCtC[suffix_slctd]->tmp
+    na.omit(tmp) %>% as.vector() -> PCxdCtC
+    IVCFxdCtC[suffix_slctd]->tmp
+    na.omit(tmp) %>% as.vector() -> IVCFxdCtC
+  }
+  
+  print(length(PCxdCtC))
+  print(length(IVCFxdCtC))
+  
+  if(length(PCxdCtC)<=(start_day+dataNum))
+    dataNum=length(PCxdCtC)-start_day
   
   #Regression
   PCxdCtC=PCxdCtC[start_day:(start_day+dataNum)]
@@ -53,8 +96,8 @@ Price2IVIDX <- function(histPrc,histIV,dataNum,xDayInt,start_day=1){
 
 ##
 # save the regression result.
-saveP2IVReg<-function(histPrc,histIV,dataNum,xDayInt,start_day=1){
-  tmp=Price2IVIDX(histPrc,histIV,dataNum,xDayInt,start_day)
+saveP2IVReg<-function(histPrc,histIV,dataNum,xDayInt,start_day=1,effectiv_suffix=0){
+  tmp=Price2IVIDX(histPrc,histIV,dataNum,xDayInt,start_day,effectiv_suffix=effectiv_suffix)
   P2IVxd=tmp$P2IVxd
   co=tmp$cor
   print(co)
@@ -81,7 +124,11 @@ saveP2IVReg<-function(histPrc,histIV,dataNum,xDayInt,start_day=1){
 ######
 ## 5d
 xDayInt=5
-tmp=saveP2IVReg(histPrc$Close,histIV$Close,min(504,DATA_NUM),xDayInt)
+tmp=saveP2IVReg(histPrc,histIV,DATA_NUM,xDayInt)
+if(IS_SELECTIVE_HISTIV_REGR){
+  selectSuffixForValidIV(histIV,xDayInt,a_low,d_low,a_high,d_high)->suffix_slctd
+  tmp=saveP2IVReg(histPrc,histIV,DATA_NUM,xDayInt,effectiv_suffix=suffix_slctd)
+}
 (gg<-ggplot(tmp$P2IVxd,aes(x=PCxdCtC,y=IVCFxdCtC))+geom_point())
 gg+geom_abline(intercept=tmp$lm$coefficient[1],slope=tmp$lm$coefficient[2],color="orange")
 #Load test
@@ -91,7 +138,11 @@ PC5dCtC_IVCF5dCtC
 #####
 ##   3d
 xDayInt=3
-tmp=saveP2IVReg(histPrc$Close,histIV$Close,min(504,DATA_NUM),xDayInt)
+tmp=saveP2IVReg(histPrc,histIV,DATA_NUM,xDayInt)
+if(IS_SELECTIVE_HISTIV_REGR){
+  selectSuffixForValidIV(histIV,xDayInt,a_low,d_low,a_high,d_high)->suffix_slctd
+  tmp=saveP2IVReg(histPrc,histIV,DATA_NUM,xDayInt,effectiv_suffix=suffix_slctd)
+}
 (gg<-ggplot(tmp$P2IVxd,aes(x=PCxdCtC,y=IVCFxdCtC))+geom_point())
 gg+geom_abline(intercept=tmp$lm$coefficient[1],slope=tmp$lm$coefficient[2],color="orange")
 #Load test
@@ -101,7 +152,12 @@ PC3dCtC_IVCF3dCtC
 #####
 ##   7d
 xDayInt=7
-tmp=saveP2IVReg(histPrc$Close,histIV$Close,min(504,DATA_NUM),xDayInt)
+tmp=saveP2IVReg(histPrc,histIV,DATA_NUM,xDayInt)
+if(IS_SELECTIVE_HISTIV_REGR){
+  selectSuffixForValidIV(histIV,xDayInt,a_low,d_low,a_high,d_high)->suffix_slctd
+  tmp=saveP2IVReg(histPrc,histIV,DATA_NUM,xDayInt,effectiv_suffix=suffix_slctd)
+}
+tmp=saveP2IVReg(histPrc,histIV,DATA_NUM,xDayInt,effectiv_suffix=suffix_slctd)
 (gg<-ggplot(tmp$P2IVxd,aes(x=PCxdCtC,y=IVCFxdCtC))+geom_point())
 gg+geom_abline(intercept=tmp$lm$coefficient[1],slope=tmp$lm$coefficient[2],color="orange")
 #Load test
@@ -111,7 +167,11 @@ PC7dCtC_IVCF7dCtC
 #####
 ##  12d
 xDayInt=12
-tmp=saveP2IVReg(histPrc$Close,histIV$Close,min(504,DATA_NUM),xDayInt)
+tmp=saveP2IVReg(histPrc,histIV,DATA_NUM,xDayInt)
+if(IS_SELECTIVE_HISTIV_REGR){
+  selectSuffixForValidIV(histIV,xDayInt,a_low,d_low,a_high,d_high)->suffix_slctd
+  tmp=saveP2IVReg(histPrc,histIV,DATA_NUM,xDayInt,effectiv_suffix=suffix_slctd)
+}
 (gg<-ggplot(tmp$P2IVxd,aes(x=PCxdCtC,y=IVCFxdCtC))+geom_point())
 gg+geom_abline(intercept=tmp$lm$coefficient[1],slope=tmp$lm$coefficient[2],color="orange")
 #Load test
@@ -121,7 +181,11 @@ PC12dCtC_IVCF12dCtC
 #####
 ##  18d
 xDayInt=18
-tmp=saveP2IVReg(histPrc$Close,histIV$Close,min(504,DATA_NUM),xDayInt)
+tmp=saveP2IVReg(histPrc,histIV,DATA_NUM,xDayInt)
+if(IS_SELECTIVE_HISTIV_REGR){
+  selectSuffixForValidIV(histIV,xDayInt,a_low,d_low,a_high,d_high)->suffix_slctd
+  tmp=saveP2IVReg(histPrc,histIV,DATA_NUM,xDayInt,effectiv_suffix=suffix_slctd)
+}
 (gg<-ggplot(tmp$P2IVxd,aes(x=PCxdCtC,y=IVCFxdCtC))+geom_point())
 gg+geom_abline(intercept=tmp$lm$coefficient[1],slope=tmp$lm$coefficient[2],color="orange")
 #Load test
@@ -131,7 +195,11 @@ PC18dCtC_IVCF18dCtC
 #####
 ##   1d
 xDayInt=1
-tmp=saveP2IVReg(histPrc$Close,histIV$Close,min(504,DATA_NUM),xDayInt)
+tmp=saveP2IVReg(histPrc,histIV,DATA_NUM,xDayInt)
+if(IS_SELECTIVE_HISTIV_REGR){
+  selectSuffixForValidIV(histIV,xDayInt,a_low,d_low,a_high,d_high)->suffix_slctd
+  tmp=saveP2IVReg(histPrc,histIV,DATA_NUM,xDayInt,effectiv_suffix=suffix_slctd)
+}
 (gg<-ggplot(tmp$P2IVxd,aes(x=PCxdCtC,y=IVCFxdCtC))+geom_point())
 gg+geom_abline(intercept=tmp$lm$coefficient[1],slope=tmp$lm$coefficient[2],color="orange")
 #Load test
