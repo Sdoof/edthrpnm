@@ -6,7 +6,7 @@ source('./ESourceRCode.R',encoding = 'UTF-8')
 
 #switch: only for today or multiple days for skew calculation
 ProcessFileName=paste("_OPChain_Pre.csv",sep="")
-isSkewCalc=F
+isSkewCalc=T
 #set TRUE if this opchain is for Future Option 
 isFOP=F
 #set TRUE if this is today's new position, or (already holding position) set FALSE,
@@ -19,7 +19,7 @@ if(isSkewCalc)
 makeOpchainContainer<-function(){  
   #read data file
   rf_<-paste(DataFiles_Path_G,Underying_Symbol_G,ProcessFileName,sep="")
-  opch_pr_<-read.table(rf_,header=T,sep=",")
+  opch_pr_<-read.table(rf_,header=T,skipNul=T,stringsAsFactors=F,sep=",")
   
   #standarize (unify) data expression
   opch_pr_$Date=format(as.Date(opch_pr_$Date,format="%Y/%m/%d"),"%Y/%b/%d")
@@ -28,7 +28,11 @@ makeOpchainContainer<-function(){
   opch_pr_ %>% select(Strike,ContactName,TYPE,Date,ExpDate,Last,Bid,Ask) %>% 
     arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="%Y/%m/%d"),desc(TYPE),Strike) -> opch_pr_
   
+  na.omit(opch_pr_)->opch_pr_
+  
   opch_pr_$Position<-0
+  opch_pr_$Bid=as.numeric(opch_pr_$Bid)
+  opch_pr_$Ask=as.numeric(opch_pr_$Ask)
   opch_pr_$Price<-(opch_pr_$Bid+opch_pr_$Ask)/2
   
   opch_pr_$Theta<-opch_pr_$Vega<-opch_pr_$Gamma<-opch_pr_$Delta<-0
@@ -45,6 +49,8 @@ makeOpchainContainer<-function(){
   #opch_pr_<-subset(opch_pr_,Volume!=0)
   opch_pr2<-merge(opch_pr_,histPrc_,all.x=T)
   opch_pr_<-opch_pr2;
+  
+  na.omit(opch_pr_)->opch_pr_
   
   return(opch_pr_)
 }
@@ -135,13 +141,18 @@ if(!isFOP){
   cat("(:divYld_G)",divYld_G,"\n")
 }
 
+na.omit(opchain)->opchain
+
 #inconsistent data purged
 opchain %>% filter(Price!=0) -> opchain
-as.numeric(as.character(opchain$UDLY))
+opchain$Strike=as.numeric(opchain$Strike)
+opchain$TYPE=as.numeric(opchain$TYPE)
 opchain %>% filter((Strike-UDLY)*TYPE<Price) -> opchain
 
 #spread<ASK*k
 k<-0.4
+opchain$Ask=as.numeric(opchain$Ask)
+opchain$Bid=as.numeric(opchain$Bid)
 opchain %>% filter(!((Ask-Bid)>(Ask*k))) -> opchain
 rm(k)
 
@@ -325,11 +336,11 @@ opchain<-makePosition(opchain)
 
 ##
 # c(IronCondor{VerticalSpread},DIAGONAL_FRONT,DIAGONAL_BACK)
-# OOM Delta_Limit_MAX=c(0.25,0.18,0.18),Delta_Limit_MIN=c(0.09,0.07,0.07),
-# MOM Delta_Limit_MAX=c(0.25.40,0.40),Delta_Limit_MIN=c(0.09,0.18,0.18),
+# OOM Delta_Limit_MAX=c(0.25,0.2,0.2),Delta_Limit_MIN=c(0.09,0.07,0.07),
+# MOM Delta_Limit_MAX=c(0.25,0.40,0.40),Delta_Limit_MIN=c(0.09,0.16,0.16),
 filterPosition <- function(opchain,
-                           Delta_Limit_MAX=c(0.25,0.18,0.18),Delta_Limit_MIN=c(0.09,0.07,0.07),
-                           #Delta_Limit_MAX=c(0.25,0.40,0.40),Delta_Limit_MIN=c(0.09,0.18,0.18),
+                           Delta_Limit_MAX=c(0.25,0.2,0.2),Delta_Limit_MIN=c(0.09,0.07,0.07),
+                           #Delta_Limit_MAX=c(0.25,0.40,0.40),Delta_Limit_MIN=c(0.09,0.16,0.16),
                            TARGET_EXPDATE,TARGET_EXPDATE_FRONT,TARGET_EXPDATE_BACK){
   ##
   #  Filter Target Ranges 
