@@ -6,8 +6,8 @@ rm(list=ls())
 source('./ESourceRCode.R',encoding = 'UTF-8')
 
 #MAX ExpToDate for Skew Regression
-SkewRegressionTimeToExpDateMin<-2.0
-SkewRegressionTimeToExpDateMax<-3.8
+SkewRegressionTimeToExpDateMin<-1.8
+SkewRegressionTimeToExpDateMax<-4.1
 
 #We get regression only past this day. Currently reflected on Skew only.
 #should apply Vcone, etc.
@@ -52,7 +52,7 @@ opch %>% dplyr::arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="
 #Get ATM Implied Volatilities for each option types.
 ##START Create atmiv
 #opch %>% dplyr::group_by(Date,ExpDate,TYPE) %>% dplyr::filter(HowfarOOM>0) %>% 
-  #Get the OrigIV where HowfarOOM is minimum, ie. IV at ATM.
+#Get the OrigIV where HowfarOOM is minimum, ie. IV at ATM.
 #  dplyr::summarise(num=n(),OOM=min(abs(HowfarOOM)),min.i=which.min(abs(HowfarOOM)),ATMIV=OrigIV[which.min(abs(HowfarOOM))]
 #                   ,TimeToExpDate=TimeToExpDate[which.min(abs(HowfarOOM))],IVIDX=IVIDX[which.min(abs(HowfarOOM))]) %>% 
 #  as.data.frame() -> atmiv
@@ -77,7 +77,7 @@ atmiv$displace<-displace
 #merge
 opch <- merge(opch,
               atmiv %>% dplyr::select(Date,ExpDate,TYPE,ATMIV,displace) %>% as.data.frame(),
-#              by.x=c("Date","ExpDate","TYPE"),by.y=c("Date","ExpDate","TYPE"),all.x=T)
+              #              by.x=c("Date","ExpDate","TYPE"),by.y=c("Date","ExpDate","TYPE"),all.x=T)
               by.x=c("Date","ExpDate","TYPE","ATMIV"),by.y=c("Date","ExpDate","TYPE","ATMIV"),all=T)
 
 #sorting
@@ -167,14 +167,13 @@ SkewModel_Call
 vplot<-getNmlzdSkewMoneynessVplot(-3)
 (ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV),size=TimeToExpDate/2,colour=TYPE))+geom_point(alpha=0.2))
 (ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV)))+geom_point(alpha=0.2))
-
 models <- (get.skew.regression.Models(vplot,regtype=5,df=7))
 
 #5. (regtype) smooth splines
 get.predicted.skew(models,regtype=5,xmin=-1,x_by=0)
 (predict.c<-get.predicted.skew(models,regtype=5,xmin=-2.0,xmax=1.5))
 (ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV)))+geom_point(alpha=0.2)+
-   geom_line(data=data.frame(Moneyness.Nm=predict.c$x,IV2ATMIV=predict.c$y),aes(Moneyness.Nm,IV2ATMIV),color="red"))
+  geom_line(data=data.frame(Moneyness.Nm=predict.c$x,IV2ATMIV=predict.c$y),aes(Moneyness.Nm,IV2ATMIV),color="red"))
 
 #using SkewModel, adjust ATMIV to reflect the differnce between Strike and UDLY
 adjustATMIV <- function(atmiv){
@@ -192,10 +191,10 @@ atmiv$ATMIV<-ATMIV_adj
 rm(models,vplot,predict.c)
 
 ##
-# Volatility Cone and ATMIV%Chg/IVIDX%Chg Analysis and Regression.  --------------
+# Volatility Cone and ATMIV behavior analysis
 
 #
-# Getting and Creating atmiv.vcone.anal to analyze vcone and to model ATMIV%Chg/IVIDX%Chg
+# Getting and Creating atmiv.vcone.anal to analyze vcone and to model ATMIV behavior
 
 # inner function
 # called from do above. This function is called for each grouped data frame.
@@ -237,6 +236,15 @@ atmiv.vcone.anal<-NULL
 atmiv.vcone.anal<-atmiv.vcone.bind
 rm(i,atmiv.vcone.eachDF,atmiv.vcone.bind)
 
+#save atmiv.vcone.anal
+atmiv.vcone.anal %>% dplyr::select(Date,ExpDate,TYPE,ATMIV,Strike,UDLY,IVIDX,TimeToExpDate,ATMIV.f,IVIDX.f) %>% dplyr::distinct()-> atmiv.vcone.anal
+write.table(atmiv.vcone.anal,paste(DataFiles_Path_G,Underying_Symbol_G,"-ATMIV-VCONE-ANAL.csv",sep=""),row.names = F,col.names=T,sep=",",append=T)
+#read integrated atmiv.vcone.anal
+#tmp=read.table(paste(DataFiles_Path_G,Underying_Symbol_G,"-ATMIV-VCONE-ANAL.csv",sep=""),header=F,sep=",",stringsAsFactors=F)
+#colnames(tmp)=c("Date","ExpDate","TYPE","ATMIV","Strike","UDLY","IVIDX","TimeToExpDate","ATMIV.f","IVIDX.f")
+#tmp %>% dplyr::arrange(desc(TYPE),as.Date(ExpDate,format="%Y/%m/%d"),as.Date(Date,format="%Y/%m/%d")) %>% 
+#  dplyr::select(Date,ExpDate,TYPE,ATMIV,Strike,UDLY,IVIDX,TimeToExpDate,ATMIV.f,IVIDX.f) %>% dplyr::distinct()-> atmiv.vcone.anal
+
 ##
 # Vcone Regression
 
@@ -251,7 +259,7 @@ vcone %>% arrange(Month) -> vcone
 model.ss<-smooth.spline(vcone$Month,vcone$IV2IDX.nm,df=3)
 (predict.c <- predict(model.ss,x=seq(0,max(vcone$Month),by=0.1)))
 (ggplot(vcone,aes(x=Month,y=IV2IDX.nm,colour=Month))+geom_point()+
-   geom_line(data=data.frame(Month=predict.c$x,IV2IDX.nm=predict.c$y,TYPE=OpType_Put_G),aes(Month,IV2IDX.nm)))
+  geom_line(data=data.frame(Month=predict.c$x,IV2IDX.nm=predict.c$y,TYPE=OpType_Put_G),aes(Month,IV2IDX.nm)))
 
 save.VCone(model=model.ss,optype=OpType_Put_G)
 rm(vcone,predict.c,model.ss)
@@ -265,7 +273,7 @@ vcone<-make.vcone.df(atmiv=atmiv,type=-1)
 model.ss<-smooth.spline(vcone$Month,vcone$IV2IDX.nm,df=3)
 (predict.c <- predict(model.ss,x=seq(0,max(vcone$Month),by=0.1)))
 (ggplot(vcone,aes(x=Month,y=IV2IDX.nm,colour=Month))+geom_point()+
-   geom_line(data=data.frame(Month=predict.c$x,IV2IDX.nm=predict.c$y,TYPE=-1),aes(Month,IV2IDX.nm)))
+  geom_line(data=data.frame(Month=predict.c$x,IV2IDX.nm=predict.c$y,TYPE=-1),aes(Month,IV2IDX.nm)))
 
 save.VCone(model=model.ss,optype=OpType_Call_G)
 #loat test
@@ -276,8 +284,40 @@ CallVCone
 
 rm(PutVCone,CallVCone)
 rm(vcone,predict.c,model.ss)
+
 ##
-#  Regression of ATM IV Volatility Change to IVIDX as to Time -------
+#  Regression of ATM behavior
+
+##
+# creating ATMIDXIV.f
+atmiv.vcone.anal$ATMIDXIV.f=atmiv.vcone.anal$ATMIV/atmiv.vcone.anal$IVIDX
+atmiv.vcone.anal %>% filter(TYPE==OpType_Put_G) -> atmiv.vcone.anal.put
+atmiv.vcone.anal %>% filter(TYPE==OpType_Call_G) -> atmiv.vcone.anal.call
+
+(ggplot(atmiv.vcone.anal,aes(x=TimeToExpDate,y=ATMIDXIV.f,colour=TYPE))+geom_point())
+(ggplot(atmiv.vcone.anal.put,aes(x=TimeToExpDate,y=ATMIDXIV.f,colour=TYPE))+geom_point())
+(ggplot(atmiv.vcone.anal.call,aes(x=TimeToExpDate,y=ATMIDXIV.f,colour=TYPE))+geom_point())
+
+#PUT
+model.ss<-smooth.spline(atmiv.vcone.anal.put$TimeToExpDate,atmiv.vcone.anal.put$ATMIDXIV.f,df=3)
+(predict.c <- predict(model.ss,x=seq(0,max(atmiv.vcone.anal.put$TimeToExpDate),by=0.1)))
+(ggplot(atmiv.vcone.anal.put,aes(x=TimeToExpDate,y=ATMIDXIV.f,colour=TYPE))+geom_point()+
+  geom_line(data=data.frame(TimeToExpDate=predict.c$x,ATMIDXIV.f=predict.c$y,TYPE=1),aes(TimeToExpDate,ATMIDXIV.f)))
+
+save.ATMIDXIV.f(model.ss,OpType_Put_G)
+load.ATMIDXIV.f(OpType_Put_G)
+
+#CALL
+model.ss<-smooth.spline(atmiv.vcone.anal.call$TimeToExpDate,atmiv.vcone.anal.call$ATMIDXIV.f,df=3)
+(predict.c <- predict(model.ss,x=seq(0,max(atmiv.vcone.anal.call$TimeToExpDate),by=0.1)))
+(ggplot(atmiv.vcone.anal.call,aes(x=TimeToExpDate,y=ATMIDXIV.f,colour=TYPE))+geom_point()+
+  geom_line(data=data.frame(TimeToExpDate=predict.c$x,ATMIDXIV.f=predict.c$y,TYPE=1),aes(TimeToExpDate,ATMIDXIV.f)))
+
+save.ATMIDXIV.f(model.ss,OpType_Call_G)
+load.ATMIDXIV.f(OpType_Call_G)
+
+##
+# IV Change to IVIDX Up and Down
 
 #  Put IV Change to IVIDX Up and Down
 #Up and Down change
@@ -299,7 +339,7 @@ vchg_t<-vchg_plus
 model.ss<-smooth.spline(vchg_t$TimeToExpDate,vchg_t$VC.f,df=3)
 (predict.c <- predict(model.ss,x=seq(0,max(vchg_t$TimeToExpDate),by=0.1)))
 (ggplot(vchg_t,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point()+
-   geom_line(data=data.frame(TimeToExpDate=predict.c$x,VC.f=predict.c$y,TYPE=1),aes(TimeToExpDate,VC.f)))
+  geom_line(data=data.frame(TimeToExpDate=predict.c$x,VC.f=predict.c$y,TYPE=1),aes(TimeToExpDate,VC.f)))
 rm(vchg_t)
 save.IVChg(model.ss,OpType_Put_G,10)
 
@@ -307,7 +347,7 @@ vchg_t<-vchg_mns
 model.ss<-smooth.spline(vchg_t$TimeToExpDate,vchg_t$VC.f,df=3)
 (predict.c <- predict(model.ss,x=seq(0,max(vchg_t$TimeToExpDate),by=0.1)))
 (ggplot(vchg_t,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point()+
-   geom_line(data=data.frame(TimeToExpDate=predict.c$x,VC.f=predict.c$y,TYPE=1),aes(TimeToExpDate,VC.f)))
+  geom_line(data=data.frame(TimeToExpDate=predict.c$x,VC.f=predict.c$y,TYPE=1),aes(TimeToExpDate,VC.f)))
 rm(vchg_t)
 save.IVChg(model.ss,OpType_Put_G,-10)
 
@@ -315,7 +355,7 @@ rm(vchg,vchg_mns,vchg_plus,model.ss,predict.c)
 
 #  Call IV Change to IVIDX Up and Down 
 #Up and Down Changes
-  vchg<-make.vchg.df(vcone=atmiv.vcone.anal,type=-1)
+vchg<-make.vchg.df(vcone=atmiv.vcone.anal,type=-1)
 (ggplot(vchg,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point())
 vchg %>% filter(IVIDX.f>=1.0) -> vchg_plus
 (ggplot(vchg_plus,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point())
@@ -328,14 +368,14 @@ vchg_t<-vchg_plus
 model.ss<-smooth.spline(vchg_t$TimeToExpDate,vchg_t$VC.f,df=3)
 (predict.c <- predict(model.ss,x=seq(0,max(vchg_t$TimeToExpDate),by=0.1)))
 (ggplot(vchg_t,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point()+
-   geom_line(data=data.frame(TimeToExpDate=predict.c$x,VC.f=predict.c$y,TYPE=-1),aes(TimeToExpDate,VC.f)))
+  geom_line(data=data.frame(TimeToExpDate=predict.c$x,VC.f=predict.c$y,TYPE=-1),aes(TimeToExpDate,VC.f)))
 save.IVChg(model.ss,OpType_Call_G,10)
 
 vchg_t<-vchg_mns
 model.ss<-smooth.spline(vchg_t$TimeToExpDate,vchg_t$VC.f,df=3)
 (predict.c <- predict(model.ss,x=seq(0,max(vchg_t$TimeToExpDate),by=0.1)))
 (ggplot(vchg_t,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point()+
-   geom_line(data=data.frame(TimeToExpDate=predict.c$x,VC.f=predict.c$y,TYPE=-1),aes(TimeToExpDate,VC.f)))
+  geom_line(data=data.frame(TimeToExpDate=predict.c$x,VC.f=predict.c$y,TYPE=-1),aes(TimeToExpDate,VC.f)))
 rm(vchg_t)
 save.IVChg(model.ss,OpType_Call_G,-10)
 
@@ -352,7 +392,7 @@ rm(PutIVChgUp,PutIVChgDown,CallIVChgUp,CallIVChgDown)
 rm(vchg,vchg_mns,vchg_plus,model.ss,predict.c)
 
 ##
-# Post Process ------
+# Post Process
 
 #Writing to a file
 wf_<-paste(DataFiles_Path_G,Underying_Symbol_G,OpchainOutFileName,sep="")

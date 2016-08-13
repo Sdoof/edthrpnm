@@ -158,6 +158,29 @@ load.Skew<- function(pattern="") {
   assign(paste("SkewModel", pattern, sep=""),models,env=.GlobalEnv)
 }
 
+# ATM IV behavior
+
+save.ATMIDXIV.f<-function(model,optype){
+  if(optype==OpType_Put_G){
+    reg_saved_fn<-paste(DataFiles_Path_G,Underying_Symbol_G,"_PUT_ATMIDXIV.f",sep="")
+  }else if(optype==OpType_Call_G){
+    reg_saved_fn<-paste(DataFiles_Path_G,Underying_Symbol_G,"_CALL_ATMIDXIV.f",sep="")
+  }
+  save(model,file=reg_saved_fn)
+}
+
+load.ATMIDXIV.f<- function(optype) {
+  if(optype==OpType_Put_G){
+    reg_load_fn<-paste(DataFiles_Path_G,Underying_Symbol_G,"_PUT_ATMIDXIV.f",sep="")
+    load(reg_load_fn)
+    assign("PUT_ATMIDXIV.f",model,env=.GlobalEnv)
+  }else if(optype==OpType_Call_G){
+    reg_load_fn<-paste(DataFiles_Path_G,Underying_Symbol_G,"_CALL_ATMIDXIV.f",sep="")
+    load(reg_load_fn)
+    assign("CALL_ATMIDXIV.f",model,env=.GlobalEnv)
+  }
+}
+
 # ATM IV Volatility Change to IVIDX as to Time 
 
 save.IVChg<- function(model,optype,up_dn){

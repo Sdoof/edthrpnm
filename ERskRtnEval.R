@@ -40,19 +40,6 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   #Use for checking volatility sensitivity later
   posStepDays_vc<-posStepDays
   
-  ## In adjustPosChg, 
-  #    1. change IVIDX=IVIDX*(1+base_vol_chg) ividx_up_dn=base_vol_chg
-  #    2. change ATMIV using get.Volatility.Change.Regression.Result(ividx_up_dn)
-  #    3. change OrigIV = ATMIV*skewRegressionResult
-  #
-  #   But ATMIV has been already changed in reflectPosChg which is called from createPositionEvalTable.
-  #   Is this process really needed? I don't think so. So comment out folowing lines.
-  #
-  # posStepDays %>% group_by(days) %>% rowwise() %>%
-  #   do(days=.$days,scene2=adjustPosChg(.$scene,base_vol_chg=0,
-  #                                      multi=PosMultip,hdd=Setting$holdDays,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)) -> tmp
-  # unlist(tmp$days) -> posStepDays$days ; tmp$scene2 -> posStepDays$scene ;rm(tmp)
-  
   if(isDebug){cat("\n:(1st day evalTble)\n");print(posStepDays$scene[[1]])}
   if(isDebug){print(posStepDays$scene[[1]]$pos)}
   if(isDebug){cat(":(On holdDay evalTble)\n");print(posStepDays$scene[[length(posStepDays)]])}
@@ -470,6 +457,35 @@ get.UDLY.Changed.Price<-function(udly,chg_pct){
 }
 
 
+# ATM IV behavior
+
+save.ATMIDXIV.f<-function(model,optype){
+  if(optype==OpType_Put_G){
+    reg_saved_fn<-paste(DataFiles_Path_G,Underying_Symbol_G,"_PUT_ATMIDXIV.f",sep="")
+  }else if(optype==OpType_Call_G){
+    reg_saved_fn<-paste(DataFiles_Path_G,Underying_Symbol_G,"_CALL_ATMIDXIV.f",sep="")
+  }
+  save(model,file=reg_saved_fn)
+}
+
+load.ATMIDXIV.f<- function(optype) {
+  if(optype==OpType_Put_G){
+    reg_load_fn<-paste(DataFiles_Path_G,Underying_Symbol_G,"_PUT_ATMIDXIV.f",sep="")
+    load(reg_load_fn)
+    assign("PUT_ATMIDXIV.f",model,env=.GlobalEnv)
+  }else if(optype==OpType_Call_G){
+    reg_load_fn<-paste(DataFiles_Path_G,Underying_Symbol_G,"_CALL_ATMIDXIV.f",sep="")
+    load(reg_load_fn)
+    assign("CALL_ATMIDXIV.f",model,env=.GlobalEnv)
+  }
+}
+
+get.Volatility.Change.Regression.Result.ATMIDXIV.f<-function(pos,pos_TimeToExpDate){
+  atmiv_chg<-(pos$TYPE==OpType_Put_G)*predict(PUT_ATMIDXIV.f,x=pos_TimeToExpDate)$y
+  atmiv_chg<-atmiv_chg+(pos$TYPE==OpType_Call_G)*predict(CALL_ATMIDXIV.f,x=pos_TimeToExpDate)$y
+  atmiv_chg
+}
+
 ##
 # hollowing NonZero Position from option chain(Opchain)
 hollowNonZeroPosition<-function(pos){
@@ -503,15 +519,19 @@ reflectPosChg<- function(process_df,days,IV_DEVIATION=0,MIN_IVIDX_CHG=(-0.5)){
   pos$IVIDX<-pos$IVIDX*(1+ividx_chg_pct)
   
   # ATM IV change
-  pos$ATMIV<-pos$ATMIV*(1+ividx_chg_pct)*get.Volatility.Change.Regression.Result(pos,ividx_chg_pct)
+  #pos$ATMIV<-pos$ATMIV*(1+ividx_chg_pct)*get.Volatility.Change.Regression.Result(pos,ividx_chg_pct)
   
   #Volatility Cone の影響。時間変化した分の影響を受ける。その比の分だけ比率変化
   #ATMIV_pos <- ATMIV_pos*(ATMIV_pos/IVIDX_pos)t=TimeToExpDate_pre/(ATMIV_pos/IVIDX_pos)t=TimeToExpDate_pos
   bdays_per_month<-252/12
   TimeToExpDate_pos<-(pos$TimeToExpDate*bdays_per_month-days)/bdays_per_month
-  pos$ATMIV<-pos$ATMIV *
-    get.Volatility.Cone.Regression.Result(pos$TYPE,TimeToExpDate_pos)/
-    get.Volatility.Cone.Regression.Result(pos$TYPE,pos$TimeToExpDate)
+  #volatility cone logic is included in the ATM change behavior below
+  #pos$ATMIV<-pos$ATMIV *
+  #  get.Volatility.Cone.Regression.Result(pos$TYPE,TimeToExpDate_pos)/
+  #  get.Volatility.Cone.Regression.Result(pos$TYPE,pos$TimeToExpDate)
+  
+  ##This is the new ATMIV behavior
+  pos$ATMIV<-pos$ATMIV*(1+ividx_chg_pct)*get.Volatility.Change.Regression.Result.ATMIDXIV.f(pos,TimeToExpDate_pos)/get.Volatility.Change.Regression.Result.ATMIDXIV.f(pos,pos$TimeToExpDate)
   
   #set new TimeToExpDate
   pos$TimeToExpDate<-TimeToExpDate_pos
@@ -563,8 +583,6 @@ createPositionEvalTable<-function(position,udlStepNum,udlStepPct,multi,hdd,HV_IV
   posEvalTbl %>% group_by(udlChgPct) %>% do(pos=position) -> posEvalTbl
   #Modify pos based on scenario
   posEvalTbl %>% group_by(udlChgPct) %>% do(pos=reflectPosChg(process_df=.,days=hdd)) -> posEvalTbl
-  
-  #cat("HV_IV_Adjust_Ratio (createPositionEvalTable):",HV_IV_Adjust_Ratio)
   
   ##
   #  Greek Effects
@@ -1242,7 +1260,9 @@ adjustPosChgInner<-function(process_df,base_vol_chg=0){
   pos$IVIDX<-pos$IVIDX*(1+ividx_chg_pct)
   
   # ATM IV change
-  pos$ATMIV<-pos$ATMIV*(1+ividx_chg_pct)*get.Volatility.Change.Regression.Result(pos,ividx_chg_pct)
+  #same as this
+  #pos$ATMIV<-pos$ATMIV*(1+ividx_chg_pct)*get.Volatility.Change.Regression.Result.ATMIDXIV.f(pos,pos$TimeToExpDate)/get.Volatility.Change.Regression.Result.ATMIDXIV.f(pos,pos$TimeToExpDate)
+  pos$ATMIV<-pos$ATMIV*(1+ividx_chg_pct)#*get.Volatility.Change.Regression.Result.ATMIDXIV.f(pos,pos$TimeToExpDate)/get.Volatility.Change.Regression.Result.ATMIDXIV.f(pos,pos$TimeToExpDate)
   
   #calculate IV_pos(OrigIV) using SkewModel based on model definition formula.
   spskew<-(pos$TYPE==OpType_Put_G)*get.predicted.spline.skew(SkewModel_Put,pos$Moneyness.Nm)+
