@@ -27,12 +27,12 @@ cat("Realized Vol(200d anlzd)",annuual.daily.volatility(histPrc[1:200])$anlzd*10
 #selective parmeters
 IS_SELECTIVE_HISTIV_REGR=T
 a_low=0.8
-d_low=10
-a_high=1.2
-d_high=10
+d_low=5
+a_high=1.25
+d_high=5
 
 ##
-# select Suffix
+# select Suffix to icnlude the day data
 selectSuffixForValidIV <- function(histIV,xDayInt,a_low,d_low,a_high,d_high){
   theIV=histIV[1]
   SelectInclude=(histIV>=theIV*a_low | histIV>=(theIV-d_low))&(histIV<=theIV*a_high | histIV<=(theIV+d_high))
@@ -51,7 +51,6 @@ selectSuffixForValidIV <- function(histIV,xDayInt,a_low,d_low,a_high,d_high){
 ##
 # Price2IVIDX called from saveP2IVReg
 #  histPrc : vector such as histPrc$Close, histIVDf : vector such as histIV$Close
-
 Price2IVIDX <- function(histPrc,histIV,dataNum,xDayInt,start_day=1,effectiv_suffix=0){
   
   PCxdCtC<- PCndCtC(hist=histPrc,n=xDayInt)
@@ -111,7 +110,7 @@ saveP2IVReg<-function(histPrc,histIV,dataNum,xDayInt,start_day=1,effectiv_suffix
              cor=co,
              pcstat=c(mean(tmp$PCxdCtC),sd(tmp$PCxdCtC)),
              ivstat=c(mean(tmp$IVCFxdCtC),sd(tmp$IVCFxdCtC)))
- 
+  
   #returned list
   ret_names<-c("P2IVxd","lm")
   ret <- vector("list",length(ret_names))
