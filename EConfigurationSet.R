@@ -177,5 +177,7 @@ load.IVChg(OpType_Call_G,10)
 CallIVChgUp
 load.IVChg(OpType_Call_G,-10)
 CallIVChgDown
+load.ATMIDXIV.f(OpType_Put_G)
+load.ATMIDXIV.f(OpType_Call_G)
 
 #creating initial population
