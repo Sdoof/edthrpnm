@@ -6,7 +6,7 @@ source('./ESourceRCode.R',encoding = 'UTF-8')
 
 #switch: only for today or multiple days for skew calculation
 ProcessFileName=paste("_OPChain_Pre.csv",sep="")
-isSkewCalc=T
+isSkewCalc=F
 #set TRUE if this opchain is for Future Option 
 isFOP=F
 #set TRUE if this is today's new position, or (already holding position) set FALSE,
@@ -334,7 +334,7 @@ makeNotAdjustedBySkewATMiv <- function(opch){
 ## opchain is created
 opchain<-makePosition(opchain)
 
-
+#called by filterPosition
 filterVerticalSpread <- function(opchain,
                                  Delta_Limit_Put_MIN,Delta_Limit_Put_MAX,
                                  Delta_Limit_Call_MIN,Delta_Limit_Call_MAX,
@@ -376,12 +376,30 @@ filterVerticalSpread <- function(opchain,
   
 }
 
-##
-# c(IronCondor{VerticalSpread},DIAGONAL_FRONT,DIAGONAL_BACK)
+#called by filterPosition
+filterDiagonalSpread <- function(opchain, TARGET_D,
+                         Delta_Limit_Put_MIN,Delta_Limit_Put_MAX,
+                         Delta_Limit_Call_MIN,Delta_Limit_Call_MAX){
+  
+  opchain %>%  dplyr::filter(ExpDate==TARGET_D,TYPE==OpType_Put_G) %>% dplyr::filter(abs(Delta)>Delta_Limit_Put_MIN)  %>% 
+    dplyr::filter(abs(Delta)<Delta_Limit_Put_MAX) -> opchain_diag_Put
+  
+  opchain %>%  dplyr::filter(ExpDate==TARGET_D,TYPE==OpType_Call_G) %>% dplyr::filter(abs(Delta)>Delta_Limit_Call_MIN)  %>% 
+    dplyr::filter(abs(Delta)<Delta_Limit_Call_MAX) -> opchain_diag_Call
+  
+  opchain_diag_Put %>%  dplyr::full_join(opchain_diag_Call) %>% 
+    dplyr::arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="%Y/%m/%d"),desc(TYPE),Strike) %>%
+    distinct() -> opchain_diag
+  
+  return(opchain_diag)
+}
 
+##
+# filter position by Date and Delta
+# Delta_Limit_(Put/Call)_(MAX/MIN) c(IronCondor{VerticalSpread},DIAGONAL_FRONT,DIAGONAL_BACK)
 filterPosition <- function(opchain,
                            Delta_Limit_Put_MAX=c(0.25,0.23,0.23),Delta_Limit_Put_MIN=c(0.09,0.07,0.07),
-                           Delta_Limit_Call_MAX=c(0.25,0.25,0.25),Delta_Limit_Call_MIN=c(0.09,0.09,0.09),
+                           Delta_Limit_Call_MAX=c(0.25,0.30,0.30),Delta_Limit_Call_MIN=c(0.09,0.09,0.09),
                            TARGET_EXPDATE,TARGET_EXPDATE_FRONT,TARGET_EXPDATE_BACK){
   ##
   #  Filter Target Ranges 
@@ -405,30 +423,14 @@ filterPosition <- function(opchain,
                                     VerticalSpread_FilterPtn,PriceInterval,Remainder)
   
   ## DIAGONAL Spread Front Date
-  opchain %>%  dplyr::filter(ExpDate==TARGET_EXPDATE_FRONT,TYPE==OpType_Put_G) %>% dplyr::filter(abs(Delta)>Delta_Limit_Put_MIN[2])  %>% 
-    #dplyr::filter(abs(Delta)<Delta_Limit_Put_MAX[2]) %>% dplyr::filter((Strike%%PriceInterval$Put)==Remainder$Put) -> opchain_diag_F_Put
-    dplyr::filter(abs(Delta)<Delta_Limit_Put_MAX[2]) -> opchain_diag_F_Put
-  
-  opchain %>%  dplyr::filter(ExpDate==TARGET_EXPDATE_FRONT,TYPE==OpType_Call_G) %>% dplyr::filter(abs(Delta)>Delta_Limit_Call_MIN[2])  %>% 
-    #dplyr::filter(abs(Delta)<Delta_Limit_Call_MAX[2]) %>% dplyr::filter((Strike%%PriceInterval$Call)==Remainder$Call) -> opchain_diag_F_Call
-    dplyr::filter(abs(Delta)<Delta_Limit_Call_MAX[2]) -> opchain_diag_F_Call
-  
-  opchain_diag_F_Put %>%  dplyr::full_join(opchain_diag_F_Call) %>% 
-    dplyr::arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="%Y/%m/%d"),desc(TYPE),Strike) %>%
-    distinct() -> opchain_diag_F
+  opchain_diag_F=filterDiagonalSpread(opchain, TARGET_D=TARGET_EXPDATE_FRONT,
+                                      Delta_Limit_Put_MIN[2],Delta_Limit_Put_MAX[2],
+                                      Delta_Limit_Call_MIN[2],Delta_Limit_Call_MAX[2])
   
   ## DIAGONAL Spread Back Date
-  opchain %>%  dplyr::filter(ExpDate==TARGET_EXPDATE_BACK,TYPE==OpType_Put_G) %>% dplyr::filter(abs(Delta)>Delta_Limit_Put_MIN[3])  %>% 
-    #dplyr::filter(abs(Delta)<Delta_Limit_Put_MAX[3]) %>% dplyr::filter((Strike%%PriceInterval$Put)==Remainder$Put) -> opchain_diag_B_Put
-    dplyr::filter(abs(Delta)<Delta_Limit_Put_MAX[3]) -> opchain_diag_B_Put
-  
-  opchain %>%  dplyr::filter(ExpDate==TARGET_EXPDATE_BACK,TYPE==OpType_Call_G) %>% dplyr::filter(abs(Delta)>Delta_Limit_Call_MIN[3])  %>% 
-    #dplyr::filter(abs(Delta)<Delta_Limit_Put_MAX[3]) %>% dplyr::filter((Strike%%PriceInterval$Call)==Remainder$Call) -> opchain_diag_B_Call
-    dplyr::filter(abs(Delta)<Delta_Limit_Call_MAX[3]) -> opchain_diag_B_Call
-  
-  opchain_diag_B_Put %>%  dplyr::full_join(opchain_diag_B_Call) %>% 
-    dplyr::arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="%Y/%m/%d"),desc(TYPE),Strike) %>%
-    distinct() -> opchain_diag_B
+  opchain_diag_B=filterDiagonalSpread(opchain, TARGET_D=TARGET_EXPDATE_BACK,
+                                      Delta_Limit_Put_MIN[3],Delta_Limit_Put_MAX[3],
+                                      Delta_Limit_Call_MIN[3],Delta_Limit_Call_MAX[3])
   
   #Join them all
   opchain_cond %>%  dplyr::full_join(opchain_diag_B) %>% dplyr::full_join(opchain_diag_F) %>%
