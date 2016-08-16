@@ -764,6 +764,16 @@ sampleMain<-function(sampleSpreadType,totalPopNum,targetExpDate,targetExpDate_f,
                              targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,isDebug=isDebug,isDetail=idDetail)
       
       x<-y*spreadRatio[1]+(z+w)*spreadRatio[2]
+    }else if(sampleSpreadType==FILE_PLUS_SINGLE_DIAGONAL){
+      
+      s1<-pools[[ 1 ]][[2]][ceiling(runif(1, min=1e-320, max=nrow(pools[[1]][[2]]))), ]
+      y<-unlist(s1[1:length(iniPos)]);s1_score<-as.numeric(s1[length(s1)])
+      
+      z=sampleDiagonalSpread(targetOpTyep=ifelse(runif(1)<=0.500000,OpType_Put_G,OpType_Call_G),
+                             diagonalType=ifelse(runif(1)<=0.500000,DIAGONAL_TYPE_LONG,DIAGONAL_TYPE_SHORT),
+                             targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,isDebug=isDebug,isDetail=idDetail)
+      
+      x<-y*spreadRatio[1]+z*spreadRatio[2]
     }else if(sampleSpreadType==FILE_PLUS_VERTICAL_CREDIT_SPREAD){
       
       s1<-pools[[ 1 ]][[2]][ceiling(runif(1, min=1e-320, max=nrow(pools[[1]][[2]]))), ]
@@ -1262,7 +1272,7 @@ adjustPosChgInner<-function(process_df,base_vol_chg=0){
   # ATM IV change
   #same as this
   #pos$ATMIV<-pos$ATMIV*(1+ividx_chg_pct)*get.Volatility.Change.Regression.Result.ATMIDXIV.f(pos,pos$TimeToExpDate)/get.Volatility.Change.Regression.Result.ATMIDXIV.f(pos,pos$TimeToExpDate)
-  pos$ATMIV<-pos$ATMIV*(1+ividx_chg_pct)#*get.Volatility.Change.Regression.Result.ATMIDXIV.f(pos,pos$TimeToExpDate)/get.Volatility.Change.Regression.Result.ATMIDXIV.f(pos,pos$TimeToExpDate)
+  pos$ATMIV<-pos$ATMIV*(1+ividx_chg_pct)
   
   #calculate IV_pos(OrigIV) using SkewModel based on model definition formula.
   spskew<-(pos$TYPE==OpType_Put_G)*get.predicted.spline.skew(SkewModel_Put,pos$Moneyness.Nm)+

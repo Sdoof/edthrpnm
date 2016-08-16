@@ -38,6 +38,7 @@ PUT_BULL_SPREAD_SMPLING=13
 FILE_PLUS_VERTICAL_CREDIT_SPREAD=121
 FILE_PLUS_VERTICAL_DEBT_SPREAD=122
 FILE_PLUS_IRON_CONDOR=123
+FILE_PLUS_SINGLE_DIAGONAL=124
 
 SpreadTypeNames<-vector("list",9)
 SpreadTypeNames[[IRON_CONDOR_SMPLING]]="IRON_CONDOR"
@@ -57,6 +58,7 @@ SpreadTypeNames[[PUT_BULL_SPREAD_SMPLING]]="PUT_BULL_SPREAD"
 SpreadTypeNames[[FILE_PLUS_VERTICAL_CREDIT_SPREAD]]="FILE_PLUS_VERTICAL_CREDIT_SPREAD"
 SpreadTypeNames[[FILE_PLUS_VERTICAL_DEBT_SPREAD]]="FILE_PLUS_VERTICAL_DEBT_SPREAD"
 SpreadTypeNames[[FILE_PLUS_IRON_CONDOR]]="FILE_PLUS_IRON_CONDOR"
+SpreadTypeNames[[FILE_PLUS_SINGLE_DIAGONAL]]="FILE_PLUS_SINGLE_DIAGONAL"
 
 SpreadTypeToDir<-vector("list",length(SpreadTypeNames))
 SpreadTypeToDir[[IRON_CONDOR_SMPLING]]=c(1,7)
@@ -74,6 +76,7 @@ SpreadTypeToDir[[POOL_PLUS_DOUBLE_DIAGONAL_SMPLING]]=c(1,8,9)
 SpreadTypeToDir[[FILE_PLUS_VERTICAL_CREDIT_SPREAD]]=c(121,221)
 SpreadTypeToDir[[FILE_PLUS_VERTICAL_DEBT_SPREAD]]=c(122,221)
 SpreadTypeToDir[[FILE_PLUS_IRON_CONDOR]]=c(123)
+SpreadTypeToDir[[FILE_PLUS_SINGLE_DIAGONAL]]=c(124)
 
 #Check Option
 (opchain)
@@ -473,6 +476,47 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   
   #output file name
   outFname=createOutFname(targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,spreadRatio=spreadRatio,EvalFuncSetting=EvalFuncSetting)
+  
+  #sampling
+  originalLossLimitPrice=EvalFuncSetting$LossLimitPrice
+  EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*max(spreadRatio)
+  
+  sampleMain(sampleSpreadType=sampleSpreadType,totalPopNum=totalPopNum,
+             targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,
+             spreadRatio=spreadRatio,InitialPopThresh=InitialPopThresh,outFname=outFname,isFileout=T,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
+  
+  EvalFuncSetting$LossLimitPrice=originalLossLimitPrice
+  
+  #file handling
+  tmp<-read.table(outFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
+  tmp %>% arrange(.[,length(opchain$Position)+1])  %>% #select(.,1:length(opchain$Position)) %>% 
+    distinct() -> tmp
+  write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
+  
+  #copy file to EvalPosition
+  file.copy(from=outFname, to=paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition.csv",sep=""),overwrite=T)
+}
+
+###FILE_PLUS_SINGLE_DIAGONAL
+sampleSpreadType=FILE_PLUS_SINGLE_DIAGONAL
+if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
+  targetExpDate=TARGET_EXPDATE
+  targetExpDate_f=TARGET_EXPDATE_FRONT
+  targetExpDate_b=TARGET_EXPDATE_BACK
+  totalPopNum=PopN_1/2
+  
+  #spread ratio 1
+  spreadRatio=c(1,1,1)
+  
+  #output file name
+  outFname=createOutFname(targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,spreadRatio=spreadRatio,EvalFuncSetting=EvalFuncSetting)
+  
+  #read file and pool setting
+  readFname=paste(ResultFiles_Path_G,Underying_Symbol_G,"-READ-SPREAD.csv",sep="")
+  tmp<-read.table(readFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
+  colnames(tmp)<-c(1:ncol(tmp))
+  tmp %>% arrange(.[,length(opchain$Position)+1]) %>% head(min(20,max(4,nrow(.)/2))) -> tmp
+  pools<<-list(list(c(1,0,0),tmp))
   
   #sampling
   originalLossLimitPrice=EvalFuncSetting$LossLimitPrice
