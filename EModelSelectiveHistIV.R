@@ -6,7 +6,7 @@ rm(list=ls())
 source('./ESourceRCode.R',encoding = 'UTF-8')
 
 #Data Num.
-DATA_NUM=504 # about 2 years equivalent 
+DATA_NUM=1260 # about x years equivalent 
 
 #read data file
 histPrc<-read.table(paste(DataFiles_Path_G,Underying_Symbol_G,"_Hist.csv",sep=""),header=T,sep=",")
@@ -37,14 +37,10 @@ selectSuffixForValidIV <- function(histIV,xDayInt,a_low,d_low,a_high,d_high){
   theIV=histIV[1]
   SelectInclude=(histIV>=theIV*a_low | histIV>=(theIV-d_low))&(histIV<=theIV*a_high | histIV<=(theIV+d_high))
   
-  SelectIncludeShift=numeric((length(SelectInclude)-xDayInt))
-  
-  SelectIncludeShift[1:xDayInt]=SelectInclude[1:xDayInt]
-  for(i in 1:(length(SelectInclude)-xDayInt)){
-    SelectIncludeShift[i+xDayInt]=SelectInclude[i]|SelectInclude[i+xDayInt]
-  }
+  SelectIncludeShift=rep(0,length(SelectInclude))#numeric((length(SelectInclude)-xDayInt))
+  SelectIncludeShift[(xDayInt+1):length(SelectInclude)]=SelectInclude[(xDayInt+1):length(SelectInclude)]
   which(SelectIncludeShift==1)->suffix_slctd
-  
+  suffix_slctd=suffix_slctd-xDayInt
   return(suffix_slctd)
 }
 
@@ -124,7 +120,11 @@ saveP2IVReg<-function(histPrc,histIV,dataNum,xDayInt,start_day=1,effectiv_suffix
 ## 5d
 xDayInt=5
 tmp=saveP2IVReg(histPrc,histIV,DATA_NUM,xDayInt)
+tmp$lm
 if(IS_SELECTIVE_HISTIV_REGR){
+  #suffix for PCxdCtC adn IVCFxdCtC which have shifted xDayInt toward past
+  #which means, for example, suffix 1 for PCxdCtC  means 1+xDayInt for corresponding histIV data.
+  #use selectSuffixToPredictHV to get the suffix for histIV(histPrc) data
   selectSuffixForValidIV(histIV,xDayInt,a_low,d_low,a_high,d_high)->suffix_slctd
   tmp=saveP2IVReg(histPrc,histIV,DATA_NUM,xDayInt,effectiv_suffix=suffix_slctd)
 }
@@ -138,6 +138,7 @@ PC5dCtC_IVCF5dCtC
 ##   3d
 xDayInt=3
 tmp=saveP2IVReg(histPrc,histIV,DATA_NUM,xDayInt)
+tmp$lm
 if(IS_SELECTIVE_HISTIV_REGR){
   selectSuffixForValidIV(histIV,xDayInt,a_low,d_low,a_high,d_high)->suffix_slctd
   tmp=saveP2IVReg(histPrc,histIV,DATA_NUM,xDayInt,effectiv_suffix=suffix_slctd)
@@ -152,6 +153,7 @@ PC3dCtC_IVCF3dCtC
 ##   7d
 xDayInt=7
 tmp=saveP2IVReg(histPrc,histIV,DATA_NUM,xDayInt)
+tmp$lm
 if(IS_SELECTIVE_HISTIV_REGR){
   selectSuffixForValidIV(histIV,xDayInt,a_low,d_low,a_high,d_high)->suffix_slctd
   tmp=saveP2IVReg(histPrc,histIV,DATA_NUM,xDayInt,effectiv_suffix=suffix_slctd)
@@ -167,6 +169,7 @@ PC7dCtC_IVCF7dCtC
 ##  12d
 xDayInt=12
 tmp=saveP2IVReg(histPrc,histIV,DATA_NUM,xDayInt)
+tmp$lm
 if(IS_SELECTIVE_HISTIV_REGR){
   selectSuffixForValidIV(histIV,xDayInt,a_low,d_low,a_high,d_high)->suffix_slctd
   tmp=saveP2IVReg(histPrc,histIV,DATA_NUM,xDayInt,effectiv_suffix=suffix_slctd)
@@ -181,6 +184,7 @@ PC12dCtC_IVCF12dCtC
 ##  18d
 xDayInt=18
 tmp=saveP2IVReg(histPrc,histIV,DATA_NUM,xDayInt)
+tmp$lm
 if(IS_SELECTIVE_HISTIV_REGR){
   selectSuffixForValidIV(histIV,xDayInt,a_low,d_low,a_high,d_high)->suffix_slctd
   tmp=saveP2IVReg(histPrc,histIV,DATA_NUM,xDayInt,effectiv_suffix=suffix_slctd)
@@ -195,6 +199,7 @@ PC18dCtC_IVCF18dCtC
 ##   1d
 xDayInt=1
 tmp=saveP2IVReg(histPrc,histIV,DATA_NUM,xDayInt)
+tmp$lm
 if(IS_SELECTIVE_HISTIV_REGR){
   selectSuffixForValidIV(histIV,xDayInt,a_low,d_low,a_high,d_high)->suffix_slctd
   tmp=saveP2IVReg(histPrc,histIV,DATA_NUM,xDayInt,effectiv_suffix=suffix_slctd)
@@ -218,11 +223,8 @@ selectSuffixToPredictHV <- function(histIV,a_low,d_low,a_high,d_high){
   return(suffix_slctd)
 }
 
-effectiv_suffix=selectSuffixToPredictHV(histIV,a_low,d_low,a_high,d_high)
-#effectiv_suffix=suffix_slctd
-rm(suffix_slctd)
 
-getHVIVRStat <- function(histPrc,histIV,xDayVol,effectiv_suffix){
+getHVIVRStat <- function(histPrc,histIV,xDayVol,effectiv_suffix,isDebug=F){
   HVIVR_V=rep(0:length(effectiv_suffix))
   hvivr_suff=1
   for(i in 1:length(effectiv_suffix)){
@@ -230,10 +232,11 @@ getHVIVRStat <- function(histPrc,histIV,xDayVol,effectiv_suffix){
       histPrc[effectiv_suffix[i]:(effectiv_suffix[i]+xDayVol)]
       HVIVR=annuual.daily.volatility( histPrc[(effectiv_suffix[i]-xDayVol):effectiv_suffix[i]] )$anlzd/
         (histIV[(effectiv_suffix[i])]/100)
-      cat("at",i,
-          "HV",annuual.daily.volatility( histPrc[(effectiv_suffix[i]-xDayVol):effectiv_suffix[i]] )$anlzd,
-          "IV",histIV[(effectiv_suffix[i])]/100,
-          "HVIVR",HVIVR,"\n")
+      if(isDebug)
+        cat("at",i,
+            "HV",annuual.daily.volatility( histPrc[(effectiv_suffix[i]-xDayVol):effectiv_suffix[i]] )$anlzd,
+            "IV",histIV[(effectiv_suffix[i])]/100,
+            "HVIVR",HVIVR,"\n")
       HVIVR_V[hvivr_suff]=HVIVR
       hvivr_suff=hvivr_suff+1
     }
@@ -242,11 +245,17 @@ getHVIVRStat <- function(histPrc,histIV,xDayVol,effectiv_suffix){
   return(HVIVR)
 }
 
-HVIVR=getHVIVRStat(histPrc,histIV,xDayVol=20,effectiv_suffix)
+effectiv_suffix=selectSuffixToPredictHV(histIV,a_low,d_low,a_high,d_high)
 
+HVIVR=getHVIVRStat(histPrc,histIV,xDayVol=20,effectiv_suffix)
 mean(HVIVR)
 sd(HVIVR)
 mean(HVIVR[1:100])
 sd(HVIVR[1:100])
 
+HVIVR=getHVIVRStat(histPrc,histIV,xDayVol=20,effectiv_suffix=seq(1:length(histIV)))
+mean(HVIVR)
+sd(HVIVR)
+mean(HVIVR[1:100])
+sd(HVIVR[1:100])
 
