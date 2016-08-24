@@ -6,7 +6,7 @@ source('./ESourceRCode.R',encoding = 'UTF-8')
 
 #switch: only for today or multiple days for skew calculation
 ProcessFileName=paste("_OPChain_Pre.csv",sep="")
-isSkewCalc=F
+isSkewCalc=T
 #set TRUE if this opchain is for Future Option 
 isFOP=F
 #set TRUE if this is today's new position, or (already holding position) set FALSE,
@@ -398,8 +398,8 @@ filterDiagonalSpread <- function(opchain, TARGET_D,
 # filter position by Date and Delta
 # Delta_Limit_(Put/Call)_(MAX/MIN) c(IronCondor{VerticalSpread},DIAGONAL_FRONT,DIAGONAL_BACK)
 filterPosition <- function(opchain,
-                           Delta_Limit_Put_MAX=c(0.25,0.23,0.23),Delta_Limit_Put_MIN=c(0.09,0.07,0.07),
-                           Delta_Limit_Call_MAX=c(0.25,0.30,0.30),Delta_Limit_Call_MIN=c(0.09,0.09,0.09),
+                           Delta_Limit_Put_MAX=c(0.25,0.29,0.29),Delta_Limit_Put_MIN=c(0.09,0.09,0.09),
+                           Delta_Limit_Call_MAX=c(0.25,0.30,0.30),Delta_Limit_Call_MIN=c(0.09,0.12,0.12),
                            TARGET_EXPDATE,TARGET_EXPDATE_FRONT,TARGET_EXPDATE_BACK){
   ##
   #  Filter Target Ranges 
