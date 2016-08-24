@@ -57,9 +57,9 @@ Price2IVIDX <- function(histPrc,histIV,dataNum,xDayInt,start_day=1,effectiv_suff
   IVCFxdCtC<-IVCFndCtC(iv=histIV,n=xDayInt)
   
   if(length(effectiv_suffix)>2){
-    PCxdCtC[suffix_slctd]->tmp
+    PCxdCtC[effectiv_suffix]->tmp
     na.omit(tmp) %>% as.vector() -> PCxdCtC
-    IVCFxdCtC[suffix_slctd]->tmp
+    IVCFxdCtC[effectiv_suffix]->tmp
     na.omit(tmp) %>% as.vector() -> IVCFxdCtC
   }
   
@@ -204,3 +204,49 @@ gg+geom_abline(intercept=tmp$lm$coefficient[1],slope=tmp$lm$coefficient[2],color
 #Load test
 load.PC2IV(PC=paste("PC",xDayInt,"dCtC",sep=""),IVC=paste("IVCF",xDayInt,"dCtC",sep=""))
 PC1dCtC_IVCF1dCtC
+
+
+####
+# expected HV predict
+
+selectSuffixToPredictHV <- function(histIV,a_low,d_low,a_high,d_high){
+  theIV=histIV[1]
+  SelectInclude=(histIV>=theIV*a_low | histIV>=(theIV-d_low))&(histIV<=theIV*a_high | histIV<=(theIV+d_high))
+  
+  which(SelectInclude==TRUE)->suffix_slctd
+  
+  return(suffix_slctd)
+}
+
+effectiv_suffix=selectSuffixToPredictHV(histIV,a_low,d_low,a_high,d_high)
+#effectiv_suffix=suffix_slctd
+rm(suffix_slctd)
+
+getHVIVRStat <- function(histPrc,histIV,xDayVol,effectiv_suffix){
+  HVIVR_V=rep(0:length(effectiv_suffix))
+  hvivr_suff=1
+  for(i in 1:length(effectiv_suffix)){
+    if(effectiv_suffix[i]>=xDayVol){
+      histPrc[effectiv_suffix[i]:(effectiv_suffix[i]+xDayVol)]
+      HVIVR=annuual.daily.volatility( histPrc[(effectiv_suffix[i]-xDayVol):effectiv_suffix[i]] )$anlzd/
+        (histIV[(effectiv_suffix[i])]/100)
+      cat("at",i,
+          "HV",annuual.daily.volatility( histPrc[(effectiv_suffix[i]-xDayVol):effectiv_suffix[i]] )$anlzd,
+          "IV",histIV[(effectiv_suffix[i])]/100,
+          "HVIVR",HVIVR,"\n")
+      HVIVR_V[hvivr_suff]=HVIVR
+      hvivr_suff=hvivr_suff+1
+    }
+  }
+  HVIVR=HVIVR_V[1:(hvivr_suff-1)]
+  return(HVIVR)
+}
+
+HVIVR=getHVIVRStat(histPrc,histIV,xDayVol=20,effectiv_suffix)
+
+mean(HVIVR)
+sd(HVIVR)
+mean(HVIVR[1:100])
+sd(HVIVR[1:100])
+
+
