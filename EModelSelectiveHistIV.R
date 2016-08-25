@@ -32,7 +32,8 @@ a_high=1.25
 d_high=5
 
 ##
-# select Suffix to icnlude the day data
+# select Suffix to icnlude the valid IV data and make the selected suffix suitable to 
+# apply to vector created by PCndCtC or IVCFndCtC functions.
 selectSuffixForValidIV <- function(histIV,xDayInt,a_low,d_low,a_high,d_high){
   theIV=histIV[1]
   SelectInclude=(histIV>=theIV*a_low | histIV>=(theIV-d_low))&(histIV<=theIV*a_high | histIV<=(theIV+d_high))
@@ -128,7 +129,7 @@ if(IS_SELECTIVE_HISTIV_REGR){
   selectSuffixForValidIV(histIV,xDayInt,a_low,d_low,a_high,d_high)->suffix_slctd
   tmp=saveP2IVReg(histPrc,histIV,DATA_NUM,xDayInt,effectiv_suffix=suffix_slctd)
 }
-(gg<-ggplot(tmp$P2IVxd,aes(x=PCxdCtC,y=IVCFxdCtC))+geom_point())
+(gg<-ggplot(tmp$P2IVxd,aes(x=PCxdCtC,y=IVCFxdCtC))+geom_point(alpha=0.2))
 gg+geom_abline(intercept=tmp$lm$coefficient[1],slope=tmp$lm$coefficient[2],color="orange")
 #Load test
 load.PC2IV(PC=paste("PC",xDayInt,"dCtC",sep=""),IVC=paste("IVCF",xDayInt,"dCtC",sep=""))
@@ -143,7 +144,7 @@ if(IS_SELECTIVE_HISTIV_REGR){
   selectSuffixForValidIV(histIV,xDayInt,a_low,d_low,a_high,d_high)->suffix_slctd
   tmp=saveP2IVReg(histPrc,histIV,DATA_NUM,xDayInt,effectiv_suffix=suffix_slctd)
 }
-(gg<-ggplot(tmp$P2IVxd,aes(x=PCxdCtC,y=IVCFxdCtC))+geom_point())
+(gg<-ggplot(tmp$P2IVxd,aes(x=PCxdCtC,y=IVCFxdCtC))+geom_point(alpha=0.2))
 gg+geom_abline(intercept=tmp$lm$coefficient[1],slope=tmp$lm$coefficient[2],color="orange")
 #Load test
 load.PC2IV(PC=paste("PC",xDayInt,"dCtC",sep=""),IVC=paste("IVCF",xDayInt,"dCtC",sep=""))
@@ -159,7 +160,7 @@ if(IS_SELECTIVE_HISTIV_REGR){
   tmp=saveP2IVReg(histPrc,histIV,DATA_NUM,xDayInt,effectiv_suffix=suffix_slctd)
 }
 tmp=saveP2IVReg(histPrc,histIV,DATA_NUM,xDayInt,effectiv_suffix=suffix_slctd)
-(gg<-ggplot(tmp$P2IVxd,aes(x=PCxdCtC,y=IVCFxdCtC))+geom_point())
+(gg<-ggplot(tmp$P2IVxd,aes(x=PCxdCtC,y=IVCFxdCtC))+geom_point(alpha=0.2))
 gg+geom_abline(intercept=tmp$lm$coefficient[1],slope=tmp$lm$coefficient[2],color="orange")
 #Load test
 load.PC2IV(PC=paste("PC",xDayInt,"dCtC",sep=""),IVC=paste("IVCF",xDayInt,"dCtC",sep=""))
@@ -174,7 +175,7 @@ if(IS_SELECTIVE_HISTIV_REGR){
   selectSuffixForValidIV(histIV,xDayInt,a_low,d_low,a_high,d_high)->suffix_slctd
   tmp=saveP2IVReg(histPrc,histIV,DATA_NUM,xDayInt,effectiv_suffix=suffix_slctd)
 }
-(gg<-ggplot(tmp$P2IVxd,aes(x=PCxdCtC,y=IVCFxdCtC))+geom_point())
+(gg<-ggplot(tmp$P2IVxd,aes(x=PCxdCtC,y=IVCFxdCtC))+geom_point(alpha=0.2))
 gg+geom_abline(intercept=tmp$lm$coefficient[1],slope=tmp$lm$coefficient[2],color="orange")
 #Load test
 load.PC2IV(PC=paste("PC",xDayInt,"dCtC",sep=""),IVC=paste("IVCF",xDayInt,"dCtC",sep=""))
@@ -189,7 +190,7 @@ if(IS_SELECTIVE_HISTIV_REGR){
   selectSuffixForValidIV(histIV,xDayInt,a_low,d_low,a_high,d_high)->suffix_slctd
   tmp=saveP2IVReg(histPrc,histIV,DATA_NUM,xDayInt,effectiv_suffix=suffix_slctd)
 }
-(gg<-ggplot(tmp$P2IVxd,aes(x=PCxdCtC,y=IVCFxdCtC))+geom_point())
+(gg<-ggplot(tmp$P2IVxd,aes(x=PCxdCtC,y=IVCFxdCtC))+geom_point(alpha=0.2))
 gg+geom_abline(intercept=tmp$lm$coefficient[1],slope=tmp$lm$coefficient[2],color="orange")
 #Load test
 load.PC2IV(PC=paste("PC",xDayInt,"dCtC",sep=""),IVC=paste("IVCF",xDayInt,"dCtC",sep=""))
@@ -204,16 +205,17 @@ if(IS_SELECTIVE_HISTIV_REGR){
   selectSuffixForValidIV(histIV,xDayInt,a_low,d_low,a_high,d_high)->suffix_slctd
   tmp=saveP2IVReg(histPrc,histIV,DATA_NUM,xDayInt,effectiv_suffix=suffix_slctd)
 }
-(gg<-ggplot(tmp$P2IVxd,aes(x=PCxdCtC,y=IVCFxdCtC))+geom_point())
+(gg<-ggplot(tmp$P2IVxd,aes(x=PCxdCtC,y=IVCFxdCtC))+geom_point(alpha=0.2))
 gg+geom_abline(intercept=tmp$lm$coefficient[1],slope=tmp$lm$coefficient[2],color="orange")
 #Load test
 load.PC2IV(PC=paste("PC",xDayInt,"dCtC",sep=""),IVC=paste("IVCF",xDayInt,"dCtC",sep=""))
 PC1dCtC_IVCF1dCtC
 
-
 ####
 # expected HV predict
 
+##
+# select Suffix to icnlude the valid IV data
 selectSuffixToPredictHV <- function(histIV,a_low,d_low,a_high,d_high){
   theIV=histIV[1]
   SelectInclude=(histIV>=theIV*a_low | histIV>=(theIV-d_low))&(histIV<=theIV*a_high | histIV<=(theIV+d_high))
@@ -223,10 +225,13 @@ selectSuffixToPredictHV <- function(histIV,a_low,d_low,a_high,d_high){
   return(suffix_slctd)
 }
 
-
+##
+# HV/IV ratio statistic to selecte effectiv_suffix suffix subdata
 getHVIVRStat <- function(histPrc,histIV,xDayVol,effectiv_suffix,isDebug=F){
   HVIVR_V=rep(0:length(effectiv_suffix))
   hvivr_suff=1
+  # histPrc[i+xdays], +(xdays)(->) means data backs to xdays PAST
+  # histPrc[i-xdays], -(xdays)(<-) means data looks forward xdays FUTURE
   for(i in 1:length(effectiv_suffix)){
     if(effectiv_suffix[i]>=xDayVol){
       histPrc[effectiv_suffix[i]:(effectiv_suffix[i]+xDayVol)]
@@ -245,17 +250,19 @@ getHVIVRStat <- function(histPrc,histIV,xDayVol,effectiv_suffix,isDebug=F){
   return(HVIVR)
 }
 
+# select suffix
 effectiv_suffix=selectSuffixToPredictHV(histIV,a_low,d_low,a_high,d_high)
 
+# HVIVR statistic
 HVIVR=getHVIVRStat(histPrc,histIV,xDayVol=20,effectiv_suffix)
 mean(HVIVR)
 sd(HVIVR)
 mean(HVIVR[1:100])
 sd(HVIVR[1:100])
 
+# HVIVR statistic for all histIV data. effectiv_suffix are given as below.
 HVIVR=getHVIVRStat(histPrc,histIV,xDayVol=20,effectiv_suffix=seq(1:length(histIV)))
 mean(HVIVR)
 sd(HVIVR)
 mean(HVIVR[1:100])
 sd(HVIVR[1:100])
-
