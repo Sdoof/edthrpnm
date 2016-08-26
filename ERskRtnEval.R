@@ -50,12 +50,13 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   #integrate(f <- function(x) abs(x)*dnorm(x,0,1),-100,100) == 0.7978846
   # Daily Volatility of Implied Volatility
   dviv = annuual.daily.volatility(histIV$IVIDX)$daily
+  dviv = dviv*Setting$ExpIVChange_Multiple
   #Calculate Expected IV change
   dviv = dviv*0.7978846
   expIVChange<-histIV$IVIDX[1]*(exp(dviv*sqrt(Setting$holdDays))-1)
   #Volatility Change percent
   vol_chg=expIVChange/histIV$IVIDX[1]
-  vol_chg=vol_chg*Setting$ExpIVChange_Multiple
+  #vol_chg=vol_chg*Setting$ExpIVChange_Multiple
   if(isDetail){cat(" :(IV change%)",vol_chg)}
   
   #PositionStepDays data frame of Volatility UP scenario

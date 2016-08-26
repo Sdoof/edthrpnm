@@ -226,15 +226,16 @@ selectSuffixToPredictHV <- function(histIV,a_low,d_low,a_high,d_high){
 }
 
 ##
-# HV/IV ratio statistic to selecte effectiv_suffix suffix subdata
+# realized HV/IV ratio statistic of selected subdata
 getHVIVRStat <- function(histPrc,histIV,xDayVol,effectiv_suffix,isDebug=F){
-  HVIVR_V=rep(0:length(effectiv_suffix))
+  HVIVR_V=rep(0,times=length(effectiv_suffix))
   hvivr_suff=1
   # histPrc[i+xdays], +(xdays)(->) means data backs to xdays PAST
   # histPrc[i-xdays], -(xdays)(<-) means data looks forward xdays FUTURE
   for(i in 1:length(effectiv_suffix)){
     if(effectiv_suffix[i]>=xDayVol){
       histPrc[effectiv_suffix[i]:(effectiv_suffix[i]+xDayVol)]
+      #toward the FUTURE
       HVIVR=annuual.daily.volatility( histPrc[(effectiv_suffix[i]-xDayVol):effectiv_suffix[i]] )$anlzd/
         (histIV[(effectiv_suffix[i])]/100)
       if(isDebug)
@@ -266,3 +267,43 @@ mean(HVIVR)
 sd(HVIVR)
 mean(HVIVR[1:100])
 sd(HVIVR[1:100])
+
+##
+# Daily Volatility of Implied Volatility statistic of selected subdata
+getDVIVStat <- function(histIV,xDayVol,effectiv_suffix,isDebug=F){
+  DVIV_V=rep(0,times=length(effectiv_suffix))
+  dviv_suff=1
+  # histIV[i+xdays], +(xdays)(->) means data backs to xdays PAST
+  # histIV[i-xdays], -(xdays)(<-) means data looks forward xdays FUTURE
+  for(i in 1:length(effectiv_suffix)) {
+    if(effectiv_suffix[i]<=length(histIV)-xDayVol){
+      histIV[effectiv_suffix[i]:(effectiv_suffix[i]+xDayVol)]
+      #toward the past
+      DVIV=annuual.daily.volatility( histIV[effectiv_suffix[i]:(effectiv_suffix[i]+xDayVol)] )$daily
+      if(isDebug)
+        cat("at",effectiv_suffix[i],
+            "DVIV",DVIV,"AVIV",DVIV*sqrt(252),
+            "IV",histIV[(effectiv_suffix[i])],
+            "\n")
+      DVIV_V[dviv_suff]=DVIV
+      dviv_suff=dviv_suff+1
+    }
+  }
+  DVIV=DVIV_V[1:(dviv_suff-1)]
+  return(DVIV)
+}
+
+DVIV=getDVIVStat(histIV,xDayVol=dviv_caldays,effectiv_suffix,isDebug=T)
+AVIV=DVIV*sqrt(252)
+#total data AVIV 
+annuual.daily.volatility(histIV)$anlzd
+#first dviv_caldays AVIV
+annuual.daily.volatility(histIV[1:dviv_caldays])$anlzd
+
+mean(AVIV)
+mean(AVIV[1:100])
+
+#"ExpIVChange_Multiple coeffecient
+cat("ExpIVChange_Multiple",mean(AVIV[1:100])/annuual.daily.volatility(histIV[1:dviv_caldays])$anlzd,"\n")
+cat("ExpIVChange_Multiple",mean(DVIV[1:100])/annuual.daily.volatility(histIV[1:dviv_caldays])$daily,"\n")
+
