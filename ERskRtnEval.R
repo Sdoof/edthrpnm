@@ -46,37 +46,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   if(isDebug){print(posStepDays$scene[[length(posStepDays)]]$pos)}
   
   ##
-  # Volatility Senstivity 
-  #integrate(f <- function(x) abs(x)*dnorm(x,0,1),-100,100) == 0.7978846
-  # Daily Volatility of Implied Volatility
-  dviv = annuual.daily.volatility(histIV$IVIDX)$daily
-  dviv = dviv*Setting$ExpIVChange_Multiple
-  #Calculate Expected IV change
-  dviv = dviv*0.7978846
-  expIVChange<-histIV$IVIDX[1]*(exp(dviv*sqrt(Setting$holdDays))-1)
-  #Volatility Change percent
-  vol_chg=expIVChange/histIV$IVIDX[1]
-  #vol_chg=vol_chg*Setting$ExpIVChange_Multiple
-  if(isDetail){cat(" :(IV change%)",vol_chg)}
-  
-  #PositionStepDays data frame of Volatility UP scenario
-  posStepDays_vc_plus<-posStepDays_vc
-  posStepDays_vc_plus %>% group_by(days) %>% rowwise() %>% 
-    do(days=.$days,scene2=adjustPosChg(.$scene,base_vol_chg=vol_chg,
-                                       multi=PosMultip,hdd=Setting$holdDays,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)) -> tmp
-  unlist(tmp$days) -> posStepDays_vc_plus$days ; tmp$scene2 -> posStepDays_vc_plus$scene ;rm(tmp)
-  
-  #PositionStepDays data frame of Volatility Down scenario
-  posStepDays_vc_minus<-posStepDays_vc
-  posStepDays_vc_minus %>% group_by(days) %>% rowwise() %>% 
-    do(days=.$days,scene2=adjustPosChg(.$scene,base_vol_chg=(-1)*vol_chg,
-                                       multi=PosMultip,hdd=Setting$holdDays,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)) -> tmp
-  unlist(tmp$days) -> posStepDays_vc_minus$days ; tmp$scene2 -> posStepDays_vc_minus$scene ;rm(tmp)
-  
-  ##
-  # True Sensitivity of Implied Volatility(Vega, VegaEffect) and its Convexity(Vomma, VommaEffect) calculation
-  
-  #weighting calculate
+  #  weighting calculate
   sd_multp<-Setting$holdDays
   anlzd_sd<-histIV$IVIDX[1]*Setting$HV_IV_Adjust_Ratio
   sd_hd<-(anlzd_sd/sqrt(252/sd_multp))
@@ -93,12 +63,48 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
     cat(" :(weightEffect)",weight_Effect)
   }
   
-  #vertical (Implied Volatility) weight
-  cor_tmp=get.Volatility.Level.Regression(Days=Setting$holdDays)$cor
-  IVChgPct<-seq(histIV$IVIDX[1]-expIVChange,histIV$IVIDX[1]+expIVChange,length=3)
-  sd_iv=histIV$IVIDX[1]*(exp(annuual.daily.volatility(histIV$IVIDX)$daily*sqrt(Setting$holdDays))-1)*sqrt(1-cor_tmp*cor_tmp)
+  ##
+  # Volatility Senstivity 
+  #integrate(f <- function(x) abs(x)*dnorm(x,0,1),-100,100) == 0.7978846
+  # Daily Volatility of Implied Volatility
+  dviv = annuual.daily.volatility(histIV$IVIDX)$daily
+  dviv = dviv*Setting$ExpIVChange_Multiple
+  dviv_forExp = dviv*0.7978846
+  #Calculate Expected IV change
+  expIVChange<-histIV$IVIDX[1]*(exp(dviv_forExp*sqrt(Setting$holdDays))-1)
+ 
+  ##
+  #  vertical (Implied Volatility) weight
+  #IVChgPct<-seq(histIV$IVIDX[1]-expIVChange,histIV$IVIDX[1]+expIVChange,length=3)
+  #sd_iv=histIV$IVIDX[1]*(exp(dviv*sqrt(Setting$holdDays))-1)*sqrt(1-cor_tmp*cor_tmp)
+  sd_iv=histIV$IVIDX[1]*(exp(dviv*sqrt(Setting$holdDays))-1)
+  IVChgPct<-seq(histIV$IVIDX[1]-sd_iv,histIV$IVIDX[1]+sd_iv,length=3)
+  #weigting
   weight_IV=dnorm(IVChgPct,mean=histIV$IVIDX[1],sd=sd_iv)/sum(dnorm(IVChgPct,mean=histIV$IVIDX[1],sd=sd_iv))
+  
   if(isDetail){cat(" :(weight_IV)",weight_IV)}
+  
+  #Volatility Change percent
+  #make sure this is CONDITIONAL. given the price change(and regressed IV change), calculate additional volatility change
+  #if correlation is 1, the vol_chg should be 0.
+  cor_tmp=get.Volatility.Level.Regression(Days=Setting$holdDays)$cor
+  vol_chg=expIVChange*sqrt(1-cor_tmp*cor_tmp)/histIV$IVIDX[1]
+  #vol_chg=vol_chg*Setting$ExpIVChange_Multiple
+  if(isDetail){cat(" :(IV change%)",vol_chg)}
+  
+  #PositionStepDays data frame of Volatility UP scenario
+  posStepDays_vc_plus<-posStepDays_vc
+  posStepDays_vc_plus %>% group_by(days) %>% rowwise() %>% 
+    do(days=.$days,scene2=adjustPosChg(.$scene,base_vol_chg=vol_chg,
+                                       multi=PosMultip,hdd=Setting$holdDays,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)) -> tmp
+  unlist(tmp$days) -> posStepDays_vc_plus$days ; tmp$scene2 -> posStepDays_vc_plus$scene ;rm(tmp)
+  
+  #PositionStepDays data frame of Volatility Down scenario
+  posStepDays_vc_minus<-posStepDays_vc
+  posStepDays_vc_minus %>% group_by(days) %>% rowwise() %>% 
+    do(days=.$days,scene2=adjustPosChg(.$scene,base_vol_chg=(-1)*vol_chg,
+                                       multi=PosMultip,hdd=Setting$holdDays,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)) -> tmp
+  unlist(tmp$days) -> posStepDays_vc_minus$days ; tmp$scene2 -> posStepDays_vc_minus$scene ;rm(tmp)
   
   ##
   # Profit
