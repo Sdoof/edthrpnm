@@ -6,15 +6,20 @@ source('./ESourceRCode.R',encoding = 'UTF-8')
 
 #switch: only for today or multiple days for skew calculation
 ProcessFileName=paste("_OPChain_Pre.csv",sep="")
-isSkewCalc=T
+isSkewCalc=F
 #set TRUE if this opchain is for Future Option 
 isFOP=F
 #set TRUE if this is today's new position, or (already holding position) set FALSE,
 isNewPosition=T
+#set TRUE if you filter the position,otherwise set FALSE
+isFiltered=T
+#Saved File Name
 TargetFileName=paste("_Positions_Pre_",format(Sys.time(),"%Y%b%d_%H%M%S"),".csv",sep="")
-#when isSkewCalc==TRUE, just comment out below
-if(isSkewCalc)
-  TargetFileName=paste("_OPChain_Pos_",format(Sys.time(),"%Y%b%d_%H%M%S"),".csv",sep="")
+#for recording the ATMIV adjusted opchain, set isSkewCalc=F AND isFiltered=F
+if(isSkewCalc){
+    TargetFileName=paste("_OPChain_Pos_",format(Sys.time(),"%Y%b%d_%H%M%S"),".csv",sep="")
+}else if(isFiltered==F)
+  TargetFileName=paste("_OPChain_RECORD_",format(Sys.time(),"%Y%b%d_%H%M%S"),".csv",sep="")
 
 makeOpchainContainer<-function(){  
   #read data file
@@ -398,7 +403,7 @@ filterDiagonalSpread <- function(opchain, TARGET_D,
 # filter position by Date and Delta
 # Delta_Limit_(Put/Call)_(MAX/MIN) c(IronCondor{VerticalSpread},DIAGONAL_FRONT,DIAGONAL_BACK)
 filterPosition <- function(opchain,
-                           Delta_Limit_Put_MAX=c(0.25,0.29,0.29),Delta_Limit_Put_MIN=c(0.09,0.09,0.09),
+                           Delta_Limit_Put_MAX=c(0.25,0.30,0.30),Delta_Limit_Put_MIN=c(0.09,0.11,0.11),
                            Delta_Limit_Call_MAX=c(0.25,0.30,0.30),Delta_Limit_Call_MIN=c(0.09,0.12,0.12),
                            TARGET_EXPDATE,TARGET_EXPDATE_FRONT,TARGET_EXPDATE_BACK){
   ##
@@ -440,14 +445,16 @@ filterPosition <- function(opchain,
 }
 
 #just check the result before going throught the rest
-opchain_check<-filterPosition(opchain,TARGET_EXPDATE=TARGET_EXPDATE,TARGET_EXPDATE_FRONT=TARGET_EXPDATE_FRONT,TARGET_EXPDATE_BACK=TARGET_EXPDATE_BACK)
+if(isFiltered)
+  opchain_check<-filterPosition(opchain,TARGET_EXPDATE=TARGET_EXPDATE,TARGET_EXPDATE_FRONT=TARGET_EXPDATE_FRONT,TARGET_EXPDATE_BACK=TARGET_EXPDATE_BACK)
 
 if(!isSkewCalc){
   if(isNewPosition)
-    if(!isFOP)
-      opchain<-filterPosition(opchain,TARGET_EXPDATE=TARGET_EXPDATE,TARGET_EXPDATE_FRONT=TARGET_EXPDATE_FRONT,TARGET_EXPDATE_BACK=TARGET_EXPDATE_BACK)
-    else #specify the FOP specific Delta_Limit_MAX/MIN
-      opchain<-filterPosition(opchain,TARGET_EXPDATE=TARGET_EXPDATE,TARGET_EXPDATE_FRONT=TARGET_EXPDATE_FRONT,TARGET_EXPDATE_BACK=TARGET_EXPDATE_BACK)
+    if(isFiltered)
+      if(!isFOP)
+        opchain<-filterPosition(opchain,TARGET_EXPDATE=TARGET_EXPDATE,TARGET_EXPDATE_FRONT=TARGET_EXPDATE_FRONT,TARGET_EXPDATE_BACK=TARGET_EXPDATE_BACK)
+      else
+        opchain<-filterPosition(opchain,TARGET_EXPDATE=TARGET_EXPDATE,TARGET_EXPDATE_FRONT=TARGET_EXPDATE_FRONT,TARGET_EXPDATE_BACK=TARGET_EXPDATE_BACK)
 }
 
 #select and sort
@@ -463,4 +470,3 @@ wf_<-paste(DataFiles_Path_G,Underying_Symbol_G,TargetFileName,sep="")
 write.table(opchain,wf_,quote=T,row.names=F,sep=",")
 
 rm(list=ls())
-
