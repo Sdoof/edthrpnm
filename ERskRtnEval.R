@@ -84,7 +84,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   
   if(isDetail){cat(" :(weight_IV)",weight_IV)}
   
-  #Volatility Change percent
+  #Implied Volatility Change percent
   #make sure this is CONDITIONAL. given the price change(and regressed IV change), calculate additional volatility change
   #if correlation is 1, the vol_chg should be 0.
   cor_tmp=get.Volatility.Level.Regression(Days=Setting$holdDays)$cor
