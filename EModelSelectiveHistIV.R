@@ -327,6 +327,7 @@ if(IS_SELECTIVE_WEIGHT_ESTM){
 h <- dpih(tmp$P2IVxd$PCxdCtC)
 bins <- seq(min(tmp$P2IVxd$PCxdCtC)-3*h/2, max(tmp$P2IVxd$PCxdCtC)+3*h/2, by=h)
 hist(tmp$P2IVxd$PCxdCtC, breaks=bins)
+rm(h)
 
 est_density=density(tmp$P2IVxd$PCxdCtC,adjust = 1,
                     from=(-EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum),
@@ -336,18 +337,29 @@ est_density=density(tmp$P2IVxd$PCxdCtC,adjust = 1,
 lines(est_density,xlim=c(-EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum,
                          EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum),
       ylim=c(0,1))
+frame()
+
+plot(est_density$x,est_density$y,col="blue")
+lines(est_density,xlim=c(-EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum,
+                         EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum),
+      ylim=c(0,1))
+
 
 est_weight=est_density$y/sum(est_density$y)
+
+frame()
+plot(est_density$x,est_weight,col="blue")
 
 HV_IV_Adjust_Ratio
 anlzd_sd<-histIV[1]/100*HV_IV_Adjust_Ratio
 sd_hd<-(anlzd_sd/sqrt(252/EvalFuncSetting$holdDays))
-
 sknm_weight<-dsn(est_density$x,
                  xi=EvalFuncSetting$holdDays/252*EvalFuncSetting$Weight_Drift,
                  alpha=EvalFuncSetting$Weight_Skew*sd_hd,
                  omega=sd_hd)
 sknm_weight=sknm_weight/sum(sknm_weight)
+par(new=T)
+plot(est_density$x,sknm_weight,col="red")
 
 print(est_weight)
 print(sknm_weight)
