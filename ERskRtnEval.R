@@ -47,16 +47,21 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   
   ##
   #  weighting calculate
-  sd_multp<-Setting$holdDays
-  anlzd_sd<-histIV$IVIDX[1]*Setting$HV_IV_Adjust_Ratio
-  sd_hd<-(anlzd_sd/sqrt(252/sd_multp))
-  sd_hd_1d<-(anlzd_sd/sqrt(252/1))
-  #f.y.i sd_hd<-exp(anlzd_sd*sqrt(sd_multp/252))-1 #exponential expression
-  weight<-dsn(udlChgPct,xi=sd_multp/252*Setting$Weight_Drift,alpha=Setting$Weight_Skew*sd_hd,omega=sd_hd)/sum(dsn(udlChgPct,xi=sd_multp/252*Setting$Weight_Drift,alpha=Setting$Weight_Skew*sd_hd,omega=sd_hd))
-  weight_Effect_hd<-dsn(udlChgPct,xi=sd_multp/252*Setting$Weight_Drift_GreekEffect,alpha=Setting$Weight_Drift_GreekEffect*sd_hd,omega=sd_hd) / sum(dsn(udlChgPct,xi=sd_multp/252*Setting$Weight_Drift_GreekEffect,alpha=Setting$Weight_Drift_GreekEffect*sd_hd,omega=sd_hd))
-  weight_Effect_1d<-dsn(udlChgPct,xi=1/252*Setting$Weight_Drift_GreekEffect,alpha=Setting$Weight_Drift_GreekEffect*sd_hd_1d,omega=sd_hd_1d) / sum(dsn(udlChgPct,xi=1/252*Setting$Weight_Drift_GreekEffect,alpha=Setting$Weight_Drift_GreekEffect*sd_hd_1d,omega=sd_hd_1d))
-  #average weighted weight_Effect
-  weight_Effect=weight_Effect_1d*Setting$GreekEfctOnHldD+weight_Effect_hd*(1-Setting$GreekEfctOnHldD)
+  if(sum(EvalFuncSetting$Weight_Explicit)<0.2){
+    sd_multp<-Setting$holdDays
+    anlzd_sd<-histIV$IVIDX[1]*Setting$HV_IV_Adjust_Ratio
+    sd_hd<-(anlzd_sd/sqrt(252/sd_multp))
+    sd_hd_1d<-(anlzd_sd/sqrt(252/1))
+    #f.y.i sd_hd<-exp(anlzd_sd*sqrt(sd_multp/252))-1 #exponential expression
+    weight<-dsn(udlChgPct,xi=sd_multp/252*Setting$Weight_Drift,alpha=Setting$Weight_Skew*sd_hd,omega=sd_hd)/sum(dsn(udlChgPct,xi=sd_multp/252*Setting$Weight_Drift,alpha=Setting$Weight_Skew*sd_hd,omega=sd_hd))
+    weight_Effect_hd<-dsn(udlChgPct,xi=sd_multp/252*Setting$Weight_Drift_GreekEffect,alpha=Setting$Weight_Drift_GreekEffect*sd_hd,omega=sd_hd) / sum(dsn(udlChgPct,xi=sd_multp/252*Setting$Weight_Drift_GreekEffect,alpha=Setting$Weight_Drift_GreekEffect*sd_hd,omega=sd_hd))
+    weight_Effect_1d<-dsn(udlChgPct,xi=1/252*Setting$Weight_Drift_GreekEffect,alpha=Setting$Weight_Drift_GreekEffect*sd_hd_1d,omega=sd_hd_1d) / sum(dsn(udlChgPct,xi=1/252*Setting$Weight_Drift_GreekEffect,alpha=Setting$Weight_Drift_GreekEffect*sd_hd_1d,omega=sd_hd_1d))
+    #average weighted weight_Effect
+    weight_Effect=weight_Effect_1d*Setting$GreekEfctOnHldD+weight_Effect_hd*(1-Setting$GreekEfctOnHldD)
+  }else{
+    weight<-EvalFuncSetting$Weight_Explicit
+    weight_Effect<-EvalFuncSetting$Weight_Explicit
+  }
   
   if(isDetail){
     cat(" :(weight hdday)",weight)#;cat(" :(weightEffect hdday)",weight_Effect_hd);cat(" :(weightEffect 1ay)",weight_Effect_1d)

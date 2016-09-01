@@ -2,11 +2,14 @@ library(RQuantLib)
 library(ggplot2)
 library(plyr)
 library(dplyr)
+library(sn)
+library(MASS)
+library(KernSmooth)
 rm(list=ls())
 source('./ESourceRCode.R',encoding = 'UTF-8')
 
 #Data Num.
-DATA_NUM=1260 # about x years equivalent 
+DATA_NUM=252*15 # about x years equivalent 
 
 #read data file
 histPrc<-read.table(paste(DataFiles_Path_G,Underying_Symbol_G,"_Hist.csv",sep=""),header=T,sep=",")
@@ -26,6 +29,7 @@ cat("Realized Vol(200d anlzd)",annuual.daily.volatility(histPrc[1:200])$anlzd*10
 
 #selective parmeters
 IS_SELECTIVE_HISTIV_REGR=T
+IS_SELECTIVE_WEIGHT_ESTM=F
 a_low=0.8
 d_low=5
 a_high=1.25
@@ -268,6 +272,8 @@ sd(HVIVR)
 mean(HVIVR[1:100])
 sd(HVIVR[1:100])
 
+HV_IV_Adjust_Ratio=mean(HVIVR[1:100])+sd(HVIVR[1:100])
+
 ##
 # Daily Volatility of Implied Volatility statistic of selected subdata
 getDVIVStat <- function(histIV,xDayVol,effectiv_suffix,isDebug=F){
@@ -293,7 +299,7 @@ getDVIVStat <- function(histIV,xDayVol,effectiv_suffix,isDebug=F){
   return(DVIV)
 }
 
-DVIV=getDVIVStat(histIV,xDayVol=dviv_caldays,effectiv_suffix,isDebug=T)
+DVIV=getDVIVStat(histIV,xDayVol=dviv_caldays,effectiv_suffix,isDebug=F)
 AVIV=DVIV*sqrt(252)
 #total data AVIV 
 annuual.daily.volatility(histIV)$anlzd
@@ -307,3 +313,58 @@ mean(AVIV[1:100])
 cat("ExpIVChange_Multiple",mean(AVIV[1:100])/annuual.daily.volatility(histIV[1:dviv_caldays])$anlzd,"\n")
 cat("ExpIVChange_Multiple",mean(DVIV[1:100])/annuual.daily.volatility(histIV[1:dviv_caldays])$daily,"\n")
 
+#####
+## Return DistributionEstimates
+
+##  Histgram
+xDayInt=EvalFuncSetting$holdDays
+tmp=saveP2IVReg(histPrc,histIV,DATA_NUM,xDayInt)
+tmp$lm
+if(IS_SELECTIVE_WEIGHT_ESTM){
+  selectSuffixForValidIV(histIV,xDayInt,a_low,d_low,a_high,d_high)->suffix_slctd
+  tmp=saveP2IVReg(histPrc,histIV,DATA_NUM,xDayInt,effectiv_suffix=suffix_slctd)
+}
+h <- dpih(tmp$P2IVxd$PCxdCtC)
+bins <- seq(min(tmp$P2IVxd$PCxdCtC)-3*h/2, max(tmp$P2IVxd$PCxdCtC)+3*h/2, by=h)
+hist(tmp$P2IVxd$PCxdCtC, breaks=bins)
+
+est_density=density(tmp$P2IVxd$PCxdCtC,adjust = 1,
+                    from=(-EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum),
+                    to=EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum,
+                    n=(2*EvalFuncSetting$UdlStepNum)+1)
+
+lines(est_density,xlim=c(-EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum,
+                         EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum),
+      ylim=c(0,1))
+
+est_weight=est_density$y/sum(est_density$y)
+
+HV_IV_Adjust_Ratio
+anlzd_sd<-histIV[1]/100*HV_IV_Adjust_Ratio
+sd_hd<-(anlzd_sd/sqrt(252/EvalFuncSetting$holdDays))
+
+sknm_weight<-dsn(est_density$x,
+                 xi=EvalFuncSetting$holdDays/252*EvalFuncSetting$Weight_Drift,
+                 alpha=EvalFuncSetting$Weight_Skew*sd_hd,
+                 omega=sd_hd)
+sknm_weight=sknm_weight/sum(sknm_weight)
+
+print(est_weight)
+print(sknm_weight)
+
+cat("c(");cat(est_weight,sep="$");cat(")")
+
+min(tmp$P2IVxd$PCxdCtC)
+#which.min(tmp$P2IVxd$PCxdCtC)
+Date[which.min(tmp$P2IVxd$PCxdCtC)]
+tmp$P2IVxd$IVCFxdCtC[which.min(tmp$P2IVxd$PCxdCtC)]
+#sd, mean and skewnewss
+sd(tmp$P2IVxd$PCxdCtC)
+mean(tmp$P2IVxd$PCxdCtC)
+mean((tmp$P2IVxd$PCxdCtC-mean(tmp$P2IVxd$PCxdCtC))^3)/(sd(tmp$P2IVxd$PCxdCtC)^3)
+#annualized sd and mean
+cat("sd anlzd",sd(tmp$P2IVxd$PCxdCtC)*sqrt(225/xDayInt),"\n")
+cat("drift anlzd",mean(tmp$P2IVxd$PCxdCtC)*(225/xDayInt),"\n")
+#Skewness as a multiple of SD
+cat("skew",
+    mean((tmp$P2IVxd$PCxdCtC-mean(tmp$P2IVxd$PCxdCtC))^3),"\n")
