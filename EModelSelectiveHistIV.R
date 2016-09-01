@@ -9,7 +9,7 @@ rm(list=ls())
 source('./ESourceRCode.R',encoding = 'UTF-8')
 
 #Data Num.
-DATA_NUM=252*15 # about x years equivalent 
+DATA_NUM=252*17 # about x years equivalent 
 
 #read data file
 histPrc<-read.table(paste(DataFiles_Path_G,Underying_Symbol_G,"_Hist.csv",sep=""),header=T,sep=",")
@@ -329,7 +329,8 @@ bins <- seq(min(tmp$P2IVxd$PCxdCtC)-3*h/2, max(tmp$P2IVxd$PCxdCtC)+3*h/2, by=h)
 hist(tmp$P2IVxd$PCxdCtC, breaks=bins)
 rm(h)
 
-est_density=density(tmp$P2IVxd$PCxdCtC,adjust = 1,
+est_density=density(tmp$P2IVxd$PCxdCtC,
+                    adjust = max(max(abs(tmp$P2IVxd$PCxdCtC))/(EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum),1),
                     from=(-EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum),
                     to=EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum,
                     n=(2*EvalFuncSetting$UdlStepNum)+1)
