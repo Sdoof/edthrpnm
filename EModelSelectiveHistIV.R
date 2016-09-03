@@ -9,7 +9,7 @@ rm(list=ls())
 source('./ESourceRCode.R',encoding = 'UTF-8')
 
 #Data Num.
-DATA_NUM=252*17 # about x years equivalent 
+DATA_NUM=252*10 # about x years equivalent 
 
 #read data file
 histPrc<-read.table(paste(DataFiles_Path_G,Underying_Symbol_G,"_Hist.csv",sep=""),header=T,sep=",")
@@ -29,7 +29,7 @@ cat("Realized Vol(200d anlzd)",annuual.daily.volatility(histPrc[1:200])$anlzd*10
 
 #selective parmeters
 IS_SELECTIVE_HISTIV_REGR=T
-IS_SELECTIVE_WEIGHT_ESTM=F
+IS_SELECTIVE_WEIGHT_ESTM=T
 a_low=0.8
 d_low=5
 a_high=1.25
@@ -64,22 +64,25 @@ Price2IVIDX <- function(histPrc,histIV,dataNum,xDayInt,start_day=1,effectiv_suff
     na.omit(tmp) %>% as.vector() -> IVCFxdCtC
   }
   
-  print(length(PCxdCtC))
-  print(length(IVCFxdCtC))
+  cat("effectiv_suffix PCxdCtC",length(PCxdCtC),"\n")
+  cat("effectiv_suffix IVCFxdCtC",length(IVCFxdCtC),"\n")
   
   if(length(PCxdCtC)<=(start_day+dataNum))
     dataNum=length(PCxdCtC)-start_day
   
   #Regression
-  PCxdCtC=PCxdCtC[start_day:(start_day+dataNum)]
+  PCxdCtC=PCxdCtC[start_day:(start_day+dataNum-1)]
   na.omit(PCxdCtC)  %>% as.vector() -> PCxdCtC
-  IVCFxdCtC=IVCFxdCtC[start_day:(start_day+dataNum)]
+  IVCFxdCtC=IVCFxdCtC[start_day:(start_day+dataNum-1)]
   na.omit(IVCFxdCtC)  %>% as.vector() -> IVCFxdCtC
   
   PCxdCtC=PCxdCtC[1:min(length(PCxdCtC),length(IVCFxdCtC))]
   IVCFxdCtC=IVCFxdCtC[1:min(length(PCxdCtC),length(IVCFxdCtC))]
-  P2IVxd <- data.frame(PCxdCtC=PCxdCtC, IVCFxdCtC=IVCFxdCtC)
   
+  cat("dataNum PCxdCtC",length(PCxdCtC),"\n")
+  cat("dataNum IVCFxdCtC",length(IVCFxdCtC),"\n")
+  
+  P2IVxd <- data.frame(PCxdCtC=PCxdCtC, IVCFxdCtC=IVCFxdCtC)
   co=cor(PCxdCtC[start_day:min((start_day+dataNum),length(PCxdCtC))],
          IVCFxdCtC[start_day:min((start_day+dataNum),length(IVCFxdCtC))])
   
@@ -369,6 +372,7 @@ cat("c(");cat(est_weight,sep="$");cat(")")
 
 min(tmp$P2IVxd$PCxdCtC)
 #which.min(tmp$P2IVxd$PCxdCtC)
+Date[suffix_slctd]
 Date[which.min(tmp$P2IVxd$PCxdCtC)]
 tmp$P2IVxd$IVCFxdCtC[which.min(tmp$P2IVxd$PCxdCtC)]
 #sd, mean and skewnewss
