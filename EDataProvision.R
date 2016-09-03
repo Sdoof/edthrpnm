@@ -30,8 +30,8 @@ makeOpchainContainer<-function(){
   opch_pr_$Date=format(as.Date(opch_pr_$Date,format="%Y/%m/%d"),"%Y/%b/%d")
   opch_pr_$ExpDate=format(as.Date(opch_pr_$ExpDate,format="%Y/%m/%d"),"%Y/%b/%d")
   
-  opch_pr_ %>% select(Strike,ContactName,TYPE,Date,ExpDate,Last,Bid,Ask) %>% 
-    arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="%Y/%m/%d"),desc(TYPE),Strike) -> opch_pr_
+  opch_pr_ %>% dplyr::select(Strike,ContactName,TYPE,Date,ExpDate,Last,Bid,Ask) %>% 
+    dplyr::arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="%Y/%m/%d"),desc(TYPE),Strike) -> opch_pr_
   
   na.omit(opch_pr_)->opch_pr_
   
@@ -65,8 +65,8 @@ makeFOPChainContainer<-function(){
   rf_<-paste(DataFiles_Path_G,Underying_Symbol_G,ProcessFileName,sep="")
   opch_pr_<-read.table(rf_,header=T,sep=",")
   
-  opch_pr_ %>% select(Strike,ContactName,TYPE,Date,ExpDate,Last,Bid,Ask) %>% 
-    arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="%Y/%m/%d"),desc(TYPE),Strike) -> opch_pr_
+  opch_pr_ %>% dplyr::select(Strike,ContactName,TYPE,Date,ExpDate,Last,Bid,Ask) %>% 
+    dplyr::arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="%Y/%m/%d"),desc(TYPE),Strike) -> opch_pr_
   
   opch_pr_$Price<-(opch_pr_$Bid+opch_pr_$Ask)/2
   #standarize (unify) data expression
@@ -77,8 +77,8 @@ makeFOPChainContainer<-function(){
   rf_<-paste(DataFiles_Path_G,Underying_Symbol_G,"FUT.csv",sep="")
   futPrc_<-read.table(rf_,header=T,sep=",",nrows=1000)
   futPrc_$UDLY=(futPrc_$Bid+futPrc_$Ask)/2
-  futPrc_ %>% select(ContactName,Date,ExpDate,UDLY) %>% 
-    arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="%Y/%m/%d")) -> futPrc_
+  futPrc_ %>% dplyr::select(ContactName,Date,ExpDate,UDLY) %>% 
+    dplyr::arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="%Y/%m/%d")) -> futPrc_
   #standarize (unify) data expression
   futPrc_$Date=format(as.Date(futPrc_$Date,format="%Y/%m/%d"),"%Y/%b/%d")
   futPrc_$ExpDate=format(as.Date(futPrc_$ExpDate,format="%Y/%m/%d"),"%Y/%b/%d")
@@ -89,13 +89,13 @@ makeFOPChainContainer<-function(){
   futPrc_$ExpDate=NULL
   
   #Selecting Appropriate FutExPDate and UDLY
-  opch_pr_ %>% left_join(futPrc_,by="Date") -> tmp
+  opch_pr_ %>% dplyr::left_join(futPrc_,by="Date") -> tmp
   tmp$Tdiff = as.numeric(difftime(as.Date(tmp$FutExpDate,format="%Y/%m/%d"),as.Date(tmp$ExpDate,format="%Y/%m/%d")), units="days")
-  tmp %>% filter(Tdiff>=0) -> tmp
+  tmp %>% dplyr::filter(Tdiff>=0) -> tmp
   
   #groub_by(Some1,Some2,Some3) acts as Unique Key (One or combination of Attribute(s) ) 
   #%>% Then other Columns(Attributes) are summarised.
-  tmp %>% group_by(Strike,Date,ExpDate,TYPE) %>% summarise(ContactName=ContactName[which.min(Tdiff)],
+  tmp %>% dplyr::group_by(Strike,Date,ExpDate,TYPE) %>% dplyr::summarise(ContactName=ContactName[which.min(Tdiff)],
                                                            Last=Last[which.min(Tdiff)],Bid=Bid[which.min(Tdiff)],
                                                            Ask=Ask[which.min(Tdiff)],Price=Price[which.min(Tdiff)],
                                                            UDLY=UDLY[which.min(Tdiff)],
@@ -112,9 +112,9 @@ makeFOPChainContainer<-function(){
   # Approximate Forward Rate
   time_DateToFutExpDate=as.numeric(difftime(as.Date(opch_pr_$FutExpDate,format="%Y/%m/%d"),as.Date(opch_pr_$Date,format="%Y/%m/%d")), units="days")/365
   opch_pr_$DateToFutExpDate=time_DateToFutExpDate
-  opch_pr_ %>% group_by(Date,FutExpDate) %>% summarise(UDLY=UDLY[which.min(DateToFutExpDate)],
+  opch_pr_ %>% dplyr::group_by(Date,FutExpDate) %>% dplyr::summarise(UDLY=UDLY[which.min(DateToFutExpDate)],
                                                        DateToFutExpDate=DateToFutExpDate[which.min(DateToFutExpDate)])  %>% as.data.frame() -> tmp
-  tmp %>% arrange(desc(as.Date(Date,format="%Y/%m/%d")),as.Date(FutExpDate,format="%Y/%m/%d")) -> tmp
+  tmp %>% dplyr::arrange(desc(as.Date(Date,format="%Y/%m/%d")),as.Date(FutExpDate,format="%Y/%m/%d")) -> tmp
   
   # approximate forward rate by using 2 latest FUT Price, solving the equation that the 1st FUT's Spot price equals 2nd one.
   # for the details, consult paper specification
@@ -394,7 +394,7 @@ filterDiagonalSpread <- function(opchain, TARGET_D,
   
   opchain_diag_Put %>%  dplyr::full_join(opchain_diag_Call) %>% 
     dplyr::arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="%Y/%m/%d"),desc(TYPE),Strike) %>%
-    distinct() -> opchain_diag
+    dplyr::distinct() -> opchain_diag
   
   return(opchain_diag)
 }
@@ -458,10 +458,10 @@ if(!isSkewCalc){
 }
 
 #select and sort
-opchain %>% select(Date,ExpDate,TYPE,Strike,ContactName,Position,UDLY,Price,
+opchain %>% dplyr::select(Date,ExpDate,TYPE,Strike,ContactName,Position,UDLY,Price,
                    Delta,Gamma,Vega,Theta,Rho,OrigIV,ATMIV,IVIDX,
                    HowfarOOM,TimeToExpDate,Moneyness.Nm) %>% 
-  arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="%Y/%m/%d"),desc(TYPE),Strike) -> opchain
+  dplyr::arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="%Y/%m/%d"),desc(TYPE),Strike) -> opchain
 opchain$Position<-ifelse(is.na(opchain$Position), 0, opchain$Position)
 
 

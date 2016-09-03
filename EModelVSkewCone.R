@@ -6,8 +6,8 @@ rm(list=ls())
 source('./ESourceRCode.R',encoding = 'UTF-8')
 
 #MAX ExpToDate for Skew Regression
-SkewRegressionTimeToExpDateMin<-1.8
-SkewRegressionTimeToExpDateMax<-4.1
+SkewRegressionTimeToExpDateMin<-1.5
+SkewRegressionTimeToExpDateMax<-3.1
 
 #We get regression only past this day. Currently reflected on Skew only.
 #should apply Vcone, etc.
@@ -75,7 +75,7 @@ displace<-log(atmiv$Moneyness.Frac)/atmiv$ATMIV/sqrt(atmiv$TimeToExpDate)
 atmiv$displace<-displace
 
 #merge
-opch <- merge(opch,
+opch <- dplyr::merge(opch,
               atmiv %>% dplyr::select(Date,ExpDate,TYPE,ATMIV,displace) %>% as.data.frame(),
               #              by.x=c("Date","ExpDate","TYPE"),by.y=c("Date","ExpDate","TYPE"),all.x=T)
               by.x=c("Date","ExpDate","TYPE","ATMIV"),by.y=c("Date","ExpDate","TYPE","ATMIV"),all=T)
@@ -98,7 +98,7 @@ getNmlzdSkewMoneynessVplot<-function(oom_lim){
   #filter by TimeToExpDate
   vplot %>% dplyr::filter(TimeToExpDate<=SkewRegressionTimeToExpDateMax) %>% dplyr::filter(TimeToExpDate>=SkewRegressionTimeToExpDateMin) -> vplot
   #filter by recent data. Take only past RegressionDateBackDaysMax dats
-  vplot %>% filter(as.Date(Date,format="%Y/%m/%d")>= max(as.Date(Date,format="%Y/%m/%d"))-RegressionDateBackDaysMax) -> vplot
+  vplot %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")>= max(as.Date(Date,format="%Y/%m/%d"))-RegressionDateBackDaysMax) -> vplot
   
   return(vplot)
 }
@@ -110,7 +110,7 @@ getNmlzdSkewTypEVplot<-function(op_right){
   #filter by TimeToExpDate
   vplot %>% dplyr::filter(TimeToExpDate<=SkewRegressionTimeToExpDateMax) %>% dplyr::filter(TimeToExpDate>=SkewRegressionTimeToExpDateMin) -> vplot
   #filter by recent data. Take only past RegressionDateBackDaysMax dats
-  vplot %>% filter(as.Date(Date,format="%Y/%m/%d")>= max(as.Date(Date,format="%Y/%m/%d"))-RegressionDateBackDaysMax) -> vplot
+  vplot %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")>= max(as.Date(Date,format="%Y/%m/%d"))-RegressionDateBackDaysMax) -> vplot
   
   return(vplot)
 }
@@ -290,6 +290,8 @@ rm(vcone,predict.c,model.ss)
 
 ##
 # creating ATMIDXIV.f
+#atmiv.vcone.anal %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")>=as.Date("2016/8/20",format="%Y/%m/%d")) -> tmp
+#tmp->atmiv.vcone.anal
 atmiv.vcone.anal$ATMIDXIV.f=atmiv.vcone.anal$ATMIV/atmiv.vcone.anal$IVIDX
 atmiv.vcone.anal %>% filter(TYPE==OpType_Put_G) -> atmiv.vcone.anal.put
 atmiv.vcone.anal %>% filter(TYPE==OpType_Call_G) -> atmiv.vcone.anal.call
