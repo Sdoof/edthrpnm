@@ -372,7 +372,6 @@ cat("c(");cat(est_weight,sep="$");cat(")")
 
 min(tmp$P2IVxd$PCxdCtC)
 #which.min(tmp$P2IVxd$PCxdCtC)
-Date[suffix_slctd]
 Date[which.min(tmp$P2IVxd$PCxdCtC)]
 tmp$P2IVxd$IVCFxdCtC[which.min(tmp$P2IVxd$PCxdCtC)]
 #sd, mean and skewnewss
@@ -385,3 +384,71 @@ cat("drift anlzd",mean(tmp$P2IVxd$PCxdCtC)*(225/xDayInt),"\n")
 #Skewness as a multiple of SD
 cat("skew",
     mean((tmp$P2IVxd$PCxdCtC-mean(tmp$P2IVxd$PCxdCtC))^3),"\n")
+
+##
+# Histgram One Day
+xDayInt=1
+tmp=saveP2IVReg(histPrc,histIV,DATA_NUM,xDayInt)
+tmp$lm
+if(IS_SELECTIVE_WEIGHT_ESTM){
+  selectSuffixForValidIV(histIV,xDayInt,a_low,d_low,a_high,d_high)->suffix_slctd
+  tmp=saveP2IVReg(histPrc,histIV,DATA_NUM,xDayInt,effectiv_suffix=suffix_slctd)
+}
+h <- dpih(tmp$P2IVxd$PCxdCtC)
+bins <- seq(min(tmp$P2IVxd$PCxdCtC)-3*h/2, max(tmp$P2IVxd$PCxdCtC)+3*h/2, by=h)
+hist(tmp$P2IVxd$PCxdCtC, breaks=bins)
+rm(h)
+
+est_density=density(tmp$P2IVxd$PCxdCtC,
+                    adjust = max(max(abs(tmp$P2IVxd$PCxdCtC))/(EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum),1),
+                    from=(-EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum),
+                    to=EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum,
+                    n=(2*EvalFuncSetting$UdlStepNum)+1)
+
+lines(est_density,xlim=c(-EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum,
+                         EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum),
+      ylim=c(0,1))
+frame()
+
+plot(est_density$x,est_density$y,col="blue")
+lines(est_density,xlim=c(-EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum,
+                         EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum),
+      ylim=c(0,1))
+
+
+est_weight=est_density$y/sum(est_density$y)
+
+frame()
+plot(est_density$x,est_weight,col="blue")
+
+HV_IV_Adjust_Ratio
+anlzd_sd<-histIV[1]/100*HV_IV_Adjust_Ratio
+sd_hd<-(anlzd_sd/sqrt(252/1))
+sknm_weight<-dsn(est_density$x,
+                 xi=EvalFuncSetting$holdDays/252*EvalFuncSetting$Weight_Drift,
+                 alpha=EvalFuncSetting$Weight_Skew*sd_hd,
+                 omega=sd_hd)
+sknm_weight=sknm_weight/sum(sknm_weight)
+par(new=T)
+plot(est_density$x,sknm_weight,col="red")
+
+print(est_weight)
+print(sknm_weight)
+
+cat("c(");cat(est_weight,sep="$");cat(")")
+
+min(tmp$P2IVxd$PCxdCtC)
+#which.min(tmp$P2IVxd$PCxdCtC)
+Date[which.min(tmp$P2IVxd$PCxdCtC)]
+tmp$P2IVxd$IVCFxdCtC[which.min(tmp$P2IVxd$PCxdCtC)]
+#sd, mean and skewnewss
+sd(tmp$P2IVxd$PCxdCtC)
+mean(tmp$P2IVxd$PCxdCtC)
+mean((tmp$P2IVxd$PCxdCtC-mean(tmp$P2IVxd$PCxdCtC))^3)/(sd(tmp$P2IVxd$PCxdCtC)^3)
+#annualized sd and mean
+cat("sd anlzd",sd(tmp$P2IVxd$PCxdCtC)*sqrt(225/xDayInt),"\n")
+cat("drift anlzd",mean(tmp$P2IVxd$PCxdCtC)*(225/xDayInt),"\n")
+#Skewness as a multiple of SD
+cat("skew",
+    mean((tmp$P2IVxd$PCxdCtC-mean(tmp$P2IVxd$PCxdCtC))^3),"\n")
+

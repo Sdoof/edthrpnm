@@ -59,8 +59,8 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
     #average weighted weight_Effect
     weight_Effect=weight_Effect_1d*Setting$GreekEfctOnHldD+weight_Effect_hd*(1-Setting$GreekEfctOnHldD)
   }else{
-    weight<-EvalFuncSetting$Weight_Explicit
-    weight_Effect<-EvalFuncSetting$Weight_Explicit
+    weight<-Setting$Weight_Explicit
+    weight_Effect<-Setting$Weight_Explicit_1D*Setting$GreekEfctOnHldD+Setting$Weight_Explicit*(1-Setting$GreekEfctOnHldD)
   }
   
   if(isDetail){
