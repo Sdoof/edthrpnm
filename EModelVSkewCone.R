@@ -7,7 +7,7 @@ source('./ESourceRCode.R',encoding = 'UTF-8')
 
 #MAX ExpToDate for Skew Regression
 SkewRegressionTimeToExpDateMin<-1.5
-SkewRegressionTimeToExpDateMax<-3.1
+SkewRegressionTimeToExpDateMax<-3.2
 
 #We get regression only past this day. Currently reflected on Skew only.
 #should apply Vcone, etc.
@@ -50,13 +50,7 @@ opch %>% dplyr::arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="
 ##END Got complete opch
 
 #Get ATM Implied Volatilities for each option types.
-##START Create atmiv
-#opch %>% dplyr::group_by(Date,ExpDate,TYPE) %>% dplyr::filter(HowfarOOM>0) %>% 
-#Get the OrigIV where HowfarOOM is minimum, ie. IV at ATM.
-#  dplyr::summarise(num=n(),OOM=min(abs(HowfarOOM)),min.i=which.min(abs(HowfarOOM)),ATMIV=OrigIV[which.min(abs(HowfarOOM))]
-#                   ,TimeToExpDate=TimeToExpDate[which.min(abs(HowfarOOM))],IVIDX=IVIDX[which.min(abs(HowfarOOM))]) %>% 
-#  as.data.frame() -> atmiv
-#atmiv %>% dplyr::select(Date,ExpDate,TYPE,ATMIV,IVIDX,TimeToExpDate) %>% as.data.frame() -> atmiv
+##START to Create atmiv
 opch %>% dplyr::group_by(Date,ExpDate,TYPE) %>% dplyr::filter(HowfarOOM>0) %>% 
   #Get the OrigIV where HowfarOOM is minimum, ie. IV at ATM.
   dplyr::summarise(num=n(),OOM=min(abs(HowfarOOM)),min.i=which.min(abs(HowfarOOM)),ATMIV=OrigIV[which.min(abs(HowfarOOM))],
@@ -75,7 +69,7 @@ displace<-log(atmiv$Moneyness.Frac)/atmiv$ATMIV/sqrt(atmiv$TimeToExpDate)
 atmiv$displace<-displace
 
 #merge
-opch <- dplyr::merge(opch,
+opch <- merge(opch,
               atmiv %>% dplyr::select(Date,ExpDate,TYPE,ATMIV,displace) %>% as.data.frame(),
               #              by.x=c("Date","ExpDate","TYPE"),by.y=c("Date","ExpDate","TYPE"),all.x=T)
               by.x=c("Date","ExpDate","TYPE","ATMIV"),by.y=c("Date","ExpDate","TYPE","ATMIV"),all=T)
@@ -183,7 +177,8 @@ adjustATMIV <- function(atmiv){
   return(ATMIV_adjst)
 }
 
-#ATMIV adjusted to continue following regressions.
+##
+#    ATMIV adjusted to continue following regressions.
 ATMIV_adj<-adjustATMIV(atmiv)
 atmiv$ATMIV<-ATMIV_adj
 
@@ -191,59 +186,46 @@ atmiv$ATMIV<-ATMIV_adj
 rm(models,vplot,predict.c)
 
 ##
-# Volatility Cone and ATMIV behavior analysis
+#  Regression of ATM behavior
 
-#
-# Getting and Creating atmiv.vcone.anal to analyze vcone and to model ATMIV behavior
+##
+# creating ATMIDXIV.f
 
-# inner function
-# called from do above. This function is called for each grouped data frame.
-makeVconAnalDF<- function(atmiv){
-  atmiv %>% dplyr::mutate(ATMIV.s=dplyr::lead(atmiv$ATMIV,1)) -> atmiv
-  atmiv %>% dplyr::mutate(IVIDX.s=dplyr::lead(atmiv$IVIDX,1)) -> atmiv
-  atmiv %>% dplyr::mutate(TimeToExpDate.s=dplyr::lead(atmiv$TimeToExpDate,1)) -> atmiv
-  atmiv %>% dplyr::mutate(ATMIV.f=ATMIV.s/ATMIV
-                          ,IVIDX.f=IVIDX.s/IVIDX
-                          ,TimeToExpDate.d=TimeToExpDate-TimeToExpDate.s) -> atmiv
-  atmiv$ATMIV.s<-atmiv$IVIDX.s<-atmiv$TimeToExpDate.s<-NULL
-  
-  #filter out data whose busuness days interval are more than time_max days
-  # if you want to exclude whose intervals are more than 6 days, 
-  #  then set time_max<- 6.2 etc to avoid unncessary boundary misconfigurations.
-  time_max <- 7.2
-  timeIntervalExclude_max=(1/(252/12))*time_max
-  atmiv %>% dplyr::filter(TimeToExpDate.d<=timeIntervalExclude_max) -> atmiv
-  atmiv
-}
+#atmiv filtering
+atmiv->atmiv.org #atmiv.org used later for IV Change to IVIDX Up and Down
+atmiv %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")>=as.Date("2016/9/9",format="%Y/%m/%d")) -> atmiv
+#create another column
+atmiv$ATMIDXIV.f=atmiv$ATMIV/atmiv$IVIDX
+#separate to PUT and CALL atmiv
+atmiv %>% filter(TYPE==OpType_Put_G) -> atmiv.put
+atmiv %>% filter(TYPE==OpType_Call_G) -> atmiv.call
+#show each
+(ggplot(atmiv,aes(x=TimeToExpDate,y=ATMIDXIV.f,colour=TYPE))+geom_point())
+(ggplot(atmiv.put,aes(x=TimeToExpDate,y=ATMIDXIV.f,colour=Date))+geom_point())
+(ggplot(atmiv.call,aes(x=TimeToExpDate,y=ATMIDXIV.f,colour=Date))+geom_point())
 
-#Row "EachDF" 's members are dataframes. Composite Object Types such as Dataframe, List.
-#Thay can also be set as a data frame member. 
-#     note . referes to each grouped partial data frame.
-atmiv %>% group_by(ExpDate,TYPE) %>% do(EachDF=makeVconAnalDF(.)) -> atmiv.vcone.anal
-atmiv.vcone.anal %>% dplyr::arrange(desc(TYPE),as.Date(ExpDate,format="%Y/%m/%d")) -> atmiv.vcone.anal
-atmiv.vcone.eachDF<-atmiv.vcone.anal$EachDF
-atmiv.vcone.bind<-NULL
-for(i in 1:length(atmiv.vcone.eachDF)){
-  if(i==1){
-    atmiv.vcone.bind <- as.data.frame(atmiv.vcone.eachDF[i])
-  }
-  else{
-    atmiv.vcone.bind<-rbind(atmiv.vcone.bind,as.data.frame(atmiv.vcone.eachDF[i]))
-  }
-}
-#atmiv.vcone.anal: from nested data.frame to data.frame: type changed.
-atmiv.vcone.anal<-NULL
-atmiv.vcone.anal<-atmiv.vcone.bind
-rm(i,atmiv.vcone.eachDF,atmiv.vcone.bind)
+#PUT regression
+model.ss<-smooth.spline(atmiv.put$TimeToExpDate,atmiv.put$ATMIDXIV.f,df=3)
+(predict.c <- predict(model.ss,x=seq(0,max(atmiv.put$TimeToExpDate),by=0.1)))
+(ggplot(atmiv.put,aes(x=TimeToExpDate,y=ATMIDXIV.f,colour=TYPE))+geom_point()+
+  geom_line(data=data.frame(TimeToExpDate=predict.c$x,ATMIDXIV.f=predict.c$y,TYPE=1),aes(TimeToExpDate,ATMIDXIV.f)))
 
-#save atmiv.vcone.anal
-atmiv.vcone.anal %>% dplyr::select(Date,ExpDate,TYPE,ATMIV,Strike,UDLY,IVIDX,TimeToExpDate,ATMIV.f,IVIDX.f) %>% dplyr::distinct()-> atmiv.vcone.anal
-write.table(atmiv.vcone.anal,paste(DataFiles_Path_G,Underying_Symbol_G,"-ATMIV-VCONE-ANAL.csv",sep=""),row.names = F,col.names=T,sep=",",append=T)
-#read integrated atmiv.vcone.anal
-#tmp=read.table(paste(DataFiles_Path_G,Underying_Symbol_G,"-ATMIV-VCONE-ANAL.csv",sep=""),header=F,sep=",",stringsAsFactors=F)
-#colnames(tmp)=c("Date","ExpDate","TYPE","ATMIV","Strike","UDLY","IVIDX","TimeToExpDate","ATMIV.f","IVIDX.f")
-#tmp %>% dplyr::arrange(desc(TYPE),as.Date(ExpDate,format="%Y/%m/%d"),as.Date(Date,format="%Y/%m/%d")) %>% 
-#  dplyr::select(Date,ExpDate,TYPE,ATMIV,Strike,UDLY,IVIDX,TimeToExpDate,ATMIV.f,IVIDX.f) %>% dplyr::distinct()-> atmiv.vcone.anal
+save.ATMIDXIV.f(model.ss,OpType_Put_G)
+load.ATMIDXIV.f(OpType_Put_G)
+
+#CALL regression
+model.ss<-smooth.spline(atmiv.call$TimeToExpDate,atmiv.call$ATMIDXIV.f,df=3)
+(predict.c <- predict(model.ss,x=seq(0,max(atmiv.call$TimeToExpDate),by=0.1)))
+(ggplot(atmiv.call,aes(x=TimeToExpDate,y=ATMIDXIV.f,colour=TYPE))+geom_point()+
+  geom_line(data=data.frame(TimeToExpDate=predict.c$x,ATMIDXIV.f=predict.c$y,TYPE=1),aes(TimeToExpDate,ATMIDXIV.f)))
+
+#save regressed data
+save.ATMIDXIV.f(model.ss,OpType_Call_G)
+load.ATMIDXIV.f(OpType_Call_G)
+
+#save atmiv.org for another analysis
+write.table(atmiv.org,paste(DataFiles_Path_G,Underying_Symbol_G,"-ATMIV-VCONE-ANAL.csv",sep=""),row.names = F,col.names=T,sep=",",append=T)
+
 
 ##
 # Vcone Regression
@@ -285,41 +267,55 @@ CallVCone
 rm(PutVCone,CallVCone)
 rm(vcone,predict.c,model.ss)
 
-##
-#  Regression of ATM behavior
-
-##
-# creating ATMIDXIV.f
-#atmiv.vcone.anal %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")>=as.Date("2016/8/20",format="%Y/%m/%d")) -> tmp
-#tmp->atmiv.vcone.anal
-atmiv.vcone.anal$ATMIDXIV.f=atmiv.vcone.anal$ATMIV/atmiv.vcone.anal$IVIDX
-atmiv.vcone.anal %>% filter(TYPE==OpType_Put_G) -> atmiv.vcone.anal.put
-atmiv.vcone.anal %>% filter(TYPE==OpType_Call_G) -> atmiv.vcone.anal.call
-
-(ggplot(atmiv.vcone.anal,aes(x=TimeToExpDate,y=ATMIDXIV.f,colour=TYPE))+geom_point())
-(ggplot(atmiv.vcone.anal.put,aes(x=TimeToExpDate,y=ATMIDXIV.f,colour=TYPE))+geom_point())
-(ggplot(atmiv.vcone.anal.call,aes(x=TimeToExpDate,y=ATMIDXIV.f,colour=TYPE))+geom_point())
-
-#PUT
-model.ss<-smooth.spline(atmiv.vcone.anal.put$TimeToExpDate,atmiv.vcone.anal.put$ATMIDXIV.f,df=3)
-(predict.c <- predict(model.ss,x=seq(0,max(atmiv.vcone.anal.put$TimeToExpDate),by=0.1)))
-(ggplot(atmiv.vcone.anal.put,aes(x=TimeToExpDate,y=ATMIDXIV.f,colour=TYPE))+geom_point()+
-  geom_line(data=data.frame(TimeToExpDate=predict.c$x,ATMIDXIV.f=predict.c$y,TYPE=1),aes(TimeToExpDate,ATMIDXIV.f)))
-
-save.ATMIDXIV.f(model.ss,OpType_Put_G)
-load.ATMIDXIV.f(OpType_Put_G)
-
-#CALL
-model.ss<-smooth.spline(atmiv.vcone.anal.call$TimeToExpDate,atmiv.vcone.anal.call$ATMIDXIV.f,df=3)
-(predict.c <- predict(model.ss,x=seq(0,max(atmiv.vcone.anal.call$TimeToExpDate),by=0.1)))
-(ggplot(atmiv.vcone.anal.call,aes(x=TimeToExpDate,y=ATMIDXIV.f,colour=TYPE))+geom_point()+
-  geom_line(data=data.frame(TimeToExpDate=predict.c$x,ATMIDXIV.f=predict.c$y,TYPE=1),aes(TimeToExpDate,ATMIDXIV.f)))
-
-save.ATMIDXIV.f(model.ss,OpType_Call_G)
-load.ATMIDXIV.f(OpType_Call_G)
 
 ##
 # IV Change to IVIDX Up and Down
+#
+# Getting and Creating atmiv.vcone.anal to analyze vcone and to model ATMIV behavior
+
+# inner function
+  # called from do above. This function is called for each grouped data frame.
+  makeVconAnalDF<- function(atmiv){
+    atmiv %>% dplyr::mutate(ATMIV.s=dplyr::lead(atmiv$ATMIV,1)) -> atmiv
+    atmiv %>% dplyr::mutate(IVIDX.s=dplyr::lead(atmiv$IVIDX,1)) -> atmiv
+    atmiv %>% dplyr::mutate(TimeToExpDate.s=dplyr::lead(atmiv$TimeToExpDate,1)) -> atmiv
+    atmiv %>% dplyr::mutate(ATMIV.f=ATMIV.s/ATMIV
+                            ,IVIDX.f=IVIDX.s/IVIDX
+                            ,TimeToExpDate.d=TimeToExpDate-TimeToExpDate.s) -> atmiv
+    atmiv$ATMIV.s<-atmiv$IVIDX.s<-atmiv$TimeToExpDate.s<-NULL
+    
+    #filter out data whose busuness days interval are more than time_max days
+    # if you want to exclude whose intervals are more than 6 days, 
+    #  then set time_max<- 6.2 etc to avoid unncessary boundary misconfigurations.
+    time_max <- 7.2
+    timeIntervalExclude_max=(1/(252/12))*time_max
+    atmiv %>% dplyr::filter(TimeToExpDate.d<=timeIntervalExclude_max) -> atmiv
+    atmiv
+  }
+  
+  #Row "EachDF" 's members are dataframes. Composite Object Types such as Dataframe, List.
+  #Thay can also be set as a data frame member. 
+  #     note . referes to each grouped partial data frame.
+  atmiv = atmiv.org
+  atmiv %>% group_by(ExpDate,TYPE) %>% do(EachDF=makeVconAnalDF(.)) -> atmiv.vcone.anal
+  atmiv.vcone.anal %>% dplyr::arrange(desc(TYPE),as.Date(ExpDate,format="%Y/%m/%d")) -> atmiv.vcone.anal
+  atmiv.vcone.eachDF<-atmiv.vcone.anal$EachDF
+  atmiv.vcone.bind<-NULL
+  for(i in 1:length(atmiv.vcone.eachDF)){
+    if(i==1){
+      atmiv.vcone.bind <- as.data.frame(atmiv.vcone.eachDF[i])
+    }
+    else{
+      atmiv.vcone.bind<-rbind(atmiv.vcone.bind,as.data.frame(atmiv.vcone.eachDF[i]))
+    }
+  }
+  #atmiv.vcone.anal: from nested data.frame to data.frame: type changed.
+  atmiv.vcone.anal<-NULL
+  atmiv.vcone.anal<-atmiv.vcone.bind
+  rm(i,atmiv.vcone.eachDF,atmiv.vcone.bind)
+
+#save atmiv.vcone.anal
+atmiv.vcone.anal %>% dplyr::select(Date,ExpDate,TYPE,ATMIV,Strike,UDLY,IVIDX,TimeToExpDate,ATMIV.f,IVIDX.f) %>% dplyr::distinct()-> atmiv.vcone.anal
 
 #  Put IV Change to IVIDX Up and Down
 #Up and Down change
