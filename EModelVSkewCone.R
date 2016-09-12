@@ -192,22 +192,24 @@ rm(models,vplot,predict.c)
 # creating ATMIDXIV.f
 
 #atmiv filtering
-atmiv->atmiv.org #atmiv.org used later for IV Change to IVIDX Up and Down
+atmiv->atmiv.org #atmiv.org used later for IV Change to IVIDX Up and Down # atmiv=atmiv.org
 atmiv %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")>=as.Date("2016/9/9",format="%Y/%m/%d")) -> atmiv
 #create another column
 atmiv$ATMIDXIV.f=atmiv$ATMIV/atmiv$IVIDX
+#Minimus TimeToExpDate filtering
+atmiv %>% dplyr::filter(TimeToExpDate>=1.0) -> atmiv
 #separate to PUT and CALL atmiv
-atmiv %>% filter(TYPE==OpType_Put_G) -> atmiv.put
-atmiv %>% filter(TYPE==OpType_Call_G) -> atmiv.call
+atmiv %>% dplyr::filter(TYPE==OpType_Put_G) -> atmiv.put
+atmiv %>% dplyr::filter(TYPE==OpType_Call_G) -> atmiv.call
 #show each
-(ggplot(atmiv,aes(x=TimeToExpDate,y=ATMIDXIV.f,colour=TYPE))+geom_point())
-(ggplot(atmiv.put,aes(x=TimeToExpDate,y=ATMIDXIV.f,colour=Date))+geom_point())
-(ggplot(atmiv.call,aes(x=TimeToExpDate,y=ATMIDXIV.f,colour=Date))+geom_point())
+(ggplot(atmiv,aes(x=TimeToExpDate,y=ATMIDXIV.f,colour=TYPE))+geom_point(size=3))
+(ggplot(atmiv.put,aes(x=TimeToExpDate,y=ATMIDXIV.f,colour=Date))+geom_point(size=3))
+(ggplot(atmiv.call,aes(x=TimeToExpDate,y=ATMIDXIV.f,colour=Date))+geom_point(size=3))
 
 #PUT regression
 model.ss<-smooth.spline(atmiv.put$TimeToExpDate,atmiv.put$ATMIDXIV.f,df=3)
 (predict.c <- predict(model.ss,x=seq(0,max(atmiv.put$TimeToExpDate),by=0.1)))
-(ggplot(atmiv.put,aes(x=TimeToExpDate,y=ATMIDXIV.f,colour=TYPE))+geom_point()+
+(ggplot(atmiv.put,aes(x=TimeToExpDate,y=ATMIDXIV.f,colour=TYPE))+geom_point(size=3)+
   geom_line(data=data.frame(TimeToExpDate=predict.c$x,ATMIDXIV.f=predict.c$y,TYPE=1),aes(TimeToExpDate,ATMIDXIV.f)))
 
 save.ATMIDXIV.f(model.ss,OpType_Put_G)
@@ -216,8 +218,8 @@ load.ATMIDXIV.f(OpType_Put_G)
 #CALL regression
 model.ss<-smooth.spline(atmiv.call$TimeToExpDate,atmiv.call$ATMIDXIV.f,df=3)
 (predict.c <- predict(model.ss,x=seq(0,max(atmiv.call$TimeToExpDate),by=0.1)))
-(ggplot(atmiv.call,aes(x=TimeToExpDate,y=ATMIDXIV.f,colour=TYPE))+geom_point()+
-  geom_line(data=data.frame(TimeToExpDate=predict.c$x,ATMIDXIV.f=predict.c$y,TYPE=1),aes(TimeToExpDate,ATMIDXIV.f)))
+(ggplot(atmiv.call,aes(x=TimeToExpDate,y=ATMIDXIV.f,colour=TYPE))+geom_point(size=3)+
+  geom_line(data=data.frame(TimeToExpDate=predict.c$x,ATMIDXIV.f=predict.c$y,TYPE=-1),aes(TimeToExpDate,ATMIDXIV.f)))
 
 #save regressed data
 save.ATMIDXIV.f(model.ss,OpType_Call_G)
