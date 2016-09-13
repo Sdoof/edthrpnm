@@ -229,67 +229,66 @@ fileOutAPITicket <- function(out_text_file,thePosition,sep){
 writeIbAPITicket <- function(out_text_file,thePosition,sep=","){
   #Put
   thePosition %>% filter(TYPE==OpType_Put_G) -> thePositionPut
-  rownames(thePositionPut) <- c(1:nrow(thePositionPut))
-  
-  if(nrow(thePositionPut)<4){
-    fileOutAPITicket(out_text_file,thePositionPut,sep)
-  }else {
-    start_p=1
-    outnum=nrow(thePositionPut)
-    while(outnum!=0){
-      if(outnum!=4){
-        fileOutAPITicket(out_text_file,thePositionPut[start_p:(start_p+2),],sep)
-        outnum=outnum-3
-        start_p=start_p+3
-      }
-      if(outnum==4){
-        fileOutAPITicket(out_text_file,thePositionPut[start_p:(start_p+1),],sep)
-        outnum=outnum-2
-        start_p=start_p+2
-        fileOutAPITicket(out_text_file,thePositionPut[start_p:(start_p+1),],sep)
-        outnum=outnum-2
-        start_p=start_p+2
-      }
-      if(outnum==2){
-        fileOutAPITicket(out_text_file,thePositionPut[start_p:(start_p+1),],sep)
-        outnum=outnum-2
-        start_p=start_p+2
+  if(nrow(thePositionPut)!=0){
+    if(nrow(thePositionPut)<4){
+      fileOutAPITicket(out_text_file,thePositionPut,sep)
+    }else {
+      start_p=1
+      outnum=nrow(thePositionPut)
+      while(outnum!=0){
+        if(outnum!=4){
+          fileOutAPITicket(out_text_file,thePositionPut[start_p:(start_p+2),],sep)
+          outnum=outnum-3
+          start_p=start_p+3
+        }
+        if(outnum==4){
+          fileOutAPITicket(out_text_file,thePositionPut[start_p:(start_p+1),],sep)
+          outnum=outnum-2
+          start_p=start_p+2
+          fileOutAPITicket(out_text_file,thePositionPut[start_p:(start_p+1),],sep)
+          outnum=outnum-2
+          start_p=start_p+2
+        }
+        if(outnum==2){
+          fileOutAPITicket(out_text_file,thePositionPut[start_p:(start_p+1),],sep)
+          outnum=outnum-2
+          start_p=start_p+2
+        }
       }
     }
   }
   
   #Call
   thePosition %>% filter(TYPE==OpType_Call_G) -> thePositionCall
-  rownames(thePositionCall) <- c(1:nrow(thePositionCall))
-  
-  if(nrow(thePositionCall)<4){
-    fileOutAPITicket(out_text_file,thePositionCall,sep)
-  }else {
-    start_p=1
-    outnum=nrow(thePositionCall)
-    while(outnum!=0){
-      if(outnum!=4){
-        fileOutAPITicket(out_text_file,thePositionCall[start_p:(start_p+2),],sep)
-        outnum=outnum-3
-        start_p=start_p+3
-      }
-      if(outnum==4){
-        fileOutAPITicket(out_text_file,thePositionCall[start_p:(start_p+1),],sep)
-        outnum=outnum-2
-        start_p=start_p+2
-        fileOutAPITicket(out_text_file,thePositionCall[start_p:(start_p+1),],sep)
-        outnum=outnum-2
-        start_p=start_p+2
-      }
-      if(outnum==2){
-        fileOutAPITicket(out_text_file,thePositionCall[start_p:(start_p+1),],sep)
-        outnum=outnum-2
-        start_p=start_p+2
+  if(nrow(thePositionCall)!=0){
+    if(nrow(thePositionCall)<4){
+      fileOutAPITicket(out_text_file,thePositionCall,sep)
+    }else {
+      start_p=1
+      outnum=nrow(thePositionCall)
+      while(outnum!=0){
+        if(outnum!=4){
+          fileOutAPITicket(out_text_file,thePositionCall[start_p:(start_p+2),],sep)
+          outnum=outnum-3
+          start_p=start_p+3
+        }
+        if(outnum==4){
+          fileOutAPITicket(out_text_file,thePositionCall[start_p:(start_p+1),],sep)
+          outnum=outnum-2
+          start_p=start_p+2
+          fileOutAPITicket(out_text_file,thePositionCall[start_p:(start_p+1),],sep)
+          outnum=outnum-2
+          start_p=start_p+2
+        }
+        if(outnum==2){
+          fileOutAPITicket(out_text_file,thePositionCall[start_p:(start_p+1),],sep)
+          outnum=outnum-2
+          start_p=start_p+2
+        }
       }
     }
   }
 }
-
 
 ##set.AmericanOptionValueGreeks(xt)
 # to be defined
