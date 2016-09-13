@@ -192,9 +192,9 @@ def subscribeDataRequest(con):
         # sleep(1)
         con.reqMktData(tickerId=theOrderId, contract=con_each, genericTickList='', snapshot=False)
         # print('request market data [%s] for conId %s' % (theOrderId, orderIdMktReqContractDict[theOrderId].m_conId))
-    #print('examing orderIdMktReqContractDict press any to continue')
-    #for req_order_id in orderIdMktReqContractDict.iterkeys():
-    #    print('req_order_id ', req_order_id)
+        #print('examing orderIdMktReqContractDict press any to continue')
+        #for req_order_id in orderIdMktReqContractDict.iterkeys():
+        #    print('req_order_id ', req_order_id)
 
 def writeToFile(sectype,symbol):
     global priceInfoDict
@@ -222,7 +222,7 @@ def writeToFile(sectype,symbol):
         if sectype == 'OPT' and contract.m_right == 'P':
             contract.m_right = '1'
         elif sectype == 'OPT' and contract.m_right == 'C':
-             contract.m_right = '-1'
+            contract.m_right = '-1'
         #contract.m_expiry = datetime.datetime.strptime(contract.m_expiry,'%Y%m%d').strftime('%Y/%m/%d')
         if sectype == 'OPT' and symbol == contract.m_symbol:
             try:
@@ -247,8 +247,14 @@ opContractList = [
     makeOptContract(sym='N225', exp='20161110', strike='', right='C'),
     makeOptContract(sym='N225', exp='20161110', strike='', right='P'),
     makeOptContract(sym='N225', exp='20161208', strike='', right='C'),
-    makeOptContract(sym='N225', exp='20161208', strike='', right='P')
+    makeOptContract(sym='N225', exp='20161208', strike='', right='P'),
+    makeOptContract(sym='N225', exp='20161006', strike='', right='C'),
+    makeOptContract(sym='N225', exp='20170112', strike='', right='C'),
+    makeOptContract(sym='N225', exp='20170112', strike='', right='P'),
+    makeOptContract(sym='N225', exp='20161006', strike='', right='C'),
+    makeOptContract(sym='N225', exp='20161006', strike='', right='P')
 ]
+
 idxContractList = [makeIndexContract(sym='N225',exchange='OSE.JPN')]
 
 if __name__ == '__main__':
