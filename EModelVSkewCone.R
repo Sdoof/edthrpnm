@@ -206,20 +206,43 @@ atmiv %>% dplyr::filter(TYPE==OpType_Call_G) -> atmiv.call
 (ggplot(atmiv.put,aes(x=TimeToExpDate,y=ATMIDXIV.f,colour=Date))+geom_point(size=3))
 (ggplot(atmiv.call,aes(x=TimeToExpDate,y=ATMIDXIV.f,colour=Date))+geom_point(size=3))
 
-#PUT regression
+##
+# PUT regression
+#smooth spline
 model.ss<-smooth.spline(atmiv.put$TimeToExpDate,atmiv.put$ATMIDXIV.f,df=3)
 (predict.c <- predict(model.ss,x=seq(0,max(atmiv.put$TimeToExpDate),by=0.1)))
 (ggplot(atmiv.put,aes(x=TimeToExpDate,y=ATMIDXIV.f,colour=TYPE))+geom_point(size=3)+
   geom_line(data=data.frame(TimeToExpDate=predict.c$x,ATMIDXIV.f=predict.c$y,TYPE=1),aes(TimeToExpDate,ATMIDXIV.f)))
 
+#linear regression
+model.lm<-lm(ATMIDXIV.f~TimeToExpDate, data=atmiv.put)
+(model.lm)
+(ggplot(atmiv.put,aes(x=TimeToExpDate,y=ATMIDXIV.f,colour=TYPE))+geom_point(size=3)+
+  geom_line(data=data.frame(TimeToExpDate=predict.c$x,ATMIDXIV.f=predict.c$y,TYPE=1),aes(TimeToExpDate,ATMIDXIV.f))+
+  geom_abline(intercept=model.lm$coefficients[1],slope=model.lm$coefficient[2],color="orange")+
+  aes(xmin=TimeToExp_Limit_Closeness_G,ymin=min(model.lm$coefficients[1],min(predict.c$y)))
+)
+
+#save model
 save.ATMIDXIV.f(model.ss,OpType_Put_G)
 load.ATMIDXIV.f(OpType_Put_G)
 
-#CALL regression
+##
+# CALL regression
+#smooth spline
 model.ss<-smooth.spline(atmiv.call$TimeToExpDate,atmiv.call$ATMIDXIV.f,df=3)
 (predict.c <- predict(model.ss,x=seq(0,max(atmiv.call$TimeToExpDate),by=0.1)))
 (ggplot(atmiv.call,aes(x=TimeToExpDate,y=ATMIDXIV.f,colour=TYPE))+geom_point(size=3)+
   geom_line(data=data.frame(TimeToExpDate=predict.c$x,ATMIDXIV.f=predict.c$y,TYPE=-1),aes(TimeToExpDate,ATMIDXIV.f)))
+
+#linear regression
+model.lm<-lm(ATMIDXIV.f~TimeToExpDate, data=atmiv.call)
+(model.lm)
+(ggplot(atmiv.call,aes(x=TimeToExpDate,y=ATMIDXIV.f,colour=TYPE))+geom_point(size=3)+
+  geom_line(data=data.frame(TimeToExpDate=predict.c$x,ATMIDXIV.f=predict.c$y,TYPE=1),aes(TimeToExpDate,ATMIDXIV.f))+
+  geom_abline(intercept=model.lm$coefficients[1],slope=model.lm$coefficient[2],color="orange")+
+  aes(xmin=TimeToExp_Limit_Closeness_G,ymin=min(model.lm$coefficients[1],min(predict.c$y)))
+)
 
 #save regressed data
 save.ATMIDXIV.f(model.ss,OpType_Call_G)
@@ -227,7 +250,6 @@ load.ATMIDXIV.f(OpType_Call_G)
 
 #save atmiv.org for another analysis
 write.table(atmiv.org,paste(DataFiles_Path_G,Underying_Symbol_G,"-ATMIV-VCONE-ANAL.csv",sep=""),row.names = F,col.names=T,sep=",",append=T)
-
 
 ##
 # Vcone Regression
