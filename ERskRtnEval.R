@@ -175,7 +175,8 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   pdist<-c(rep(rep(profit_vector,times=round(weight*100)),times=round(weight_IV*100)[2]),
            rep(rep(profit_vector_vc_plus,times=round(weight*100)),times=round(weight_IV*100)[3]),
            rep(rep(profit_vector_vc_minus,times=round(weight*100)),times=round(weight_IV*100)[1]))
-  profit_sd<-sd(pdist)
+  profit_sd=sd(pdist[pdist<0])
+  #profit_sd<-sd(pdist)
   
   if(isDetail){
     cat(" :(profit_sd)",profit_sd);cat(" :(max_loss)",maxLoss);cat(" :(loss_limit_price)",Setting$LossLimitPrice)
