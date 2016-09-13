@@ -24,17 +24,20 @@ DIAGONAL_TYPE_SHORT=(-1)
 IRON_CONDOR_SMPLING=1
 DIAGONAL_SMPLING=2
 DOUBLE_DIAGONAL_SMPLING=3
-IRON_CONDOR_PLUS_SINGLE_DIAGONAL_SMPLING=4
-IRON_CONDOR_PLUS_DOUBLE_DIAGONAL_SMPLING=5
-CALL_BEAR_SPREAD_SMPLING=6
-CALL_BEAR_SPREAD_PLUS_SINGLE_DIAGONAL_SMPLING=7
-CALL_BEAR_SPREAD_PLUS_DOUBLE_DIAGONAL_SMPLING=8
-PUT_BULL_SPREAD_PLUS_DOUBLE_DIAGONAL_SMPLING=9
-PUT_BULL_SPREAD_PLUS_SINGLE_DIAGONAL_SMPLING=14
-POOL_PLUS_SINGLE_DIAGONAL_SMPLING=10
-POOL_PLUS_DOUBLE_DIAGONAL_SMPLING=11
-CALL_BEAR_SPREAD_SMPLING=12
-PUT_BULL_SPREAD_SMPLING=13
+DOUBLE_DIAGONAL_CALL_SMPLING=4
+DOUBLE_DIAGONAL_PUT_SMPLING=5
+DOUBLE_DIAGONAL_OPTYPE_ANY_SMPLING=6
+IRON_CONDOR_PLUS_SINGLE_DIAGONAL_SMPLING=7
+IRON_CONDOR_PLUS_DOUBLE_DIAGONAL_SMPLING=8
+CALL_BEAR_SPREAD_SMPLING=9
+CALL_BEAR_SPREAD_PLUS_SINGLE_DIAGONAL_SMPLING=10
+CALL_BEAR_SPREAD_PLUS_DOUBLE_DIAGONAL_SMPLING=11
+PUT_BULL_SPREAD_PLUS_DOUBLE_DIAGONAL_SMPLING=12
+PUT_BULL_SPREAD_PLUS_SINGLE_DIAGONAL_SMPLING=13
+POOL_PLUS_SINGLE_DIAGONAL_SMPLING=20
+POOL_PLUS_DOUBLE_DIAGONAL_SMPLING=21
+CALL_BEAR_SPREAD_SMPLING=14
+PUT_BULL_SPREAD_SMPLING=15
 FILE_PLUS_VERTICAL_CREDIT_SPREAD=121
 FILE_PLUS_VERTICAL_DEBT_SPREAD=122
 FILE_PLUS_IRON_CONDOR=123
@@ -43,7 +46,10 @@ FILE_PLUS_SINGLE_DIAGONAL=124
 SpreadTypeNames<-vector("list",9)
 SpreadTypeNames[[IRON_CONDOR_SMPLING]]="IRON_CONDOR"
 SpreadTypeNames[[DIAGONAL_SMPLING]]="DIAGONAL"
-SpreadTypeNames[[DOUBLE_DIAGONAL_SMPLING]]="DOUBLE_DIAGONAL"
+SpreadTypeNames[[DOUBLE_DIAGONAL_SMPLING]]="DOUBLE_DIAGONA_EACH"
+SpreadTypeNames[[DOUBLE_DIAGONAL_CALL_SMPLING]]="DOUBLE_DIAGONAL_CALL"
+SpreadTypeNames[[DOUBLE_DIAGONAL_PUT_SMPLING]]="DOUBLE_DIAGONAL_PUT"
+SpreadTypeNames[[DOUBLE_DIAGONAL_OPTYPE_ANY_SMPLING]]="DOUBLE_DIAGONAL_ANY"
 SpreadTypeNames[[IRON_CONDOR_PLUS_SINGLE_DIAGONAL_SMPLING]]="IRON_CONDOR_PLUS_SINGLE_DIAGONAL"
 SpreadTypeNames[[IRON_CONDOR_PLUS_DOUBLE_DIAGONAL_SMPLING]]="IRON_CONDOR_PLUS_DOUBLE_DIAGONAL"
 SpreadTypeNames[[CALL_BEAR_SPREAD_SMPLING]]="CALL_BEAR_SPREAD"
@@ -64,6 +70,9 @@ SpreadTypeToDir<-vector("list",length(SpreadTypeNames))
 SpreadTypeToDir[[IRON_CONDOR_SMPLING]]=c(1,7)
 SpreadTypeToDir[[DIAGONAL_SMPLING]]=9
 SpreadTypeToDir[[DOUBLE_DIAGONAL_SMPLING]]=c(4,8)
+SpreadTypeToDir[[DOUBLE_DIAGONAL_CALL_SMPLING]]=c(14,28)
+SpreadTypeToDir[[DOUBLE_DIAGONAL_PUT_SMPLING]]=c(24,28)
+SpreadTypeToDir[[DOUBLE_DIAGONAL_OPTYPE_ANY_SMPLING]]=c(34,38)
 SpreadTypeToDir[[IRON_CONDOR_PLUS_SINGLE_DIAGONAL_SMPLING]]=0
 SpreadTypeToDir[[IRON_CONDOR_PLUS_DOUBLE_DIAGONAL_SMPLING]]=0
 SpreadTypeToDir[[CALL_BEAR_SPREAD_SMPLING]]=0
@@ -71,8 +80,8 @@ SpreadTypeToDir[[CALL_BEAR_SPREAD_PLUS_SINGLE_DIAGONAL_SMPLING]]=6
 SpreadTypeToDir[[CALL_BEAR_SPREAD_PLUS_DOUBLE_DIAGONAL_SMPLING]]=3
 SpreadTypeToDir[[PUT_BULL_SPREAD_PLUS_DOUBLE_DIAGONAL_SMPLING]]=2
 SpreadTypeToDir[[PUT_BULL_SPREAD_PLUS_SINGLE_DIAGONAL_SMPLING]]=5
-SpreadTypeToDir[[POOL_PLUS_SINGLE_DIAGONAL_SMPLING]]=c(7,4,9)
-SpreadTypeToDir[[POOL_PLUS_DOUBLE_DIAGONAL_SMPLING]]=c(1,8,9)
+SpreadTypeToDir[[POOL_PLUS_SINGLE_DIAGONAL_SMPLING]]=c(7,4,9,14)
+SpreadTypeToDir[[POOL_PLUS_DOUBLE_DIAGONAL_SMPLING]]=c(1,8,9,18)
 SpreadTypeToDir[[FILE_PLUS_VERTICAL_CREDIT_SPREAD]]=c(121,221)
 SpreadTypeToDir[[FILE_PLUS_VERTICAL_DEBT_SPREAD]]=c(122,221)
 SpreadTypeToDir[[FILE_PLUS_IRON_CONDOR]]=c(123)
@@ -130,7 +139,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   tmp %>% arrange(.[,length(opchain$Position)+1])  %>% #select(.,1:length(opchain$Position)) %>% 
     distinct() -> tmp
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
- 
+  
   #pool setting
   tmp %>% arrange(.[,length(opchain$Position)+1]) %>% head(min(20,max(4,nrow(.)/2))) -> tmp
   pools<<-list(list(c(1,0,0),tmp))
@@ -179,7 +188,112 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   
   #output file name
   outFname=createOutFname(targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,spreadRatio=spreadRatio,EvalFuncSetting=EvalFuncSetting)
+  
+  #sampling
+  originalLossLimitPrice=EvalFuncSetting$LossLimitPrice
+  EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*max(spreadRatio)
+  
+  sampleMain(sampleSpreadType=sampleSpreadType,totalPopNum=totalPopNum,
+             targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,
+             spreadRatio=spreadRatio,InitialPopThresh=InitialPopThresh,outFname=outFname,isFileout=T,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
+  
+  EvalFuncSetting$LossLimitPrice=originalLossLimitPrice
+  
+  #file handling
+  tmp<-read.table(outFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
+  tmp %>% arrange(.[,length(opchain$Position)+1])  %>% #select(.,1:length(opchain$Position)) %>% 
+    distinct() -> tmp
+  write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
+  #pool setting
+  tmp %>% arrange(.[,length(opchain$Position)+1]) %>% head(min(1000,max(4,nrow(.)/2))) -> tmp
+  pools<<-list(list(c(1,0,0),tmp))
+  
+  #copy file to READ-SPREAD
+  file.copy(from=outFname, to=paste(ResultFiles_Path_G,Underying_Symbol_G,"-READ-SPREAD.csv",sep=""),overwrite=T)
+}
 
+### DOUBLE DIAGONAL Put/Call Combination not specified Candiates for Combination
+sampleSpreadType=DOUBLE_DIAGONAL_OPTYPE_ANY_SMPLING
+if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
+  targetExpDate=TARGET_EXPDATE
+  targetExpDate_f=TARGET_EXPDATE_FRONT
+  targetExpDate_b=TARGET_EXPDATE_BACK
+  spreadRatio=c(1,1,1)
+  totalPopNum=PopN_1
+  
+  #output file name
+  outFname=createOutFname(targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,spreadRatio=spreadRatio,EvalFuncSetting=EvalFuncSetting)
+  
+  #sampling
+  originalLossLimitPrice=EvalFuncSetting$LossLimitPrice
+  EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*max(spreadRatio)
+  
+  sampleMain(sampleSpreadType=sampleSpreadType,totalPopNum=totalPopNum,
+             targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,
+             spreadRatio=spreadRatio,InitialPopThresh=InitialPopThresh,outFname=outFname,isFileout=T,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
+  
+  EvalFuncSetting$LossLimitPrice=originalLossLimitPrice
+  
+  #file handling
+  tmp<-read.table(outFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
+  tmp %>% arrange(.[,length(opchain$Position)+1])  %>% #select(.,1:length(opchain$Position)) %>% 
+    distinct() -> tmp
+  write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
+  #pool setting
+  tmp %>% arrange(.[,length(opchain$Position)+1]) %>% head(min(1000,max(4,nrow(.)/2))) -> tmp
+  pools<<-list(list(c(1,0,0),tmp))
+  
+  #copy file to READ-SPREAD
+  file.copy(from=outFname, to=paste(ResultFiles_Path_G,Underying_Symbol_G,"-READ-SPREAD.csv",sep=""),overwrite=T)
+}
+
+### DOUBLE DIAGONAL Call Candiates for Combination
+sampleSpreadType=DOUBLE_DIAGONAL_CALL_SMPLING
+if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
+  targetExpDate=TARGET_EXPDATE
+  targetExpDate_f=TARGET_EXPDATE_FRONT
+  targetExpDate_b=TARGET_EXPDATE_BACK
+  spreadRatio=c(1,1,1)
+  totalPopNum=PopN_1
+  
+  #output file name
+  outFname=createOutFname(targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,spreadRatio=spreadRatio,EvalFuncSetting=EvalFuncSetting)
+  
+  #sampling
+  originalLossLimitPrice=EvalFuncSetting$LossLimitPrice
+  EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*max(spreadRatio)
+  
+  sampleMain(sampleSpreadType=sampleSpreadType,totalPopNum=totalPopNum,
+             targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,
+             spreadRatio=spreadRatio,InitialPopThresh=InitialPopThresh,outFname=outFname,isFileout=T,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
+  
+  EvalFuncSetting$LossLimitPrice=originalLossLimitPrice
+  
+  #file handling
+  tmp<-read.table(outFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
+  tmp %>% arrange(.[,length(opchain$Position)+1])  %>% #select(.,1:length(opchain$Position)) %>% 
+    distinct() -> tmp
+  write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
+  #pool setting
+  tmp %>% arrange(.[,length(opchain$Position)+1]) %>% head(min(1000,max(4,nrow(.)/2))) -> tmp
+  pools<<-list(list(c(1,0,0),tmp))
+  
+  #copy file to READ-SPREAD
+  file.copy(from=outFname, to=paste(ResultFiles_Path_G,Underying_Symbol_G,"-READ-SPREAD.csv",sep=""),overwrite=T)
+}
+
+### DOUBLE DIAGONAL Put Candiates for Combination
+sampleSpreadType=DOUBLE_DIAGONAL_PUT_SMPLING
+if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
+  targetExpDate=TARGET_EXPDATE
+  targetExpDate_f=TARGET_EXPDATE_FRONT
+  targetExpDate_b=TARGET_EXPDATE_BACK
+  spreadRatio=c(1,1,1)
+  totalPopNum=PopN_1
+  
+  #output file name
+  outFname=createOutFname(targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,spreadRatio=spreadRatio,EvalFuncSetting=EvalFuncSetting)
+  
   #sampling
   originalLossLimitPrice=EvalFuncSetting$LossLimitPrice
   EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*max(spreadRatio)
@@ -220,7 +334,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   
   #output file name
   outFname=createOutFname(targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,spreadRatio=spreadRatio,EvalFuncSetting=EvalFuncSetting)
-
+  
   #sampling
   originalLossLimitPrice=EvalFuncSetting$LossLimitPrice
   EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*max(spreadRatio)
@@ -236,8 +350,8 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   tmp %>% arrange(.[,length(opchain$Position)+1])  %>% #select(.,1:length(opchain$Position)) %>% 
     distinct() -> tmp
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
- 
-   #pool setting
+  
+  #pool setting
   tmp %>% arrange(.[,length(opchain$Position)+1]) %>% head(min(20,max(4,nrow(.)))) -> tmp
   pools<<-list(list(c(1,0,0),tmp))
   
@@ -324,7 +438,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   #pool setting
   tmp %>% arrange(.[,length(opchain$Position)+1]) %>% head(min(40,max(4,nrow(.)/2))) -> tmp
   pools<<-list(list(c(1,0,0),tmp))
-
+  
   ##
   #  Second POOL_PLUS_DOUBLE_DIAGONAL_SMPLING sampling, then saved as PUT_BULL_SPREAD_PLUS_DOUBLE_DIAGONAL_SMPLING sampling
   
