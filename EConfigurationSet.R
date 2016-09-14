@@ -37,19 +37,22 @@ PosMultip=as.numeric(ConfigParameters["PosMultip",1])
 SpreadTypeSpecified=max(0,as.numeric(ConfigParameters["Spread_Type",1]))
 
 #Evalfunc unaccepted value
-UNACCEPTABLEVAL=100000
+UNACCEPTABLEVAL=9.999e+100
 
 #Limit Closeness for Skewness Calculation
 TimeToExp_Limit_Closeness_G=as.numeric(ConfigParameters["TimeToExp_Limit_Closeness_G",1])
 
 #EvalFuncSetting
 EvFNames <- c("holdDays","UdlStepNum","UdlStepPct","Posnum","Tail_rate","LossLimitPrice",
-              "HV_IV_Adjust_Ratio","Weight_Explicit","Weight_Explicit_1D","EvalSigmoidFunc","Weight_Drift","Weight_Skew","Weight_Drift_GreekEffect","Weight_Skew_GreekEffect",
+              "HV_IV_Adjust_Ratio","Weight_Explicit","Weight_Explicit_1D","EvalSigmoidFunc","EvalEconomicValue",
+              "Weight_Drift","Weight_Skew","Weight_Drift_GreekEffect","Weight_Skew_GreekEffect",
               "Delta_Thresh_Minus","Delta_Thresh_Plus","Vega_Thresh_Minus","Vega_Thresh_Plus",
               "Delta_Direct_Prf","Vega_Direct_Prf","Delta_Neutral_Offset","Vega_Neutral_Offset",
               "Profit_Coef","AdvEffect_Coef","AllEffect_Coef","DrctlEffect_Coef","MaxLoss_Coef",
               "SigmoidA_Numerator","SigmoidA_Denominator","ExpIVChange_Multiple","ThetaEffectPositive",
-              "EvalConvex","DeltaHedge","GreekEfctOnHldD")
+              "EvalConvex","UseSortinoRatio",
+              "DeltaHedge","GreekEfctOnHldD")
+
 EvalFuncSetting<-vector("list",length(EvFNames))
 
 EvalFuncSetting[[1]]<-as.numeric(ConfigParameters["holdDays",1])
@@ -62,30 +65,32 @@ EvalFuncSetting[[7]]<-as.numeric(ConfigParameters["EvalFnc_HV_IV_Adjust_Ratio",1
 EvalFuncSetting[[8]]<-eval(parse(text=gsub("\\$",",",ConfigParameters["EvalFnc_Weight_Explicit",1])))
 EvalFuncSetting[[9]]<-eval(parse(text=gsub("\\$",",",ConfigParameters["EvalFnc_Weight_Explicit_1D",1])))
 EvalFuncSetting[[10]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_EvalSigmoidFunc",1])==1,TRUE,FALSE)
-EvalFuncSetting[[11]]<-as.numeric(ConfigParameters["EvalFnc_Weight_Drift",1])
-EvalFuncSetting[[12]]<-as.numeric(ConfigParameters["EvalFnc_Weight_Skew",1])
-EvalFuncSetting[[13]]<-as.numeric(ConfigParameters["EvalFnc_Weight_Drift_GreekEffect",1])
-EvalFuncSetting[[14]]<-as.numeric(ConfigParameters["EvalFnc_Weight_Skew_GreekEffect",1])
-EvalFuncSetting[[15]]<-eval(parse(text=gsub("\\$",",",ConfigParameters["EvalFnc_Delta_Thresh_Minus",1])))
-EvalFuncSetting[[16]]<-eval(parse(text=gsub("\\$",",",ConfigParameters["EvalFnc_Delta_Thresh_Plus",1])))
-EvalFuncSetting[[17]]<-eval(parse(text=gsub("\\$",",",ConfigParameters["EvalFnc_Vega_Thresh_Minus",1])))
-EvalFuncSetting[[18]]<-eval(parse(text=gsub("\\$",",",ConfigParameters["EvalFnc_Vega_Thresh_Plus",1])))
-EvalFuncSetting[[19]]<-eval(parse(text=gsub("\\$",",",ConfigParameters["EvalFnc_Delta_Direct_Prf",1])))
-EvalFuncSetting[[20]]<-eval(parse(text=gsub("\\$",",",ConfigParameters["EvalFnc_Vega_Direct_Prf",1])))
-EvalFuncSetting[[21]]<-eval(parse(text=gsub("\\$",",",ConfigParameters["EvalFnc_Delta_Neutral_Offset",1])))
-EvalFuncSetting[[22]]<-eval(parse(text=gsub("\\$",",",ConfigParameters["EvalFnc_Vega_Neutral_Offset",1])))
-EvalFuncSetting[[23]]<-as.numeric(ConfigParameters["EvalFnc_Profit_Coef",1])
-EvalFuncSetting[[24]]<-as.numeric(ConfigParameters["EvalFnc_AdvEffect_Coef",1])
-EvalFuncSetting[[25]]<-as.numeric(ConfigParameters["EvalFnc_AllEffect_Coef",1]) 
-EvalFuncSetting[[26]]<-as.numeric(ConfigParameters["EvalFnc_DrctlEffect_Coef",1])
-EvalFuncSetting[[27]]<-as.numeric(ConfigParameters["EvalFnc_MaxLoss_Coef",1])
-EvalFuncSetting[[28]]<-as.numeric(ConfigParameters["EvalFnc_SigmoidA_Numerator",1])
-EvalFuncSetting[[29]]<-as.numeric(ConfigParameters["EvalFnc_SigmoidA_Denominator",1])
-EvalFuncSetting[[30]]<-as.numeric(ConfigParameters["EvalFnc_ExpIVChange_Multiple",1])
-EvalFuncSetting[[31]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_ThetaEffectPositive",1])==1,TRUE,FALSE)
-EvalFuncSetting[[32]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_EvalConvex",1])==1,TRUE,FALSE)
-EvalFuncSetting[[33]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_DeltaHedgeToEvalProfit",1])==1,TRUE,FALSE)
-EvalFuncSetting[[34]]<-as.numeric(ConfigParameters["EvalFnc_GreekEffectEvalOnHoldDay",1])
+EvalFuncSetting[[11]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_EvalEconomicValue",1])==1,TRUE,FALSE)
+EvalFuncSetting[[12]]<-as.numeric(ConfigParameters["EvalFnc_Weight_Drift",1])
+EvalFuncSetting[[13]]<-as.numeric(ConfigParameters["EvalFnc_Weight_Skew",1])
+EvalFuncSetting[[14]]<-as.numeric(ConfigParameters["EvalFnc_Weight_Drift_GreekEffect",1])
+EvalFuncSetting[[15]]<-as.numeric(ConfigParameters["EvalFnc_Weight_Skew_GreekEffect",1])
+EvalFuncSetting[[16]]<-eval(parse(text=gsub("\\$",",",ConfigParameters["EvalFnc_Delta_Thresh_Minus",1])))
+EvalFuncSetting[[17]]<-eval(parse(text=gsub("\\$",",",ConfigParameters["EvalFnc_Delta_Thresh_Plus",1])))
+EvalFuncSetting[[18]]<-eval(parse(text=gsub("\\$",",",ConfigParameters["EvalFnc_Vega_Thresh_Minus",1])))
+EvalFuncSetting[[19]]<-eval(parse(text=gsub("\\$",",",ConfigParameters["EvalFnc_Vega_Thresh_Plus",1])))
+EvalFuncSetting[[20]]<-eval(parse(text=gsub("\\$",",",ConfigParameters["EvalFnc_Delta_Direct_Prf",1])))
+EvalFuncSetting[[21]]<-eval(parse(text=gsub("\\$",",",ConfigParameters["EvalFnc_Vega_Direct_Prf",1])))
+EvalFuncSetting[[22]]<-eval(parse(text=gsub("\\$",",",ConfigParameters["EvalFnc_Delta_Neutral_Offset",1])))
+EvalFuncSetting[[23]]<-eval(parse(text=gsub("\\$",",",ConfigParameters["EvalFnc_Vega_Neutral_Offset",1])))
+EvalFuncSetting[[24]]<-as.numeric(ConfigParameters["EvalFnc_Profit_Coef",1])
+EvalFuncSetting[[25]]<-as.numeric(ConfigParameters["EvalFnc_AdvEffect_Coef",1])
+EvalFuncSetting[[26]]<-as.numeric(ConfigParameters["EvalFnc_AllEffect_Coef",1]) 
+EvalFuncSetting[[27]]<-as.numeric(ConfigParameters["EvalFnc_DrctlEffect_Coef",1])
+EvalFuncSetting[[28]]<-as.numeric(ConfigParameters["EvalFnc_MaxLoss_Coef",1])
+EvalFuncSetting[[29]]<-as.numeric(ConfigParameters["EvalFnc_SigmoidA_Numerator",1])
+EvalFuncSetting[[30]]<-as.numeric(ConfigParameters["EvalFnc_SigmoidA_Denominator",1])
+EvalFuncSetting[[31]]<-as.numeric(ConfigParameters["EvalFnc_ExpIVChange_Multiple",1])
+EvalFuncSetting[[32]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_ThetaEffectPositive",1])==1,TRUE,FALSE)
+EvalFuncSetting[[33]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_EvalConvex",1])==1,TRUE,FALSE)
+EvalFuncSetting[[34]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_UseSortinoRatio",1])==1,TRUE,FALSE)
+EvalFuncSetting[[35]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_DeltaHedgeToEvalProfit",1])==1,TRUE,FALSE)
+EvalFuncSetting[[36]]<-as.numeric(ConfigParameters["EvalFnc_GreekEffectEvalOnHoldDay",1])
 
 names(EvalFuncSetting)<-EvFNames
 rm(EvFNames)
@@ -95,7 +100,7 @@ Optimize_ml=as.numeric(ConfigParameters["Optimize_ml",1])
 
 #Parameters for Combinational Optimization
 InitialPopCreateLoopNum<-as.numeric(ConfigParameters["Optimize_InitialPopCreateLoopNum",1])
-InitialPopThresh=as.numeric(ConfigParameters["Optimize_InitialPopThresh",1])
+#InitialPopThresh=as.numeric(ConfigParameters["Optimize_InitialPopThresh",1])
 TopN_1=as.numeric(ConfigParameters["Optimize_TopN_1",1])
 PopN_1=as.numeric(ConfigParameters["Optimize_PopN_1",1])
 Thresh_1=as.numeric(ConfigParameters["Optimize_Thresh_1",1])

@@ -175,11 +175,16 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   pdist<-c(rep(rep(profit_vector,times=round(weight*100)),times=round(weight_IV*100)[2]),
            rep(rep(profit_vector_vc_plus,times=round(weight*100)),times=round(weight_IV*100)[3]),
            rep(rep(profit_vector_vc_minus,times=round(weight*100)),times=round(weight_IV*100)[1]))
-  profit_sd=sd(pdist[pdist<0])
-  #profit_sd<-sd(pdist)
+  
+  if(Setting$UseSortinoRatio){
+    profit_sd=sd(pdist[pdist<0])
+  }else{
+    profit_sd<-sd(pdist)
+  }
   
   if(isDetail){
-    cat(" :(profit_sd)",profit_sd);cat(" :(max_loss)",maxLoss);cat(" :(loss_limit_price)",Setting$LossLimitPrice)
+    cat(" :(sd_SortinoR)",sd(pdist[pdist<0]));cat(" :(sd)",sd(pdist)); cat(" :(profit_sd)",profit_sd)
+    cat(" :(max_loss)",maxLoss);cat(" :(loss_limit_price)",Setting$LossLimitPrice)
   }
   
   ## c3 profit
@@ -320,8 +325,13 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
     cost<-sigA/sigB
     if(isDetail){cat(" :(sigA)",sigA,":(sigB)",sigB," :cost(sigA/sigB)",cost)}
   }else{
-    if(B>0)
-      cost=((A-B)/B)
+    if(Setting$EvalEconomicValue){
+      if(B>0)
+        cost=(A-B)
+    }else{
+      if(B>0)
+        cost=((A-B)/B)
+    }
     if(isDetail){cat(" :cost",cost)}
   }
   
@@ -980,7 +990,7 @@ sampleMain<-function(sampleSpreadType,totalPopNum,targetExpDate,targetExpDate_f,
       hash_hit_num<-hash_hit_num+1
     }
     
-    if(val<InitialPopThresh){
+    if(val<(InitialPopThresh-1)){
       added_num<-added_num+1
       if(isFileout){
         cat(x,file=outFname,sep=",",append=TRUE);cat(",",file=outFname,append=TRUE)
