@@ -966,10 +966,12 @@ sampleMain<-function(sampleSpreadType,totalPopNum,targetExpDate,targetExpDate_f,
       x<-y*spreadRatio[1]+(z+w)*spreadRatio[2]
     }
     
+    posnum=sum(as.numeric((x)!=0))
+    if(posnum==0)
+      next
+    
     if(isDetail)
       print(hollowNonZeroPosition(x))
-    
-    posnum=sum(as.numeric((x)!=0))
     
     md5sumOfPos=digest(paste(x,collapse = ""))
     if(has.key(md5sumOfPos, POSITION_HASH)==FALSE){
