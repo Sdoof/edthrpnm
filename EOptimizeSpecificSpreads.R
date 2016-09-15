@@ -67,10 +67,10 @@ SpreadTypeNames[[FILE_PLUS_IRON_CONDOR]]="FILE_PLUS_IRON_CONDOR"
 SpreadTypeNames[[FILE_PLUS_SINGLE_DIAGONAL]]="FILE_PLUS_SINGLE_DIAGONAL"
 
 SpreadTypeToDir<-vector("list",length(SpreadTypeNames))
-SpreadTypeToDir[[IRON_CONDOR_SMPLING]]=c(1,7)
+SpreadTypeToDir[[IRON_CONDOR_SMPLING]]=1
 SpreadTypeToDir[[DIAGONAL_SMPLING]]=9
 SpreadTypeToDir[[DOUBLE_DIAGONAL_SMPLING]]=c(4,8)
-SpreadTypeToDir[[DOUBLE_DIAGONAL_CALL_SMPLING]]=c(14,28)
+SpreadTypeToDir[[DOUBLE_DIAGONAL_CALL_SMPLING]]=c(14,18)
 SpreadTypeToDir[[DOUBLE_DIAGONAL_PUT_SMPLING]]=c(24,28)
 SpreadTypeToDir[[DOUBLE_DIAGONAL_OPTYPE_ANY_SMPLING]]=c(34,38)
 SpreadTypeToDir[[IRON_CONDOR_PLUS_SINGLE_DIAGONAL_SMPLING]]=0
@@ -80,12 +80,12 @@ SpreadTypeToDir[[CALL_BEAR_SPREAD_PLUS_SINGLE_DIAGONAL_SMPLING]]=6
 SpreadTypeToDir[[CALL_BEAR_SPREAD_PLUS_DOUBLE_DIAGONAL_SMPLING]]=3
 SpreadTypeToDir[[PUT_BULL_SPREAD_PLUS_DOUBLE_DIAGONAL_SMPLING]]=2
 SpreadTypeToDir[[PUT_BULL_SPREAD_PLUS_SINGLE_DIAGONAL_SMPLING]]=5
-SpreadTypeToDir[[POOL_PLUS_SINGLE_DIAGONAL_SMPLING]]=c(7,4,9,14)
-SpreadTypeToDir[[POOL_PLUS_DOUBLE_DIAGONAL_SMPLING]]=c(1,8,9,18)
-SpreadTypeToDir[[FILE_PLUS_VERTICAL_CREDIT_SPREAD]]=c(121,221)
-SpreadTypeToDir[[FILE_PLUS_VERTICAL_DEBT_SPREAD]]=c(122,221)
-SpreadTypeToDir[[FILE_PLUS_IRON_CONDOR]]=c(123)
-SpreadTypeToDir[[FILE_PLUS_SINGLE_DIAGONAL]]=c(124)
+SpreadTypeToDir[[POOL_PLUS_SINGLE_DIAGONAL_SMPLING]]=c(1,4,14,24,34)
+SpreadTypeToDir[[POOL_PLUS_DOUBLE_DIAGONAL_SMPLING]]=c(1,8,18,28,38,9)
+SpreadTypeToDir[[FILE_PLUS_VERTICAL_CREDIT_SPREAD]]=121
+SpreadTypeToDir[[FILE_PLUS_VERTICAL_DEBT_SPREAD]]=121
+SpreadTypeToDir[[FILE_PLUS_IRON_CONDOR]]=122
+SpreadTypeToDir[[FILE_PLUS_SINGLE_DIAGONAL]]=124
 
 #Check Option
 (opchain)
@@ -93,18 +93,19 @@ SpreadTypeToDir[[FILE_PLUS_SINGLE_DIAGONAL]]=c(124)
 #functions used for this script only
 createOutFname<-function(targetExpDate,targetExpDate_f,targetExpDate_b,spreadRatio,EvalFuncSetting){
   outFname=paste(".\\ResultData\\",Underying_Symbol_G,"-",SpreadTypeNames[[sampleSpreadType]],"-",
-                 EvalFuncSetting$UdlStepPct*1000,"x",EvalFuncSetting$UdlStepNum,"-",EvalFuncSetting$holdDays,"d-",EvalFuncSetting$Profit_Coef,"_",EvalFuncSetting$AdvEffect_Coef,"-",
+                 EvalFuncSetting$UdlStepPct*1000,"x",EvalFuncSetting$UdlStepNum,"-",EvalFuncSetting$holdDays,"d-",
+                 EvalFuncSetting$Profit_Coef,"_",EvalFuncSetting$AdvEffect_Coef,"-",
                  EvalFuncSetting$DrctlEffect_Coef,"_",EvalFuncSetting$MaxLoss_Coef,"-",
-                 "DOf$",EvalFuncSetting$Delta_Neutral_Offset[1],"-",
-                 "DTh$",EvalFuncSetting$Delta_Thresh_Minus[1],"-",EvalFuncSetting$Delta_Thresh_Plus[1],"_",
-                 "VOf$",EvalFuncSetting$Vega_Neutral_Offset[1],"-",
-                 "VTh$",EvalFuncSetting$Vega_Thresh_Minus[1],"-",EvalFuncSetting$Vega_Thresh_Plus[1],"_",
+                 "DOf$",EvalFuncSetting$Delta_Neutral_Offset[1],
+                 "DTh$",EvalFuncSetting$Delta_Thresh_Minus[1],"_",EvalFuncSetting$Delta_Thresh_Plus[1],"-",
+                 "VOf$",EvalFuncSetting$Vega_Neutral_Offset[1],
+                 "VTh$",EvalFuncSetting$Vega_Thresh_Minus[1],"_",EvalFuncSetting$Vega_Thresh_Plus[1],"-",
                  "HIVR$",EvalFuncSetting$HV_IV_Adjust_Ratio,"-",
                  "GkW$",EvalFuncSetting$GreekEfctOnHldD,"-",
                  "Cvx$",ifelse(EvalFuncSetting$EvalConvex,"T","F"),"-",
+                 "Sor$",ifelse(EvalFuncSetting$UseSortinoRatio,"T","F"),"-",
+                 "Ecv$",ifelse(EvalFuncSetting$EvalEconomicValue,"T","F"),"-",
                  "LLt$",EvalFuncSetting$LossLimitPrice,"-",
-                 "Dft$",EvalFuncSetting$Weight_Drift*100,"-",
-                 "Skw$",EvalFuncSetting$Weight_Skew,"-",
                  "TgD$",format(as.Date(targetExpDate,format="%Y/%m/%d"),"%m%d"),"_",format(as.Date(targetExpDate_f,format="%Y/%m/%d"),"%m%d"),"_",format(as.Date(targetExpDate_b,format="%Y/%m/%d"),"%m%d"),
                  ".csv",sep="")
   return(outFname)
