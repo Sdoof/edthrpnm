@@ -733,9 +733,11 @@ sampleDiagonalSpread<-function(targetOpTyep,diagonalType,targetExpDate_f,targetE
 
 ## sampling main routine
 sampleMain<-function(sampleSpreadType,totalPopNum,targetExpDate,targetExpDate_f,targetExpDate_b,spreadRatio,InitialPopThresh,outFname,isFileout=T,isDebug=F,isDetail=F){
-  added_num<-(0)
-  total_count<-(0)
-  hash_hit_num<-(0)
+  added_num=0
+  total_count=0
+  hash_hit_num=0
+  s1_idx=0
+  s2_idx=0
   start_t<-proc.time()
   POSITION_HASH=hash()
   while(TRUE){
@@ -877,11 +879,15 @@ sampleMain<-function(sampleSpreadType,totalPopNum,targetExpDate,targetExpDate_f,
                              targetExpDate=targetExpDate,isDebug=isDebug,isDetail=idDetail)
       x<-y*spreadRatio[1]+(z+w)*spreadRatio[2]
     }else if(sampleSpreadType==FILE_PLUS_FILE){
+      s1_idx=0
+      s2_idx=0
       
-      s1<-pools[[ 1 ]][[2]][ceiling(runif(1, min=1e-320, max=nrow(pools[[1]][[2]]))), ]
+      s1_idx=ceiling(runif(1, min=1e-320, max=nrow(pools[[1]][[2]])))
+      s1<-pools[[ 1 ]][[2]][s1_idx, ]
       y<-unlist(s1[1:length(iniPos)]);s1_score<-as.numeric(s1[length(s1)])
       
-      s2<-pools[[ 2 ]][[2]][ceiling(runif(1, min=1e-320, max=nrow(pools[[  2 ]][[2]]))), ]
+      s2_idx=ceiling(runif(1, min=1e-320, max=nrow(pools[[  2 ]][[2]])))
+      s2<-pools[[ 2 ]][[2]][s2_idx, ]
       z<-unlist(s2[1:length(iniPos)]);s2_score<-as.numeric(s2[length(s2)])
       
       x<-y*spreadRatio[1]+z*spreadRatio[2]
@@ -1005,7 +1011,12 @@ sampleMain<-function(sampleSpreadType,totalPopNum,targetExpDate,targetExpDate_f,
       added_num<-added_num+1
       if(isFileout){
         cat(x,file=outFname,sep=",",append=TRUE);cat(",",file=outFname,append=TRUE)
-        cat(val,file=outFname,"\n",append=TRUE)
+        cat(val,file=outFname,append=TRUE)
+        if(s1_idx!=0)
+          if(s2_idx!=0){
+            cat(",",s1_idx,",",s2_idx,file=outFname,append=TRUE)
+          }
+        cat("\n",file=outFname,append=TRUE)
       }
     }
     total_count<-total_count+1
