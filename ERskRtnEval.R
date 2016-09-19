@@ -827,8 +827,11 @@ sampleMain<-function(sampleSpreadType,totalPopNum,targetExpDate,targetExpDate_f,
       
       x<-y*spreadRatio[1]+(z+w)*spreadRatio[2]
     }else if(sampleSpreadType==FILE_PLUS_SINGLE_DIAGONAL){
+      s1_idx=0
+      s2_idx=0
       
-      s1<-pools[[ 1 ]][[2]][ceiling(runif(1, min=1e-320, max=nrow(pools[[1]][[2]]))), ]
+      s1_idx=ceiling(runif(1, min=1e-320, max=nrow(pools[[1]][[2]])))
+      s1<-pools[[ 1 ]][[2]][s1_idx, ]
       y<-unlist(s1[1:length(iniPos)]);s1_score<-as.numeric(s1[length(s1)])
       
       z=sampleDiagonalSpread(targetOpTyep=ifelse(runif(1)<=0.500000,OpType_Put_G,OpType_Call_G),
@@ -891,6 +894,24 @@ sampleMain<-function(sampleSpreadType,totalPopNum,targetExpDate,targetExpDate_f,
       z<-unlist(s2[1:length(iniPos)]);s2_score<-as.numeric(s2[length(s2)])
       
       x<-y*spreadRatio[1]+z*spreadRatio[2]
+    }else if(sampleSpreadType==FILE_PLUS_DOUBLE_DIAGONAL){
+      s1_idx=0
+      s2_idx=0
+      
+      s1_idx=ceiling(runif(1, min=1e-320, max=nrow(pools[[1]][[2]])))
+      s1<-pools[[ 1 ]][[2]][s1_idx, ]
+      y<-unlist(s1[1:length(iniPos)]);s1_score<-as.numeric(s1[length(s1)])
+      
+      diagonalType=ifelse(runif(1)<=0.500000,DIAGONAL_TYPE_LONG,DIAGONAL_TYPE_SHORT)
+      z=sampleDiagonalSpread(targetOpTyep=ifelse(runif(1)<=0.500000,OpType_Put_G,OpType_Call_G),
+                             diagonalType=diagonalType,
+                             targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,isDebug=isDebug,isDetail=idDetail)
+      diagonalType=ifelse(runif(1)<=0.500000,DIAGONAL_TYPE_LONG,DIAGONAL_TYPE_SHORT)
+      w=sampleDiagonalSpread(targetOpTyep=ifelse(runif(1)<=0.500000,OpType_Put_G,OpType_Call_G),
+                             diagonalType=diagonalType,
+                             targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,isDebug=isDebug,isDetail=idDetail)
+      
+      x<-y*spreadRatio[1]+(z+w)*spreadRatio[2]
     }else if(sampleSpreadType==IRON_CONDOR_PLUS_SINGLE_DIAGONAL_SMPLING){
       y=sampleVerticalSpread(targetOpTyep=OpType_Put_G,
                              verticalType=BULL_VERTICAL_SPREAD_TYPE,
@@ -1013,9 +1034,10 @@ sampleMain<-function(sampleSpreadType,totalPopNum,targetExpDate,targetExpDate_f,
         cat(x,file=outFname,sep=",",append=TRUE);cat(",",file=outFname,append=TRUE)
         cat(val,file=outFname,append=TRUE)
         if(s1_idx!=0)
-          if(s2_idx!=0){
-            cat(",",s1_idx,",",s2_idx,file=outFname,append=TRUE)
-          }
+          cat(",",s1_idx,file=outFname,append=TRUE)
+        if(s2_idx!=0){
+          cat(",",s2_idx,file=outFname,append=TRUE)
+        }
         cat("\n",file=outFname,append=TRUE)
       }
     }
