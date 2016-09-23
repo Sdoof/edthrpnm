@@ -6,8 +6,8 @@ rm(list=ls())
 source('./ESourceRCode.R',encoding = 'UTF-8')
 
 #MAX ExpToDate for Skew Regression
-SkewRegressionTimeToExpDateMin<-1.5
-SkewRegressionTimeToExpDateMax<-3.2
+SkewRegressionTimeToExpDateMin<-1.4
+SkewRegressionTimeToExpDateMax<-3.1
 
 #We get regression only past this day. Currently reflected on Skew only.
 #should apply Vcone, etc.
@@ -193,7 +193,7 @@ rm(models,vplot,predict.c)
 
 #atmiv filtering
 atmiv->atmiv.org #atmiv.org used later for IV Change to IVIDX Up and Down # atmiv=atmiv.org
-atmiv %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")>=as.Date("2016/9/9",format="%Y/%m/%d")) -> atmiv
+atmiv %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")>=as.Date("2016/9/15",format="%Y/%m/%d")) -> atmiv
 #create another column
 atmiv$ATMIDXIV.f=atmiv$ATMIV/atmiv$IVIDX
 #Minimus TimeToExpDate filtering
@@ -251,6 +251,23 @@ load.ATMIDXIV.f(OpType_Call_G)
 #save atmiv.org for another analysis
 write.table(atmiv.org,paste(DataFiles_Path_G,Underying_Symbol_G,"-ATMIV-VCONE-ANAL.csv",sep=""),row.names = F,col.names=T,sep=",",append=T)
 
+#read, join atmiv and re-write ATMIV-VCONE-ANAL_Hist
+atmiv_hist<-read.table(paste(DataFiles_Path_G,Underying_Symbol_G,"-ATMIV-VCONE-ANAL_Hist.csv",sep=""),header=T,sep=",")
+atmiv_hist %>%
+  dplyr::arrange(desc(TYPE),as.Date(ExpDate,format="%Y/%m/%d"),as.Date(Date,format="%Y/%m/%d")) %>%
+  distinct() -> atmiv_hist
+
+atmiv_hist %>% dplyr::full_join(atmiv.org) %>% 
+  dplyr::arrange(desc(TYPE),as.Date(ExpDate,format="%Y/%m/%d"),as.Date(Date,format="%Y/%m/%d")) %>%
+  dplyr::group_by(Date,ExpDate,TYPE,Strike,UDLY) %>% dplyr::summarise(ATMIV=mean(ATMIV),TimeToExpDate=mean(TimeToExpDate),IVIDX=mean(IVIDX),
+                                                                      Moneyness.Frac=mean(Moneyness.Frac),displace=mean(displace)) %>% 
+  as.data.frame() %>% 
+  dplyr::arrange(desc(TYPE),as.Date(ExpDate,format="%Y/%m/%d"),as.Date(Date,format="%Y/%m/%d")) %>% 
+  select(Date,ExpDate,TYPE,ATMIV,Strike,UDLY,IVIDX,TimeToExpDate,Moneyness.Frac,displace) -> atmiv_hist
+
+write.table(atmiv_hist,paste(DataFiles_Path_G,Underying_Symbol_G,"-ATMIV-VCONE-ANAL_Hist.csv",sep=""),row.names = F,col.names=T,sep=",",append=F)
+
+
 ##
 # Vcone Regression
 
@@ -298,107 +315,111 @@ rm(vcone,predict.c,model.ss)
 # Getting and Creating atmiv.vcone.anal to analyze vcone and to model ATMIV behavior
 
 # inner function
-  # called from do above. This function is called for each grouped data frame.
-  makeVconAnalDF<- function(atmiv){
-    atmiv %>% dplyr::mutate(ATMIV.s=dplyr::lead(atmiv$ATMIV,1)) -> atmiv
-    atmiv %>% dplyr::mutate(IVIDX.s=dplyr::lead(atmiv$IVIDX,1)) -> atmiv
-    atmiv %>% dplyr::mutate(TimeToExpDate.s=dplyr::lead(atmiv$TimeToExpDate,1)) -> atmiv
-    atmiv %>% dplyr::mutate(ATMIV.f=ATMIV.s/ATMIV
-                            ,IVIDX.f=IVIDX.s/IVIDX
-                            ,TimeToExpDate.d=TimeToExpDate-TimeToExpDate.s) -> atmiv
-    atmiv$ATMIV.s<-atmiv$IVIDX.s<-atmiv$TimeToExpDate.s<-NULL
-    
-    #filter out data whose busuness days interval are more than time_max days
-    # if you want to exclude whose intervals are more than 6 days, 
-    #  then set time_max<- 6.2 etc to avoid unncessary boundary misconfigurations.
-    time_max <- 7.2
-    timeIntervalExclude_max=(1/(252/12))*time_max
-    atmiv %>% dplyr::filter(TimeToExpDate.d<=timeIntervalExclude_max) -> atmiv
-    atmiv
-  }
+# called from do above. This function is called for each grouped data frame.
+makeVconAnalDF<- function(atmiv){
+  atmiv %>% dplyr::mutate(ATMIV.s=dplyr::lead(atmiv$ATMIV,1)) -> atmiv
+  atmiv %>% dplyr::mutate(IVIDX.s=dplyr::lead(atmiv$IVIDX,1)) -> atmiv
+  atmiv %>% dplyr::mutate(TimeToExpDate.s=dplyr::lead(atmiv$TimeToExpDate,1)) -> atmiv
+  atmiv %>% dplyr::mutate(ATMIV.f=ATMIV.s/ATMIV
+                          ,IVIDX.f=IVIDX.s/IVIDX
+                          ,TimeToExpDate.d=TimeToExpDate-TimeToExpDate.s) -> atmiv
+  atmiv$ATMIV.s<-atmiv$IVIDX.s<-atmiv$TimeToExpDate.s<-NULL
   
-  #Row "EachDF" 's members are dataframes. Composite Object Types such as Dataframe, List.
-  #Thay can also be set as a data frame member. 
-  #     note . referes to each grouped partial data frame.
-  atmiv = atmiv.org
-  atmiv %>% group_by(ExpDate,TYPE) %>% do(EachDF=makeVconAnalDF(.)) -> atmiv.vcone.anal
-  atmiv.vcone.anal %>% dplyr::arrange(desc(TYPE),as.Date(ExpDate,format="%Y/%m/%d")) -> atmiv.vcone.anal
-  atmiv.vcone.eachDF<-atmiv.vcone.anal$EachDF
-  atmiv.vcone.bind<-NULL
-  for(i in 1:length(atmiv.vcone.eachDF)){
-    if(i==1){
-      atmiv.vcone.bind <- as.data.frame(atmiv.vcone.eachDF[i])
-    }
-    else{
-      atmiv.vcone.bind<-rbind(atmiv.vcone.bind,as.data.frame(atmiv.vcone.eachDF[i]))
-    }
+  #filter out data whose busuness days interval are more than time_max days
+  # if you want to exclude whose intervals are more than 6 days, 
+  #  then set time_max<- 6.2 etc to avoid unncessary boundary misconfigurations.
+  time_max <- 7.2
+  timeIntervalExclude_max=(1/(252/12))*time_max
+  atmiv %>% dplyr::filter(TimeToExpDate.d<=timeIntervalExclude_max) -> atmiv
+  atmiv
+}
+
+#Row "EachDF" 's members are dataframes. Composite Object Types such as Dataframe, List.
+#Thay can also be set as a data frame member. 
+#     note . referes to each grouped partial data frame.
+
+#Creating atmiv.vcone.anal
+atmiv = atmiv.org
+atmiv = atmiv_hist
+atmiv %>% group_by(ExpDate,TYPE) %>% do(EachDF=makeVconAnalDF(.)) -> atmiv.vcone.anal
+atmiv.vcone.anal %>% dplyr::arrange(desc(TYPE),as.Date(ExpDate,format="%Y/%m/%d")) -> atmiv.vcone.anal
+atmiv.vcone.eachDF<-atmiv.vcone.anal$EachDF
+atmiv.vcone.bind<-NULL
+for(i in 1:length(atmiv.vcone.eachDF)){
+  if(i==1){
+    atmiv.vcone.bind <- as.data.frame(atmiv.vcone.eachDF[i])
   }
-  #atmiv.vcone.anal: from nested data.frame to data.frame: type changed.
-  atmiv.vcone.anal<-NULL
-  atmiv.vcone.anal<-atmiv.vcone.bind
-  rm(i,atmiv.vcone.eachDF,atmiv.vcone.bind)
+  else{
+    atmiv.vcone.bind<-rbind(atmiv.vcone.bind,as.data.frame(atmiv.vcone.eachDF[i]))
+  }
+}
 
-#save atmiv.vcone.anal
-atmiv.vcone.anal %>% dplyr::select(Date,ExpDate,TYPE,ATMIV,Strike,UDLY,IVIDX,TimeToExpDate,ATMIV.f,IVIDX.f) %>% dplyr::distinct()-> atmiv.vcone.anal
 
-#  Put IV Change to IVIDX Up and Down
-#Up and Down change
-vchg<-make.vchg.df(vcone=atmiv.vcone.anal,type=1)
-vchg$DaysToMaxDate<-as.numeric(max(as.Date(vchg$Date,format="%Y/%m/%d"))-as.Date(vchg$Date,format="%Y/%m/%d"))
-(ggplot(vchg,aes(x=TimeToExpDate,y=VC.f,colour=DaysToMaxDate))+geom_point())
+###
+# finally atmiv.vcone.anal is created.
+#atmiv.vcone.anal: from nested data.frame to data.frame: type changed.
+atmiv.vcone.anal<-NULL
+atmiv.vcone.anal<-atmiv.vcone.bind
+rm(i,atmiv.vcone.eachDF,atmiv.vcone.bind)
+atmiv.vcone.anal %>% dplyr::select(Date,ExpDate,TYPE,ATMIV,Strike,UDLY,IVIDX,TimeToExpDate,ATMIV.f,IVIDX.f) %>% 
+  dplyr::distinct()-> atmiv.vcone.anal
+#create new columns for later analysis
+atmiv.vcone.anal %>% dplyr::mutate(ATMIDXIV.f=ATMIV/IVIDX) -> atmiv.vcone.anal
 
-vchg %>% filter(IVIDX.f>=1.0) -> vchg_plus
-(ggplot(vchg_plus,aes(x=TimeToExpDate,y=VC.f,colour=DaysToMaxDate))+geom_point())
+###
+## creating ATMIV_GmChg_{Put/Call}_{Up/Down}
 
-vchg %>% filter(IVIDX.f<1.0) -> vchg_mns
-#filter outlier
-vchg_mns %>% dplyr::filter(VC.f>0.90) -> vchg_mns
-(ggplot(vchg_mns,aes(x=TimeToExpDate,y=VC.f,colour=DaysToMaxDate))+geom_point())
+# Put
+ATMIV_GmChg_Put<-make.vchg.df(vcone=atmiv.vcone.anal,type=OpType_Put_G)
+ATMIV_GmChg_Put$DaysToMaxDate<-as.numeric(max(as.Date(ATMIV_GmChg_Put$Date,format="%Y/%m/%d"))-as.Date(ATMIV_GmChg_Put$Date,format="%Y/%m/%d"))
+ATMIV_GmChg_Put %>% filter(IVIDX.f>=1.0) -> ATMIV_GmChg_Put_Up
+ATMIV_GmChg_Put %>% filter(IVIDX.f<1.0) -> ATMIV_GmChg_Put_Down
 
-#Regression
-#    5.smooth spline
-vchg_t<-vchg_plus
-model.ss<-smooth.spline(vchg_t$TimeToExpDate,vchg_t$VC.f,df=3)
-(predict.c <- predict(model.ss,x=seq(0,max(vchg_t$TimeToExpDate),by=0.1)))
-(ggplot(vchg_t,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point()+
+# VC.f = VC.f=ATMIV.f/IVIDX.f
+# relative ATMIV %change(.f means so) to IVIDX %change(also .f)
+# for IVIDX up, VC.f > 1 means ATMIV moved bigger than IVIDX
+# for IVIDX down, VC.f < 1 means ATMIV moved bigger than IVIDX
+(ggplot(ATMIV_GmChg_Put,aes(x=TimeToExpDate,y=VC.f,colour=DaysToMaxDate))+geom_point())
+(ggplot(ATMIV_GmChg_Put_Up,aes(x=TimeToExpDate,y=VC.f,colour=DaysToMaxDate))+geom_point())
+(ggplot(ATMIV_GmChg_Put_Down,aes(x=TimeToExpDate,y=VC.f,colour=DaysToMaxDate))+geom_point())
+
+# Call
+ATMIV_GmChg_Call<-make.vchg.df(vcone=atmiv.vcone.anal,type=OpType_Call_G)
+ATMIV_GmChg_Call$DaysToMaxDate<-as.numeric(max(as.Date(ATMIV_GmChg_Call$Date,format="%Y/%m/%d"))-as.Date(ATMIV_GmChg_Call$Date,format="%Y/%m/%d"))
+ATMIV_GmChg_Call %>% filter(IVIDX.f>=1.0) -> ATMIV_GmChg_Call_Up
+ATMIV_GmChg_Call %>% filter(IVIDX.f<1.0) -> ATMIV_GmChg_Call_Down
+#plotting
+(ggplot(ATMIV_GmChg_Call,aes(x=TimeToExpDate,y=VC.f,colour=DaysToMaxDate))+geom_point())
+(ggplot(ATMIV_GmChg_Call_Up,aes(x=TimeToExpDate,y=VC.f,colour=DaysToMaxDate))+geom_point())
+(ggplot(ATMIV_GmChg_Call_Down,aes(x=TimeToExpDate,y=VC.f,colour=DaysToMaxDate))+geom_point())
+
+##
+# VC.f Regression
+
+# Put
+model.ss<-smooth.spline(ATMIV_GmChg_Put_Up$TimeToExpDate,ATMIV_GmChg_Put_Up$VC.f,df=3)
+(predict.c <- predict(model.ss,x=seq(0,max(ATMIV_GmChg_Put_Up$TimeToExpDate),by=0.1)))
+(ggplot(ATMIV_GmChg_Put_Up,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point()+
   geom_line(data=data.frame(TimeToExpDate=predict.c$x,VC.f=predict.c$y,TYPE=1),aes(TimeToExpDate,VC.f)))
-rm(vchg_t)
 save.IVChg(model.ss,OpType_Put_G,10)
 
-vchg_t<-vchg_mns
-model.ss<-smooth.spline(vchg_t$TimeToExpDate,vchg_t$VC.f,df=3)
-(predict.c <- predict(model.ss,x=seq(0,max(vchg_t$TimeToExpDate),by=0.1)))
-(ggplot(vchg_t,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point()+
+model.ss<-smooth.spline(ATMIV_GmChg_Put_Down$TimeToExpDate,ATMIV_GmChg_Put_Down$VC.f,df=3)
+(predict.c <- predict(model.ss,x=seq(0,max(ATMIV_GmChg_Put_Down$TimeToExpDate),by=0.1)))
+(ggplot(ATMIV_GmChg_Put_Down,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point()+
   geom_line(data=data.frame(TimeToExpDate=predict.c$x,VC.f=predict.c$y,TYPE=1),aes(TimeToExpDate,VC.f)))
-rm(vchg_t)
 save.IVChg(model.ss,OpType_Put_G,-10)
 
-rm(vchg,vchg_mns,vchg_plus,model.ss,predict.c)
-
-#  Call IV Change to IVIDX Up and Down 
-#Up and Down Changes
-vchg<-make.vchg.df(vcone=atmiv.vcone.anal,type=-1)
-(ggplot(vchg,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point())
-vchg %>% filter(IVIDX.f>=1.0) -> vchg_plus
-(ggplot(vchg_plus,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point())
-vchg %>% filter(IVIDX.f<1.0) -> vchg_mns
-(ggplot(vchg_mns,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point())
-
-#regresson
-#    5.smooth spline
-vchg_t<-vchg_plus
-model.ss<-smooth.spline(vchg_t$TimeToExpDate,vchg_t$VC.f,df=3)
-(predict.c <- predict(model.ss,x=seq(0,max(vchg_t$TimeToExpDate),by=0.1)))
-(ggplot(vchg_t,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point()+
+# Call
+model.ss<-smooth.spline(ATMIV_GmChg_Call_Up$TimeToExpDate,ATMIV_GmChg_Call_Up$VC.f,df=3)
+(predict.c <- predict(model.ss,x=seq(0,max(ATMIV_GmChg_Call_Up$TimeToExpDate),by=0.1)))
+(ggplot(ATMIV_GmChg_Call_Up,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point()+
   geom_line(data=data.frame(TimeToExpDate=predict.c$x,VC.f=predict.c$y,TYPE=-1),aes(TimeToExpDate,VC.f)))
 save.IVChg(model.ss,OpType_Call_G,10)
 
-vchg_t<-vchg_mns
-model.ss<-smooth.spline(vchg_t$TimeToExpDate,vchg_t$VC.f,df=3)
-(predict.c <- predict(model.ss,x=seq(0,max(vchg_t$TimeToExpDate),by=0.1)))
-(ggplot(vchg_t,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point()+
+model.ss<-smooth.spline(ATMIV_GmChg_Call_Down$TimeToExpDate,ATMIV_GmChg_Call_Down$VC.f,df=3)
+(predict.c <- predict(model.ss,x=seq(0,max(ATMIV_GmChg_Call_Down$TimeToExpDate),by=0.1)))
+(ggplot(ATMIV_GmChg_Call_Down,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point()+
   geom_line(data=data.frame(TimeToExpDate=predict.c$x,VC.f=predict.c$y,TYPE=-1),aes(TimeToExpDate,VC.f)))
-rm(vchg_t)
 save.IVChg(model.ss,OpType_Call_G,-10)
 
 #load test
@@ -410,14 +431,57 @@ load.IVChg(OpType_Call_G,10)
 CallIVChgUp
 load.IVChg(OpType_Call_G,-10)
 CallIVChgDown
-rm(PutIVChgUp,PutIVChgDown,CallIVChgUp,CallIVChgDown)
-rm(vchg,vchg_mns,vchg_plus,model.ss,predict.c)
 
-##
-# Post Process
+# ATMIDXIV.f analysis
+ATMIV_GmChg_Put_Up
+ATMIV_GmChg_Put_Down
+ATMIV_GmChg_Call_Up
+ATMIV_GmChg_Call_Down
+#Put 
+(ggplot(ATMIV_GmChg_Put,aes(x=TimeToExpDate,y=ATMIDXIV.f,colour=DaysToMaxDate))+geom_point())
+(ggplot(ATMIV_GmChg_Put_Up,aes(x=TimeToExpDate,y=ATMIDXIV.f,colour=DaysToMaxDate))+geom_point())
+(ggplot(ATMIV_GmChg_Put_Down,aes(x=TimeToExpDate,y=ATMIDXIV.f,colour=DaysToMaxDate))+geom_point())
+#Call
+(ggplot(ATMIV_GmChg_Call,aes(x=TimeToExpDate,y=ATMIDXIV.f,colour=DaysToMaxDate))+geom_point())
+(ggplot(ATMIV_GmChg_Call_Up,aes(x=TimeToExpDate,y=ATMIDXIV.f,colour=DaysToMaxDate))+geom_point())
+(ggplot(ATMIV_GmChg_Call_Down,aes(x=TimeToExpDate,y=ATMIDXIV.f,colour=DaysToMaxDate))+geom_point())
 
-#Writing to a file
-wf_<-paste(DataFiles_Path_G,Underying_Symbol_G,OpchainOutFileName,sep="")
-write.table(opch,wf_,quote=T,row.names=F,sep=",") ; rm(wf_)
 
-rm(list=ls())
+#Naive ATMIV plotting
+#Put 
+(ggplot(ATMIV_GmChg_Put,aes(x=TimeToExpDate,y=ATMIV,colour=DaysToMaxDate))+geom_point())
+(ggplot(ATMIV_GmChg_Put_Up,aes(x=TimeToExpDate,y=ATMIV,colour=DaysToMaxDate))+geom_point())
+(ggplot(ATMIV_GmChg_Put_Down,aes(x=TimeToExpDate,y=ATMIV,colour=DaysToMaxDate))+geom_point())
+#Call
+(ggplot(ATMIV_GmChg_Call,aes(x=TimeToExpDate,y=ATMIV,colour=DaysToMaxDate))+geom_point())
+(ggplot(ATMIV_GmChg_Call_Up,aes(x=TimeToExpDate,y=ATMIV,colour=DaysToMaxDate))+geom_point())
+(ggplot(ATMIV_GmChg_Call_Down,aes(x=TimeToExpDate,y=ATMIV,colour=DaysToMaxDate))+geom_point())
+
+# ATMIV.f analysis
+#Put 
+(ggplot(ATMIV_GmChg_Put,aes(x=TimeToExpDate,y=ATMIV.f,colour=DaysToMaxDate))+geom_point())
+(ggplot(ATMIV_GmChg_Put_Up,aes(x=TimeToExpDate,y=ATMIV.f,colour=DaysToMaxDate))+geom_point())
+(ggplot(ATMIV_GmChg_Put_Down,aes(x=TimeToExpDate,y=ATMIV.f,colour=DaysToMaxDate))+geom_point())
+#Call
+(ggplot(ATMIV_GmChg_Call,aes(x=TimeToExpDate,y=ATMIV.f,colour=DaysToMaxDate))+geom_point())
+(ggplot(ATMIV_GmChg_Call_Up,aes(x=TimeToExpDate,y=ATMIV.f,colour=DaysToMaxDate))+geom_point())
+(ggplot(ATMIV_GmChg_Call_Down,aes(x=TimeToExpDate,y=ATMIV.f,colour=DaysToMaxDate))+geom_point())
+
+#conditional 
+Data_y=ATMIV_GmChg_Put_Up$ATMIV.f
+Data_x=ATMIV_GmChg_Put_Up$TimeToExpDate
+
+cond_width=1.0
+cond_pivot=seq(1.5, 4.5, by = 0.3)
+
+tmp1=(Data_x > (cond_pivot[1]-(cond_width/2)))
+tmp2=(Data_x < (cond_pivot[1]+(cond_width/2)))
+
+cond_suffix=(tmp1&tmp2)
+data_condX=Data_x[cond_suffix]
+data_condY=Data_y[cond_suffix]
+
+annuual.daily.volatility(data_condY)$anlzd
+
+
+
