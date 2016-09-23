@@ -275,7 +275,9 @@ sd(HVIVR)
 mean(HVIVR[1:100])
 sd(HVIVR[1:100])
 
+cat("HV_IV_Adjust_Ratio mean",mean(HVIVR[1:100]),"\n")
 HV_IV_Adjust_Ratio=mean(HVIVR[1:100])+sd(HVIVR[1:100])
+cat("HV_IV_Adjust_Ratio mean+1sd",HV_IV_Adjust_Ratio,"\n")
 
 ##
 # Daily Volatility of Implied Volatility statistic of selected subdata
@@ -354,7 +356,6 @@ est_weight=est_density$y/sum(est_density$y)
 frame()
 plot(est_density$x,est_weight,col="blue")
 
-HV_IV_Adjust_Ratio
 anlzd_sd<-histIV[1]/100*HV_IV_Adjust_Ratio
 sd_hd<-(anlzd_sd/sqrt(252/EvalFuncSetting$holdDays))
 sknm_weight<-dsn(est_density$x,
