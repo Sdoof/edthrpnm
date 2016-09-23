@@ -558,7 +558,7 @@ reflectPosChg<- function(process_df,days,IV_DEVIATION=0,MIN_IVIDX_CHG=(-0.5)){
   #  get.Volatility.Cone.Regression.Result(pos$TYPE,pos$TimeToExpDate)
   
   ##This is the new ATMIV behavior
-  pos$ATMIV<-pos$ATMIV*(1+ividx_chg_pct)*get.Volatility.Change.Regression.Result.ATMIDXIV.f(pos,TimeToExpDate_pos)/get.Volatility.Change.Regression.Result.ATMIDXIV.f(pos,pos$TimeToExpDate)
+  pos$ATMIV<-pos$ATMIV*(1+ividx_chg_pct)*get.Volatility.Change.Regression.Result(pos,ividx_chg_pct)*get.Volatility.Change.Regression.Result.ATMIDXIV.f(pos,TimeToExpDate_pos)/get.Volatility.Change.Regression.Result.ATMIDXIV.f(pos,pos$TimeToExpDate)
   
   #set new TimeToExpDate
   pos$TimeToExpDate<-TimeToExpDate_pos
@@ -1376,7 +1376,7 @@ adjustPosChgInner<-function(process_df,base_vol_chg=0){
   # ATM IV change
   #same as this
   #pos$ATMIV<-pos$ATMIV*(1+ividx_chg_pct)*get.Volatility.Change.Regression.Result.ATMIDXIV.f(pos,pos$TimeToExpDate)/get.Volatility.Change.Regression.Result.ATMIDXIV.f(pos,pos$TimeToExpDate)
-  pos$ATMIV<-pos$ATMIV*(1+ividx_chg_pct)
+  pos$ATMIV<-pos$ATMIV*(1+ividx_chg_pct)*get.Volatility.Change.Regression.Result(pos,ividx_chg_pct)
   
   #calculate IV_pos(OrigIV) using SkewModel based on model definition formula.
   spskew<-(pos$TYPE==OpType_Put_G)*get.predicted.spline.skew(SkewModel_Put,pos$Moneyness.Nm)+
