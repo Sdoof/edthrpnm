@@ -319,11 +319,13 @@ rm(vcone,predict.c,model.ss)
 makeVconAnalDF<- function(atmiv){
   atmiv %>% dplyr::mutate(ATMIV.s=dplyr::lead(atmiv$ATMIV,1)) -> atmiv
   atmiv %>% dplyr::mutate(IVIDX.s=dplyr::lead(atmiv$IVIDX,1)) -> atmiv
+  atmiv %>% dplyr::mutate(ATMIDXIV.r.s=dplyr::lead(atmiv$ATMIDXIV.r,1)) -> atmiv
   atmiv %>% dplyr::mutate(TimeToExpDate.s=dplyr::lead(atmiv$TimeToExpDate,1)) -> atmiv
-  atmiv %>% dplyr::mutate(ATMIV.f=ATMIV.s/ATMIV
-                          ,IVIDX.f=IVIDX.s/IVIDX
-                          ,TimeToExpDate.d=TimeToExpDate-TimeToExpDate.s) -> atmiv
-  atmiv$ATMIV.s<-atmiv$IVIDX.s<-atmiv$TimeToExpDate.s<-NULL
+  atmiv %>% dplyr::mutate(ATMIV.f=ATMIV.s/ATMIV,
+                          IVIDX.f=IVIDX.s/IVIDX,
+                          ATMIDXIV.r.f=ATMIDXIV.r.s/ATMIDXIV.r,
+                          TimeToExpDate.d=TimeToExpDate-TimeToExpDate.s) -> atmiv
+  atmiv$ATMIV.s<-atmiv$IVIDX.s<-atmiv$ATMIDXIV.r.s<-atmiv$TimeToExpDate.s<-NULL
   
   #filter out data whose busuness days interval are more than time_max days
   # if you want to exclude whose intervals are more than 6 days, 
@@ -341,6 +343,9 @@ makeVconAnalDF<- function(atmiv){
 #Creating atmiv.vcone.anal
 atmiv = atmiv.org
 atmiv = atmiv_hist
+#create new column
+atmiv %>% dplyr::mutate(ATMIDXIV.r=ATMIV/IVIDX) -> atmiv
+
 atmiv %>% group_by(ExpDate,TYPE) %>% do(EachDF=makeVconAnalDF(.)) -> atmiv.vcone.anal
 atmiv.vcone.anal %>% dplyr::arrange(desc(TYPE),as.Date(ExpDate,format="%Y/%m/%d")) -> atmiv.vcone.anal
 atmiv.vcone.eachDF<-atmiv.vcone.anal$EachDF
@@ -361,10 +366,8 @@ for(i in 1:length(atmiv.vcone.eachDF)){
 atmiv.vcone.anal<-NULL
 atmiv.vcone.anal<-atmiv.vcone.bind
 rm(i,atmiv.vcone.eachDF,atmiv.vcone.bind)
-atmiv.vcone.anal %>% dplyr::select(Date,ExpDate,TYPE,ATMIV,Strike,UDLY,IVIDX,TimeToExpDate,ATMIV.f,IVIDX.f) %>% 
+atmiv.vcone.anal %>% dplyr::select(Date,ExpDate,TYPE,ATMIV,Strike,UDLY,IVIDX,ATMIDXIV.r,TimeToExpDate,ATMIV.f,IVIDX.f,ATMIDXIV.r.f) %>% 
   dplyr::distinct()-> atmiv.vcone.anal
-#create new columns for later analysis
-atmiv.vcone.anal %>% dplyr::mutate(ATMIDXIV.f=ATMIV/IVIDX) -> atmiv.vcone.anal
 
 ###
 ## creating ATMIV_GmChg_{Put/Call}_{Up/Down}
@@ -375,13 +378,13 @@ ATMIV_GmChg_Put$DaysToMaxDate<-as.numeric(max(as.Date(ATMIV_GmChg_Put$Date,forma
 ATMIV_GmChg_Put %>% filter(IVIDX.f>=1.0) -> ATMIV_GmChg_Put_Up
 ATMIV_GmChg_Put %>% filter(IVIDX.f<1.0) -> ATMIV_GmChg_Put_Down
 
-# VC.f = VC.f=ATMIV.f/IVIDX.f
+# VC.f.r = VC.f.r=ATMIV.f/IVIDX.f
 # relative ATMIV %change(.f means so) to IVIDX %change(also .f)
-# for IVIDX up, VC.f > 1 means ATMIV moved bigger than IVIDX
-# for IVIDX down, VC.f < 1 means ATMIV moved bigger than IVIDX
-(ggplot(ATMIV_GmChg_Put,aes(x=TimeToExpDate,y=VC.f,colour=DaysToMaxDate))+geom_point())
-(ggplot(ATMIV_GmChg_Put_Up,aes(x=TimeToExpDate,y=VC.f,colour=DaysToMaxDate))+geom_point())
-(ggplot(ATMIV_GmChg_Put_Down,aes(x=TimeToExpDate,y=VC.f,colour=DaysToMaxDate))+geom_point())
+# for IVIDX up, VC.f.r > 1 means ATMIV moved bigger than IVIDX
+# for IVIDX down, VC.f.r < 1 means ATMIV moved bigger than IVIDX
+(ggplot(ATMIV_GmChg_Put,aes(x=TimeToExpDate,y=VC.f.r,colour=DaysToMaxDate))+geom_point())
+(ggplot(ATMIV_GmChg_Put_Up,aes(x=TimeToExpDate,y=VC.f.r,colour=DaysToMaxDate))+geom_point())
+(ggplot(ATMIV_GmChg_Put_Down,aes(x=TimeToExpDate,y=VC.f.r,colour=DaysToMaxDate))+geom_point())
 
 # Call
 ATMIV_GmChg_Call<-make.vchg.df(vcone=atmiv.vcone.anal,type=OpType_Call_G)
@@ -389,37 +392,37 @@ ATMIV_GmChg_Call$DaysToMaxDate<-as.numeric(max(as.Date(ATMIV_GmChg_Call$Date,for
 ATMIV_GmChg_Call %>% filter(IVIDX.f>=1.0) -> ATMIV_GmChg_Call_Up
 ATMIV_GmChg_Call %>% filter(IVIDX.f<1.0) -> ATMIV_GmChg_Call_Down
 #plotting
-(ggplot(ATMIV_GmChg_Call,aes(x=TimeToExpDate,y=VC.f,colour=DaysToMaxDate))+geom_point())
-(ggplot(ATMIV_GmChg_Call_Up,aes(x=TimeToExpDate,y=VC.f,colour=DaysToMaxDate))+geom_point())
-(ggplot(ATMIV_GmChg_Call_Down,aes(x=TimeToExpDate,y=VC.f,colour=DaysToMaxDate))+geom_point())
+(ggplot(ATMIV_GmChg_Call,aes(x=TimeToExpDate,y=VC.f.r,colour=DaysToMaxDate))+geom_point())
+(ggplot(ATMIV_GmChg_Call_Up,aes(x=TimeToExpDate,y=VC.f.r,colour=DaysToMaxDate))+geom_point())
+(ggplot(ATMIV_GmChg_Call_Down,aes(x=TimeToExpDate,y=VC.f.r,colour=DaysToMaxDate))+geom_point())
 
 ##
-# VC.f Regression
+# VC.f.r Regression
 
 # Put
-model.ss<-smooth.spline(ATMIV_GmChg_Put_Up$TimeToExpDate,ATMIV_GmChg_Put_Up$VC.f,df=3)
+model.ss<-smooth.spline(ATMIV_GmChg_Put_Up$TimeToExpDate,ATMIV_GmChg_Put_Up$VC.f.r,df=3)
 (predict.c <- predict(model.ss,x=seq(0,max(ATMIV_GmChg_Put_Up$TimeToExpDate),by=0.1)))
-(ggplot(ATMIV_GmChg_Put_Up,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point()+
-  geom_line(data=data.frame(TimeToExpDate=predict.c$x,VC.f=predict.c$y,TYPE=1),aes(TimeToExpDate,VC.f)))
+(ggplot(ATMIV_GmChg_Put_Up,aes(x=TimeToExpDate,y=VC.f.r,colour=TYPE))+geom_point()+
+  geom_line(data=data.frame(TimeToExpDate=predict.c$x,VC.f.r=predict.c$y,TYPE=1),aes(TimeToExpDate,VC.f.r)))
 save.IVChg(model.ss,OpType_Put_G,10)
 
-model.ss<-smooth.spline(ATMIV_GmChg_Put_Down$TimeToExpDate,ATMIV_GmChg_Put_Down$VC.f,df=3)
+model.ss<-smooth.spline(ATMIV_GmChg_Put_Down$TimeToExpDate,ATMIV_GmChg_Put_Down$VC.f.r,df=3)
 (predict.c <- predict(model.ss,x=seq(0,max(ATMIV_GmChg_Put_Down$TimeToExpDate),by=0.1)))
-(ggplot(ATMIV_GmChg_Put_Down,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point()+
-  geom_line(data=data.frame(TimeToExpDate=predict.c$x,VC.f=predict.c$y,TYPE=1),aes(TimeToExpDate,VC.f)))
+(ggplot(ATMIV_GmChg_Put_Down,aes(x=TimeToExpDate,y=VC.f.r,colour=TYPE))+geom_point()+
+  geom_line(data=data.frame(TimeToExpDate=predict.c$x,VC.f.r=predict.c$y,TYPE=1),aes(TimeToExpDate,VC.f.r)))
 save.IVChg(model.ss,OpType_Put_G,-10)
 
 # Call
-model.ss<-smooth.spline(ATMIV_GmChg_Call_Up$TimeToExpDate,ATMIV_GmChg_Call_Up$VC.f,df=3)
+model.ss<-smooth.spline(ATMIV_GmChg_Call_Up$TimeToExpDate,ATMIV_GmChg_Call_Up$VC.f.r,df=3)
 (predict.c <- predict(model.ss,x=seq(0,max(ATMIV_GmChg_Call_Up$TimeToExpDate),by=0.1)))
-(ggplot(ATMIV_GmChg_Call_Up,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point()+
-  geom_line(data=data.frame(TimeToExpDate=predict.c$x,VC.f=predict.c$y,TYPE=-1),aes(TimeToExpDate,VC.f)))
+(ggplot(ATMIV_GmChg_Call_Up,aes(x=TimeToExpDate,y=VC.f.r,colour=TYPE))+geom_point()+
+  geom_line(data=data.frame(TimeToExpDate=predict.c$x,VC.f.r=predict.c$y,TYPE=-1),aes(TimeToExpDate,VC.f.r)))
 save.IVChg(model.ss,OpType_Call_G,10)
 
-model.ss<-smooth.spline(ATMIV_GmChg_Call_Down$TimeToExpDate,ATMIV_GmChg_Call_Down$VC.f,df=3)
+model.ss<-smooth.spline(ATMIV_GmChg_Call_Down$TimeToExpDate,ATMIV_GmChg_Call_Down$VC.f.r,df=3)
 (predict.c <- predict(model.ss,x=seq(0,max(ATMIV_GmChg_Call_Down$TimeToExpDate),by=0.1)))
-(ggplot(ATMIV_GmChg_Call_Down,aes(x=TimeToExpDate,y=VC.f,colour=TYPE))+geom_point()+
-  geom_line(data=data.frame(TimeToExpDate=predict.c$x,VC.f=predict.c$y,TYPE=-1),aes(TimeToExpDate,VC.f)))
+(ggplot(ATMIV_GmChg_Call_Down,aes(x=TimeToExpDate,y=VC.f.r,colour=TYPE))+geom_point()+
+  geom_line(data=data.frame(TimeToExpDate=predict.c$x,VC.f.r=predict.c$y,TYPE=-1),aes(TimeToExpDate,VC.f.r)))
 save.IVChg(model.ss,OpType_Call_G,-10)
 
 #load test
@@ -432,22 +435,60 @@ CallIVChgUp
 load.IVChg(OpType_Call_G,-10)
 CallIVChgDown
 
-# ATMIDXIV.f analysis
+##
+# Analysis
+
 ATMIV_GmChg_Put_Up
 ATMIV_GmChg_Put_Down
 ATMIV_GmChg_Call_Up
 ATMIV_GmChg_Call_Down
-#Put 
-(ggplot(ATMIV_GmChg_Put,aes(x=TimeToExpDate,y=ATMIDXIV.f,colour=DaysToMaxDate))+geom_point())
-(ggplot(ATMIV_GmChg_Put_Up,aes(x=TimeToExpDate,y=ATMIDXIV.f,colour=DaysToMaxDate))+geom_point())
-(ggplot(ATMIV_GmChg_Put_Down,aes(x=TimeToExpDate,y=ATMIDXIV.f,colour=DaysToMaxDate))+geom_point())
+
+# ATMIDXIV.r plotting
+#Put
+(ggplot(ATMIV_GmChg_Put,aes(x=TimeToExpDate,y=ATMIDXIV.r,colour=DaysToMaxDate))+geom_point())
+(ggplot(ATMIV_GmChg_Put_Up,aes(x=TimeToExpDate,y=ATMIDXIV.r,colour=DaysToMaxDate))+geom_point())
+(ggplot(ATMIV_GmChg_Put_Down,aes(x=TimeToExpDate,y=ATMIDXIV.r,colour=DaysToMaxDate))+geom_point())
 #Call
-(ggplot(ATMIV_GmChg_Call,aes(x=TimeToExpDate,y=ATMIDXIV.f,colour=DaysToMaxDate))+geom_point())
-(ggplot(ATMIV_GmChg_Call_Up,aes(x=TimeToExpDate,y=ATMIDXIV.f,colour=DaysToMaxDate))+geom_point())
-(ggplot(ATMIV_GmChg_Call_Down,aes(x=TimeToExpDate,y=ATMIDXIV.f,colour=DaysToMaxDate))+geom_point())
+(ggplot(ATMIV_GmChg_Call,aes(x=TimeToExpDate,y=ATMIDXIV.r,colour=DaysToMaxDate))+geom_point())
+(ggplot(ATMIV_GmChg_Call_Up,aes(x=TimeToExpDate,y=ATMIDXIV.r,colour=DaysToMaxDate))+geom_point())
+(ggplot(ATMIV_GmChg_Call_Down,aes(x=TimeToExpDate,y=ATMIDXIV.r,colour=DaysToMaxDate))+geom_point())
+
+# ATMIDXIV.r.f plotting
+# IVIDX.f's magnitude is not reflected. So use just for estimate sd or equivalent.
+#Put 
+(ggplot(ATMIV_GmChg_Put,aes(x=TimeToExpDate,y=ATMIDXIV.r.f,colour=DaysToMaxDate))+geom_point())
+(ggplot(ATMIV_GmChg_Put_Up,aes(x=TimeToExpDate,y=ATMIDXIV.r.f,colour=DaysToMaxDate))+geom_point())
+(ggplot(ATMIV_GmChg_Put_Down,aes(x=TimeToExpDate,y=ATMIDXIV.r.f,colour=DaysToMaxDate))+geom_point())
+#Call
+(ggplot(ATMIV_GmChg_Call,aes(x=TimeToExpDate,y=ATMIDXIV.r.f,colour=DaysToMaxDate))+geom_point())
+(ggplot(ATMIV_GmChg_Call_Up,aes(x=TimeToExpDate,y=ATMIDXIV.r.f,colour=DaysToMaxDate))+geom_point())
+(ggplot(ATMIV_GmChg_Call_Down,aes(x=TimeToExpDate,y=ATMIDXIV.r.f,colour=DaysToMaxDate))+geom_point())
+
+# ATMIDXIV.r.f/IVIDX.f plotting
+# ATMIDXIV.r.f/IVIDX.f change magnitude relative to IVIDX.f.
+#Put 
+(ggplot(ATMIV_GmChg_Put,aes(x=TimeToExpDate,y=(ATMIDXIV.r.f/IVIDX.f),colour=DaysToMaxDate))+geom_point())
+(ggplot(ATMIV_GmChg_Put_Up,aes(x=TimeToExpDate,y=(ATMIDXIV.r.f/IVIDX.f),colour=DaysToMaxDate))+geom_point())
+(ggplot(ATMIV_GmChg_Put_Down,aes(x=TimeToExpDate,y=(ATMIDXIV.r.f/IVIDX.f),colour=DaysToMaxDate))+geom_point())
+#Call
+(ggplot(ATMIV_GmChg_Call,aes(x=TimeToExpDate,y=(ATMIDXIV.r.f/IVIDX.f),colour=DaysToMaxDate))+geom_point())
+(ggplot(ATMIV_GmChg_Call_Up,aes(x=TimeToExpDate,y=(ATMIDXIV.r.f/IVIDX.f),colour=DaysToMaxDate))+geom_point())
+(ggplot(ATMIV_GmChg_Call_Down,aes(x=TimeToExpDate,y=(ATMIDXIV.r.f/IVIDX.f),colour=DaysToMaxDate))+geom_point())
+#Put
+(ggplot(ATMIV_GmChg_Put_Up,aes(x=TimeToExpDate,y=(ATMIDXIV.r.f/((IVIDX.f)^(-0.5))),colour=DaysToMaxDate))+geom_point())
+(ggplot(ATMIV_GmChg_Put_Down,aes(x=TimeToExpDate,y=(ATMIDXIV.r.f/((IVIDX.f)^(-0.5))),colour=DaysToMaxDate))+geom_point())
+#Call
+(ggplot(ATMIV_GmChg_Call_Up,aes(x=TimeToExpDate,y=(ATMIDXIV.r.f/((IVIDX.f)^(-0.5))),colour=DaysToMaxDate))+geom_point())
+(ggplot(ATMIV_GmChg_Call_Down,aes(x=TimeToExpDate,y=(ATMIDXIV.r.f/((IVIDX.f)^(-0.5))),colour=DaysToMaxDate))+geom_point())
+#Put
+(ggplot(ATMIV_GmChg_Put_Up,aes(x=TimeToExpDate,y=(ATMIDXIV.r.f/((IVIDX.f)^(-0.5))/(TimeToExpDate^(-0.5))),colour=DaysToMaxDate))+geom_point())
+(ggplot(ATMIV_GmChg_Put_Down,aes(x=TimeToExpDate,y=(ATMIDXIV.r.f/((IVIDX.f)^(-0.5))/(TimeToExpDate^(-0.5))),colour=DaysToMaxDate))+geom_point())
+#Call
+(ggplot(ATMIV_GmChg_Call_Up,aes(x=TimeToExpDate,y=(ATMIDXIV.r.f/((IVIDX.f)^(-0.5))/(TimeToExpDate^(-0.5))),colour=DaysToMaxDate))+geom_point())
+(ggplot(ATMIV_GmChg_Call_Down,aes(x=TimeToExpDate,y=(ATMIDXIV.r.f/((IVIDX.f)^(-0.5))/(TimeToExpDate^(-0.5))),colour=DaysToMaxDate))+geom_point())
 
 
-#Naive ATMIV plotting
+# Naive ATMIV plotting
 #Put 
 (ggplot(ATMIV_GmChg_Put,aes(x=TimeToExpDate,y=ATMIV,colour=DaysToMaxDate))+geom_point())
 (ggplot(ATMIV_GmChg_Put_Up,aes(x=TimeToExpDate,y=ATMIV,colour=DaysToMaxDate))+geom_point())
@@ -457,7 +498,7 @@ ATMIV_GmChg_Call_Down
 (ggplot(ATMIV_GmChg_Call_Up,aes(x=TimeToExpDate,y=ATMIV,colour=DaysToMaxDate))+geom_point())
 (ggplot(ATMIV_GmChg_Call_Down,aes(x=TimeToExpDate,y=ATMIV,colour=DaysToMaxDate))+geom_point())
 
-# ATMIV.f analysis
+# ATMIV.f plotting
 #Put 
 (ggplot(ATMIV_GmChg_Put,aes(x=TimeToExpDate,y=ATMIV.f,colour=DaysToMaxDate))+geom_point())
 (ggplot(ATMIV_GmChg_Put_Up,aes(x=TimeToExpDate,y=ATMIV.f,colour=DaysToMaxDate))+geom_point())
@@ -466,6 +507,16 @@ ATMIV_GmChg_Call_Down
 (ggplot(ATMIV_GmChg_Call,aes(x=TimeToExpDate,y=ATMIV.f,colour=DaysToMaxDate))+geom_point())
 (ggplot(ATMIV_GmChg_Call_Up,aes(x=TimeToExpDate,y=ATMIV.f,colour=DaysToMaxDate))+geom_point())
 (ggplot(ATMIV_GmChg_Call_Down,aes(x=TimeToExpDate,y=ATMIV.f,colour=DaysToMaxDate))+geom_point())
+
+# VC.f.r plotting
+#Put 
+(ggplot(ATMIV_GmChg_Put,aes(x=TimeToExpDate,y=VC.f.r,colour=DaysToMaxDate))+geom_point())
+(ggplot(ATMIV_GmChg_Put_Up,aes(x=TimeToExpDate,y=VC.f.r,colour=DaysToMaxDate))+geom_point())
+(ggplot(ATMIV_GmChg_Put_Down,aes(x=TimeToExpDate,y=VC.f.r,colour=DaysToMaxDate))+geom_point())
+#Call
+(ggplot(ATMIV_GmChg_Call,aes(x=TimeToExpDate,y=VC.f.r,colour=DaysToMaxDate))+geom_point())
+(ggplot(ATMIV_GmChg_Call_Up,aes(x=TimeToExpDate,y=VC.f.r,colour=DaysToMaxDate))+geom_point())
+(ggplot(ATMIV_GmChg_Call_Down,aes(x=TimeToExpDate,y=VC.f.r,colour=DaysToMaxDate))+geom_point())
 
 #conditional 
 Data_y=ATMIV_GmChg_Put_Up$ATMIV.f
