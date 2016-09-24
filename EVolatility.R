@@ -225,7 +225,7 @@ make.vchg.df<-function(vcone,type=0){
   if(type!=0){
     vcone %>% filter(TYPE==type) -> vcone
   }
-  vcone %>% dplyr::mutate(VC.f=ATMIV.f/IVIDX.f) -> vcone
+  vcone %>% dplyr::mutate(VC.f.r=ATMIV.f/IVIDX.f) -> vcone
   #Time filtering, because when IV is not stable when Time is very close to ExpDate .
   vcone %>% dplyr::filter(TimeToExpDate>=0.25) -> vcone
   vcone
