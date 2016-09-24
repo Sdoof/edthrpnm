@@ -544,16 +544,144 @@ y_idx=(-0.5)
 (ggplot(ATMIV_GmChg_Call_Up,aes(x=TimeToExpDate,y=(ATMIV.f/((IVIDX.f)^(x_idx))/(TimeToExpDate^(y_idx))),colour=DaysToMaxDate))+geom_point())
 (ggplot(ATMIV_GmChg_Call_Down,aes(x=TimeToExpDate,y=(ATMIV.f/((IVIDX.f)^(x_idx))/(TimeToExpDate^(y_idx))),colour=DaysToMaxDate))+geom_point())
 
-#Regression
+##
+# Regression
+
+#functions
+save.ATMIV.f.IVIDX.f <- function (model,optype,up_dn,days,x_idx,y_idx) {
+  reg_saved_fn<-paste(DataFiles_Path_G,Underying_Symbol_G,"_",
+                      ifelse(optype==OpType_Call_G,"Call","Put"),
+                      ifelse(up_dn>=0,"IVUp_","IVDown_"),
+                      "ATMIV.f.IVIDX.f_",days,"D",sep="")
+  reg_saved_names<-c("model","days","x","y")
+  reg_saved <- vector("list",length(reg_saved_names))
+  reg_saved[[1]]<-model
+  reg_saved[[2]]<-days
+  reg_saved[[3]]<-x_idx
+  reg_saved[[4]]<-y_idx
+  names(reg_saved)=reg_saved_names
+  
+  #saved file name.
+  save(reg_saved,file=reg_saved_fn)  
+}
+
+load.ATMIV.f.IVIDX.f <- function (optype,up_dn,day) {
+  load_fn_suffix=paste(ifelse(optype==OpType_Call_G,"Call","Put"),
+                       ifelse(up_dn>=0,"IVUp_","IVDown_"),
+                       "ATMIV.f.IVIDX.f_",days,"D",sep="")
+  
+  reg_load_fn <- paste(DataFiles_Path_G,Underying_Symbol_G,"_",
+                       load_fn_suffix,
+                       sep="")
+  load(reg_load_fn)
+  assign(load_fn_suffix, reg_saved,env=.GlobalEnv)
+}
+
+get.ATMIV.f.VolChg<-function(model,days,ividx.f,x_idx,y_idx,month){
+  chg<-predict(model,x=month)
+  return(chg)
+}
+
+get.ATMIV.f_1D.Regression.Result<-function(pos,up_dn,days,ividx.f){
+  atmiv_chg=(pos$TYPE==OpType_Put_G)*(up_dn>=0)*
+    (get.ATMIV.f.VolChg(model=PutIVUp_ATMIV.f.IVIDX.f_1D$model,
+                        days=1,
+                        ividx.f=ividx.f,
+                        x_idx=PutIVUp_ATMIV.f.IVIDX.f_1D$model$x,
+                        y_idx=PutIVUp_ATMIV.f.IVIDX.f_1D$model$y,
+                        month=pos$TimeToExpDate))$y
+  atmiv_chg=atmiv_chg+
+    (pos$TYPE==OpType_Call_G)*(up_dn>=0)*
+    (get.ATMIV.f.VolChg(model=CallIVUp_ATMIV.f.IVIDX.f_1D$model,
+                        days=1,
+                        ividx.f=ividx.f,
+                        x_idx=PutIVUp_ATMIV.f.IVIDX.f_1D$model$x,
+                        y_idx=PutIVUp_ATMIV.f.IVIDX.f_1D$model$y,
+                        month=pos$TimeToExpDate))$y
+  atmiv_chg=atmiv_chg+
+    (pos$TYPE==OpType_Put_G)*(up_dn<0)*
+    (get.ATMIV.f.VolChg(model=PutIVDown_ATMIV.f.IVIDX.f_1D$model,
+                        days=1,
+                        ividx.f=ividx.f,
+                        x_idx=PutIVUp_ATMIV.f.IVIDX.f_1D$model$x,
+                        y_idx=PutIVUp_ATMIV.f.IVIDX.f_1D$model$y,
+                        month=pos$TimeToExpDate))$y
+  atmiv_chg=atmiv_chg+
+    (pos$TYPE==OpType_Call_G)*(up_dn<0)*
+    (get.ATMIV.f.VolChg(model=CallIVDown_ATMIV.f.IVIDX.f_1D$model,
+                        days=1,
+                        ividx.f=ividx.f,
+                        x_idx=PutIVUp_ATMIV.f.IVIDX.f_1D$model$x,
+                        y_idx=PutIVUp_ATMIV.f.IVIDX.f_1D$model$y,
+                        month=pos$TimeToExpDate))$y
+  atmiv_chg
+}
+
+#regress, save and load
+###  Put Up
 ATMIV_GmChg_Regressed=ATMIV_GmChg_Put_Up
 model.ss<-smooth.spline(ATMIV_GmChg_Regressed$TimeToExpDate,
                         (ATMIV_GmChg_Regressed$ATMIV.f/((ATMIV_GmChg_Regressed$IVIDX.f)^(x_idx))/(ATMIV_GmChg_Regressed$TimeToExpDate^(y_idx))),
                         df=3)
 (predict.c <- predict(model.ss,x=seq(0,max(ATMIV_GmChg_Regressed$TimeToExpDate),by=0.1)))
 (ggplot(ATMIV_GmChg_Regressed,aes(x=TimeToExpDate,y=(ATMIV.f/((IVIDX.f)^(x_idx))/(TimeToExpDate^(y_idx))),colour=TYPE))+geom_point(size=3)+
-  geom_line(data=data.frame(TimeToExpDate=predict.c$x,Regressed=predict.c$y,TYPE=-1),aes(TimeToExpDate,Regressed)))
+  geom_line(data=data.frame(TimeToExpDate=predict.c$x,Regressed=predict.c$y,TYPE=OpType_Put_G),aes(TimeToExpDate,Regressed)))
 
+save.ATMIV.f.IVIDX.f(model.ss,optype=OpType_Put_G,up_dn=10,day=1,x_idx=x_idx,y_idx=y_idx)
+load.ATMIV.f.IVIDX.f(optype=OpType_Put_G,up_dn=10,day=1) 
+PutIVUp_ATMIV.f.IVIDX.f_1D$model
+#test
+get.ATMIV.f.VolChg(model=PutIVUp_ATMIV.f.IVIDX.f_1D$model,
+                   days=1,
+                   ividx.f=1.12,
+                   x_idx=PutIVUp_ATMIV.f.IVIDX.f_1D$model$x,
+                   y_idx=PutIVUp_ATMIV.f.IVIDX.f_1D$model$y,
+                   month=4)$y
+###  Put Down
+ATMIV_GmChg_Regressed=ATMIV_GmChg_Put_Down
+model.ss<-smooth.spline(ATMIV_GmChg_Regressed$TimeToExpDate,
+                        (ATMIV_GmChg_Regressed$ATMIV.f/((ATMIV_GmChg_Regressed$IVIDX.f)^(x_idx))/(ATMIV_GmChg_Regressed$TimeToExpDate^(y_idx))),
+                        df=3)
+(predict.c <- predict(model.ss,x=seq(0,max(ATMIV_GmChg_Regressed$TimeToExpDate),by=0.1)))
+(ggplot(ATMIV_GmChg_Regressed,aes(x=TimeToExpDate,y=(ATMIV.f/((IVIDX.f)^(x_idx))/(TimeToExpDate^(y_idx))),colour=TYPE))+geom_point(size=3)+
+  geom_line(data=data.frame(TimeToExpDate=predict.c$x,Regressed=predict.c$y,TYPE=OpType_Put_G),aes(TimeToExpDate,Regressed)))
 
+save.ATMIV.f.IVIDX.f(model.ss,optype=OpType_Put_G,up_dn=(-10),day=1,x_idx=x_idx,y_idx=y_idx)
+load.ATMIV.f.IVIDX.f(optype=OpType_Put_G,up_dn=-10,day=1)
+PutIVDown_ATMIV.f.IVIDX.f_1D$model
+#test
+get.ATMIV.f.VolChg(model=PutIVDown_ATMIV.f.IVIDX.f_1D$model,
+                   days=1,
+                   ividx.f=1.12,
+                   x_idx=PutIVDown_ATMIV.f.IVIDX.f_1D$model$x,
+                   y_idx=PutIVDown_ATMIV.f.IVIDX.f_1D$model$y,
+                   month=4)$y
+
+###  Call Up
+ATMIV_GmChg_Regressed=ATMIV_GmChg_Call_Up
+model.ss<-smooth.spline(ATMIV_GmChg_Regressed$TimeToExpDate,
+                        (ATMIV_GmChg_Regressed$ATMIV.f/((ATMIV_GmChg_Regressed$IVIDX.f)^(x_idx))/(ATMIV_GmChg_Regressed$TimeToExpDate^(y_idx))),
+                        df=3)
+(predict.c <- predict(model.ss,x=seq(0,max(ATMIV_GmChg_Regressed$TimeToExpDate),by=0.1)))
+(ggplot(ATMIV_GmChg_Regressed,aes(x=TimeToExpDate,y=(ATMIV.f/((IVIDX.f)^(x_idx))/(TimeToExpDate^(y_idx))),colour=TYPE))+geom_point(size=3)+
+  geom_line(data=data.frame(TimeToExpDate=predict.c$x,Regressed=predict.c$y,TYPE=OpType_Call_G),aes(TimeToExpDate,Regressed)))
+
+save.ATMIV.f.IVIDX.f(model.ss,optype=OpType_Call_G,up_dn=10,day=1,x_idx=x_idx,y_idx=y_idx)
+load.ATMIV.f.IVIDX.f(optype=OpType_Call_G,up_dn=10,day=1) 
+CallIVUp_ATMIV.f.IVIDX.f_1D$model
+
+###  Call Down
+ATMIV_GmChg_Regressed=ATMIV_GmChg_Call_Down
+model.ss<-smooth.spline(ATMIV_GmChg_Regressed$TimeToExpDate,
+                        (ATMIV_GmChg_Regressed$ATMIV.f/((ATMIV_GmChg_Regressed$IVIDX.f)^(x_idx))/(ATMIV_GmChg_Regressed$TimeToExpDate^(y_idx))),
+                        df=3)
+(predict.c <- predict(model.ss,x=seq(0,max(ATMIV_GmChg_Regressed$TimeToExpDate),by=0.1)))
+(ggplot(ATMIV_GmChg_Regressed,aes(x=TimeToExpDate,y=(ATMIV.f/((IVIDX.f)^(x_idx))/(TimeToExpDate^(y_idx))),colour=TYPE))+geom_point(size=3)+
+  geom_line(data=data.frame(TimeToExpDate=predict.c$x,Regressed=predict.c$y,TYPE=OpType_Call_G),aes(TimeToExpDate,Regressed)))
+
+save.ATMIV.f.IVIDX.f(model.ss,optype=OpType_Call_G,up_dn=(-10),day=1,x_idx=x_idx,y_idx=y_idx)
+load.ATMIV.f.IVIDX.f(optype=OpType_Call_G,up_dn=(-10),day=1) 
+CallIVDown_ATMIV.f.IVIDX.f_1D$model
 
 #conditional 
 Data_y=ATMIV_GmChg_Put_Up$ATMIV.f
