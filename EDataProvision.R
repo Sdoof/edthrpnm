@@ -404,7 +404,7 @@ filterDiagonalSpread <- function(opchain, TARGET_D,
 # Delta_Limit_(Put/Call)_(MAX/MIN) c(IronCondor{VerticalSpread},DIAGONAL_FRONT,DIAGONAL_BACK)
 filterPosition <- function(opchain,
                            Delta_Limit_Put_MAX=c(0.25,0.30,0.30),Delta_Limit_Put_MIN=c(0.09,0.11,0.11),
-                           Delta_Limit_Call_MAX=c(0.25,0.30,0.30),Delta_Limit_Call_MIN=c(0.09,0.12,0.12),
+                           Delta_Limit_Call_MAX=c(0.25,0.34,0.30),Delta_Limit_Call_MIN=c(0.09,0.10,0.12),
                            TARGET_EXPDATE,TARGET_EXPDATE_FRONT,TARGET_EXPDATE_BACK){
   ##
   #  Filter Target Ranges 

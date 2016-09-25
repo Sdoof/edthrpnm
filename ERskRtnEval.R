@@ -653,7 +653,6 @@ reflectPosChg<- function(process_df,days,IV_DEVIATION=0,MIN_IVIDX_CHG=(-0.5)){
   # cat("regressed",get.ATMIV.f_1D.Regression.Result(pos,up_dn=ividx_chg_pct,days=1,hdd=EvalFuncSetting$holdDays,ividx.f=(1+ividx_chg_pct)),"\n")
   # cat("ATMIV pre",pos$ATMIV,"\n")
   pos$ATMIV<-pos$ATMIV*
-    #(1+ividx_chg_pct)*get.Volatility.Change.Regression.Result(pos,ividx_chg_pct)*
     get.ATMIV.f_1D.Regression.Result(pos,up_dn=ividx_chg_pct,days=1,hdd=EvalFuncSetting$holdDays,ividx.f=(1+ividx_chg_pct))*
     get.Volatility.Change.Regression.Result.ATMIDXIV.f(pos,TimeToExpDate_pos)/get.Volatility.Change.Regression.Result.ATMIDXIV.f(pos,pos$TimeToExpDate)
   # cat("ATMIV pos",pos$ATMIV,"\n")
