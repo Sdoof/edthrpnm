@@ -172,6 +172,19 @@ load.Skew("_Put")
 SkewModel_Put
 load.Skew("_Call")
 SkewModel_Call
+#ATMIV.f.IVIDX.f
+load.ATMIV.f.IVIDX.f(optype=OpType_Put_G,up_dn=10,days=1)
+PutIVUp_ATMIV.f.IVIDX.f_1D
+load.ATMIV.f.IVIDX.f(optype=OpType_Put_G,up_dn=-10,days=1)
+PutIVDown_ATMIV.f.IVIDX.f_1D$model
+load.ATMIV.f.IVIDX.f(optype=OpType_Call_G,up_dn=10,days=1) 
+CallIVUp_ATMIV.f.IVIDX.f_1D
+load.ATMIV.f.IVIDX.f(optype=OpType_Call_G,up_dn=(-10),days=1)
+CallIVDown_ATMIV.f.IVIDX.f_1D
+#ATMIDXIV.f
+load.ATMIDXIV.f(OpType_Put_G)
+load.ATMIDXIV.f(OpType_Call_G)
+#VCone
 load.VCone(optype=OpType_Put_G)
 PutVCone
 load.VCone(optype=OpType_Call_G)
@@ -184,7 +197,3 @@ load.IVChg(OpType_Call_G,10)
 CallIVChgUp
 load.IVChg(OpType_Call_G,-10)
 CallIVChgDown
-load.ATMIDXIV.f(OpType_Put_G)
-load.ATMIDXIV.f(OpType_Call_G)
-
-#creating initial population

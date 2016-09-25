@@ -547,94 +547,6 @@ y_idx=(-0.5)
 ##
 # Regression
 
-#functions
-save.ATMIV.f.IVIDX.f <- function (model,optype,up_dn,days,x_idx,y_idx) {
-  reg_saved_fn<-paste(DataFiles_Path_G,Underying_Symbol_G,"_",
-                      ifelse(optype==OpType_Call_G,"Call","Put"),
-                      ifelse(up_dn>=0,"IVUp_","IVDown_"),
-                      "ATMIV.f.IVIDX.f_",days,"D",sep="")
-  reg_saved_names<-c("model","days","x","y")
-  reg_saved <- vector("list",length(reg_saved_names))
-  reg_saved[[1]]<-model
-  reg_saved[[2]]<-days
-  reg_saved[[3]]<-x_idx
-  reg_saved[[4]]<-y_idx
-  names(reg_saved)=reg_saved_names
-  
-  #saved file name.
-  save(reg_saved,file=reg_saved_fn)  
-}
-
-load.ATMIV.f.IVIDX.f <- function (optype,up_dn,days) {
-  load_fn_suffix=paste(ifelse(optype==OpType_Call_G,"Call","Put"),
-                       ifelse(up_dn>=0,"IVUp_","IVDown_"),
-                       "ATMIV.f.IVIDX.f_",days,"D",sep="")
-  
-  reg_load_fn <- paste(DataFiles_Path_G,Underying_Symbol_G,"_",
-                       load_fn_suffix,
-                       sep="")
-  load(reg_load_fn)
-  assign(load_fn_suffix, reg_saved,env=.GlobalEnv)
-}
-
-get.ATMIV.f.VolChg<-function(model,days,hdd,ividx.f,x_idx,y_idx,month){
-  y<-predict(model,x=month)$y
-  cat("regressed value",y,"\n")
-  cat("ividx.f",ividx.f,"holdDay",hdd,"month",month,"\n")
-  
-  ATMIV.f = y*((ividx.f)^(x_idx))*(month^(y_idx))
-  
-  imp_diff=ividx.f-ATMIV.f
-  imp_diff=imp_diff/((hdd/1)^(0.5))
-  ATMIV.f.rev=ATMIV.f+imp_diff
-  
-  cat("ATMIV.f(naive estm)",ATMIV.f,"ATMIV.f(hdd estm)",ATMIV.f.rev,"\n")
-  #return(ATMIV.f)
-  return(ATMIV.f.rev)
-}
-
-get.ATMIV.f_1D.Regression.Result<-function(pos,up_dn,days,hdd,ividx.f){
-  atmiv_chg=(pos$TYPE==OpType_Put_G)*(up_dn>=0)*
-    (get.ATMIV.f.VolChg(model=PutIVUp_ATMIV.f.IVIDX.f_1D$model,
-                        days=1,
-                        hdd=hdd,
-                        ividx.f=ividx.f,
-                        x_idx=PutIVUp_ATMIV.f.IVIDX.f_1D$x,
-                        y_idx=PutIVUp_ATMIV.f.IVIDX.f_1D$y,
-                        month=pos$TimeToExpDate))
-  atmiv_chg=atmiv_chg+
-    (pos$TYPE==OpType_Call_G)*(up_dn>=0)*
-    (get.ATMIV.f.VolChg(model=CallIVUp_ATMIV.f.IVIDX.f_1D$model,
-                       days=1,
-                        hdd=hdd,
-                        ividx.f=ividx.f,
-                        x_idx=CallIVUp_ATMIV.f.IVIDX.f_1D$x,
-                        y_idx=CallIVUp_ATMIV.f.IVIDX.f_1D$y,
-                        month=pos$TimeToExpDate))
-  atmiv_chg=atmiv_chg+
-    (pos$TYPE==OpType_Put_G)*(up_dn<0)*
-    (get.ATMIV.f.VolChg(model=PutIVDown_ATMIV.f.IVIDX.f_1D$model,
-                        days=1,
-                        hdd=hdd,
-                        ividx.f=ividx.f,
-                        x_idx=PutIVDown_ATMIV.f.IVIDX.f_1D$x,
-                        y_idx=PutIVDown_ATMIV.f.IVIDX.f_1D$y,
-                        month=pos$TimeToExpDate))
-  atmiv_chg=atmiv_chg+
-     (pos$TYPE==OpType_Call_G)*(up_dn<0)*
-     (get.ATMIV.f.VolChg(model=CallIVDown_ATMIV.f.IVIDX.f_1D$model,
-                         days=1,
-                         hdd=hdd,
-                         ividx.f=ividx.f,
-                         x_idx=CallIVDown_ATMIV.f.IVIDX.f_1D$x,
-                         y_idx=CallIVDown_ATMIV.f.IVIDX.f_1D$y,
-                         month=pos$TimeToExpDate))
-  atmiv_chg
-}
-
-
-
-#regress, save and load
 ###  Put Up
 ATMIV_GmChg_Regressed=ATMIV_GmChg_Put_Up
 model.ss<-smooth.spline(ATMIV_GmChg_Regressed$TimeToExpDate,
@@ -716,24 +628,11 @@ get.ATMIV.f.VolChg(model=CallIVDown_ATMIV.f.IVIDX.f_1D$model,
                    month=2.5)
 
 ## vectorized test
+col_TYPE=c(1,1,-1,-1)
+col_TimeToExpDate=c(2.5,4,2.5,4)
+get.ATMIV.f_1D.Regression.Result(pos,up_dn=(1.20-1),days=1,hdd=18,ividx.f = 1.2)
+get.ATMIV.f_1D.Regression.Result(pos,up_dn=(0.8-1),days=1,hdd=18,ividx.f = 0.8)
 
-
-
-#conditional 
-Data_y=ATMIV_GmChg_Put_Up$ATMIV.f
-Data_x=ATMIV_GmChg_Put_Up$TimeToExpDate
-
-cond_width=1.0
-cond_pivot=seq(1.5, 4.5, by = 0.3)
-
-tmp1=(Data_x > (cond_pivot[1]-(cond_width/2)))
-tmp2=(Data_x < (cond_pivot[1]+(cond_width/2)))
-
-cond_suffix=(tmp1&tmp2)
-data_condX=Data_x[cond_suffix]
-data_condY=Data_y[cond_suffix]
-
-annuual.daily.volatility(data_condY)$anlzd
 
 
 

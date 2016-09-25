@@ -441,7 +441,7 @@ get.Volatility.Level.Regression<-function(Days=holdDays,ctoc=TRUE){
 }
 
 ##
-# Volatility Change Regression
+# ATMIV Volatility Change Regression
 
 #read from get.Volatility.Change.Regression.Result to get specific regression values.
 get.VolChg<-function(model,month){
@@ -457,6 +457,94 @@ get.Volatility.Change.Regression.Result<-function(pos,up_dn){
   atmiv_chg<-atmiv_chg+(pos$TYPE==OpType_Call_G)*(up_dn>=0)*(get.VolChg(model=CallIVChgUp,month=pos$TimeToExpDate))$y
   atmiv_chg<-atmiv_chg+(pos$TYPE==OpType_Put_G)*(up_dn<0)*(get.VolChg(model=PutIVChgDown,month=pos$TimeToExpDate))$y
   atmiv_chg<-atmiv_chg+(pos$TYPE==OpType_Call_G)*(up_dn<0)*(get.VolChg(model=CallIVChgDown,month=pos$TimeToExpDate))$y
+  atmiv_chg
+}
+
+
+##
+# ATMIV Volatility Change Regression Advanced
+
+save.ATMIV.f.IVIDX.f <- function (model,optype,up_dn,days,x_idx,y_idx) {
+  reg_saved_fn<-paste(DataFiles_Path_G,Underying_Symbol_G,"_",
+                      ifelse(optype==OpType_Call_G,"Call","Put"),
+                      ifelse(up_dn>=0,"IVUp_","IVDown_"),
+                      "ATMIV.f.IVIDX.f_",days,"D",sep="")
+  reg_saved_names<-c("model","days","x","y")
+  reg_saved <- vector("list",length(reg_saved_names))
+  reg_saved[[1]]<-model
+  reg_saved[[2]]<-days
+  reg_saved[[3]]<-x_idx
+  reg_saved[[4]]<-y_idx
+  names(reg_saved)=reg_saved_names
+  
+  #saved file name.
+  save(reg_saved,file=reg_saved_fn)  
+}
+
+load.ATMIV.f.IVIDX.f <- function (optype,up_dn,days) {
+  load_fn_suffix=paste(ifelse(optype==OpType_Call_G,"Call","Put"),
+                       ifelse(up_dn>=0,"IVUp_","IVDown_"),
+                       "ATMIV.f.IVIDX.f_",days,"D",sep="")
+  
+  reg_load_fn <- paste(DataFiles_Path_G,Underying_Symbol_G,"_",
+                       load_fn_suffix,
+                       sep="")
+  load(reg_load_fn)
+  assign(load_fn_suffix, reg_saved,env=.GlobalEnv)
+}
+
+get.ATMIV.f.VolChg<-function(model,days,hdd,ividx.f,x_idx,y_idx,month){
+  y<-predict(model,x=month)$y
+  #cat("regressed value",y,"\n")
+  #cat("ividx.f",ividx.f,"holdDay",hdd,"month",month,"\n")
+  
+  ATMIV.f = y*((ividx.f)^(x_idx))*(month^(y_idx))
+  
+  imp_diff=ividx.f-ATMIV.f
+  imp_diff=imp_diff/((hdd/1)^(0.5))
+  ATMIV.f.rev=ATMIV.f+imp_diff
+  
+  #cat("ATMIV.f(naive estm)",ATMIV.f,"ATMIV.f(hdd estm)",ATMIV.f.rev,"\n")
+  #return(ATMIV.f)
+  return(ATMIV.f.rev)
+}
+
+get.ATMIV.f_1D.Regression.Result<-function(pos,up_dn,days,hdd,ividx.f){
+  atmiv_chg=(pos$TYPE==OpType_Put_G)*(up_dn>=0)*
+    (get.ATMIV.f.VolChg(model=PutIVUp_ATMIV.f.IVIDX.f_1D$model,
+                        days=1,
+                        hdd=hdd,
+                        ividx.f=ividx.f,
+                        x_idx=PutIVUp_ATMIV.f.IVIDX.f_1D$x,
+                        y_idx=PutIVUp_ATMIV.f.IVIDX.f_1D$y,
+                        month=pos$TimeToExpDate))
+  atmiv_chg=atmiv_chg+
+    (pos$TYPE==OpType_Call_G)*(up_dn>=0)*
+    (get.ATMIV.f.VolChg(model=CallIVUp_ATMIV.f.IVIDX.f_1D$model,
+                        days=1,
+                        hdd=hdd,
+                        ividx.f=ividx.f,
+                        x_idx=CallIVUp_ATMIV.f.IVIDX.f_1D$x,
+                        y_idx=CallIVUp_ATMIV.f.IVIDX.f_1D$y,
+                        month=pos$TimeToExpDate))
+  atmiv_chg=atmiv_chg+
+    (pos$TYPE==OpType_Put_G)*(up_dn<0)*
+    (get.ATMIV.f.VolChg(model=PutIVDown_ATMIV.f.IVIDX.f_1D$model,
+                        days=1,
+                        hdd=hdd,
+                        ividx.f=ividx.f,
+                        x_idx=PutIVDown_ATMIV.f.IVIDX.f_1D$x,
+                        y_idx=PutIVDown_ATMIV.f.IVIDX.f_1D$y,
+                        month=pos$TimeToExpDate))
+  atmiv_chg=atmiv_chg+
+    (pos$TYPE==OpType_Call_G)*(up_dn<0)*
+    (get.ATMIV.f.VolChg(model=CallIVDown_ATMIV.f.IVIDX.f_1D$model,
+                        days=1,
+                        hdd=hdd,
+                        ividx.f=ividx.f,
+                        x_idx=CallIVDown_ATMIV.f.IVIDX.f_1D$x,
+                        y_idx=CallIVDown_ATMIV.f.IVIDX.f_1D$y,
+                        month=pos$TimeToExpDate))
   atmiv_chg
 }
 
@@ -558,7 +646,17 @@ reflectPosChg<- function(process_df,days,IV_DEVIATION=0,MIN_IVIDX_CHG=(-0.5)){
   #  get.Volatility.Cone.Regression.Result(pos$TYPE,pos$TimeToExpDate)
   
   ##This is the new ATMIV behavior
-  pos$ATMIV<-pos$ATMIV*(1+ividx_chg_pct)*get.Volatility.Change.Regression.Result(pos,ividx_chg_pct)*get.Volatility.Change.Regression.Result.ATMIDXIV.f(pos,TimeToExpDate_pos)/get.Volatility.Change.Regression.Result.ATMIDXIV.f(pos,pos$TimeToExpDate)
+  
+  # cat("########## ividx.f",(1+ividx_chg_pct),"holdDay",EvalFuncSetting$holdDays,"\n")
+  # cat("TimeToExpDate",pos$TimeToExpDate,"\n")
+  # cat("TYPE",pos$TYPE,"\n")
+  # cat("regressed",get.ATMIV.f_1D.Regression.Result(pos,up_dn=ividx_chg_pct,days=1,hdd=EvalFuncSetting$holdDays,ividx.f=(1+ividx_chg_pct)),"\n")
+  # cat("ATMIV pre",pos$ATMIV,"\n")
+  pos$ATMIV<-pos$ATMIV*
+    #(1+ividx_chg_pct)*get.Volatility.Change.Regression.Result(pos,ividx_chg_pct)*
+    get.ATMIV.f_1D.Regression.Result(pos,up_dn=ividx_chg_pct,days=1,hdd=EvalFuncSetting$holdDays,ividx.f=(1+ividx_chg_pct))*
+    get.Volatility.Change.Regression.Result.ATMIDXIV.f(pos,TimeToExpDate_pos)/get.Volatility.Change.Regression.Result.ATMIDXIV.f(pos,pos$TimeToExpDate)
+  # cat("ATMIV pos",pos$ATMIV,"\n")
   
   #set new TimeToExpDate
   pos$TimeToExpDate<-TimeToExpDate_pos
@@ -1375,8 +1473,14 @@ adjustPosChgInner<-function(process_df,base_vol_chg=0){
   
   # ATM IV change
   #same as this
-  #pos$ATMIV<-pos$ATMIV*(1+ividx_chg_pct)*get.Volatility.Change.Regression.Result.ATMIDXIV.f(pos,pos$TimeToExpDate)/get.Volatility.Change.Regression.Result.ATMIDXIV.f(pos,pos$TimeToExpDate)
-  pos$ATMIV<-pos$ATMIV*(1+ividx_chg_pct)*get.Volatility.Change.Regression.Result(pos,ividx_chg_pct)
+  # cat("########## ividx.f",(1+ividx_chg_pct),"holdDay",EvalFuncSetting$holdDays,"\n")
+  # cat("TimeToExpDate",pos$TimeToExpDate,"\n")
+  # cat("TYPE",pos$TYPE,"\n")
+  # cat("regressed",get.ATMIV.f_1D.Regression.Result(pos,up_dn=ividx_chg_pct,days=1,hdd=EvalFuncSetting$holdDays,ividx.f=(1+ividx_chg_pct)),"\n")
+  # cat("ATMIV pre",pos$ATMIV,"\n")
+  pos$ATMIV<-pos$ATMIV*
+    get.ATMIV.f_1D.Regression.Result(pos,up_dn=ividx_chg_pct,days=1,hdd=EvalFuncSetting$holdDays,ividx.f=(1+ividx_chg_pct))
+  #cat("ATMIV pos",pos$ATMIV,"\n")
   
   #calculate IV_pos(OrigIV) using SkewModel based on model definition formula.
   spskew<-(pos$TYPE==OpType_Put_G)*get.predicted.spline.skew(SkewModel_Put,pos$Moneyness.Nm)+
