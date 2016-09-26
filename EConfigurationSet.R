@@ -100,7 +100,7 @@ Optimize_ml=as.numeric(ConfigParameters["Optimize_ml",1])
 
 #Parameters for Combinational Optimization
 InitialPopCreateLoopNum<-as.numeric(ConfigParameters["Optimize_InitialPopCreateLoopNum",1])
-#InitialPopThresh=as.numeric(ConfigParameters["Optimize_InitialPopThresh",1])
+InitialPopThresh=as.numeric(ConfigParameters["Optimize_InitialPopThresh",1])
 TopN_1=as.numeric(ConfigParameters["Optimize_TopN_1",1])
 PopN_1=as.numeric(ConfigParameters["Optimize_PopN_1",1])
 Thresh_1=as.numeric(ConfigParameters["Optimize_Thresh_1",1])
