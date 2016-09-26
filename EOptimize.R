@@ -2,8 +2,14 @@ library(RQuantLib)
 library(ggplot2)
 library(dplyr)
 library(pracma)
+library(digest)
+library(hash)
 rm(list=ls())
 source('./ESourceRCode.R',encoding = 'UTF-8')
+
+#cache for the position
+POSITION_OPTIM_HASH=hash()
+HASH_HIT_NUM=0
 
 #sigmoid function  ------
 for(tmp in 1:InitialPopCreateLoopNum){
@@ -36,10 +42,10 @@ for(tmp in 1:InitialPopCreateLoopNum){
                                             isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
   }
   if(sum(EvalFuncSetting$Posnum==2)!=0){
-     create_initial_exact_PutCall_polulation(popnum=50,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=2,calln=0,ml=Optimize_ml,
+    create_initial_exact_PutCall_polulation(popnum=50,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=2,calln=0,ml=Optimize_ml,
                                             fname=paste(".\\ResultData\\inipop-02P2C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
                                             isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-     create_initial_exact_PutCall_polulation(popnum=50,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=0,calln=2,ml=Optimize_ml,
+    create_initial_exact_PutCall_polulation(popnum=50,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,putn=0,calln=2,ml=Optimize_ml,
                                             fname=paste(".\\ResultData\\inipop-02P0C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),PosMultip,
                                             isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
   }
@@ -115,23 +121,23 @@ if(Combined_Spread){
 ##
 # Result Post Proceccing
 
- getPutCallnOfthePosition<-function(x){
-   type<-opchain$TYPE
-   #put
-   putpos<-(type+OpType_Put_G)
-   putpos<-putpos/(OpType_Put_G*2)
-   putn<-sum(abs(putpos*x))
-   #call
-   callpos<-(type+OpType_Call_G)
-   callpos<-callpos/(OpType_Call_G*2)
-   calln<-sum(abs(callpos*x))
-   return (c(putn,calln))
- }
+getPutCallnOfthePosition<-function(x){
+  type<-opchain$TYPE
+  #put
+  putpos<-(type+OpType_Put_G)
+  putpos<-putpos/(OpType_Put_G*2)
+  putn<-sum(abs(putpos*x))
+  #call
+  callpos<-(type+OpType_Call_G)
+  callpos<-callpos/(OpType_Call_G*2)
+  calln<-sum(abs(callpos*x))
+  return (c(putn,calln))
+}
 
 Thresh_Score1=as.numeric(ConfigParameters["ResultProcess_Thresh_Score1",1])
 Thresh_Score2=as.numeric(ConfigParameters["ResultProcess_Thresh_Score2",1])
 Thresh_Score3=as.numeric(ConfigParameters["ResultProcess_Thresh_Score3",1])
- 
+
 ##
 # Exact (1Cb)
 res1<-read.table(paste(ResultFiles_Path_G,"1Cb.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
@@ -210,7 +216,7 @@ getPositionWithGreeks<-function(tmp_fil){
     do(theGreks=getPositionGreeks(hollowNonZeroPosition(unlist(.)),multi=PosMultip,hdd=holdDays,HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio)) -> tmp
   tmp_fil$theGreks<-tmp$theGreks
   tmp_fil %>% dplyr::rowwise() %>% dplyr::do(Delta=.$theGreks$Delta,Vega=.$theGreks$Vega,DeltaEffect=.$theGreks$DeltaEffect,VegaEffect=.$theGreks$VegaEffect,
-                               ThetaEffect=.$theGreks$ThetaEffect,GammaEffect=.$theGreks$GammaEffect) -> tmp2
+                                             ThetaEffect=.$theGreks$ThetaEffect,GammaEffect=.$theGreks$GammaEffect) -> tmp2
   tmp_fil$Delta<-unlist(tmp2$Delta)
   tmp_fil$Vega<-unlist(tmp2$Vega)
   tmp_fil$DeltaEffect<-unlist(tmp2$DeltaEffect)
@@ -257,9 +263,9 @@ getPositionWithGreeks<-function(tmp_fil){
 tmp_fil %>% 
   #arrange(desc(AdvEffect)) %>% filter(.[,length(iniPos)+1]<F_Thrsh_Params$Score1) %>% 
   dplyr::arrange(.[,length(iniPos)+1])  %>% dplyr::distinct() -> tmp_fil_w
-  # %>% filter(AdvEffect>Thresh_AdvEffect) %>% 
-  #filter(Delta>F_Thrsh_Params$Delta1_Minus,Delta<F_Thrsh_Params$Delta1_Plus) %>% 
-  #filter(VegaEffect>F_Thrsh_Params$Thrsh_VegaE1) -> tmp_fil_w ; print(tmp_fil_w)
+# %>% filter(AdvEffect>Thresh_AdvEffect) %>% 
+#filter(Delta>F_Thrsh_Params$Delta1_Minus,Delta<F_Thrsh_Params$Delta1_Plus) %>% 
+#filter(VegaEffect>F_Thrsh_Params$Thrsh_VegaE1) -> tmp_fil_w ; print(tmp_fil_w)
 #tmp_fil_w %>% filter(ThetaEffect>0) %>% arrange(.[,length(iniPos)+1]) %>% head(F_Thrsh_Params$F_TopN3/2) -> tmp
 #tmp_fil_w %>% filter(ThetaEffect<=0) %>% arrange(.[,length(iniPos)+1]) %>% head(F_Thrsh_Params$F_TopN3-nrow(tmp)) -> tmp2
 #rbind(tmp,tmp2) %>% arrange(.[,length(iniPos)+1]) %>% distinct() -> tmp_fil_w ;rm(tmp,tmp2)
@@ -267,9 +273,9 @@ tmp_fil %>%
 tmp_fil2 %>% 
   #arrange(desc(AdvEffect)) %>%  filter(.[,length(iniPos)+1]<F_Thrsh_Params$Score2) %>% 
   dplyr::arrange(.[,length(iniPos)+1]) %>% dplyr::distinct() -> tmp_fil_w2
-  #%>% filter(AdvEffect>Thresh_AdvEffect) %>% 
-  #filter(Delta>F_Thrsh_Params$Delta2_Minus) %>% filter(Delta<F_Thrsh_Params$Delta2_Plus) %>%
-  #filter(VegaEffect>F_Thrsh_Params$Thrsh_VegaE2) -> tmp_fil_w2 ; print(tmp_fil_w2)
+#%>% filter(AdvEffect>Thresh_AdvEffect) %>% 
+#filter(Delta>F_Thrsh_Params$Delta2_Minus) %>% filter(Delta<F_Thrsh_Params$Delta2_Plus) %>%
+#filter(VegaEffect>F_Thrsh_Params$Thrsh_VegaE2) -> tmp_fil_w2 ; print(tmp_fil_w2)
 #tmp_fil_w2 %>% filter(ThetaEffect>0) %>% arrange(.[,length(iniPos)+1]) %>% head(F_Thrsh_Params$F_TopN3/2) -> tmp
 #tmp_fil_w2 %>% filter(ThetaEffect<=0) %>% arrange(.[,length(iniPos)+1]) %>% head(F_Thrsh_Params$F_TopN3-nrow(tmp)) -> tmp2
 #rbind(tmp,tmp2) %>% arrange(.[,length(iniPos)+1]) %>% distinct() -> tmp_fil_w2 ;rm(tmp,tmp2)
@@ -277,9 +283,9 @@ tmp_fil2 %>%
 tmp_fil3 %>% 
   #arrange(desc(AdvEffect)) %>%  filter(.[,length(iniPos)+1]<F_Thrsh_Params$Score3) %>% 
   arrange(.[,length(iniPos)+1]) %>% dplyr::distinct() -> tmp_fil_w3
-  #%>% filter(AdvEffect>Thresh_AdvEffect) %>% 
-  #filter(Delta>F_Thrsh_Params$Delta3_Minus) %>% filter(Delta<F_Thrsh_Params$Delta3_Plus) %>%
-  #filter(VegaEffect>F_Thrsh_Params$Thrsh_VegaE3) -> tmp_fil_w3 ; print(tmp_fil_w3)
+#%>% filter(AdvEffect>Thresh_AdvEffect) %>% 
+#filter(Delta>F_Thrsh_Params$Delta3_Minus) %>% filter(Delta<F_Thrsh_Params$Delta3_Plus) %>%
+#filter(VegaEffect>F_Thrsh_Params$Thrsh_VegaE3) -> tmp_fil_w3 ; print(tmp_fil_w3)
 #tmp_fil_w3 %>% filter(ThetaEffect>0) %>% arrange(.[,length(iniPos)+1]) %>% head(F_Thrsh_Params$F_TopN3/2) -> tmp
 #tmp_fil_w3 %>% filter(ThetaEffect<=0) %>% arrange(.[,length(iniPos)+1]) %>% head(F_Thrsh_Params$F_TopN3-nrow(tmp)) -> tmp2
 #rbind(tmp,tmp2) %>% arrange(.[,length(iniPos)+1]) %>% distinct() -> tmp_fil_w3 ;rm(tmp,tmp2)
@@ -287,9 +293,9 @@ tmp_fil3 %>%
 tmp_fil4 %>% 
   #arrange(desc(AdvEffect)) %>% filter(.[,length(iniPos)+1]<F_Thrsh_Params$Score1) %>% 
   arrange(.[,length(iniPos)+1]) %>% dplyr::distinct() -> tmp_fil_w4
-  #%>% filter(AdvEffect>Thresh_AdvEffect) %>% 
-  #filter(Delta>F_Thrsh_Params$Delta1_Minus,Delta<F_Thrsh_Params$Delta1_Plus) %>% 
-  #filter(VegaEffect>F_Thrsh_Params$Thrsh_VegaE1) -> tmp_fil_w4 ; print(tmp_fil_w4)
+#%>% filter(AdvEffect>Thresh_AdvEffect) %>% 
+#filter(Delta>F_Thrsh_Params$Delta1_Minus,Delta<F_Thrsh_Params$Delta1_Plus) %>% 
+#filter(VegaEffect>F_Thrsh_Params$Thrsh_VegaE1) -> tmp_fil_w4 ; print(tmp_fil_w4)
 #tmp_fil_w4 %>% filter(ThetaEffect>0) %>% arrange(.[,length(iniPos)+1]) %>% head(F_Thrsh_Params$F_TopN3/2) -> tmp
 #tmp_fil_w4 %>% filter(ThetaEffect<=0) %>% arrange(.[,length(iniPos)+1]) %>% head(F_Thrsh_Params$F_TopN3-nrow(tmp)) -> tmp2
 #rbind(tmp,tmp2) %>% arrange(.[,length(iniPos)+1]) %>% distinct() -> tmp_fil_w4 ;rm(tmp,tmp2)

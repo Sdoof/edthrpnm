@@ -1219,20 +1219,28 @@ create_initial_exact_PutCall_polulation<-function(popnum,type,EvalFuncSetting,th
     # x==0 means no position to search that match the putn and calln
     if(sum((x!=0))==0)
       break
-    
     posnum<-putn +calln
-    tryCatch(
-      val<-obj_Income_sgmd(x,EvalFuncSetting,isDebug=isDebug,isDetail=isDetail,
-                           #val<-obj_fixedpt_sgmd(x,EvalFuncSetting,isDebug=isDebug,isDetail=isDetail,
-                           udlStepNum=EvalFuncSetting$UdlStepNum,udlStepPct=EvalFuncSetting$UdlStepPct,
-                           maxposnum=EvalFuncSetting$Maxposnum,PosMultip=PosMultip,
-                           tail_rate=EvalFuncSetting$Tail_rate,lossLimitPrice=EvalFuncSetting$LossLimitPrice,
-                           Delta_Direct_Prf=EvalFuncSetting$Delta_Direct_Prf[posnum],Vega_Direct_Prf=EvalFuncSetting$Vega_Direct_Prf[posnum],
-                           Delta_Neutral_Offset=EvalFuncSetting$Delta_Neutral_Offset[posnum],Vega_Neutral_Offset=EvalFuncSetting$Vega_Neutral_Offset[posnum]),
-      error=function(e){
-        message(e)
-        val<-(thresh+1.0)
-      })
+    
+    #cache check and evaluate
+    md5sumOfPos=digest(paste(x,collapse = ""))
+    if(has.key(md5sumOfPos, POSITION_OPTIM_HASH)==FALSE){
+      tryCatch(
+        val<-obj_Income_sgmd(x,EvalFuncSetting,isDebug=isDebug,isDetail=isDetail,
+                             #val<-obj_fixedpt_sgmd(x,EvalFuncSetting,isDebug=isDebug,isDetail=isDetail,
+                             udlStepNum=EvalFuncSetting$UdlStepNum,udlStepPct=EvalFuncSetting$UdlStepPct,
+                             maxposnum=EvalFuncSetting$Maxposnum,PosMultip=PosMultip,
+                             tail_rate=EvalFuncSetting$Tail_rate,lossLimitPrice=EvalFuncSetting$LossLimitPrice,
+                             Delta_Direct_Prf=EvalFuncSetting$Delta_Direct_Prf[posnum],Vega_Direct_Prf=EvalFuncSetting$Vega_Direct_Prf[posnum],
+                             Delta_Neutral_Offset=EvalFuncSetting$Delta_Neutral_Offset[posnum],Vega_Neutral_Offset=EvalFuncSetting$Vega_Neutral_Offset[posnum]),
+        error=function(e){
+          message(e)
+          val<-(thresh+1.0)
+        })
+      POSITION_OPTIM_HASH[md5sumOfPos]<-val
+    }else{
+      val<-POSITION_OPTIM_HASH[[md5sumOfPos]]
+      HASH_HIT_NUM<-HASH_HIT_NUM+1
+    }
     
     if(val<thresh){
       added_num<-added_num+1
@@ -1243,13 +1251,13 @@ create_initial_exact_PutCall_polulation<-function(popnum,type,EvalFuncSetting,th
     }
     total_count<-total_count+1
     if((added_num%%50)==0){
-      cat(" added num:",added_num,"total count:",total_count,"putn:",putn,"calln:",calln,"time:",(proc.time()-start_t)[3],"\n")
+      cat(" added num:",added_num,"total count:",total_count,"hash hit:",HASH_HIT_NUM,"putn:",putn,"calln:",calln,"time:",(proc.time()-start_t)[3],"\n")
       start_t<-proc.time()
     }
     if(added_num==popnum)
       break
   }
-  cat(" added num:",added_num,"total count:",total_count,"putn:",putn,"calln:",calln,"time:",(proc.time()-start_t)[3],"\n")
+  cat(" added num:",added_num,"total count:",total_count,"hash hit:",HASH_HIT_NUM,"putn:",putn,"calln:",calln,"time:",(proc.time()-start_t)[3],"\n")
 }
 
 #function for creating one candidate pool
@@ -1313,24 +1321,33 @@ create_combined_population<-function(popnum,EvalFuncSetting,thresh,plelem,ml,fna
     if(isDebug){ cat(" x_new :",x_new) }
     total_count<-total_count+1
     
+    #posnum
     posnum<-sum(as.numeric((x_new-iniPos)!=0))
     if(posnum>maxposn){
       if(isDebug){ cat("posnum ",posnum,"over maxposn \n") }
       next
     }
-    #evaluate    
-    tryCatch(
-      val<-obj_Income_sgmd(x_new,EvalFuncSetting,isDebug=isDebug,isDetail=isDebug,
-                           #val<-obj_fixedpt_sgmd(x_new,EvalFuncSetting,isDebug=isDebug,isDetail=isDebug,
-                           udlStepNum=EvalFuncSetting$UdlStepNum,udlStepPct=EvalFuncSetting$UdlStepPct,
-                           maxposnum=EvalFuncSetting$Maxposnum,PosMultip=PosMultip,
-                           tail_rate=EvalFuncSetting$Tail_rate,lossLimitPrice=EvalFuncSetting$LossLimitPrice,
-                           Delta_Direct_Prf=EvalFuncSetting$Delta_Direct_Prf[posnum],Vega_Direct_Prf=EvalFuncSetting$Vega_Direct_Prf[posnum],
-                           Delta_Neutral_Offset=EvalFuncSetting$Delta_Neutral_Offset[posnum],Vega_Neutral_Offset=EvalFuncSetting$Vega_Neutral_Offset[posnum]),
-      error=function(e){
-        message(e)
-        val<-(thresh+1.0)
-      })
+    
+    #cache check and evaluate
+    md5sumOfPos=digest(paste(x,collapse = ""))
+    if(has.key(md5sumOfPos, POSITION_OPTIM_HASH)==FALSE){
+      tryCatch(
+        val<-obj_Income_sgmd(x_new,EvalFuncSetting,isDebug=isDebug,isDetail=isDebug,
+                             #val<-obj_fixedpt_sgmd(x_new,EvalFuncSetting,isDebug=isDebug,isDetail=isDebug,
+                             udlStepNum=EvalFuncSetting$UdlStepNum,udlStepPct=EvalFuncSetting$UdlStepPct,
+                             maxposnum=EvalFuncSetting$Maxposnum,PosMultip=PosMultip,
+                             tail_rate=EvalFuncSetting$Tail_rate,lossLimitPrice=EvalFuncSetting$LossLimitPrice,
+                             Delta_Direct_Prf=EvalFuncSetting$Delta_Direct_Prf[posnum],Vega_Direct_Prf=EvalFuncSetting$Vega_Direct_Prf[posnum],
+                             Delta_Neutral_Offset=EvalFuncSetting$Delta_Neutral_Offset[posnum],Vega_Neutral_Offset=EvalFuncSetting$Vega_Neutral_Offset[posnum]),
+        error=function(e){
+          message(e)
+          val<-(thresh+1.0)
+        })
+      POSITION_OPTIM_HASH[md5sumOfPos]<-val
+    }else{
+      val<-POSITION_OPTIM_HASH[[md5sumOfPos]]
+      HASH_HIT_NUM<-HASH_HIT_NUM+1
+    }
     
     if(val<thresh){
       added_num<-added_num+1
@@ -1347,7 +1364,7 @@ create_combined_population<-function(popnum,EvalFuncSetting,thresh,plelem,ml,fna
       }
     }
     if(((added_num%%50)==0)){
-      cat(" added num:",added_num," total_count",total_count," time:",(proc.time()-start_t)[3],"\n")
+      cat(" added num:",added_num,"hash hit:",HASH_HIT_NUM,"total_count",total_count," time:",(proc.time()-start_t)[3],"\n")
       start_t<-proc.time()
     }
     if(added_num==popnum)
