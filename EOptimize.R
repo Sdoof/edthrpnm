@@ -55,11 +55,10 @@ system(st) ;rm(st)
 
 #combined population serach
 if(Combined_Spread){
-  
   ### 2(exact x exact) Combinations (2Cb)
   tmp<-read.table(paste(ResultFiles_Path_G,"1Cb.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
   tmp %>% dplyr::arrange(tmp[,(length(opchain$Position)+1)]) %>% dplyr::distinct() -> tmp
-  tmp %>% arrange(.[,length(opchain$Position)+1]) %>% head(TopN_1) -> tmp
+  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% head(TopN_1) -> tmp
   ## or when all results are mixed together regardress of the number of Putn and Calln, pools[[1]] should be set as
   # c(1,0,0) <- c(1Cb{=exact}, Putn not spicified, Calln not spicified)
   pools<-list(list(c(1,0,0),tmp)) #No.[[1]]
@@ -78,7 +77,7 @@ if(Combined_Spread){
   ### 4(2Cb x 2Cb) Combinations (4Cb)
   tmp<-read.table(paste(ResultFiles_Path_G,"2Cb.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
   tmp %>% dplyr::arrange(tmp[,(length(iniPos)+1)]) %>% dplyr::distinct() -> tmp
-  tmp %>% arrange(.[,length(iniPos)+1]) %>% head(ceiling(TopN_2)/2) -> tmp
+  tmp %>% dplyr::arrange(.[,length(iniPos)+1]) %>% head(ceiling(TopN_2)/2) -> tmp
   pools<-list(list(c(2,0,0),tmp)) #No.[[1]]
   rm(tmp)
   #combinational search
@@ -140,8 +139,8 @@ res1 %>% dplyr::arrange(res1[,(length(iniPos)+1)]) %>% dplyr::distinct() -> res1
 #over the specified socre
 res1 %>% dplyr::filter(.[,length(iniPos)+1]<Thresh_Score1) -> res1
 #posnum put call
-res1[,1:length(iniPos)] %>% rowwise() %>% do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp
-tmp  %>% rowwise() %>% do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp2
+res1[,1:length(iniPos)] %>% dplyr::rowwise() %>% dplyr::do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp
+tmp  %>% dplyr::rowwise() %>% dplyr::do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp2
 res1$putn<-unlist(tmp2$putn);res1$calln<-unlist(tmp2$calln);rm(tmp);rm(tmp2)
 res1 -> total_res ; rm(res1)
 
@@ -152,15 +151,15 @@ if(Combined_Spread){
   res1 %>% dplyr::arrange(res1[,(length(iniPos)+1)]) %>% dplyr::distinct() -> res1
   res1 %>% dplyr::select(0:length(iniPos)+1) -> res1
   #over the specified socre
-  res1 %>% filter(.[,length(iniPos)+1]<Thresh_1) -> res1
+  res1 %>% dplyr::filter(.[,length(iniPos)+1]<Thresh_1) -> res1
   #posnum put call
-  res1[,1:length(iniPos)] %>% rowwise() %>% do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp
-  tmp  %>% rowwise() %>% do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp2
+  res1[,1:length(iniPos)] %>% dplyr::rowwise() %>% dplyr::do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp
+  tmp  %>% dplyr::rowwise() %>% dplyr::do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp2
   res1$putn<-unlist(tmp2$putn);res1$calln<-unlist(tmp2$calln);rm(tmp);rm(tmp2)
   #factorと認識されたときの変換 #res1$V1<-as.numeric(as.character(res1$V1))
   
   #full join
-  dplyr::full_join(total_res,res1) %>% arrange(.[,length(iniPos)+1]) %>% distinct() -> total_res
+  dplyr::full_join(total_res,res1) %>% dplyr::arrange(.[,length(iniPos)+1]) %>% dplyr::distinct() -> total_res
   rm(res1)
   
   ##
@@ -169,14 +168,14 @@ if(Combined_Spread){
   res1 %>% dplyr::arrange(res1[,(length(iniPos)+1)]) %>% dplyr::distinct() -> res1
   res1 %>% dplyr::select(0:length(iniPos)+1) -> res1
   #over the specified socre
-  res1 %>% filter(.[,length(iniPos)+1]<Thresh_2) -> res1
+  res1 %>% dplyr::filter(.[,length(iniPos)+1]<Thresh_2) -> res1
   #posnum put call
-  res1[,1:length(iniPos)] %>% rowwise() %>% do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp
-  tmp  %>% rowwise() %>% do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp2
+  res1[,1:length(iniPos)] %>% dplyr::rowwise() %>% dplyr::do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp
+  tmp  %>% rowwise() %>% dplyr::do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp2
   res1$putn<-unlist(tmp2$putn);res1$calln<-unlist(tmp2$calln);rm(tmp);rm(tmp2)
   
   #full join
-  dplyr::full_join(total_res,res1) %>% arrange(.[,length(iniPos)+1]) %>% distinct() -> total_res
+  dplyr::full_join(total_res,res1) %>% dplyr::arrange(.[,length(iniPos)+1]) %>% dplyr::distinct() -> total_res
   rm(res1)
   
   ##
@@ -210,7 +209,7 @@ getPositionWithGreeks<-function(tmp_fil){
   tmp_fil[,1:length(iniPos)] %>% rowwise() %>% 
     do(theGreks=getPositionGreeks(hollowNonZeroPosition(unlist(.)),multi=PosMultip,hdd=holdDays,HV_IV_Adjust_Ratio=HV_IV_Adjust_Ratio)) -> tmp
   tmp_fil$theGreks<-tmp$theGreks
-  tmp_fil %>% rowwise() %>% do(Delta=.$theGreks$Delta,Vega=.$theGreks$Vega,DeltaEffect=.$theGreks$DeltaEffect,VegaEffect=.$theGreks$VegaEffect,
+  tmp_fil %>% dplyr::rowwise() %>% dplyr::do(Delta=.$theGreks$Delta,Vega=.$theGreks$Vega,DeltaEffect=.$theGreks$DeltaEffect,VegaEffect=.$theGreks$VegaEffect,
                                ThetaEffect=.$theGreks$ThetaEffect,GammaEffect=.$theGreks$GammaEffect) -> tmp2
   tmp_fil$Delta<-unlist(tmp2$Delta)
   tmp_fil$Vega<-unlist(tmp2$Vega)
