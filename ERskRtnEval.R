@@ -1162,6 +1162,7 @@ sampleMain<-function(sampleSpreadType,totalPopNum,targetExpDate,targetExpDate_f,
 create_initial_exact_PutCall_polulation<-function(popnum,type,EvalFuncSetting,thresh,putn,calln,ml,fname,PosMultip,isFileout=FALSE,isDebug=FALSE,isDetail=FALSE){
   added_num<-0
   total_count<-0
+  cat("hash hit:",HASH_HIT_NUM,"hash length",length(POSITION_OPTIM_HASH),"\n")
   start_t<-proc.time()
   while(TRUE){
     #Put   
@@ -1236,10 +1237,10 @@ create_initial_exact_PutCall_polulation<-function(popnum,type,EvalFuncSetting,th
           message(e)
           val<-(thresh+1.0)
         })
-      POSITION_OPTIM_HASH[md5sumOfPos]<-val
+      POSITION_OPTIM_HASH[md5sumOfPos]<<-val
     }else{
       val<-POSITION_OPTIM_HASH[[md5sumOfPos]]
-      HASH_HIT_NUM<-HASH_HIT_NUM+1
+      HASH_HIT_NUM<<-HASH_HIT_NUM+1
     }
     
     if(val<thresh){
@@ -1251,7 +1252,7 @@ create_initial_exact_PutCall_polulation<-function(popnum,type,EvalFuncSetting,th
     }
     total_count<-total_count+1
     if((added_num%%50)==0){
-      cat(" added num:",added_num,"total count:",total_count,"hash hit:",HASH_HIT_NUM,"putn:",putn,"calln:",calln,"time:",(proc.time()-start_t)[3],"\n")
+      cat(" added num:",added_num,"total count:",total_count,"hash hit:",HASH_HIT_NUM,"hash num:",length(POSITION_OPTIM_HASH),"putn:",putn,"calln:",calln,"time:",(proc.time()-start_t)[3],"\n")
       start_t<-proc.time()
     }
     if(added_num==popnum)
@@ -1294,6 +1295,7 @@ createCombineCandidatePool<-function(fname,pnum=1000,nrows=-1,skip=0,method=1){
 create_combined_population<-function(popnum,EvalFuncSetting,thresh,plelem,ml,fname,isFileout=FALSE,isDebug=FALSE,maxposn,PosMultip){
   added_num<-0
   total_count<-0
+  cat("hash hit:",HASH_HIT_NUM,"hash length",length(POSITION_OPTIM_HASH),"\n")
   start_t<-proc.time()
   while(TRUE) {
     s1<-pools[[ plelem[1] ]][[2]][ceiling(runif(1, min=1e-320, max=nrow(pools[[ plelem[1] ]][[2]]))), ]
@@ -1343,10 +1345,10 @@ create_combined_population<-function(popnum,EvalFuncSetting,thresh,plelem,ml,fna
           message(e)
           val<-(thresh+1.0)
         })
-      POSITION_OPTIM_HASH[md5sumOfPos]<-val
+      POSITION_OPTIM_HASH[md5sumOfPos]<<-val
     }else{
       val<-POSITION_OPTIM_HASH[[md5sumOfPos]]
-      HASH_HIT_NUM<-HASH_HIT_NUM+1
+      HASH_HIT_NUM<<-HASH_HIT_NUM+1
     }
     
     if(val<thresh){
@@ -1364,7 +1366,7 @@ create_combined_population<-function(popnum,EvalFuncSetting,thresh,plelem,ml,fna
       }
     }
     if(((added_num%%50)==0)){
-      cat(" added num:",added_num,"hash hit:",HASH_HIT_NUM,"total_count",total_count," time:",(proc.time()-start_t)[3],"\n")
+      cat(" added num:",added_num,"hash hit:",HASH_HIT_NUM,"hash num:",length(POSITION_OPTIM_HASH),"total_count",total_count," time:",(proc.time()-start_t)[3],"\n")
       start_t<-proc.time()
     }
     if(added_num==popnum)
