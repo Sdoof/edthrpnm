@@ -61,7 +61,11 @@ system(st) ;rm(st)
 
 #combined population serach
 if(Combined_Spread){
-  ### 2(exact x exact) Combinations (2Cb)
+  #LossLimitPrice adjust
+  originalLossLimitPrice=EvalFuncSetting$LossLimitPrice
+  EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*2
+ 
+   ### 2(exact x exact) Combinations (2Cb)
   tmp<-read.table(paste(ResultFiles_Path_G,"1Cb.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
   tmp %>% dplyr::arrange(tmp[,(length(opchain$Position)+1)]) %>% dplyr::distinct() -> tmp
   tmp %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% head(TopN_1) -> tmp
@@ -113,6 +117,9 @@ if(Combined_Spread){
   #system(st)
   #st <- "powershell.exe -Command \" del .\\ResultData\\3Cb-.csv \" "
   #system(st) ;rm(st)
+  
+  #LossLimitPrice's original value is returned
+  EvalFuncSetting$LossLimitPrice=originalLossLimitPrice
   
   rm(pools)
 }
