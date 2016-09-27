@@ -33,9 +33,9 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   
   #dATMIV/dIVIDX 1 day regression result
   posStepDays<-data.frame(days=c(1,Setting$holdDays))
-  posStepDays %>% group_by(days) %>%
-    do(scene=createPositionEvalTable(position=position,udlStepNum=udlStepNum,udlStepPct=udlStepPct,
-                                     multi=PosMultip,hdd=.$days,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)) -> posStepDays
+  posStepDays %>% dplyr::group_by(days) %>%
+    dplyr::do(scene=createPositionEvalTable(position=position,udlStepNum=udlStepNum,udlStepPct=udlStepPct,
+                                            multi=PosMultip,hdd=.$days,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)) -> posStepDays
   
   #Use for checking volatility sensitivity later
   posStepDays_vc<-posStepDays
@@ -103,16 +103,16 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   
   #PositionStepDays data frame of Volatility UP scenario
   posStepDays_vc_plus<-posStepDays_vc
-  posStepDays_vc_plus %>% group_by(days) %>% rowwise() %>% 
-    do(days=.$days,scene2=adjustPosChg(.$scene,base_vol_chg=vol_chg,
-                                       multi=PosMultip,hdd=Setting$holdDays,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)) -> tmp
+  posStepDays_vc_plus %>% dplyr::group_by(days) %>% dplyr::rowwise() %>% 
+    dplyr::do(days=.$days,scene2=adjustPosChg(.$scene,base_vol_chg=vol_chg,
+                                              multi=PosMultip,hdd=Setting$holdDays,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)) -> tmp
   unlist(tmp$days) -> posStepDays_vc_plus$days ; tmp$scene2 -> posStepDays_vc_plus$scene ;rm(tmp)
   
   #PositionStepDays data frame of Volatility Down scenario
   posStepDays_vc_minus<-posStepDays_vc
-  posStepDays_vc_minus %>% group_by(days) %>% rowwise() %>% 
-    do(days=.$days,scene2=adjustPosChg(.$scene,base_vol_chg=(-1)*vol_chg,
-                                       multi=PosMultip,hdd=Setting$holdDays,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)) -> tmp
+  posStepDays_vc_minus %>% dplyr::group_by(days) %>% dplyr::rowwise() %>% 
+    dplyr::do(days=.$days,scene2=adjustPosChg(.$scene,base_vol_chg=(-1)*vol_chg,
+                                              multi=PosMultip,hdd=Setting$holdDays,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)) -> tmp
   unlist(tmp$days) -> posStepDays_vc_minus$days ; tmp$scene2 -> posStepDays_vc_minus$scene ;rm(tmp)
   
   ##
@@ -453,13 +453,16 @@ get.VolChg<-function(model,month){
 # where ATMIV.f=ATMIV_pos/ATMIV_pre, IVIDX.f= IVIDX_pos/IVIDX_pre. 
 # VC.f also depends on the option's TYPE, whether IVIDX went up or down, and TimeToExpPdate.
 get.Volatility.Change.Regression.Result<-function(pos,up_dn){
-  atmiv_chg<-           (pos$TYPE==OpType_Put_G)*(up_dn>=0)*(get.VolChg(model=PutIVChgUp,month=pos$TimeToExpDate))$y
-  atmiv_chg<-atmiv_chg+(pos$TYPE==OpType_Call_G)*(up_dn>=0)*(get.VolChg(model=CallIVChgUp,month=pos$TimeToExpDate))$y
-  atmiv_chg<-atmiv_chg+(pos$TYPE==OpType_Put_G)*(up_dn<0)*(get.VolChg(model=PutIVChgDown,month=pos$TimeToExpDate))$y
-  atmiv_chg<-atmiv_chg+(pos$TYPE==OpType_Call_G)*(up_dn<0)*(get.VolChg(model=CallIVChgDown,month=pos$TimeToExpDate))$y
+  atmiv_chg<-(pos$TYPE==OpType_Put_G)*(up_dn>=0)*
+    (get.VolChg(model=PutIVChgUp,month=pos$TimeToExpDate))$y
+  atmiv_chg<-atmiv_chg+(pos$TYPE==OpType_Call_G)*(up_dn>=0)*
+    (get.VolChg(model=CallIVChgUp,month=pos$TimeToExpDate))$y
+  atmiv_chg<-atmiv_chg+(pos$TYPE==OpType_Put_G)*(up_dn<0)*
+    (get.VolChg(model=PutIVChgDown,month=pos$TimeToExpDate))$y
+  atmiv_chg<-atmiv_chg+(pos$TYPE==OpType_Call_G)*(up_dn<0)*
+    (get.VolChg(model=CallIVChgDown,month=pos$TimeToExpDate))$y
   atmiv_chg
 }
-
 
 ##
 # ATMIV Volatility Change Regression Advanced
@@ -571,9 +574,7 @@ get.UDLY.Changed.Price<-function(udly,chg_pct){
   change
 }
 
-
 # ATM IV behavior
-
 save.ATMIDXIV.f<-function(model,optype){
   if(optype==OpType_Put_G){
     reg_saved_fn<-paste(DataFiles_Path_G,Underying_Symbol_G,"_PUT_ATMIDXIV.f",sep="")
@@ -712,48 +713,49 @@ createPositionEvalTable<-function(position,udlStepNum,udlStepPct,multi,hdd,HV_IV
   #  Greek Effects
   
   #  ThetaEffect
-  posEvalTbl %>% rowwise() %>% do(ThetaEffect=getThetaEffect(pos=.$pos$Position,greek=.$pos$Theta,multi=multi,hdd=hdd)) -> tmp
+  posEvalTbl %>% dplyr::rowwise() %>% 
+    dplyr::do(ThetaEffect=getThetaEffect(pos=.$pos$Position,greek=.$pos$Theta,multi=multi,hdd=hdd)) -> tmp
   unlist(tmp$ThetaEffect)->tmp ; posEvalTbl$ThetaEffect <- tmp ;rm(tmp)
   #  DeltaEffect
-  posEvalTbl %>% rowwise() %>% do(DeltaEffect=getDeltaEffect(pos=.$pos$Position,greek=.$pos$Delta,
-                                                             UDLY=.$pos$UDLY,multi=multi,hdd=hdd,
-                                                             rlzdvol_td=.$pos$IVIDX*HV_IV_Adjust_Ratio)) -> tmp
+  posEvalTbl %>% rowwise() %>% dplyr::do(DeltaEffect=getDeltaEffect(pos=.$pos$Position,greek=.$pos$Delta,
+                                                                    UDLY=.$pos$UDLY,multi=multi,hdd=hdd,
+                                                                    rlzdvol_td=.$pos$IVIDX*HV_IV_Adjust_Ratio)) -> tmp
   unlist(tmp$DeltaEffect)->tmp ; posEvalTbl$DeltaEffect <- tmp ;rm(tmp)
   #  GammaEffect
-  posEvalTbl %>% rowwise() %>% do(GammaEffect=getGammaEffect(pos=.$pos$Position,greek=.$pos$Gamma,
-                                                             UDLY=.$pos$UDLY,multi=multi,hdd=hdd,
-                                                             rlzdvol_td=.$pos$IVIDX*HV_IV_Adjust_Ratio)) -> tmp
+  posEvalTbl %>% rowwise() %>% dplyr::do(GammaEffect=getGammaEffect(pos=.$pos$Position,greek=.$pos$Gamma,
+                                                                    UDLY=.$pos$UDLY,multi=multi,hdd=hdd,
+                                                                    rlzdvol_td=.$pos$IVIDX*HV_IV_Adjust_Ratio)) -> tmp
   unlist(tmp$GammaEffect)->tmp ; posEvalTbl$GammaEffect <- tmp ;rm(tmp) 
   #  VegaEffect
-  posEvalTbl %>% rowwise() %>% do(VegaEffect=getVegaEffect(pos=.$pos$Position,greek=.$pos$Vega,
-                                                           ividx=.$pos$IVIDX,multi=multi,hdd=hdd,
-                                                           #dviv should be precalulated when optimized
-                                                           dviv=annuual.daily.volatility(histIV$IVIDX)$daily)) -> tmp
+  posEvalTbl %>% rowwise() %>% dplyr::do(VegaEffect=getVegaEffect(pos=.$pos$Position,greek=.$pos$Vega,
+                                                                  ividx=.$pos$IVIDX,multi=multi,hdd=hdd,
+                                                                  #dviv should be precalulated when optimized
+                                                                  dviv=annuual.daily.volatility(histIV$IVIDX)$daily)) -> tmp
   unlist(tmp$VegaEffect)->tmp ; posEvalTbl$VegaEffect <- tmp ;rm(tmp)
   
   ##
   #  Greeks
   #
   #  UDLY
-  posEvalTbl %>% rowwise() %>% do(UDLY=mean(.$pos$UDLY)) ->tmp
+  posEvalTbl %>% dplyr::rowwise() %>% dplyr::do(UDLY=mean(.$pos$UDLY)) ->tmp
   unlist(tmp$UDLY)->tmp ; posEvalTbl$UDLY <- tmp ;rm(tmp)
   #  Price
-  posEvalTbl %>% rowwise() %>% do(Price=getPosGreeks(pos=.$pos$Position,greek=.$pos$Price,multi=multi)) ->tmp
+  posEvalTbl %>% dplyr::rowwise() %>% dplyr::do(Price=getPosGreeks(pos=.$pos$Position,greek=.$pos$Price,multi=multi)) ->tmp
   unlist(tmp$Price)->tmp ; posEvalTbl$Price <- tmp ;rm(tmp)
   #  Delta
-  posEvalTbl %>% rowwise() %>% do(Delta=getPosGreeks(pos=.$pos$Position,greek=.$pos$Delta,multi=multi))->tmp
+  posEvalTbl %>% dplyr::rowwise() %>% dplyr::do(Delta=getPosGreeks(pos=.$pos$Position,greek=.$pos$Delta,multi=multi))->tmp
   unlist(tmp$Delta)->tmp ; posEvalTbl$Delta <- tmp ;rm(tmp)
   #  Gamma
-  posEvalTbl %>% rowwise() %>% do(Gamma=getPosGreeks(pos=.$pos$Position,greek=.$pos$Gamma,multi=multi))->tmp
+  posEvalTbl %>% dplyr::rowwise() %>% dplyr::do(Gamma=getPosGreeks(pos=.$pos$Position,greek=.$pos$Gamma,multi=multi))->tmp
   unlist(tmp$Gamma)->tmp ; posEvalTbl$Gamma <- tmp ;rm(tmp)
   #  Vega
-  posEvalTbl %>% rowwise() %>% do(Vega=getPosGreeks(pos=.$pos$Position,greek=.$pos$Vega,multi=multi))->tmp
+  posEvalTbl %>% dplyr::rowwise() %>% dplyr::do(Vega=getPosGreeks(pos=.$pos$Position,greek=.$pos$Vega,multi=multi))->tmp
   unlist(tmp$Vega)->tmp ; posEvalTbl$Vega <- tmp ;rm(tmp)
   #  Theta
-  posEvalTbl %>% rowwise() %>% do(Theta=getPosGreeks(pos=.$pos$Position,greek=.$pos$Theta,multi=multi)) ->tmp
+  posEvalTbl %>% dplyr::rowwise() %>% dplyr::do(Theta=getPosGreeks(pos=.$pos$Position,greek=.$pos$Theta,multi=multi)) ->tmp
   unlist(tmp$Theta)->tmp ; posEvalTbl$Theta <- tmp ;rm(tmp)
   # IVIDX
-  posEvalTbl %>% rowwise() %>% do(IVIDX=mean(.$pos$IVIDX)) ->tmp
+  posEvalTbl %>% dplyr::rowwise() %>% dplyr::do(IVIDX=mean(.$pos$IVIDX)) ->tmp
   unlist(tmp$IVIDX)->tmp ; posEvalTbl$IVIDX <- tmp ;rm(tmp)
   
   posEvalTbl
@@ -770,7 +772,8 @@ getIntrisicValue<-function(udly_price,position,multip){
 ##
 # Sampling related functions
 
-sampleVerticalSpread<-function(targetOpTyep,verticalType,targetExpDate,isDebug=FALSE,isDetail=FALSE){
+sampleVerticalSpread<-function(targetOpTyep,verticalType,targetExpDate,
+                               isDebug=FALSE,isDetail=FALSE){
   
   idxy<-as.numeric(opchain$TYPE==targetOpTyep)*
     as.numeric(opchain$ExpDate==targetExpDate)*rep(1:length(opchain$TYPE),length=length(opchain$TYPE))
@@ -797,7 +800,8 @@ sampleVerticalSpread<-function(targetOpTyep,verticalType,targetExpDate,isDebug=F
   return(y)
 }
 
-sampleDiagonalSpread<-function(targetOpTyep,diagonalType,targetExpDate_f,targetExpDate_b,isDebug=FALSE,isDetail=FALSE){
+sampleDiagonalSpread<-function(targetOpTyep,diagonalType,targetExpDate_f,targetExpDate_b,
+                               isDebug=FALSE,isDetail=FALSE){
   #Front
   idxy<-as.numeric(opchain$TYPE==targetOpTyep)*
     as.numeric(opchain$ExpDate==targetExpDate_f)*rep(1:length(opchain$TYPE),length=length(opchain$TYPE))
@@ -829,7 +833,8 @@ sampleDiagonalSpread<-function(targetOpTyep,diagonalType,targetExpDate_f,targetE
 }
 
 ## sampling main routine
-sampleMain<-function(sampleSpreadType,totalPopNum,targetExpDate,targetExpDate_f,targetExpDate_b,spreadRatio,InitialPopThresh,outFname,isFileout=T,isDebug=F,isDetail=F){
+sampleMain<-function(sampleSpreadType,totalPopNum,targetExpDate,targetExpDate_f,targetExpDate_b,
+                     spreadRatio,InitialPopThresh,outFname,isFileout=T,isDebug=F,isDetail=F){
   added_num=0
   total_count=0
   hash_hit_num=0
@@ -1106,6 +1111,8 @@ sampleMain<-function(sampleSpreadType,totalPopNum,targetExpDate,targetExpDate_f,
     if(isDetail)
       print(hollowNonZeroPosition(x))
     
+    #cache check and evaluate
+    val<-(InitialPopThresh-1)
     md5sumOfPos=digest(paste(x,collapse = ""))
     if(has.key(md5sumOfPos, POSITION_HASH)==FALSE){
       tryCatch(
@@ -1125,19 +1132,27 @@ sampleMain<-function(sampleSpreadType,totalPopNum,targetExpDate,targetExpDate_f,
       hash_hit_num<-hash_hit_num+1
     }
     
-    if(val<(InitialPopThresh-1)){
-      added_num<-added_num+1
-      if(isFileout){
-        cat(x,file=outFname,sep=",",append=TRUE);cat(",",file=outFname,append=TRUE)
-        cat(val,file=outFname,append=TRUE)
-        if(s1_idx!=0)
-          cat(",",s1_idx,file=outFname,append=TRUE)
-        if(s2_idx!=0){
-          cat(",",s2_idx,file=outFname,append=TRUE)
+    #value check
+    tryCatch(
+      if(val<(InitialPopThresh-1)){
+        added_num<-added_num+1
+        if(isFileout){
+          cat(x,file=outFname,sep=",",append=TRUE);cat(",",file=outFname,append=TRUE)
+          cat(val,file=outFname,append=TRUE)
+          if(s1_idx!=0)
+            cat(",",s1_idx,file=outFname,append=TRUE)
+          if(s2_idx!=0){
+            cat(",",s2_idx,file=outFname,append=TRUE)
+          }
+          cat("\n",file=outFname,append=TRUE)
         }
-        cat("\n",file=outFname,append=TRUE)
+      },
+      error=function(e){
+        message(e)
+        cat("val:",val,"InitialPopThresh",InitialPopThresh,"\n")
       }
-    }
+    )
+    #add total_count and show count information
     total_count<-total_count+1
     if((added_num%%50)==0){
       cat(" added num:",added_num," hash hit:",hash_hit_num," hash length:",length(POSITION_HASH),
@@ -1238,6 +1253,7 @@ create_initial_exact_PutCall_polulation<-function(popnum,type,EvalFuncSetting,th
                              Delta_Neutral_Offset=EvalFuncSetting$Delta_Neutral_Offset[posnum],Vega_Neutral_Offset=EvalFuncSetting$Vega_Neutral_Offset[posnum]),
         error=function(e){
           message(e)
+          cat("val:",val,"thresh",thresh,"\n")
         })
       POSITION_OPTIM_HASH[md5sumOfPos]<<-val
     }else{
@@ -1256,6 +1272,7 @@ create_initial_exact_PutCall_polulation<-function(popnum,type,EvalFuncSetting,th
       },
       error=function(e){
         message(e)
+        cat("val:",val,"thresh",thresh,"\n")
       })
     #add total_count and show count information
     total_count<-total_count+1
@@ -1266,6 +1283,20 @@ create_initial_exact_PutCall_polulation<-function(popnum,type,EvalFuncSetting,th
     if(added_num>=popnum)
       break
   }
+}
+
+#called to calculate the spread's total legs num
+getPutCallnOfthePosition<-function(x){
+  type<-opchain$TYPE
+  #put
+  putpos<-(type+OpType_Put_G)
+  putpos<-putpos/(OpType_Put_G*2)
+  putn<-sum(abs(putpos*x))
+  #call
+  callpos<-(type+OpType_Call_G)
+  callpos<-callpos/(OpType_Call_G*2)
+  calln<-sum(abs(callpos*x))
+  return (c(putn,calln))
 }
 
 #function for seraching candidate by combination 
@@ -1303,19 +1334,19 @@ create_combined_population<-function(popnum,EvalFuncSetting,thresh,plelem,ml,fna
     total_count<-total_count+1
     
     #posnum
-    posnum<-sum(as.numeric((x_new-iniPos)!=0))
+    #posnum<-sum(as.numeric((x_new-iniPos)!=0))
+    posnum=sum(getPutCallnOfthePosition(x_new))
     if(posnum>maxposn){
-      if(isDebug){ cat("posnum ",posnum,"over maxposn \n") }
+      if(isDebug){ cat("posnum ",posnum,"over maxposn\n") }
       next
     }
     
     #cache check and evaluate
     val=(thresh+1.0) #initial not acceptable value
-    md5sumOfPos=digest(paste(x,collapse = ""))
+    md5sumOfPos=digest(paste(x_new,collapse = ""))
     if(has.key(md5sumOfPos, POSITION_OPTIM_HASH)==FALSE){
       tryCatch(
         val<-obj_Income_sgmd(x_new,EvalFuncSetting,isDebug=isDebug,isDetail=isDebug,
-                             #val<-obj_fixedpt_sgmd(x_new,EvalFuncSetting,isDebug=isDebug,isDetail=isDebug,
                              udlStepNum=EvalFuncSetting$UdlStepNum,udlStepPct=EvalFuncSetting$UdlStepPct,
                              maxposnum=EvalFuncSetting$Maxposnum,PosMultip=PosMultip,
                              tail_rate=EvalFuncSetting$Tail_rate,lossLimitPrice=EvalFuncSetting$LossLimitPrice,
@@ -1323,6 +1354,7 @@ create_combined_population<-function(popnum,EvalFuncSetting,thresh,plelem,ml,fna
                              Delta_Neutral_Offset=EvalFuncSetting$Delta_Neutral_Offset[posnum],Vega_Neutral_Offset=EvalFuncSetting$Vega_Neutral_Offset[posnum]),
         error=function(e){
           message(e)
+          cat("val:",val,"thresh",thresh,"\n")
         })
       POSITION_OPTIM_HASH[md5sumOfPos]<<-val
     }else{
@@ -1346,7 +1378,9 @@ create_combined_population<-function(popnum,EvalFuncSetting,thresh,plelem,ml,fna
         }
       },
       error=function(e){
-        message(e)}
+        message(e)
+        cat("val:",val,"thresh",thresh,"\n")
+      }
     )
     #show count information
     if(((added_num%%50)==0)){
@@ -1394,84 +1428,84 @@ createCombineCandidatePool<-function(fname,pnum=1000,nrows=-1,skip=0,method=1){
 createAgrregatedGreekTbl<-function(posStepDays,thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,multi=PosMultip,iniCredit=iniCredit){
   
   #Delta
-  posStepDays %>% group_by(days) %>% rowwise() %>% do(ptbl=createGreekTbl(.$days,.$scene$UDLY,.$scene$Delta)) -> tmp
-  greek_tbl<-full_join(tmp$ptbl[[1]],tmp$ptbl[[2]])
+  posStepDays %>% dplyr::group_by(days) %>% dplyr::rowwise() %>% dplyr::do(ptbl=createGreekTbl(.$days,.$scene$UDLY,.$scene$Delta)) -> tmp
+  greek_tbl<-dplyr::full_join(tmp$ptbl[[1]],tmp$ptbl[[2]])
   for(i in 2:length(tmp$ptbl)){
-    greek_tbl<-full_join(greek_tbl,tmp$ptbl[[i]])
+    greek_tbl<-dplyr::full_join(greek_tbl,tmp$ptbl[[i]])
   }
   greek_tbl %>% dplyr::rename(UDLY=x,Delta=greek) -> greek_tbl
   agr_tbl <- greek_tbl
   
   #Gamma
-  posStepDays %>% group_by(days) %>% rowwise() %>% do(ptbl=createGreekTbl(.$days,.$scene$UDLY,.$scene$Gamma)) -> tmp
-  greek_tbl<-full_join(tmp$ptbl[[1]],tmp$ptbl[[2]])
+  posStepDays %>% dplyr::group_by(days) %>% dplyr::rowwise() %>% dplyr::do(ptbl=createGreekTbl(.$days,.$scene$UDLY,.$scene$Gamma)) -> tmp
+  greek_tbl<-dplyr::full_join(tmp$ptbl[[1]],tmp$ptbl[[2]])
   for(i in 2:length(tmp$ptbl)){
-    greek_tbl<-full_join(greek_tbl,tmp$ptbl[[i]])
+    greek_tbl<-dplyr::full_join(greek_tbl,tmp$ptbl[[i]])
   }
-  greek_tbl %>% rename(UDLY=x,Gamma=greek) -> greek_tbl
-  agr_tbl  %>% left_join(greek_tbl)  -> agr_tbl
+  greek_tbl %>% dplyr::rename(UDLY=x,Gamma=greek) -> greek_tbl
+  agr_tbl  %>% dplyr::left_join(greek_tbl)  -> agr_tbl
   
   #Vega
-  posStepDays %>% group_by(days) %>% rowwise() %>% do(ptbl=createGreekTbl(.$days,.$scene$UDLY,.$scene$Vega)) -> tmp
-  greek_tbl<-full_join(tmp$ptbl[[1]],tmp$ptbl[[2]])
+  posStepDays %>% dplyr::group_by(days) %>% dplyr::rowwise() %>% dplyr::do(ptbl=createGreekTbl(.$days,.$scene$UDLY,.$scene$Vega)) -> tmp
+  greek_tbl<-dplyr::full_join(tmp$ptbl[[1]],tmp$ptbl[[2]])
   for(i in 2:length(tmp$ptbl)){
-    greek_tbl<-full_join(greek_tbl,tmp$ptbl[[i]])
+    greek_tbl<-dplyr::full_join(greek_tbl,tmp$ptbl[[i]])
   }
-  greek_tbl %>% rename(UDLY=x,Vega=greek) -> greek_tbl
-  agr_tbl  %>% left_join(greek_tbl)  -> agr_tbl
+  greek_tbl %>% dplyr::rename(UDLY=x,Vega=greek) -> greek_tbl
+  agr_tbl  %>% dplyr::left_join(greek_tbl)  -> agr_tbl
   
   #Theta
-  posStepDays %>% group_by(days) %>% rowwise() %>% do(ptbl=createGreekTbl(.$days,.$scene$UDLY,.$scene$Theta)) -> tmp
-  greek_tbl<-full_join(tmp$ptbl[[1]],tmp$ptbl[[2]])
+  posStepDays %>% dplyr::group_by(days) %>% dplyr::rowwise() %>% dplyr::do(ptbl=createGreekTbl(.$days,.$scene$UDLY,.$scene$Theta)) -> tmp
+  greek_tbl<-dplyr::full_join(tmp$ptbl[[1]],tmp$ptbl[[2]])
   for(i in 2:length(tmp$ptbl)){
-    greek_tbl<-full_join(greek_tbl,tmp$ptbl[[i]])
+    greek_tbl<-dplyr::full_join(greek_tbl,tmp$ptbl[[i]])
   }
-  greek_tbl %>% rename(UDLY=x,Theta=greek) -> greek_tbl
-  agr_tbl  %>% left_join(greek_tbl)  -> agr_tbl
+  greek_tbl %>% dplyr::rename(UDLY=x,Theta=greek) -> greek_tbl
+  agr_tbl  %>% dplyr::left_join(greek_tbl)  -> agr_tbl
   
   #ThetaEffect
-  posStepDays %>% group_by(days) %>% rowwise() %>% do(ptbl=createGreekTbl(.$days,.$scene$UDLY,.$scene$ThetaEffect)) -> tmp
-  greek_tbl<-full_join(tmp$ptbl[[1]],tmp$ptbl[[2]])
+  posStepDays %>% dplyr::group_by(days) %>% dplyr::rowwise() %>% dplyr::do(ptbl=createGreekTbl(.$days,.$scene$UDLY,.$scene$ThetaEffect)) -> tmp
+  greek_tbl<-dplyr::full_join(tmp$ptbl[[1]],tmp$ptbl[[2]])
   for(i in 2:length(tmp$ptbl)){
-    greek_tbl<-full_join(greek_tbl,tmp$ptbl[[i]])
+    greek_tbl<-dplyr::full_join(greek_tbl,tmp$ptbl[[i]])
   }
-  greek_tbl %>% rename(UDLY=x,ThetaEffect=greek) -> greek_tbl
-  agr_tbl  %>% left_join(greek_tbl)  -> agr_tbl
+  greek_tbl %>% dplyr::rename(UDLY=x,ThetaEffect=greek) -> greek_tbl
+  agr_tbl  %>% dplyr::left_join(greek_tbl)  -> agr_tbl
   
   #GammaEffect
-  posStepDays %>% group_by(days) %>% rowwise() %>% do(ptbl=createGreekTbl(.$days,.$scene$UDLY,.$scene$GammaEffect)) -> tmp
-  greek_tbl<-full_join(tmp$ptbl[[1]],tmp$ptbl[[2]])
+  posStepDays %>% dplyr::group_by(days) %>% dplyr::rowwise() %>% dplyr::do(ptbl=createGreekTbl(.$days,.$scene$UDLY,.$scene$GammaEffect)) -> tmp
+  greek_tbl<-dplyr::full_join(tmp$ptbl[[1]],tmp$ptbl[[2]])
   for(i in 2:length(tmp$ptbl)){
-    greek_tbl<-full_join(greek_tbl,tmp$ptbl[[i]])
+    greek_tbl<-dplyr::full_join(greek_tbl,tmp$ptbl[[i]])
   }
-  greek_tbl %>% rename(UDLY=x,GammaEffect=greek) -> greek_tbl
-  agr_tbl  %>% left_join(greek_tbl)  -> agr_tbl
+  greek_tbl %>% dplyr::rename(UDLY=x,GammaEffect=greek) -> greek_tbl
+  agr_tbl  %>% dplyr::left_join(greek_tbl)  -> agr_tbl
   
   #DeltaEffect
-  posStepDays %>% group_by(days) %>% rowwise() %>% do(ptbl=createGreekTbl(.$days,.$scene$UDLY,.$scene$DeltaEffect)) -> tmp
-  greek_tbl<-full_join(tmp$ptbl[[1]],tmp$ptbl[[2]])
+  posStepDays %>% dplyr::group_by(days) %>% dplyr::rowwise() %>% dplyr::do(ptbl=createGreekTbl(.$days,.$scene$UDLY,.$scene$DeltaEffect)) -> tmp
+  greek_tbl<-dplyr::full_join(tmp$ptbl[[1]],tmp$ptbl[[2]])
   for(i in 2:length(tmp$ptbl)){
-    greek_tbl<-full_join(greek_tbl,tmp$ptbl[[i]])
+    greek_tbl<-dplyr::full_join(greek_tbl,tmp$ptbl[[i]])
   }
-  greek_tbl %>% rename(UDLY=x,DeltaEffect=greek) -> greek_tbl
-  agr_tbl  %>% left_join(greek_tbl)  -> agr_tbl
+  greek_tbl %>% dplyr::rename(UDLY=x,DeltaEffect=greek) -> greek_tbl
+  agr_tbl  %>% dplyr::left_join(greek_tbl)  -> agr_tbl
   
   #VegaEffect
-  posStepDays %>% group_by(days) %>% rowwise() %>% do(ptbl=createGreekTbl(.$days,.$scene$UDLY,.$scene$VegaEffect)) -> tmp
-  greek_tbl<-full_join(tmp$ptbl[[1]],tmp$ptbl[[2]])
+  posStepDays %>% dplyr::group_by(days) %>% dplyr::rowwise() %>% dplyr::do(ptbl=createGreekTbl(.$days,.$scene$UDLY,.$scene$VegaEffect)) -> tmp
+  greek_tbl<-dplyr::full_join(tmp$ptbl[[1]],tmp$ptbl[[2]])
   for(i in 2:length(tmp$ptbl)){
-    greek_tbl<-full_join(greek_tbl,tmp$ptbl[[i]])
+    greek_tbl<-dplyr::full_join(greek_tbl,tmp$ptbl[[i]])
   }
-  greek_tbl %>% rename(UDLY=x,VegaEffect=greek) -> greek_tbl
-  agr_tbl  %>% left_join(greek_tbl)  -> agr_tbl
+  greek_tbl %>% dplyr::rename(UDLY=x,VegaEffect=greek) -> greek_tbl
+  agr_tbl  %>% dplyr::left_join(greek_tbl)  -> agr_tbl
   
   #profit
-  posStepDays %>% group_by(days) %>% rowwise() %>% do(ptbl=createPriceTbl(.$days,.$scene,iniCredit)) -> tmp
-  greek_tbl<-full_join(tmp$ptbl[[1]],tmp$ptbl[[2]])
+  posStepDays %>% dplyr::group_by(days) %>% dplyr::rowwise() %>% dplyr::do(ptbl=createPriceTbl(.$days,.$scene,iniCredit)) -> tmp
+  greek_tbl<-dplyr::full_join(tmp$ptbl[[1]],tmp$ptbl[[2]])
   for(i in 2:length(tmp$ptbl)){
-    greek_tbl<-full_join(greek_tbl,tmp$ptbl[[i]])
+    greek_tbl<-dplyr::full_join(greek_tbl,tmp$ptbl[[i]])
   }
-  agr_tbl  %>% left_join(greek_tbl)  -> agr_tbl
+  agr_tbl  %>% dplyr::left_join(greek_tbl)  -> agr_tbl
   
   agr_tbl
 }
@@ -1539,7 +1573,7 @@ adjustPosChg<-function(process_df,base_vol_chg=0,multi,hdd,HV_IV_Adjust_Ratio,is
     print(process_df)
   }
   
-  process_df %>% group_by(udlChgPct) %>% do(pos=adjustPosChgInner(.,base_vol_chg=base_vol_chg)) -> process_df
+  process_df %>% dplyr::group_by(udlChgPct) %>% dplyr::do(pos=adjustPosChgInner(.,base_vol_chg=base_vol_chg)) -> process_df
   
   #cat("HV_IV_Adjust_Ratio (adjustPosChg):",HV_IV_Adjust_Ratio)
   
@@ -1547,48 +1581,48 @@ adjustPosChg<-function(process_df,base_vol_chg=0,multi,hdd,HV_IV_Adjust_Ratio,is
   #  Greeks
   #
   #  UDLY
-  process_df %>% rowwise() %>% do(UDLY=mean(.$pos$UDLY)) ->tmp
+  process_df %>% dplyr::rowwise() %>% dplyr::do(UDLY=mean(.$pos$UDLY)) ->tmp
   unlist(tmp$UDLY)->tmp ; process_df$UDLY <- tmp ;rm(tmp)
   #  Price
-  process_df %>% rowwise() %>% do(Price=getPosGreeks(pos=.$pos$Position,greek=.$pos$Price,multi=multi)) ->tmp
+  process_df %>% dplyr::rowwise() %>% dplyr::do(Price=getPosGreeks(pos=.$pos$Position,greek=.$pos$Price,multi=multi)) ->tmp
   unlist(tmp$Price)->tmp ; process_df$Price <- tmp ;rm(tmp)
   #  Delta
-  process_df %>% rowwise() %>% do(Delta=getPosGreeks(pos=.$pos$Position,greek=.$pos$Delta,multi=multi))->tmp
+  process_df %>% dplyr::rowwise() %>% dplyr::do(Delta=getPosGreeks(pos=.$pos$Position,greek=.$pos$Delta,multi=multi))->tmp
   unlist(tmp$Delta)->tmp ; process_df$Delta <- tmp ;rm(tmp)
   #  Gamma
-  process_df %>% rowwise() %>% do(Gamma=getPosGreeks(pos=.$pos$Position,greek=.$pos$Gamma,multi=multi))->tmp
+  process_df %>% dplyr::rowwise() %>% dplyr::do(Gamma=getPosGreeks(pos=.$pos$Position,greek=.$pos$Gamma,multi=multi))->tmp
   unlist(tmp$Gamma)->tmp ; process_df$Gamma <- tmp ;rm(tmp)
   #  Vega
-  process_df %>% rowwise() %>% do(Vega=getPosGreeks(pos=.$pos$Position,greek=.$pos$Vega,multi=multi))->tmp
+  process_df %>% dplyr::rowwise() %>% dplyr::do(Vega=getPosGreeks(pos=.$pos$Position,greek=.$pos$Vega,multi=multi))->tmp
   unlist(tmp$Vega)->tmp ; process_df$Vega <- tmp ;rm(tmp)
   #  Theta
-  process_df %>% rowwise() %>% do(Theta=getPosGreeks(pos=.$pos$Position,greek=.$pos$Theta,multi=multi)) ->tmp
+  process_df %>% dplyr::rowwise() %>% dplyr::do(Theta=getPosGreeks(pos=.$pos$Position,greek=.$pos$Theta,multi=multi)) ->tmp
   unlist(tmp$Theta)->tmp ; process_df$Theta <- tmp ;rm(tmp)
   #  IVIDX
-  process_df %>% rowwise() %>% do(IVIDX=mean(.$pos$IVIDX)) ->tmp
+  process_df %>% dplyr::rowwise() %>% dplyr::do(IVIDX=mean(.$pos$IVIDX)) ->tmp
   unlist(tmp$IVIDX)->tmp ; process_df$IVIDX <- tmp ;rm(tmp)
   
   ##
   # Greek Effects
   
   # ThetaEffect
-  process_df %>% rowwise() %>% do(ThetaEffect=getThetaEffect(pos=.$pos$Position,greek=.$pos$Theta,multi=multi,hdd=hdd)) -> tmp
+  process_df %>% dplyr::rowwise() %>% dplyr::do(ThetaEffect=getThetaEffect(pos=.$pos$Position,greek=.$pos$Theta,multi=multi,hdd=hdd)) -> tmp
   unlist(tmp$ThetaEffect)->tmp ; process_df$ThetaEffect <- tmp ;rm(tmp)
   # DeltaEffect
-  process_df %>% rowwise() %>% do(DeltaEffect=getDeltaEffect(pos=.$pos$Position,greek=.$pos$Delta,
-                                                             UDLY=.$pos$UDLY,multi=multi,hdd=hdd,
-                                                             rlzdvol_td=.$pos$IVIDX*HV_IV_Adjust_Ratio)) -> tmp
+  process_df %>% dplyr::rowwise() %>% dplyr::do(DeltaEffect=getDeltaEffect(pos=.$pos$Position,greek=.$pos$Delta,
+                                                                           UDLY=.$pos$UDLY,multi=multi,hdd=hdd,
+                                                                           rlzdvol_td=.$pos$IVIDX*HV_IV_Adjust_Ratio)) -> tmp
   unlist(tmp$DeltaEffect)->tmp ; process_df$DeltaEffect <- tmp ;rm(tmp)
   # GammaEffect
-  process_df %>% rowwise() %>% do(GammaEffect=getGammaEffect(pos=.$pos$Position,greek=.$pos$Gamma,
-                                                             UDLY=.$pos$UDLY,multi=multi,hdd=hdd,
-                                                             rlzdvol_td=.$pos$IVIDX*HV_IV_Adjust_Ratio)) -> tmp
+  process_df %>% dplyr::rowwise() %>% dplyr::do(GammaEffect=getGammaEffect(pos=.$pos$Position,greek=.$pos$Gamma,
+                                                                           UDLY=.$pos$UDLY,multi=multi,hdd=hdd,
+                                                                           rlzdvol_td=.$pos$IVIDX*HV_IV_Adjust_Ratio)) -> tmp
   unlist(tmp$GammaEffect)->tmp ; process_df$GammaEffect <- tmp ;rm(tmp)
   # VegaEffect
-  process_df %>% rowwise() %>% do(VegaEffect=getVegaEffect(pos=.$pos$Position,greek=.$pos$Vega,
-                                                           ividx=.$pos$IVIDX,multi=multi,hdd=hdd,
-                                                           #dviv should be precalulated when optimized
-                                                           dviv=annuual.daily.volatility(histIV$IVIDX)$daily)) -> tmp
+  process_df %>% dplyr::rowwise() %>% dplyr::do(VegaEffect=getVegaEffect(pos=.$pos$Position,greek=.$pos$Vega,
+                                                                         ividx=.$pos$IVIDX,multi=multi,hdd=hdd,
+                                                                         #dviv should be precalulated when optimized
+                                                                         dviv=annuual.daily.volatility(histIV$IVIDX)$daily)) -> tmp
   unlist(tmp$VegaEffect)->tmp ; process_df$VegaEffect <- tmp ;rm(tmp)
   
   return(process_df)

@@ -369,13 +369,13 @@ filterVerticalSpread <- function(opchain,
     
     tmp_put_cond  %>% dplyr::full_join(tmp_call_cond) %>%
       dplyr::arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="%Y/%m/%d"),desc(TYPE),Strike) %>%
-      distinct() -> opchain_cond
+      dplyr::distinct() -> opchain_cond
   }
   
   if(VerticalSpread_FilterPtn==3)
     opchain_cond %>% dplyr::full_join(opchain_cond_2) %>% 
     dplyr::arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="%Y/%m/%d"),desc(TYPE),Strike) %>%
-    distinct() -> opchain_cond
+    dplyr::distinct() -> opchain_cond
   
   return(opchain_cond)
   
@@ -450,7 +450,8 @@ filterPosition <- function(opchain,
   
   #Join them all
   opchain_cond %>%  dplyr::full_join(opchain_diag_B) %>% dplyr::full_join(opchain_diag_F) %>%
-    dplyr::arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="%Y/%m/%d"),desc(TYPE),Strike) %>% distinct() -> opchain_ret
+    dplyr::arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="%Y/%m/%d"),desc(TYPE),Strike) %>%
+    dplyr::distinct() -> opchain_ret
   
   return(opchain_ret)
 }

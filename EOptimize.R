@@ -31,10 +31,14 @@ if(SPECIFIC_FIRSTG_SETTING==T){
   #copy original setting
   origEvalFuncSetting=EvalFuncSetting
   #changed setting
-  EvalFuncSetting$Delta_Thresh_Minus=rep(-3,length(EvalFuncSetting$Delta_Thresh_Minus))
-  EvalFuncSetting$Delta_Thresh_Plus=rep(3,length(EvalFuncSetting$Delta_Thresh_Plus))
-  EvalFuncSetting$Vega_Thresh_Minus=rep(-30,length(EvalFuncSetting$Vega_Thresh_Minus))
-  EvalFuncSetting$Vega_Thresh_Plus=rep(30,length(EvalFuncSetting$Vega_Thresh_Plus))
+  EvalFuncSetting$Delta_Thresh_Minus=rep(min(EvalFuncSetting$Delta_Thresh_Minus)-3,
+                                         length(EvalFuncSetting$Delta_Thresh_Minus))
+  EvalFuncSetting$Delta_Thresh_Plus=rep(max(EvalFuncSetting$Delta_Thresh_Plus)+3,
+                                        length(EvalFuncSetting$Delta_Thresh_Plus))
+  EvalFuncSetting$Vega_Thresh_Minus=rep(min(EvalFuncSetting$Vega_Thresh_Minus)-30,
+                                        length(EvalFuncSetting$Vega_Thresh_Minus))
+  EvalFuncSetting$Vega_Thresh_Plus=rep(max(EvalFuncSetting$Vega_Thresh_Plus)+30,
+                                       length(EvalFuncSetting$Vega_Thresh_Plus))
 }
 
 #First Generation
@@ -117,11 +121,13 @@ if(Combined_Spread){
   ### 2(exact x exact) Combinations (2Cb)
   tmp<-read.table(paste(ResultFiles_Path_G,"1Cb.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
   tmp %>% dplyr::arrange(tmp[,(length(opchain$Position)+1)]) %>% dplyr::distinct() -> tmp
+  write.table(tmp,paste(ResultFiles_Path_G,"1Cb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
   tmp %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% head(TopN_1) -> tmp
   
   ##
   # revalue the position for the value to be compatilbe  with following process
   if(SPECIFIC_FIRSTG_SETTING==T){
+    file.copy(from=paste(ResultFiles_Path_G,"1Cb.csv",sep=""),to=paste(ResultFiles_Path_G,"1Cb_org.csv",sep=""),overwrite=T)
     tmp %>% dplyr::rowwise() %>%
       # x = unlist(.)[1:length(opchain$Position)]
       dplyr::do(revVal=obj_Income_sgmd(unlist(.)[1:length(opchain$Position)],
@@ -135,7 +141,6 @@ if(Combined_Spread){
                                        Vega_Neutral_Offset=EvalFuncSetting$Vega_Neutral_Offset[sum(as.numeric((unlist(.)[1:length(opchain$Position)])!=0))])
       ) ->tmp2
     tmp[,length(opchain$Position)+1]=unlist(tmp2)
-    file.copy(from=paste(ResultFiles_Path_G,"1Cb.csv",sep=""), to=paste(ResultFiles_Path_G,"1Cb_org.csv",sep=""),overwrite=T)
     write.table(tmp,paste(ResultFiles_Path_G,"1Cb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
   }
   
@@ -144,7 +149,8 @@ if(Combined_Spread){
   pools<-list(list(c(1,0,0),tmp)) #No.[[1]]
   rm(tmp)
   #combinational search
-  create_combined_population(popnum=PopN_1,EvalFuncSetting,thresh=Thresh_1,plelem=c(1,1),ml=Optimize_ml,fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+  create_combined_population(popnum=PopN_1,EvalFuncSetting,thresh=Thresh_1,plelem=c(1,1),ml=Optimize_ml,
+                             fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                              isFileout=TRUE,isDebug=FALSE,maxposn=length(EvalFuncSetting$Delta_Direct_Prf),PosMultip=PosMultip)
   #2Cb.csv
   st <- "powershell.exe .\\shell\\cmd3.ps1"
@@ -157,11 +163,14 @@ if(Combined_Spread){
   ### 4(2Cb x 2Cb) Combinations (4Cb)
   tmp<-read.table(paste(ResultFiles_Path_G,"2Cb.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
   tmp %>% dplyr::arrange(tmp[,(length(iniPos)+1)]) %>% dplyr::distinct() -> tmp
+  write.table(tmp,paste(ResultFiles_Path_G,"2Cb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
   tmp %>% dplyr::arrange(.[,length(iniPos)+1]) %>% head(ceiling(TopN_2)/2) -> tmp
+  
   pools<-list(list(c(2,0,0),tmp)) #No.[[1]]
   rm(tmp)
   #combinational search
-  create_combined_population(popnum=PopN_2,EvalFuncSetting,thresh=Thresh_2,plelem=c(1,1),ml=Optimize_ml,fname=paste(".\\ResultData\\combine-Result-2Cb+2Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+  create_combined_population(popnum=PopN_2,EvalFuncSetting,thresh=Thresh_2,plelem=c(1,1),ml=Optimize_ml,
+                             fname=paste(".\\ResultData\\combine-Result-2Cb+2Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                              isFileout=TRUE,isDebug=FALSE,maxposn=length(EvalFuncSetting$Delta_Direct_Prf),PosMultip=PosMultip)
   #4Cb.csv
   st <- "powershell.exe .\\shell\\cmd7.ps1"
@@ -198,18 +207,7 @@ if(Combined_Spread){
 ##
 # Result Post Proceccing
 
-getPutCallnOfthePosition<-function(x){
-  type<-opchain$TYPE
-  #put
-  putpos<-(type+OpType_Put_G)
-  putpos<-putpos/(OpType_Put_G*2)
-  putn<-sum(abs(putpos*x))
-  #call
-  callpos<-(type+OpType_Call_G)
-  callpos<-callpos/(OpType_Call_G*2)
-  calln<-sum(abs(callpos*x))
-  return (c(putn,calln))
-}
+
 #Threas Score
 Thresh_Score1=as.numeric(ConfigParameters["ResultProcess_Thresh_Score1",1])
 Thresh_Score2=as.numeric(ConfigParameters["ResultProcess_Thresh_Score2",1])
@@ -232,13 +230,15 @@ if(Combined_Spread){
   # 2Cb
   res1<-read.table(paste(ResultFiles_Path_G,"2Cb.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
   res1 %>% dplyr::arrange(res1[,(length(iniPos)+1)]) %>% dplyr::distinct() -> res1
+  write.table(res1,paste(ResultFiles_Path_G,"2Cb.cmb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
   res1 %>% dplyr::select(0:length(iniPos)+1) -> res1
-  #over the specified socre
-  res1 %>% dplyr::filter(.[,length(iniPos)+1]<Thresh_1) -> res1
   #posnum put call
   res1[,1:length(iniPos)] %>% dplyr::rowwise() %>% dplyr::do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp
   tmp  %>% dplyr::rowwise() %>% dplyr::do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp2
   res1$putn<-unlist(tmp2$putn);res1$calln<-unlist(tmp2$calln);rm(tmp);rm(tmp2)
+  write.table(res1,paste(ResultFiles_Path_G,"2Cb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
+  #over the specified socre
+  res1 %>% dplyr::filter(.[,length(iniPos)+1]<Thresh_1) -> res1
   #factorと認識されたときの変換 #res1$V1<-as.numeric(as.character(res1$V1))
   
   #full join
@@ -249,13 +249,15 @@ if(Combined_Spread){
   #  4Cb
   res1<-read.table(paste(ResultFiles_Path_G,"4Cb.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
   res1 %>% dplyr::arrange(res1[,(length(iniPos)+1)]) %>% dplyr::distinct() -> res1
+  write.table(res1,paste(ResultFiles_Path_G,"4Cb.cmb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
   res1 %>% dplyr::select(0:length(iniPos)+1) -> res1
-  #over the specified socre
-  res1 %>% dplyr::filter(.[,length(iniPos)+1]<Thresh_2) -> res1
   #posnum put call
   res1[,1:length(iniPos)] %>% dplyr::rowwise() %>% dplyr::do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp
-  tmp  %>% rowwise() %>% dplyr::do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp2
+  tmp  %>% dplyr::rowwise() %>% dplyr::do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp2
   res1$putn<-unlist(tmp2$putn);res1$calln<-unlist(tmp2$calln);rm(tmp);rm(tmp2)
+  write.table(res1,paste(ResultFiles_Path_G,"4Cb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
+  #over the specified socre
+  res1 %>% dplyr::filter(.[,length(iniPos)+1]<Thresh_2) -> res1
   
   #full join
   dplyr::full_join(total_res,res1) %>% dplyr::arrange(.[,length(iniPos)+1]) %>% dplyr::distinct() -> total_res
@@ -269,8 +271,8 @@ if(Combined_Spread){
   #over the specified socre
   #res1 %>% dplyr::filter(.[,length(iniPos)+1]<Thresh_3) -> res1
   #posnum put call
-  #res1[,1:length(iniPos)] %>% rowwise() %>% do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp
-  #tmp  %>% rowwise() %>% do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp2
+  #res1[,1:length(iniPos)] %>% dplyr::rowwise() %>% dplyr::do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp
+  #tmp  %>% dplyr::rowwise() %>% dplyr::do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp2
   #res1$putn<-unlist(tmp2$putn);res1$calln<-unlist(tmp2$calln);rm(tmp);rm(tmp2)
   
   #full join
@@ -340,44 +342,44 @@ getPositionWithGreeks<-function(tmp_fil){
 # (F_Thrsh_Params)
 
 tmp_fil %>% 
-  #arrange(desc(AdvEffect)) %>% filter(.[,length(iniPos)+1]<F_Thrsh_Params$Score1) %>% 
+  #dplyr::arrange(desc(AdvEffect)) %>% dplyr::filter(.[,length(iniPos)+1]<F_Thrsh_Params$Score1) %>% 
   dplyr::arrange(.[,length(iniPos)+1])  %>% dplyr::distinct() -> tmp_fil_w
-# %>% filter(AdvEffect>Thresh_AdvEffect) %>% 
-#filter(Delta>F_Thrsh_Params$Delta1_Minus,Delta<F_Thrsh_Params$Delta1_Plus) %>% 
-#filter(VegaEffect>F_Thrsh_Params$Thrsh_VegaE1) -> tmp_fil_w ; print(tmp_fil_w)
-#tmp_fil_w %>% filter(ThetaEffect>0) %>% arrange(.[,length(iniPos)+1]) %>% head(F_Thrsh_Params$F_TopN3/2) -> tmp
-#tmp_fil_w %>% filter(ThetaEffect<=0) %>% arrange(.[,length(iniPos)+1]) %>% head(F_Thrsh_Params$F_TopN3-nrow(tmp)) -> tmp2
-#rbind(tmp,tmp2) %>% arrange(.[,length(iniPos)+1]) %>% distinct() -> tmp_fil_w ;rm(tmp,tmp2)
+# %>% dplyr::filter(AdvEffect>Thresh_AdvEffect) %>% 
+#dplyr::filter(Delta>F_Thrsh_Params$Delta1_Minus,Delta<F_Thrsh_Params$Delta1_Plus) %>% 
+#dplyr::filter(VegaEffect>F_Thrsh_Params$Thrsh_VegaE1) -> tmp_fil_w ; print(tmp_fil_w)
+#tmp_fil_w %>% dplyr::filter(ThetaEffect>0) %>% dplyr::arrange(.[,length(iniPos)+1]) %>% head(F_Thrsh_Params$F_TopN3/2) -> tmp
+#tmp_fil_w %>% dplyr::filter(ThetaEffect<=0) %>% dplyr::arrange(.[,length(iniPos)+1]) %>% head(F_Thrsh_Params$F_TopN3-nrow(tmp)) -> tmp2
+#rbind(tmp,tmp2) %>% dplyr::arrange(.[,length(iniPos)+1]) %>% dplyr::distinct() -> tmp_fil_w ;rm(tmp,tmp2)
 
 tmp_fil2 %>% 
-  #arrange(desc(AdvEffect)) %>%  filter(.[,length(iniPos)+1]<F_Thrsh_Params$Score2) %>% 
+  #dplyr::arrange(desc(AdvEffect)) %>% dplyr::filter(.[,length(iniPos)+1]<F_Thrsh_Params$Score2) %>% 
   dplyr::arrange(.[,length(iniPos)+1]) %>% dplyr::distinct() -> tmp_fil_w2
-#%>% filter(AdvEffect>Thresh_AdvEffect) %>% 
-#filter(Delta>F_Thrsh_Params$Delta2_Minus) %>% filter(Delta<F_Thrsh_Params$Delta2_Plus) %>%
-#filter(VegaEffect>F_Thrsh_Params$Thrsh_VegaE2) -> tmp_fil_w2 ; print(tmp_fil_w2)
-#tmp_fil_w2 %>% filter(ThetaEffect>0) %>% arrange(.[,length(iniPos)+1]) %>% head(F_Thrsh_Params$F_TopN3/2) -> tmp
-#tmp_fil_w2 %>% filter(ThetaEffect<=0) %>% arrange(.[,length(iniPos)+1]) %>% head(F_Thrsh_Params$F_TopN3-nrow(tmp)) -> tmp2
-#rbind(tmp,tmp2) %>% arrange(.[,length(iniPos)+1]) %>% distinct() -> tmp_fil_w2 ;rm(tmp,tmp2)
+#%>% dplyr::filter(AdvEffect>Thresh_AdvEffect) %>% 
+#dplyr::filter(Delta>F_Thrsh_Params$Delta2_Minus) %>% dplyr::filter(Delta<F_Thrsh_Params$Delta2_Plus) %>%
+#dplyr::filter(VegaEffect>F_Thrsh_Params$Thrsh_VegaE2) -> tmp_fil_w2 ; print(tmp_fil_w2)
+#tmp_fil_w2 %>% dplyr::filter(ThetaEffect>0) %>% dplyr::arrange(.[,length(iniPos)+1]) %>% head(F_Thrsh_Params$F_TopN3/2) -> tmp
+#tmp_fil_w2 %>% dplyr::filter(ThetaEffect<=0) %>% dplyr::arrange(.[,length(iniPos)+1]) %>% head(F_Thrsh_Params$F_TopN3-nrow(tmp)) -> tmp2
+#rbind(tmp,tmp2) %>% dplyr::arrange(.[,length(iniPos)+1]) %>% dplyr::distinct() -> tmp_fil_w2 ;rm(tmp,tmp2)
 
 tmp_fil3 %>% 
-  #arrange(desc(AdvEffect)) %>%  filter(.[,length(iniPos)+1]<F_Thrsh_Params$Score3) %>% 
-  arrange(.[,length(iniPos)+1]) %>% dplyr::distinct() -> tmp_fil_w3
-#%>% filter(AdvEffect>Thresh_AdvEffect) %>% 
-#filter(Delta>F_Thrsh_Params$Delta3_Minus) %>% filter(Delta<F_Thrsh_Params$Delta3_Plus) %>%
-#filter(VegaEffect>F_Thrsh_Params$Thrsh_VegaE3) -> tmp_fil_w3 ; print(tmp_fil_w3)
-#tmp_fil_w3 %>% filter(ThetaEffect>0) %>% arrange(.[,length(iniPos)+1]) %>% head(F_Thrsh_Params$F_TopN3/2) -> tmp
-#tmp_fil_w3 %>% filter(ThetaEffect<=0) %>% arrange(.[,length(iniPos)+1]) %>% head(F_Thrsh_Params$F_TopN3-nrow(tmp)) -> tmp2
-#rbind(tmp,tmp2) %>% arrange(.[,length(iniPos)+1]) %>% distinct() -> tmp_fil_w3 ;rm(tmp,tmp2)
+  #dplyr::arrange(desc(AdvEffect)) %>% dplyr::filter(.[,length(iniPos)+1]<F_Thrsh_Params$Score3) %>% 
+  dplyr::arrange(.[,length(iniPos)+1]) %>% dplyr::distinct() -> tmp_fil_w3
+#%>% dplyr::filter(AdvEffect>Thresh_AdvEffect) %>% 
+#dplyr::filter(Delta>F_Thrsh_Params$Delta3_Minus) %>% dplyr::filter(Delta<F_Thrsh_Params$Delta3_Plus) %>%
+#dplyr::filter(VegaEffect>F_Thrsh_Params$Thrsh_VegaE3) -> tmp_fil_w3 ; print(tmp_fil_w3)
+#tmp_fil_w3 %>% dplyr::filter(ThetaEffect>0) %>% dplyr::arrange(.[,length(iniPos)+1]) %>% head(F_Thrsh_Params$F_TopN3/2) -> tmp
+#tmp_fil_w3 %>% dplyr::filter(ThetaEffect<=0) %>% dplyr::arrange(.[,length(iniPos)+1]) %>% head(F_Thrsh_Params$F_TopN3-nrow(tmp)) -> tmp2
+#rbind(tmp,tmp2) %>% arrange(.[,length(iniPos)+1]) %>% dplyr::distinct() -> tmp_fil_w3 ;rm(tmp,tmp2)
 
 tmp_fil4 %>% 
-  #arrange(desc(AdvEffect)) %>% filter(.[,length(iniPos)+1]<F_Thrsh_Params$Score1) %>% 
-  arrange(.[,length(iniPos)+1]) %>% dplyr::distinct() -> tmp_fil_w4
-#%>% filter(AdvEffect>Thresh_AdvEffect) %>% 
-#filter(Delta>F_Thrsh_Params$Delta1_Minus,Delta<F_Thrsh_Params$Delta1_Plus) %>% 
-#filter(VegaEffect>F_Thrsh_Params$Thrsh_VegaE1) -> tmp_fil_w4 ; print(tmp_fil_w4)
-#tmp_fil_w4 %>% filter(ThetaEffect>0) %>% arrange(.[,length(iniPos)+1]) %>% head(F_Thrsh_Params$F_TopN3/2) -> tmp
-#tmp_fil_w4 %>% filter(ThetaEffect<=0) %>% arrange(.[,length(iniPos)+1]) %>% head(F_Thrsh_Params$F_TopN3-nrow(tmp)) -> tmp2
-#rbind(tmp,tmp2) %>% arrange(.[,length(iniPos)+1]) %>% distinct() -> tmp_fil_w4 ;rm(tmp,tmp2)
+  #dplyr::arrange(desc(AdvEffect)) %>% dplyr::filter(.[,length(iniPos)+1]<F_Thrsh_Params$Score1) %>% 
+  dplyr::arrange(.[,length(iniPos)+1]) %>% dplyr::distinct() -> tmp_fil_w4
+#%>% dplyr::filter(AdvEffect>Thresh_AdvEffect) %>% 
+#dplyr::filter(Delta>F_Thrsh_Params$Delta1_Minus,Delta<F_Thrsh_Params$Delta1_Plus) %>% 
+#dplyr::filter(VegaEffect>F_Thrsh_Params$Thrsh_VegaE1) -> tmp_fil_w4 ; print(tmp_fil_w4)
+#tmp_fil_w4 %>% dplyr::filter(ThetaEffect>0) %>% dplyr::arrange(.[,length(iniPos)+1]) %>% head(F_Thrsh_Params$F_TopN3/2) -> tmp
+#tmp_fil_w4 %>% dplyr::filter(ThetaEffect<=0) %>% dplyr::arrange(.[,length(iniPos)+1]) %>% head(F_Thrsh_Params$F_TopN3-nrow(tmp)) -> tmp2
+#rbind(tmp,tmp2) %>% dplyr::arrange(.[,length(iniPos)+1]) %>% dplyr::distinct() -> tmp_fil_w4 ;rm(tmp,tmp2)
 
 ## Save to a file
 write.table(tmp_fil_w,paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)

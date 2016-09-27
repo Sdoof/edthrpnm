@@ -89,9 +89,9 @@ SpreadTypeToDir[[POOL_PLUS_DOUBLE_DIAGONAL_SMPLING]]=c(1,8,18,28,38,9)
 SpreadTypeToDir[[FILE_PLUS_VERTICAL_CREDIT_SPREAD]]=121
 SpreadTypeToDir[[FILE_PLUS_VERTICAL_DEBT_SPREAD]]=121
 SpreadTypeToDir[[FILE_PLUS_IRON_CONDOR]]=122
-SpreadTypeToDir[[FILE_PLUS_SINGLE_DIAGONAL]]=124
+SpreadTypeToDir[[FILE_PLUS_SINGLE_DIAGONAL]]=c(124,8,18,28,38)
 SpreadTypeToDir[[FILE_PLUS_FILE]]=125
-SpreadTypeToDir[[FILE_PLUS_DOUBLE_DIAGONAL]]=126
+SpreadTypeToDir[[FILE_PLUS_DOUBLE_DIAGONAL]]=c(126,4,14,24,34)
 
 #Check Option
 (opchain)
@@ -143,12 +143,12 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   
   #file handling
   tmp<-read.table(outFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
-  tmp %>% arrange(.[,length(opchain$Position)+1])  %>% #select(.,1:length(opchain$Position)) %>% 
-    distinct() -> tmp
+  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1])  %>%
+    dplyr::distinct() -> tmp
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
   
   #pool setting
-  tmp %>% arrange(.[,length(opchain$Position)+1]) %>% head(min(50,max(4,nrow(.)/2))) -> tmp
+  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% head(min(50,max(4,nrow(.)/2))) -> tmp
   pools<<-list(list(c(1,0,0),tmp))
 }
 ### DIAGONAL Candiates for Combination
@@ -175,12 +175,12 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   
   #file handling
   tmp<-read.table(outFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
-  tmp %>% arrange(.[,length(opchain$Position)+1])  %>%  #select(.,1:length(opchain$Position)) %>% 
-    distinct() -> tmp
+  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1])  %>%
+    dplyr::distinct() -> tmp
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
   
   #pool setting
-  tmp %>% arrange(.[,length(opchain$Position)+1]) %>% head(min(100,max(4,nrow(.)/2))) -> tmp
+  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% head(min(100,max(4,nrow(.)/2))) -> tmp
   pools<<-list(list(c(1,0,0),tmp))
 }
 
@@ -208,11 +208,11 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   
   #file handling
   tmp<-read.table(outFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
-  tmp %>% arrange(.[,length(opchain$Position)+1])  %>% #select(.,1:length(opchain$Position)) %>% 
-    distinct() -> tmp
+  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1])  %>%
+    dplyr::distinct() -> tmp
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
   #pool setting
-  tmp %>% arrange(.[,length(opchain$Position)+1]) %>% head(min(1000,max(4,nrow(.)/2))) -> tmp
+  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% head(min(1000,max(4,nrow(.)/2))) -> tmp
   pools<<-list(list(c(1,0,0),tmp))
   
   #copy file to READ-SPREAD
@@ -243,11 +243,11 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   
   #file handling
   tmp<-read.table(outFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
-  tmp %>% arrange(.[,length(opchain$Position)+1])  %>% #select(.,1:length(opchain$Position)) %>% 
+  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1])  %>%
     distinct() -> tmp
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
   #pool setting
-  tmp %>% arrange(.[,length(opchain$Position)+1]) %>% head(min(1000,max(4,nrow(.)/2))) -> tmp
+  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% head(min(1000,max(4,nrow(.)/2))) -> tmp
   pools<<-list(list(c(1,0,0),tmp))
   
   #copy file to READ-SPREAD
@@ -278,11 +278,11 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   
   #file handling
   tmp<-read.table(outFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
-  tmp %>% arrange(.[,length(opchain$Position)+1])  %>% #select(.,1:length(opchain$Position)) %>% 
-    distinct() -> tmp
+  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1])  %>%
+    dplyr::distinct() -> tmp
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
   #pool setting
-  tmp %>% arrange(.[,length(opchain$Position)+1]) %>% head(min(1000,max(4,nrow(.)/2))) -> tmp
+  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% head(min(1000,max(4,nrow(.)/2))) -> tmp
   pools<<-list(list(c(1,0,0),tmp))
   
   #copy file to READ-SPREAD
@@ -313,11 +313,11 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   
   #file handling
   tmp<-read.table(outFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
-  tmp %>% arrange(.[,length(opchain$Position)+1])  %>% #select(.,1:length(opchain$Position)) %>% 
+  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1])  %>%
     distinct() -> tmp
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
   #pool setting
-  tmp %>% arrange(.[,length(opchain$Position)+1]) %>% head(min(1000,max(4,nrow(.)/2))) -> tmp
+  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% head(min(1000,max(4,nrow(.)/2))) -> tmp
   pools<<-list(list(c(1,0,0),tmp))
   
   #copy file to READ-SPREAD
@@ -354,12 +354,12 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   
   #file handling
   tmp<-read.table(outFname,header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
-  tmp %>% arrange(.[,length(opchain$Position)+1])  %>% #select(.,1:length(opchain$Position)) %>% 
-    distinct() -> tmp
+  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1])  %>%
+    dplyr::distinct() -> tmp
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
   
   #pool setting
-  tmp %>% arrange(.[,length(opchain$Position)+1]) %>% head(min(40,max(4,nrow(.)))) -> tmp
+  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% head(min(40,max(4,nrow(.)))) -> tmp
   pools<<-list(list(c(1,0,0),tmp))
   
   ##
@@ -391,8 +391,8 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   
   #file handling
   tmp<-read.table(outFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
-  tmp %>% arrange(.[,length(opchain$Position)+1])  %>% #select(.,1:length(opchain$Position)) %>% 
-    distinct() -> tmp
+  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1])  %>% 
+    dplyr::distinct() -> tmp
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
   
   #spread ratio 2
@@ -439,11 +439,11 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   
   #file handling
   tmp<-read.table(outFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
-  tmp %>% arrange(.[,length(opchain$Position)+1])  %>% #select(.,1:length(opchain$Position)) %>% 
-    distinct() -> tmp
+  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1])  %>%
+    dplyr::distinct() -> tmp
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
   #pool setting
-  tmp %>% arrange(.[,length(opchain$Position)+1]) %>% head(min(50,max(4,nrow(.)/2))) -> tmp
+  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% head(min(50,max(4,nrow(.)/2))) -> tmp
   pools<<-list(list(c(1,0,0),tmp))
   
   ##
@@ -475,8 +475,8 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   
   #file handling
   tmp<-read.table(outFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
-  tmp %>% arrange(.[,length(opchain$Position)+1])  %>% #select(.,1:length(opchain$Position)) %>% 
-    distinct() -> tmp
+  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1])  %>%
+    dplyr::distinct() -> tmp
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
 }
 
@@ -505,12 +505,14 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   
   #file handling
   tmp<-read.table(outFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
-  tmp %>% arrange(.[,length(opchain$Position)+1])  %>% 
-    distinct() -> tmp
+  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1])  %>% 
+    dplyr::distinct() -> tmp
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
   
   #copy file to EvalPosition
   file.copy(from=outFname, to=paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition.csv",sep=""),overwrite=T)
+  #copy file to READ-SPREAD
+  file.copy(from=outFname, to=paste(ResultFiles_Path_G,Underying_Symbol_G,"-READ-SPREAD.csv",sep=""),overwrite=T)
 }
 
 ###POOL_PLUS_DOUBLE_DIAGONAL_SMPLING
@@ -538,12 +540,14 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   
   #file handling
   tmp<-read.table(outFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
-  tmp %>% arrange(.[,length(opchain$Position)+1])  %>%
-    distinct() -> tmp
+  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1])  %>%
+    dplyr::distinct() -> tmp
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
   
   #copy file to EvalPosition
   file.copy(from=outFname, to=paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition.csv",sep=""),overwrite=T)
+  #copy file to READ-SPREAD
+  file.copy(from=outFname, to=paste(ResultFiles_Path_G,Underying_Symbol_G,"-READ-SPREAD.csv",sep=""),overwrite=T)
 }
 
 ###CALL_BEAR_SPREAD_PLUS_SINGLE_DIAGONAL
@@ -572,8 +576,8 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   
   #file handling
   tmp<-read.table(outFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
-  tmp %>% arrange(.[,length(opchain$Position)+1])  %>% #select(.,1:length(opchain$Position)) %>% 
-    distinct() -> tmp
+  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1])  %>%
+    dplyr::distinct() -> tmp
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
   
   #copy file to EvalPosition
@@ -606,8 +610,8 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   
   #file handling
   tmp<-read.table(outFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
-  tmp %>% arrange(.[,length(opchain$Position)+1])  %>% #select(.,1:length(opchain$Position)) %>% 
-    distinct() -> tmp
+  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1])  %>%
+    dplyr::distinct() -> tmp
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
   
   #copy file to EvalPosition
@@ -647,8 +651,8 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   
   #file handling
   tmp<-read.table(outFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
-  tmp %>% arrange(.[,length(opchain$Position)+1])  %>% #select(.,1:length(opchain$Position)) %>% 
-    distinct() -> tmp
+  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1])  %>% 
+    dplyr::distinct() -> tmp
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
   
   #copy file to EvalPosition
@@ -688,8 +692,8 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   
   #file handling
   tmp<-read.table(outFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
-  tmp %>% arrange(.[,length(opchain$Position)+1])  %>% #select(.,1:length(opchain$Position)) %>% 
-    distinct() -> tmp
+  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1])  %>% 
+    dplyr::distinct() -> tmp
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
   
   #copy file to EvalPosition
@@ -714,7 +718,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   readFname=paste(ResultFiles_Path_G,Underying_Symbol_G,"-READ-SPREAD.csv",sep="")
   tmp<-read.table(readFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
   colnames(tmp)<-c(1:ncol(tmp))
-  tmp %>% arrange(.[,length(opchain$Position)+1]) %>% head(min(100,max(4,nrow(.)/2))) -> tmp
+  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% head(min(100,max(4,nrow(.)/2))) -> tmp
   pools<<-list(list(c(1,0,0),tmp))
   
   #sampling
@@ -729,8 +733,8 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   
   #file handling
   tmp<-read.table(outFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
-  tmp %>% arrange(.[,length(opchain$Position)+1])  %>% #select(.,1:length(opchain$Position)) %>% 
-    distinct() -> tmp
+  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1])  %>%
+    dplyr::distinct() -> tmp
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
   
   #copy file to EvalPosition
@@ -755,7 +759,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   readFname=paste(ResultFiles_Path_G,Underying_Symbol_G,"-READ-SPREAD.csv",sep="")
   tmp<-read.table(readFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
   colnames(tmp)<-c(1:ncol(tmp))
-  tmp %>% arrange(.[,length(opchain$Position)+1]) %>% head(min(100,max(4,nrow(.)/2))) -> tmp
+  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% head(min(100,max(4,nrow(.)/2))) -> tmp
   pools<<-list(list(c(1,0,0),tmp))
   
   #sampling
@@ -770,8 +774,8 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   
   #file handling
   tmp<-read.table(outFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
-  tmp %>% arrange(.[,length(opchain$Position)+1])  %>% #select(.,1:length(opchain$Position)) %>% 
-    distinct() -> tmp
+  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1])  %>% 
+    dplyr::distinct() -> tmp
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
   
   #copy file to EvalPosition
@@ -795,7 +799,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   readFname=paste(ResultFiles_Path_G,Underying_Symbol_G,"-READ-SPREAD.csv",sep="")
   tmp<-read.table(readFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
   colnames(tmp)<-c(1:ncol(tmp))
-  tmp %>% arrange(.[,length(opchain$Position)+1]) %>% head(min(100,max(4,nrow(.)/2))) -> tmp
+  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% head(min(100,max(4,nrow(.)/2))) -> tmp
   pools<<-list(list(c(1,0,0),tmp))
   
   #sampling
@@ -810,8 +814,8 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   
   #file handling
   tmp<-read.table(outFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
-  tmp %>% arrange(.[,length(opchain$Position)+1])  %>% #select(.,1:length(opchain$Position)) %>% 
-    distinct() -> tmp
+  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1])  %>%
+    dplyr::distinct() -> tmp
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
   
   #copy file to EvalPosition
@@ -836,17 +840,17 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   readFname=paste(ResultFiles_Path_G,Underying_Symbol_G,"-READ-SPREAD.csv",sep="")
   tmp<-read.table(readFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
   colnames(tmp)<-c(1:ncol(tmp))
-  tmp %>% arrange(.[,length(opchain$Position)+1]) %>% head(min(100,max(4,nrow(.)/2))) -> tmp
+  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% head(min(100,max(4,nrow(.)/2))) -> tmp
   pools<-list(list(c(1,0,0),tmp))
   
   #read first file and pool setting
   readFname=paste(ResultFiles_Path_G,Underying_Symbol_G,"-READ-SPREAD2.csv",sep="")
   tmp<-read.table(readFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
   colnames(tmp)<-c(1:ncol(tmp))
-  tmp %>% arrange(.[,length(opchain$Position)+1]) %>% head(min(100,max(4,nrow(.)/2))) -> tmp
+  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% head(min(100,max(4,nrow(.)/2))) -> tmp
   pools[2]<-list(list(c(1,0,0),tmp))
   pools<<-pools
-
+  
   #sampling
   originalLossLimitPrice=EvalFuncSetting$LossLimitPrice
   EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*2
@@ -859,8 +863,8 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   
   #file handling
   tmp<-read.table(outFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
-  tmp %>% arrange(.[,length(opchain$Position)+1])  %>% #select(.,1:length(opchain$Position)) %>% 
-    distinct() -> tmp
+  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1])  %>%
+    dplyr::distinct() -> tmp
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
   
   #copy file to EvalPosition

@@ -255,7 +255,7 @@ write.table(atmiv.org,paste(DataFiles_Path_G,Underying_Symbol_G,"-ATMIV-VCONE-AN
 atmiv_hist<-read.table(paste(DataFiles_Path_G,Underying_Symbol_G,"-ATMIV-VCONE-ANAL_Hist.csv",sep=""),header=T,sep=",")
 atmiv_hist %>%
   dplyr::arrange(desc(TYPE),as.Date(ExpDate,format="%Y/%m/%d"),as.Date(Date,format="%Y/%m/%d")) %>%
-  distinct() -> atmiv_hist
+  dplyr::distinct() -> atmiv_hist
 
 atmiv_hist %>% dplyr::full_join(atmiv.org) %>% 
   dplyr::arrange(desc(TYPE),as.Date(ExpDate,format="%Y/%m/%d"),as.Date(Date,format="%Y/%m/%d")) %>%
@@ -274,7 +274,7 @@ write.table(atmiv_hist,paste(DataFiles_Path_G,Underying_Symbol_G,"-ATMIV-VCONE-A
 #  Put Vcone IV is normalized 
 #Creating vcone.
 vcone<-make.vcone.df(atmiv=atmiv,type=1)
-vcone %>% arrange(Month) -> vcone
+vcone %>% dplyr::arrange(Month) -> vcone
 (ggplot(vcone,aes(x=Month,y=IV2IDX.nm,colour=Month))+geom_point())
 # Regression of PUT vcone
 #   5.smooth spline
@@ -346,7 +346,7 @@ atmiv = atmiv_hist
 #create new column
 atmiv %>% dplyr::mutate(ATMIDXIV.r=ATMIV/IVIDX) -> atmiv
 
-atmiv %>% group_by(ExpDate,TYPE) %>% do(EachDF=makeVconAnalDF(.)) -> atmiv.vcone.anal
+atmiv %>% dplyr::group_by(ExpDate,TYPE) %>% dplyr::do(EachDF=makeVconAnalDF(.)) -> atmiv.vcone.anal
 atmiv.vcone.anal %>% dplyr::arrange(desc(TYPE),as.Date(ExpDate,format="%Y/%m/%d")) -> atmiv.vcone.anal
 atmiv.vcone.eachDF<-atmiv.vcone.anal$EachDF
 atmiv.vcone.bind<-NULL
@@ -374,8 +374,8 @@ atmiv.vcone.anal %>% dplyr::select(Date,ExpDate,TYPE,ATMIV,Strike,UDLY,IVIDX,ATM
 # Put
 ATMIV_GmChg_Put<-make.vchg.df(vcone=atmiv.vcone.anal,type=OpType_Put_G)
 ATMIV_GmChg_Put$DaysToMaxDate<-as.numeric(max(as.Date(ATMIV_GmChg_Put$Date,format="%Y/%m/%d"))-as.Date(ATMIV_GmChg_Put$Date,format="%Y/%m/%d"))
-ATMIV_GmChg_Put %>% filter(IVIDX.f>=1.0) -> ATMIV_GmChg_Put_Up
-ATMIV_GmChg_Put %>% filter(IVIDX.f<1.0) -> ATMIV_GmChg_Put_Down
+ATMIV_GmChg_Put %>% dplyr::filter(IVIDX.f>=1.0) -> ATMIV_GmChg_Put_Up
+ATMIV_GmChg_Put %>% dplyr::filter(IVIDX.f<1.0) -> ATMIV_GmChg_Put_Down
 
 # VC.f.r = VC.f.r=ATMIV.f/IVIDX.f
 # relative ATMIV %change(.f means so) to IVIDX %change(also .f)
@@ -388,8 +388,8 @@ ATMIV_GmChg_Put %>% filter(IVIDX.f<1.0) -> ATMIV_GmChg_Put_Down
 # Call
 ATMIV_GmChg_Call<-make.vchg.df(vcone=atmiv.vcone.anal,type=OpType_Call_G)
 ATMIV_GmChg_Call$DaysToMaxDate<-as.numeric(max(as.Date(ATMIV_GmChg_Call$Date,format="%Y/%m/%d"))-as.Date(ATMIV_GmChg_Call$Date,format="%Y/%m/%d"))
-ATMIV_GmChg_Call %>% filter(IVIDX.f>=1.0) -> ATMIV_GmChg_Call_Up
-ATMIV_GmChg_Call %>% filter(IVIDX.f<1.0) -> ATMIV_GmChg_Call_Down
+ATMIV_GmChg_Call %>% dplyr::filter(IVIDX.f>=1.0) -> ATMIV_GmChg_Call_Up
+ATMIV_GmChg_Call %>% dplyr::filter(IVIDX.f<1.0) -> ATMIV_GmChg_Call_Down
 #plotting
 (ggplot(ATMIV_GmChg_Call,aes(x=TimeToExpDate,y=VC.f.r,colour=DaysToMaxDate))+geom_point())
 (ggplot(ATMIV_GmChg_Call_Up,aes(x=TimeToExpDate,y=VC.f.r,colour=DaysToMaxDate))+geom_point())
