@@ -8,7 +8,7 @@ rm(list=ls())
 source('./ESourceRCode.R',encoding = 'UTF-8')
 
 #speceif configuration is to be applied to first generation
-SPECIFIC_FIRSTG_SETTING=F
+SPECIFIC_FIRSTG_SETTING=T
 
 #cache for the position
 POSITION_OPTIM_HASH=hash()
@@ -142,6 +142,13 @@ if(Combined_Spread){
       ) ->tmp2
     tmp[,length(opchain$Position)+1]=unlist(tmp2)
     write.table(tmp,paste(ResultFiles_Path_G,"1Cb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
+    tmp %>% dplyr::rowwise() %>%
+      # x = unlist(.)[1:length(opchain$Position)]
+      # revVal = unlist(.)[length(opchain$Position)+1]
+      dplyr::do(md5sum=digest(paste(unlist(.)[1:length(opchain$Position)],collapse = "")),revVal=unlist(.)[length(opchain$Position)+1]
+      ) -> tmp2
+    hash::clear(POSITION_OPTIM_HASH)
+    POSITION_OPTIM_HASH[ unlist(tmp2$md5sum) ]<-unlist(tmp2$revVal)
   }
   
   ## or when all results are mixed together regardress of the number of Putn and Calln, pools[[1]] should be set as
