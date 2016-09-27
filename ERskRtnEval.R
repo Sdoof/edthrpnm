@@ -1153,13 +1153,14 @@ sampleMain<-function(sampleSpreadType,totalPopNum,targetExpDate,targetExpDate_f,
 
 
 ##
-# Creating initial candidate population of spread positions whose componets of each position are exactly spcicified by the arguments.
-# if the number (putn or calln) is even number, half of the spread`s positions are assigned +1(long), the other half -1(short).
-# if odd number, the first 3 positions are assigned as -1 +2 -1 to form a butterfly, the rest position are assigned in the same way
+# Creating initial candidate population of spread positions whose componets of each position are spcicified by the arguments.
+# If the number (putn or calln) is even number, half of the spread`s positions are assigned +1(long), the other half -1(short).
+# otherwise (odd number), the first 3 positions are assigned as -1 +2 -1 to form a butterfly, the rest position are assigned in the same way
 # as the case of even number (half +1 long, the other half -1 short).
 # When the each position of returned compound spread is 1 or -1, the spread position are multiplied by ml. 
 
-create_initial_exact_PutCall_polulation<-function(popnum,type,EvalFuncSetting,thresh,putn,calln,ml,fname,PosMultip,isFileout=FALSE,isDebug=FALSE,isDetail=FALSE){
+create_initial_exact_PutCall_polulation<-function(popnum,type,EvalFuncSetting,thresh,putn,calln,ml,fname,PosMultip,
+                                                  isFileout=FALSE,isDebug=FALSE,isDetail=FALSE){
   added_num<-0
   total_count<-0
   cat("hash hit:",HASH_HIT_NUM,"hash length",length(POSITION_OPTIM_HASH),"\n")
@@ -1220,9 +1221,11 @@ create_initial_exact_PutCall_polulation<-function(popnum,type,EvalFuncSetting,th
     # x==0 means no position to search that match the putn and calln
     if(sum((x!=0))==0)
       break
+    #set position num
     posnum<-putn +calln
     
     #cache check and evaluate
+    val<-(thresh+1.0)
     md5sumOfPos=digest(paste(x,collapse = ""))
     if(has.key(md5sumOfPos, POSITION_OPTIM_HASH)==FALSE){
       tryCatch(
@@ -1235,7 +1238,6 @@ create_initial_exact_PutCall_polulation<-function(popnum,type,EvalFuncSetting,th
                              Delta_Neutral_Offset=EvalFuncSetting$Delta_Neutral_Offset[posnum],Vega_Neutral_Offset=EvalFuncSetting$Vega_Neutral_Offset[posnum]),
         error=function(e){
           message(e)
-          val<-(thresh+1.0)
         })
       POSITION_OPTIM_HASH[md5sumOfPos]<<-val
     }else{
@@ -1243,50 +1245,27 @@ create_initial_exact_PutCall_polulation<-function(popnum,type,EvalFuncSetting,th
       HASH_HIT_NUM<<-HASH_HIT_NUM+1
     }
     
-    if(val<thresh){
-      added_num<-added_num+1
-      if(isFileout){
-        cat(x,file=fname,sep=",",append=TRUE);cat(",",file=fname,append=TRUE)
-        cat(val,file=fname,"\n",append=TRUE)
-      }
-    }
+    #value check
+    tryCatch(
+      if(val<thresh){
+        added_num<-added_num+1
+        if(isFileout){
+          cat(x,file=fname,sep=",",append=TRUE);cat(",",file=fname,append=TRUE)
+          cat(val,file=fname,"\n",append=TRUE)
+        }
+      },
+      error=function(e){
+        message(e)
+      })
+    #add total_count and show count information
     total_count<-total_count+1
     if((added_num%%50)==0){
       cat(" added num:",added_num,"total count:",total_count,"hash hit:",HASH_HIT_NUM,"hash num:",length(POSITION_OPTIM_HASH),"putn:",putn,"calln:",calln,"time:",(proc.time()-start_t)[3],"\n")
       start_t<-proc.time()
     }
-    if(added_num==popnum)
+    if(added_num>=popnum)
       break
   }
-  cat(" added num:",added_num,"total count:",total_count,"hash hit:",HASH_HIT_NUM,"putn:",putn,"calln:",calln,"time:",(proc.time()-start_t)[3],"\n")
-}
-
-#function for creating one candidate pool
-createCombineCandidatePool<-function(fname,pnum=1000,nrows=-1,skip=0,method=1){
-  pool<-read.csv(fname, header=FALSE,nrows=nrows,skip=skip)
-  pnum<-as.numeric((pnum==0))*nrow(pool)+as.numeric((pnum!=0))*pnum
-  pool %>% dplyr::arrange(pool[,(length(iniPos)+1)]) %>% dplyr::distinct() -> pool
-  
-  
-  #select specific nums. some optional methods
-  #1.top n
-  if(method==1){
-    pool<-pool[1:pnum,]
-  }
-  #2. random sample
-  else if(method==2){
-    idx<-rep(1:nrow(pool),length=nrow(pool))
-    idx<-sort(sample(idx,size=pnum,replace=FALSE,prob=NULL))
-    pool<-pool[idx,]
-    rownames(pool) <- c(1:nrow(pool))
-  }
-  #3. bottom n
-  else if(method==3){
-    pool<-pool[(nrow(pool)-pnum+1):nrow(pool),]
-    rownames(pool) <- c(1:nrow(pool))
-  }
-  pool[complete.cases(pool),] -> pool
-  return(pool)
 }
 
 #function for seraching candidate by combination 
@@ -1331,6 +1310,7 @@ create_combined_population<-function(popnum,EvalFuncSetting,thresh,plelem,ml,fna
     }
     
     #cache check and evaluate
+    val=(thresh+1.0) #initial not acceptable value
     md5sumOfPos=digest(paste(x,collapse = ""))
     if(has.key(md5sumOfPos, POSITION_OPTIM_HASH)==FALSE){
       tryCatch(
@@ -1343,36 +1323,69 @@ create_combined_population<-function(popnum,EvalFuncSetting,thresh,plelem,ml,fna
                              Delta_Neutral_Offset=EvalFuncSetting$Delta_Neutral_Offset[posnum],Vega_Neutral_Offset=EvalFuncSetting$Vega_Neutral_Offset[posnum]),
         error=function(e){
           message(e)
-          val<-(thresh+1.0)
         })
       POSITION_OPTIM_HASH[md5sumOfPos]<<-val
     }else{
       val<-POSITION_OPTIM_HASH[[md5sumOfPos]]
       HASH_HIT_NUM<<-HASH_HIT_NUM+1
     }
-    
-    if(val<thresh){
-      added_num<-added_num+1
-      if(isFileout){  
-        cat(x_new,file=fname,sep=",",append=TRUE);cat(",",file=fname,append=TRUE)
-        cat(val,file=fname,sep=",",append=TRUE);cat(",",file=fname,append=TRUE);
-        cat(pools[[ plelem[1] ]][[1]][2:3],file=fname,sep=",",append=TRUE);cat(",",file=fname,append=TRUE);cat(s1_score,file=fname,append=TRUE);cat(",",file=fname,append=TRUE)
-        cat(pools[[ plelem[2] ]][[1]][2:3],file=fname,sep=",",append=TRUE);cat(",",file=fname,append=TRUE);cat(s2_score,file=fname,append=TRUE)
-        if(length(plelem)==3){
-          cat(",",file=fname,append=TRUE)
-          cat(pools[[ plelem[3] ]][[1]][2:3],file=fname,sep=",",append=TRUE);cat(",",file=fname,append=TRUE);cat(s3_score,file=fname,append=TRUE)
+    #value check
+    tryCatch(
+      if(val<thresh){
+        added_num<-added_num+1
+        if(isFileout){  
+          cat(x_new,file=fname,sep=",",append=TRUE);cat(",",file=fname,append=TRUE)
+          cat(val,file=fname,sep=",",append=TRUE);cat(",",file=fname,append=TRUE);
+          cat(pools[[ plelem[1] ]][[1]][2:3],file=fname,sep=",",append=TRUE);cat(",",file=fname,append=TRUE);cat(s1_score,file=fname,append=TRUE);cat(",",file=fname,append=TRUE)
+          cat(pools[[ plelem[2] ]][[1]][2:3],file=fname,sep=",",append=TRUE);cat(",",file=fname,append=TRUE);cat(s2_score,file=fname,append=TRUE)
+          if(length(plelem)==3){
+            cat(",",file=fname,append=TRUE)
+            cat(pools[[ plelem[3] ]][[1]][2:3],file=fname,sep=",",append=TRUE);cat(",",file=fname,append=TRUE);cat(s3_score,file=fname,append=TRUE)
+          }
+          cat("\n",file=fname,append=TRUE)
         }
-        cat("\n",file=fname,append=TRUE)
-      }
-    }
+      },
+      error=function(e){
+        message(e)}
+    )
+    #show count information
     if(((added_num%%50)==0)){
       cat(" added num:",added_num,"hash hit:",HASH_HIT_NUM,"hash num:",length(POSITION_OPTIM_HASH),"total_count",total_count," time:",(proc.time()-start_t)[3],"\n")
       start_t<-proc.time()
     }
-    if(added_num==popnum)
+    if(added_num>=popnum)
       break
   }
 }
+
+#function for creating one candidate pool
+createCombineCandidatePool<-function(fname,pnum=1000,nrows=-1,skip=0,method=1){
+  pool<-read.csv(fname, header=FALSE,nrows=nrows,skip=skip)
+  pnum<-as.numeric((pnum==0))*nrow(pool)+as.numeric((pnum!=0))*pnum
+  pool %>% dplyr::arrange(pool[,(length(iniPos)+1)]) %>% dplyr::distinct() -> pool
+  
+  
+  #select specific nums. some optional methods
+  #1.top n
+  if(method==1){
+    pool<-pool[1:pnum,]
+  }
+  #2. random sample
+  else if(method==2){
+    idx<-rep(1:nrow(pool),length=nrow(pool))
+    idx<-sort(sample(idx,size=pnum,replace=FALSE,prob=NULL))
+    pool<-pool[idx,]
+    rownames(pool) <- c(1:nrow(pool))
+  }
+  #3. bottom n
+  else if(method==3){
+    pool<-pool[(nrow(pool)-pnum+1):nrow(pool),]
+    rownames(pool) <- c(1:nrow(pool))
+  }
+  pool[complete.cases(pool),] -> pool
+  return(pool)
+}
+
 
 ##
 # Functions to be loaded from EPosAanalysis.R
