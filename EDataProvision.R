@@ -405,17 +405,17 @@ filterDiagonalSpread <- function(opchain, TARGET_D,
 
 filterPosition <- function(opchain,
                            #OOM/OOM
-                           Delta_Limit_Put_MAX=c(0.25,0.30,0.30),Delta_Limit_Put_MIN=c(0.09,0.11,0.11),
-                           Delta_Limit_Call_MAX=c(0.25,0.30,0.30),Delta_Limit_Call_MIN=c(0.09,0.10,0.12),
+                           #Delta_Limit_Put_MAX=c(0.25,0.30,0.30),Delta_Limit_Put_MIN=c(0.09,0.11,0.11),
+                           #Delta_Limit_Call_MAX=c(0.25,0.30,0.30),Delta_Limit_Call_MIN=c(0.09,0.11,0.11),
                            #ATM/ATM
-                           #Delta_Limit_Put_MAX=c(0.25,0.55,0.30),Delta_Limit_Put_MIN=c(0.09,0.25,0.11),
-                           #Delta_Limit_Call_MAX=c(0.25,0.55,0.30),Delta_Limit_Call_MIN=c(0.09,0.25,0.12),
+                           Delta_Limit_Put_MAX=c(0.25,0.55,0.55),Delta_Limit_Put_MIN=c(0.09,0.25,0.25),
+                           Delta_Limit_Call_MAX=c(0.25,0.55,0.55),Delta_Limit_Call_MIN=c(0.09,0.25,0.25),
                            #OOM/ATM
                            #Delta_Limit_Put_MAX=c(0.25,0.30,0.30),Delta_Limit_Put_MIN=c(0.09,0.11,0.11),
-                           #Delta_Limit_Call_MAX=c(0.25,0.55,0.30),Delta_Limit_Call_MIN=c(0.09,0.25,0.12),
+                           #Delta_Limit_Call_MAX=c(0.25,0.55,0.55),Delta_Limit_Call_MIN=c(0.09,0.25,0.25),
                            #ATM/OOM
-                           #Delta_Limit_Put_MAX=c(0.25,0.55,0.30),Delta_Limit_Put_MIN=c(0.09,0.25,0.11),
-                           #Delta_Limit_Call_MAX=c(0.25,0.30,0.30),Delta_Limit_Call_MIN=c(0.09,0.10,0.12),
+                           #Delta_Limit_Put_MAX=c(0.25,0.55,0.55),Delta_Limit_Put_MIN=c(0.09,0.25,0.25),
+                           #Delta_Limit_Call_MAX=c(0.25,0.30,0.30),Delta_Limit_Call_MIN=c(0.09,0.11,0.11),
                            TARGET_EXPDATE,TARGET_EXPDATE_FRONT,TARGET_EXPDATE_BACK){
   ##
   #  Filter Target Ranges 
