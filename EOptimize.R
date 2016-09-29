@@ -8,7 +8,7 @@ rm(list=ls())
 source('./ESourceRCode.R',encoding = 'UTF-8')
 
 #continue COMBINATION HOT START
-COMBINATION_HOT_START=T
+COMBINATION_HOT_START=F
 
 #speceif configuration is to be applied to first generation
 SPECIFIC_FIRSTG_SETTING=F
@@ -207,8 +207,6 @@ if(Combined_Spread){
   tmp %>% dplyr::arrange(tmp[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> tmp
   write.table(tmp,paste(ResultFiles_Path_G,"2Cb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
   tmp %>% dplyr::arrange(.[,length(iniPos)+1]) %>% head(TopN_2) -> tmp
-  #used later
-  tmp2Cb=tmp
   
   ### 3(2Cb x 1Cb) Combinations (3Cb)
   pools[2]<-list(list(c(1,0,0),tmp)) #No.[[2]]
@@ -232,11 +230,12 @@ if(Combined_Spread){
   tmp %>% dplyr::arrange(tmp[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> tmp
   write.table(tmp,paste(ResultFiles_Path_G,"3Cb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
   
-  ### 4(2Cb x 2Cb) Combinations (4Cb)
-  pools<-list(list(c(2,0,0),tmp2Cb)) #No.[[1]]
-  rm(tmp2Cb)
+  ### 4(3Cb x 1Cb currently shown as 2Cb+2Cb) Combinations (4Cb)
+  pools[3]<-list(list(c(1,0,0),tmp)) #No.[[3]]
+  pools<<-pools
+  
   #combinational search
-  create_combined_population(popnum=PopN_2,EvalFuncSetting,thresh=Thresh_2,plelem=c(1,1),ml=Optimize_ml,
+  create_combined_population(popnum=PopN_2,EvalFuncSetting,thresh=Thresh_2,plelem=c(1,3),ml=Optimize_ml,
                              fname=paste(".\\ResultData\\combine-Result-2Cb+2Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                              isFileout=TRUE,isDebug=FALSE,maxposn=length(EvalFuncSetting$Delta_Direct_Prf),PosMultip=PosMultip)
   #4Cb.csv
