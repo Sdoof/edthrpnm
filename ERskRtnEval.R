@@ -1272,7 +1272,7 @@ create_initial_exact_PutCall_polulation<-function(popnum,type,EvalFuncSetting,th
       },
       error=function(e){
         message(e)
-        cat("val:",val,"thresh",thresh,"\n")
+        cat("val:",val,"thresh:",thresh,"x",x,"\n")
       })
     #add total_count and show count information
     total_count<-total_count+1
@@ -1379,7 +1379,7 @@ create_combined_population<-function(popnum,EvalFuncSetting,thresh,plelem,ml,fna
       },
       error=function(e){
         message(e)
-        cat("val:",val,"thresh",thresh,"\n")
+        cat("val:",val,"thresh:",thresh,"x",x_new,"\n")
       }
     )
     #show count information
