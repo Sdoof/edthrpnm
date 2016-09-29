@@ -8,7 +8,7 @@ rm(list=ls())
 source('./ESourceRCode.R',encoding = 'UTF-8')
 
 #continue COMBINATION HOT START
-COMBINATION_HOT_START=F
+COMBINATION_HOT_START=T
 
 #speceif configuration is to be applied to first generation
 SPECIFIC_FIRSTG_SETTING=F
@@ -65,6 +65,9 @@ if(COMBINATION_HOT_START==T){
   loadToPositionHash(fname=paste(ResultFiles_Path_G,"1Cb.csv",sep=""))
   loadToPositionHash(fname=paste(ResultFiles_Path_G,"2Cb.csv",sep=""))
   loadToPositionHash(fname=paste(ResultFiles_Path_G,"4Cb.csv",sep=""))
+
+  file.copy(from=paste(ResultFiles_Path_G,"2Cb.csv",sep=""),to=paste(ResultFiles_Path_G,"2Cb_load.csv",sep=""),overwrite=T)
+  file.copy(from=paste(ResultFiles_Path_G,"4Cb.csv",sep=""),to=paste(ResultFiles_Path_G,"4Cb_load.csv",sep=""),overwrite=T)
 }
 
 if(COMBINATION_HOT_START==F){
@@ -189,14 +192,13 @@ if(Combined_Spread){
                              fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                              isFileout=TRUE,isDebug=FALSE,maxposn=length(EvalFuncSetting$Delta_Direct_Prf),PosMultip=PosMultip)
   #2Cb.csv
-  if(COMBINATION_HOT_START==F){
-    st <- "powershell.exe .\\shell\\cmd3.ps1"
-    system(st)
-    st <- "powershell.exe .\\shell\\cmd4.ps1"
-    system(st)
-    st <- "powershell.exe -Command \" del .\\ResultData\\2Cb-.csv \" "
-    system(st) ;rm(st)
-  }
+  st <- "powershell.exe .\\shell\\cmd3.ps1"
+  system(st)
+  st <- "powershell.exe .\\shell\\cmd4.ps1"
+  system(st)
+  st <- "powershell.exe -Command \" del .\\ResultData\\2Cb-.csv \" "
+  system(st) ;rm(st)
+  
   ### 4(2Cb x 2Cb) Combinations (4Cb)
   tmp<-read.table(paste(ResultFiles_Path_G,"2Cb.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
   tmp=tmp[,1:(length(opchain$Position)+1)]
@@ -212,14 +214,12 @@ if(Combined_Spread){
                              fname=paste(".\\ResultData\\combine-Result-2Cb+2Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                              isFileout=TRUE,isDebug=FALSE,maxposn=length(EvalFuncSetting$Delta_Direct_Prf),PosMultip=PosMultip)
   #4Cb.csv
-  if(COMBINATION_HOT_START==F){
-    st <- "powershell.exe .\\shell\\cmd7.ps1"
-    system(st)
-    st <- "powershell.exe .\\shell\\cmd8.ps1"
-    system(st)
-    st <- "powershell.exe -Command \" del .\\ResultData\\4Cb-.csv \" "
-    system(st) ;rm(st)
-  }
+  st <- "powershell.exe .\\shell\\cmd7.ps1"
+  system(st)
+  st <- "powershell.exe .\\shell\\cmd8.ps1"
+  system(st)
+  st <- "powershell.exe -Command \" del .\\ResultData\\4Cb-.csv \" "
+  system(st) ;rm(st)
   
   tmp<-read.table(paste(ResultFiles_Path_G,"4Cb.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
   tmp=tmp[,1:(length(opchain$Position)+1)]
@@ -375,6 +375,24 @@ tmp_fil3 %>%
 tmp_fil4 %>% 
   dplyr::arrange(tmp_fil4[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> tmp_fil_w4
 
+
+#MERGE
+if(COMBINATION_HOT_START==T){
+  tmp=read.table(paste(ResultFiles_Path_G,"2Cb.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
+  tmp2=read.table(paste(ResultFiles_Path_G,"2Cb_load.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
+  tmp %>% dplyr::full_join(tmp2) -> tmp3
+  colnames(tmp3)=c(rep(1:length(opchain$Position)),"eval")
+  tmp3 %>% dplyr::arrange(tmp3[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> tmp3
+  write.table(tmp3,paste(ResultFiles_Path_G,"2Cb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
+  
+  tmp=read.table(paste(ResultFiles_Path_G,"4Cb.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
+  tmp2=read.table(paste(ResultFiles_Path_G,"4Cb_load.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
+  tmp %>% dplyr::full_join(tmp2) -> tmp3
+  colnames(tmp3)=c(rep(1:length(opchain$Position)),"eval")
+  tmp3 %>% dplyr::arrange(tmp3[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> tmp3
+  write.table(tmp3,paste(ResultFiles_Path_G,"4Cb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
+}
+  
 ## Save to a file
 write.table(tmp_fil_w,paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition_",
                             format(Sys.time(),"%Y%b%d_%H%M%S"),".csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
