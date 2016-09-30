@@ -817,7 +817,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   targetExpDate=TARGET_EXPDATE
   targetExpDate_f=TARGET_EXPDATE_FRONT
   targetExpDate_b=TARGET_EXPDATE_BACK
-  totalPopNum=PopN_1
+  totalPopNum=PopN_1 #PopN_1/10*12
   
   #spread ratio 1
   spreadRatio=c(1,1,1)
