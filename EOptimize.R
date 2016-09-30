@@ -17,7 +17,6 @@ SPECIFIC_FIRSTG_SETTING=F
 COMBINATION_LOSSLIMIT_Multipe=2
 
 #cache for the position
-POSITION_OPTIM_HASH=hash()
 HASH_HIT_NUM=0
 
 ##
@@ -49,18 +48,6 @@ if(SPECIFIC_FIRSTG_SETTING==T){
 
 if(COMBINATION_HOT_START==T){
   hash::clear(POSITION_OPTIM_HASH)
-  
-  loadToPositionHash<-function(fname){
-    tmp<-read.table(fname,header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
-    tmp=tmp[,1:(length(opchain$Position)+1)]
-    colnames(tmp)=c(rep(1:length(opchain$Position)),"eval")
-    tmp %>% dplyr::arrange(tmp[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> tmp
-    tmp %>% dplyr::rowwise() %>%
-      # x = unlist(.)[1:length(opchain$Position)]
-      dplyr::do(key=paste(unlist(.)[1:length(opchain$Position)],collapse = ""),
-                md5sum=digest(paste(unlist(.)[1:length(opchain$Position)],collapse = ""))) -> tmp2
-    POSITION_OPTIM_HASH[ unlist(tmp2$md5sum) ]<<-tmp$eval
-  }
   
   loadToPositionHash(fname=paste(ResultFiles_Path_G,"1Cb.csv",sep=""))
   loadToPositionHash(fname=paste(ResultFiles_Path_G,"2Cb.csv",sep=""))

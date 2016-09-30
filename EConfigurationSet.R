@@ -152,6 +152,9 @@ opchain %>% dplyr::filter(Position!=0) -> position
 ## iniPos must exist as Global Varibles to get the 
 iniPos<-opchain$Position
 
+#Global shread Hash
+POSITION_OPTIM_HASH=hash()
+
 #Data Setup. Provisioning
 #Load Regression and Correlation Parameters
 load.PC2IV(PC="PC1dCtC",IVC="IVCF1dCtC")

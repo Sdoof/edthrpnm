@@ -11,6 +11,9 @@ source('./ESourceRCode.R',encoding = 'UTF-8')
 #COMBINATION LossLimit Multipe
 COMBINATION_LOSSLIMIT_Multipe=2
 
+#Cache Hash setting
+FILEPLUS_HOT_START=F
+
 #Debug, Detail Mode
 IS_DEBUG_MODE=F
 IS_DETAIL_MODE=F
@@ -129,7 +132,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   targetExpDate_f=targetExpDate
   targetExpDate_b=targetExpDate
   spreadRatio=c(1,1,1)
-  totalPopNum=PopN_2
+  totalPopNum=PopN_1/10*8
   
   #output file name
   outFname=createOutFname(targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,spreadRatio=spreadRatio,EvalFuncSetting=EvalFuncSetting)
@@ -161,7 +164,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   targetExpDate_f=TARGET_EXPDATE_FRONT
   targetExpDate_b=TARGET_EXPDATE_BACK
   spreadRatio=c(1,1,1)
-  totalPopNum=PopN_2
+  totalPopNum=PopN_1/10*8
   
   #output file name
   outFname=createOutFname(targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,spreadRatio=spreadRatio,EvalFuncSetting=EvalFuncSetting)
@@ -194,7 +197,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   targetExpDate_f=TARGET_EXPDATE_FRONT
   targetExpDate_b=TARGET_EXPDATE_BACK
   spreadRatio=c(1,1,1)
-  totalPopNum=PopN_1
+  totalPopNum=PopN_1*2
   
   #output file name
   outFname=createOutFname(targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,spreadRatio=spreadRatio,EvalFuncSetting=EvalFuncSetting)
@@ -229,7 +232,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   targetExpDate_f=TARGET_EXPDATE_FRONT
   targetExpDate_b=TARGET_EXPDATE_BACK
   spreadRatio=c(1,1,1)
-  totalPopNum=PopN_1
+  totalPopNum=PopN_1*2
   
   #output file name
   outFname=createOutFname(targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,spreadRatio=spreadRatio,EvalFuncSetting=EvalFuncSetting)
@@ -264,7 +267,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   targetExpDate_f=TARGET_EXPDATE_FRONT
   targetExpDate_b=TARGET_EXPDATE_BACK
   spreadRatio=c(1,1,1)
-  totalPopNum=PopN_1
+  totalPopNum=PopN_1*2
   
   #output file name
   outFname=createOutFname(targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,spreadRatio=spreadRatio,EvalFuncSetting=EvalFuncSetting)
@@ -299,7 +302,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   targetExpDate_f=TARGET_EXPDATE_FRONT
   targetExpDate_b=TARGET_EXPDATE_BACK
   spreadRatio=c(1,1,1)
-  totalPopNum=PopN_1
+  totalPopNum=PopN_1*2
   
   #output file name
   outFname=createOutFname(targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,spreadRatio=spreadRatio,EvalFuncSetting=EvalFuncSetting)
@@ -333,7 +336,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   targetExpDate=TARGET_EXPDATE
   targetExpDate_f=TARGET_EXPDATE_FRONT
   targetExpDate_b=TARGET_EXPDATE_BACK
-  totalPopNum=PopN_1
+  totalPopNum=PopN_1*2
   
   #spread ratio 1
   spreadRatio=c(1,1,1)
@@ -420,7 +423,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   targetExpDate=TARGET_EXPDATE
   targetExpDate_f=TARGET_EXPDATE_FRONT
   targetExpDate_b=TARGET_EXPDATE_BACK
-  totalPopNum=PopN_1
+  totalPopNum=PopN_1*2
   
   #spread ratio 1
   spreadRatio=c(1,1,1)
@@ -489,7 +492,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   targetExpDate=TARGET_EXPDATE
   targetExpDate_f=TARGET_EXPDATE_FRONT
   targetExpDate_b=TARGET_EXPDATE_BACK
-  totalPopNum=PopN_1/2
+  totalPopNum=PopN_1/10*8
   
   #spread ratio 1
   spreadRatio=c(1,1,1)
@@ -524,7 +527,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   targetExpDate=TARGET_EXPDATE
   targetExpDate_f=TARGET_EXPDATE_FRONT
   targetExpDate_b=TARGET_EXPDATE_BACK
-  totalPopNum=PopN_1/10*6
+  totalPopNum=PopN_1
   
   #spread ratio 1
   spreadRatio=c(1,1,1)
@@ -627,13 +630,18 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   targetExpDate=TARGET_EXPDATE
   targetExpDate_f=TARGET_EXPDATE_FRONT
   targetExpDate_b=TARGET_EXPDATE_BACK
-  totalPopNum=PopN_1/2
+  totalPopNum=PopN_1/10*8
   
   #spread ratio 1
   spreadRatio=c(1,1,1)
   
   #output file name
   outFname=createOutFname(targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,spreadRatio=spreadRatio,EvalFuncSetting=EvalFuncSetting)
+  
+  if( file.exists(outFname) && FILEPLUS_HOT_START){
+    hash::clear(POSITION_OPTIM_HASH)
+    loadToPositionHash(fname=outFname)
+  }
   
   #read file and pool setting
   readFname=paste(ResultFiles_Path_G,Underying_Symbol_G,"-READ-SPREAD.csv",sep="")
@@ -648,7 +656,8 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   
   sampleMain(sampleSpreadType=sampleSpreadType,totalPopNum=totalPopNum,
              targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,
-             spreadRatio=spreadRatio,InitialPopThresh=UNACCEPTABLEVAL,outFname=outFname,isFileout=T,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
+             spreadRatio=spreadRatio,InitialPopThresh=UNACCEPTABLEVAL,outFname=outFname,isFileout=T,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE,
+             POSITION_HASH=POSITION_OPTIM_HASH)
   
   EvalFuncSetting$LossLimitPrice=originalLossLimitPrice
   
@@ -668,13 +677,18 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   targetExpDate=TARGET_EXPDATE
   targetExpDate_f=TARGET_EXPDATE_FRONT
   targetExpDate_b=TARGET_EXPDATE_BACK
-  totalPopNum=PopN_1/2
+  totalPopNum=PopN_1/10*8
   
   #spread ratio 1
   spreadRatio=c(1,1,1)
   
   #output file name
   outFname=createOutFname(targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,spreadRatio=spreadRatio,EvalFuncSetting=EvalFuncSetting)
+  
+  if( file.exists(outFname) && FILEPLUS_HOT_START){
+    hash::clear(POSITION_OPTIM_HASH)
+    loadToPositionHash(fname=outFname)
+  }
   
   #read file and pool setting
   readFname=paste(ResultFiles_Path_G,Underying_Symbol_G,"-READ-SPREAD.csv",sep="")
@@ -689,7 +703,8 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   
   sampleMain(sampleSpreadType=sampleSpreadType,totalPopNum=totalPopNum,
              targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,
-             spreadRatio=spreadRatio,InitialPopThresh=UNACCEPTABLEVAL,outFname=outFname,isFileout=T,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
+             spreadRatio=spreadRatio,InitialPopThresh=UNACCEPTABLEVAL,outFname=outFname,isFileout=T,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE,
+             POSITION_HASH=POSITION_OPTIM_HASH)
   
   EvalFuncSetting$LossLimitPrice=originalLossLimitPrice
   
@@ -709,13 +724,18 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   targetExpDate=TARGET_EXPDATE
   targetExpDate_f=TARGET_EXPDATE_FRONT
   targetExpDate_b=TARGET_EXPDATE_BACK
-  totalPopNum=PopN_1/2
+  totalPopNum=PopN_1/10*8
   
   #spread ratio 1
   spreadRatio=c(1,1,1)
   
   #output file name
   outFname=createOutFname(targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,spreadRatio=spreadRatio,EvalFuncSetting=EvalFuncSetting)
+  
+  if( file.exists(outFname) && FILEPLUS_HOT_START){
+    hash::clear(POSITION_OPTIM_HASH)
+    loadToPositionHash(fname=outFname)
+  }
   
   #read file and pool setting
   readFname=paste(ResultFiles_Path_G,Underying_Symbol_G,"-READ-SPREAD.csv",sep="")
@@ -730,7 +750,8 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   
   sampleMain(sampleSpreadType=sampleSpreadType,totalPopNum=totalPopNum,
              targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,
-             spreadRatio=spreadRatio,InitialPopThresh=UNACCEPTABLEVAL,outFname=outFname,isFileout=T,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
+             spreadRatio=spreadRatio,InitialPopThresh=UNACCEPTABLEVAL,outFname=outFname,isFileout=T,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE,
+             POSITION_HASH=POSITION_OPTIM_HASH)
   
   EvalFuncSetting$LossLimitPrice=originalLossLimitPrice
   
@@ -758,6 +779,11 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   #output file name
   outFname=createOutFname(targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,spreadRatio=spreadRatio,EvalFuncSetting=EvalFuncSetting)
   
+  if( file.exists(outFname) && FILEPLUS_HOT_START){
+    hash::clear(POSITION_OPTIM_HASH)
+    loadToPositionHash(fname=outFname)
+  }
+  
   #read file and pool setting
   readFname=paste(ResultFiles_Path_G,Underying_Symbol_G,"-READ-SPREAD.csv",sep="")
   tmp<-read.table(readFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
@@ -771,7 +797,8 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   
   sampleMain(sampleSpreadType=sampleSpreadType,totalPopNum=totalPopNum,
              targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,
-             spreadRatio=spreadRatio,InitialPopThresh=UNACCEPTABLEVAL,outFname=outFname,isFileout=T,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
+             spreadRatio=spreadRatio,InitialPopThresh=UNACCEPTABLEVAL,outFname=outFname,isFileout=T,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE,
+             POSITION_HASH=POSITION_OPTIM_HASH)
   
   EvalFuncSetting$LossLimitPrice=originalLossLimitPrice
   
@@ -790,13 +817,18 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   targetExpDate=TARGET_EXPDATE
   targetExpDate_f=TARGET_EXPDATE_FRONT
   targetExpDate_b=TARGET_EXPDATE_BACK
-  totalPopNum=PopN_1/10*6
+  totalPopNum=PopN_1
   
   #spread ratio 1
   spreadRatio=c(1,1,1)
   
   #output file name
   outFname=createOutFname(targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,spreadRatio=spreadRatio,EvalFuncSetting=EvalFuncSetting)
+  
+  if( file.exists(outFname) && FILEPLUS_HOT_START){
+    hash::clear(POSITION_OPTIM_HASH)
+    loadToPositionHash(fname=outFname)
+  }
   
   #read file and pool setting
   readFname=paste(ResultFiles_Path_G,Underying_Symbol_G,"-READ-SPREAD.csv",sep="")
@@ -811,7 +843,8 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   
   sampleMain(sampleSpreadType=sampleSpreadType,totalPopNum=totalPopNum,
              targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,
-             spreadRatio=spreadRatio,InitialPopThresh=UNACCEPTABLEVAL,outFname=outFname,isFileout=T,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
+             spreadRatio=spreadRatio,InitialPopThresh=UNACCEPTABLEVAL,outFname=outFname,isFileout=T,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE,
+             POSITION_HASH=POSITION_OPTIM_HASH)
   
   EvalFuncSetting$LossLimitPrice=originalLossLimitPrice
   
@@ -831,13 +864,18 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   targetExpDate=TARGET_EXPDATE
   targetExpDate_f=TARGET_EXPDATE_FRONT
   targetExpDate_b=TARGET_EXPDATE_BACK
-  totalPopNum=PopN_1/2
+  totalPopNum=PopN_1
   
   #spread ratio 1
   spreadRatio=c(1,1,1)
   
   #output file name
   outFname=createOutFname(targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,spreadRatio=spreadRatio,EvalFuncSetting=EvalFuncSetting)
+  
+  if( file.exists(outFname) && FILEPLUS_HOT_START){
+    hash::clear(POSITION_OPTIM_HASH)
+    loadToPositionHash(fname=outFname)
+  }
   
   #read first file and pool setting
   readFname=paste(ResultFiles_Path_G,Underying_Symbol_G,"-READ-SPREAD.csv",sep="")
@@ -860,7 +898,8 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   
   sampleMain(sampleSpreadType=sampleSpreadType,totalPopNum=totalPopNum,
              targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,
-             spreadRatio=spreadRatio,InitialPopThresh=UNACCEPTABLEVAL,outFname=outFname,isFileout=T,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
+             spreadRatio=spreadRatio,InitialPopThresh=UNACCEPTABLEVAL,outFname=outFname,isFileout=T,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE,
+             POSITION_HASH=POSITION_OPTIM_HASH)
   
   EvalFuncSetting$LossLimitPrice=originalLossLimitPrice
   

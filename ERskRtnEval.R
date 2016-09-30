@@ -832,16 +832,30 @@ sampleDiagonalSpread<-function(targetOpTyep,diagonalType,targetExpDate_f,targetE
   return(x)
 }
 
+## load file info into Global HashT
+loadToPositionHash<-function(fname){
+  tmp<-read.table(fname,header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
+  tmp=tmp[,1:(length(opchain$Position)+1)]
+  colnames(tmp)=c(rep(1:length(opchain$Position)),"eval")
+  tmp %>% dplyr::arrange(tmp[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> tmp
+  tmp %>% dplyr::rowwise() %>%
+    # x = unlist(.)[1:length(opchain$Position)]
+    dplyr::do(key=paste(unlist(.)[1:length(opchain$Position)],collapse = ""),
+              md5sum=digest(paste(unlist(.)[1:length(opchain$Position)],collapse = ""))) -> tmp2
+  POSITION_OPTIM_HASH[ unlist(tmp2$md5sum) ]<<-tmp$eval
+}
+
 ## sampling main routine
 sampleMain<-function(sampleSpreadType,totalPopNum,targetExpDate,targetExpDate_f,targetExpDate_b,
-                     spreadRatio,InitialPopThresh,outFname,isFileout=T,isDebug=F,isDetail=F){
+                     spreadRatio,InitialPopThresh,outFname,isFileout=T,isDebug=F,isDetail=F,
+                     POSITION_HASH=hash()){
   added_num=0
   total_count=0
   hash_hit_num=0
   s1_idx=0
   s2_idx=0
   start_t<-proc.time()
-  POSITION_HASH=hash()
+  #POSITION_HASH=hash()
   while(TRUE){
     x<-rep(0,times=length(opchain$TYPE))
     if(sampleSpreadType==IRON_CONDOR_SMPLING){
