@@ -12,7 +12,7 @@ source('./ESourceRCode.R',encoding = 'UTF-8')
 COMBINATION_LOSSLIMIT_MULTIPLE=2
 
 #Cache Hash setting
-FILEPLUS_HOT_START=F
+FILEPLUS_HOT_START=T
 
 #Debug, Detail Mode
 IS_DEBUG_MODE=F
@@ -665,11 +665,11 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   #Merge file
   if( file.exists(outFname) && FILEPLUS_HOT_START){
     tmp=read.table(outFname,header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
-    tmp=tmp[,1:(length(opchain$Position)+1)]
-    tmp2=read.table(paste(outFname,"_load.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
-    tmp2=tmp2[,1:(length(opchain$Position)+1)]
+    tmp2=read.table(paste(outFname,"_load.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")S
     tmp %>% dplyr::full_join(tmp2) -> tmp3
-    colnames(tmp3)=c(rep(1:length(opchain$Position)),"eval")
+    colnames(tmp3)=c(rep(1:length(opchain$Position)),
+                     "eval",
+                     rep((length(opchain$Position)+2):length(tmp3)))
     tmp3 %>% dplyr::arrange(tmp3[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> tmp3
     write.table(tmp3,outFname,row.names = F,col.names=F,sep=",",append=F)
   }
@@ -725,11 +725,11 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   #Merge file
   if( file.exists(outFname) && FILEPLUS_HOT_START){
     tmp=read.table(outFname,header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
-    tmp=tmp[,1:(length(opchain$Position)+1)]
-    tmp2=read.table(paste(outFname,"_load.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
-    tmp2=tmp2[,1:(length(opchain$Position)+1)]
+    tmp2=read.table(paste(outFname,"_load.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")S
     tmp %>% dplyr::full_join(tmp2) -> tmp3
-    colnames(tmp3)=c(rep(1:length(opchain$Position)),"eval")
+    colnames(tmp3)=c(rep(1:length(opchain$Position)),
+                     "eval",
+                     rep((length(opchain$Position)+2):length(tmp3)))
     tmp3 %>% dplyr::arrange(tmp3[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> tmp3
     write.table(tmp3,outFname,row.names = F,col.names=F,sep=",",append=F)
   }
@@ -785,11 +785,11 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   #Merge file
   if( file.exists(outFname) && FILEPLUS_HOT_START){
     tmp=read.table(outFname,header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
-    tmp=tmp[,1:(length(opchain$Position)+1)]
-    tmp2=read.table(paste(outFname,"_load.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
-    tmp2=tmp2[,1:(length(opchain$Position)+1)]
+    tmp2=read.table(paste(outFname,"_load.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")S
     tmp %>% dplyr::full_join(tmp2) -> tmp3
-    colnames(tmp3)=c(rep(1:length(opchain$Position)),"eval")
+    colnames(tmp3)=c(rep(1:length(opchain$Position)),
+                     "eval",
+                     rep((length(opchain$Position)+2):length(tmp3)))
     tmp3 %>% dplyr::arrange(tmp3[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> tmp3
     write.table(tmp3,outFname,row.names = F,col.names=F,sep=",",append=F)
   }
@@ -845,11 +845,11 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   #Merge file
   if( file.exists(outFname) && FILEPLUS_HOT_START){
     tmp=read.table(outFname,header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
-    tmp=tmp[,1:(length(opchain$Position)+1)]
-    tmp2=read.table(paste(outFname,"_load.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
-    tmp2=tmp2[,1:(length(opchain$Position)+1)]
+    tmp2=read.table(paste(outFname,"_load.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")S
     tmp %>% dplyr::full_join(tmp2) -> tmp3
-    colnames(tmp3)=c(rep(1:length(opchain$Position)),"eval")
+    colnames(tmp3)=c(rep(1:length(opchain$Position)),
+                     "eval",
+                     rep((length(opchain$Position)+2):length(tmp3)))
     tmp3 %>% dplyr::arrange(tmp3[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> tmp3
     write.table(tmp3,outFname,row.names = F,col.names=F,sep=",",append=F)
   }
@@ -904,11 +904,11 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   #Merge file
   if( file.exists(outFname) && FILEPLUS_HOT_START){
     tmp=read.table(outFname,header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
-    tmp=tmp[,1:(length(opchain$Position)+1)]
-    tmp2=read.table(paste(outFname,"_load.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
-    tmp2=tmp2[,1:(length(opchain$Position)+1)]
+    tmp2=read.table(paste(outFname,"_load.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")S
     tmp %>% dplyr::full_join(tmp2) -> tmp3
-    colnames(tmp3)=c(rep(1:length(opchain$Position)),"eval")
+    colnames(tmp3)=c(rep(1:length(opchain$Position)),
+                     "eval",
+                     rep((length(opchain$Position)+2):length(tmp3)))
     tmp3 %>% dplyr::arrange(tmp3[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> tmp3
     write.table(tmp3,outFname,row.names = F,col.names=F,sep=",",append=F)
   }
@@ -972,15 +972,15 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   #Merge file
   if( file.exists(outFname) && FILEPLUS_HOT_START){
     tmp=read.table(outFname,header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
-    tmp=tmp[,1:(length(opchain$Position)+1)]
-    tmp2=read.table(paste(outFname,"_load.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
-    tmp2=tmp2[,1:(length(opchain$Position)+1)]
+    tmp2=read.table(paste(outFname,"_load.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")S
     tmp %>% dplyr::full_join(tmp2) -> tmp3
-    colnames(tmp3)=c(rep(1:length(opchain$Position)),"eval")
+    colnames(tmp3)=c(rep(1:length(opchain$Position)),
+                     "eval",
+                     rep((length(opchain$Position)+2):length(tmp3)))
     tmp3 %>% dplyr::arrange(tmp3[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> tmp3
     write.table(tmp3,outFname,row.names = F,col.names=F,sep=",",append=F)
   }
-  
+ 
   #file handling
   tmp<-read.table(outFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
   tmp %>% dplyr::arrange(.[,length(opchain$Position)+1])  %>%
