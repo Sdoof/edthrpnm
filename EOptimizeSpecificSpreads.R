@@ -665,7 +665,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   #Merge file
   if( file.exists(outFname) && FILEPLUS_HOT_START){
     tmp=read.table(outFname,header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
-    tmp2=read.table(paste(outFname,"_load.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")S
+    tmp2=read.table(paste(outFname,"_load.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
     tmp %>% dplyr::full_join(tmp2) -> tmp3
     colnames(tmp3)=c(rep(1:length(opchain$Position)),
                      "eval",
@@ -725,7 +725,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   #Merge file
   if( file.exists(outFname) && FILEPLUS_HOT_START){
     tmp=read.table(outFname,header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
-    tmp2=read.table(paste(outFname,"_load.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")S
+    tmp2=read.table(paste(outFname,"_load.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
     tmp %>% dplyr::full_join(tmp2) -> tmp3
     colnames(tmp3)=c(rep(1:length(opchain$Position)),
                      "eval",
@@ -785,7 +785,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   #Merge file
   if( file.exists(outFname) && FILEPLUS_HOT_START){
     tmp=read.table(outFname,header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
-    tmp2=read.table(paste(outFname,"_load.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")S
+    tmp2=read.table(paste(outFname,"_load.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
     tmp %>% dplyr::full_join(tmp2) -> tmp3
     colnames(tmp3)=c(rep(1:length(opchain$Position)),
                      "eval",
@@ -845,7 +845,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   #Merge file
   if( file.exists(outFname) && FILEPLUS_HOT_START){
     tmp=read.table(outFname,header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
-    tmp2=read.table(paste(outFname,"_load.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")S
+    tmp2=read.table(paste(outFname,"_load.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
     tmp %>% dplyr::full_join(tmp2) -> tmp3
     colnames(tmp3)=c(rep(1:length(opchain$Position)),
                      "eval",
@@ -904,7 +904,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   #Merge file
   if( file.exists(outFname) && FILEPLUS_HOT_START){
     tmp=read.table(outFname,header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
-    tmp2=read.table(paste(outFname,"_load.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")S
+    tmp2=read.table(paste(outFname,"_load.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
     tmp %>% dplyr::full_join(tmp2) -> tmp3
     colnames(tmp3)=c(rep(1:length(opchain$Position)),
                      "eval",
@@ -972,7 +972,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   #Merge file
   if( file.exists(outFname) && FILEPLUS_HOT_START){
     tmp=read.table(outFname,header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
-    tmp2=read.table(paste(outFname,"_load.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")S
+    tmp2=read.table(paste(outFname,"_load.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
     tmp %>% dplyr::full_join(tmp2) -> tmp3
     colnames(tmp3)=c(rep(1:length(opchain$Position)),
                      "eval",
