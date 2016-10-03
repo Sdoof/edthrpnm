@@ -37,7 +37,7 @@ PosMultip=as.numeric(ConfigParameters["PosMultip",1])
 SpreadTypeSpecified=max(0,as.numeric(ConfigParameters["Spread_Type",1]))
 
 #Evalfunc unaccepted value
-UNACCEPTABLEVAL=9.999e+100
+UNACCEPTABLEVAL=9999999
 
 #Limit Closeness for Skewness Calculation
 TimeToExp_Limit_Closeness_G=as.numeric(ConfigParameters["TimeToExp_Limit_Closeness_G",1])

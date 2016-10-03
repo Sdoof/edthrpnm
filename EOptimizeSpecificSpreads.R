@@ -9,7 +9,7 @@ rm(list=ls())
 source('./ESourceRCode.R',encoding = 'UTF-8')
 
 #COMBINATION LossLimit Multipe
-COMBINATION_LOSSLIMIT_Multipe=2
+COMBINATION_LOSSLIMIT_MULTIPLE=2
 
 #Cache Hash setting
 FILEPLUS_HOT_START=F
@@ -382,7 +382,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   originalLossLimitPrice=EvalFuncSetting$LossLimitPrice
   EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*max(spreadRatio)
   
-  EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*COMBINATION_LOSSLIMIT_Multipe
+  EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*COMBINATION_LOSSLIMIT_MULTIPLE
   
   sampleMain(sampleSpreadType=sampleSpreadType,totalPopNum=totalPopNum,
              targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,
@@ -464,7 +464,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   originalLossLimitPrice=EvalFuncSetting$LossLimitPrice
   EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*max(spreadRatio)
   
-  EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*COMBINATION_LOSSLIMIT_Multipe
+  EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*COMBINATION_LOSSLIMIT_MULTIPLE
   
   sampleMain(sampleSpreadType=sampleSpreadType,totalPopNum=totalPopNum,
              targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,
@@ -501,7 +501,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   
   #sampling
   originalLossLimitPrice=EvalFuncSetting$LossLimitPrice
-  EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*COMBINATION_LOSSLIMIT_Multipe
+  EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*COMBINATION_LOSSLIMIT_MULTIPLE
   
   sampleMain(sampleSpreadType=sampleSpreadType,totalPopNum=totalPopNum,
              targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,
@@ -536,7 +536,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   
   #sampling
   originalLossLimitPrice=EvalFuncSetting$LossLimitPrice
-  EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*COMBINATION_LOSSLIMIT_Multipe
+  EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*COMBINATION_LOSSLIMIT_MULTIPLE
   
   sampleMain(sampleSpreadType=sampleSpreadType,totalPopNum=totalPopNum,
              targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,
@@ -653,7 +653,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   
   #sampling
   originalLossLimitPrice=EvalFuncSetting$LossLimitPrice
-  EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*COMBINATION_LOSSLIMIT_Multipe
+  EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*COMBINATION_LOSSLIMIT_MULTIPLE
   
   sampleMain(sampleSpreadType=sampleSpreadType,totalPopNum=totalPopNum,
              targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,
@@ -713,7 +713,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   
   #sampling
   originalLossLimitPrice=EvalFuncSetting$LossLimitPrice
-  EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*COMBINATION_LOSSLIMIT_Multipe
+  EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*COMBINATION_LOSSLIMIT_MULTIPLE
   
   sampleMain(sampleSpreadType=sampleSpreadType,totalPopNum=totalPopNum,
              targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,
@@ -773,7 +773,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   
   #sampling
   originalLossLimitPrice=EvalFuncSetting$LossLimitPrice
-  EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*COMBINATION_LOSSLIMIT_Multipe
+  EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*COMBINATION_LOSSLIMIT_MULTIPLE
   
   sampleMain(sampleSpreadType=sampleSpreadType,totalPopNum=totalPopNum,
              targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,
@@ -833,7 +833,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   
   #sampling
   originalLossLimitPrice=EvalFuncSetting$LossLimitPrice
-  EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*COMBINATION_LOSSLIMIT_Multipe
+  EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*COMBINATION_LOSSLIMIT_MULTIPLE
   
   sampleMain(sampleSpreadType=sampleSpreadType,totalPopNum=totalPopNum,
              targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,
@@ -892,7 +892,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   
   #sampling
   originalLossLimitPrice=EvalFuncSetting$LossLimitPrice
-  EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*COMBINATION_LOSSLIMIT_Multipe
+  EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*COMBINATION_LOSSLIMIT_MULTIPLE
   
   sampleMain(sampleSpreadType=sampleSpreadType,totalPopNum=totalPopNum,
              targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,
@@ -960,7 +960,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   
   #sampling
   originalLossLimitPrice=EvalFuncSetting$LossLimitPrice
-  EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*COMBINATION_LOSSLIMIT_Multipe
+  EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*COMBINATION_LOSSLIMIT_MULTIPLE
   
   sampleMain(sampleSpreadType=sampleSpreadType,totalPopNum=totalPopNum,
              targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,

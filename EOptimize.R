@@ -8,13 +8,13 @@ rm(list=ls())
 source('./ESourceRCode.R',encoding = 'UTF-8')
 
 #continue COMBINATION HOT START
-COMBINATION_HOT_START=F
+COMBINATION_HOT_START=T
 
 #speceif configuration is to be applied to first generation
 SPECIFIC_FIRSTG_SETTING=F
 
 #COMBINATION LossLimit Multipe
-COMBINATION_LOSSLIMIT_Multipe=2
+COMBINATION_LOSSLIMIT_MULTIPLE=2
 
 #cache for the position
 HASH_HIT_NUM=0
@@ -145,7 +145,7 @@ if(COMBINATION_HOT_START==F){
 if(Combined_Spread){
   #LossLimitPrice adjust
   originalLossLimitPrice=EvalFuncSetting$LossLimitPrice
-  EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*COMBINATION_LOSSLIMIT_Multipe
+  EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*COMBINATION_LOSSLIMIT_MULTIPLE
   
   ### 2(exact x exact) Combinations (2Cb)
   tmp<-read.table(paste(ResultFiles_Path_G,"1Cb.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
