@@ -48,15 +48,25 @@ if(SPECIFIC_FIRSTG_SETTING==T){
 
 if(COMBINATION_HOT_START==T){
   hash::clear(POSITION_OPTIM_HASH)
-  
   loadToPositionHash(fname=paste(ResultFiles_Path_G,"1Cb.csv",sep=""))
-  loadToPositionHash(fname=paste(ResultFiles_Path_G,"2Cb.csv",sep=""))
-  loadToPositionHash(fname=paste(ResultFiles_Path_G,"3Cb.csv",sep=""))
-  loadToPositionHash(fname=paste(ResultFiles_Path_G,"4Cb.csv",sep=""))
-
-  file.copy(from=paste(ResultFiles_Path_G,"2Cb.csv",sep=""),to=paste(ResultFiles_Path_G,"2Cb_load.csv",sep=""),overwrite=T)
-  file.copy(from=paste(ResultFiles_Path_G,"3Cb.csv",sep=""),to=paste(ResultFiles_Path_G,"3Cb_load.csv",sep=""),overwrite=T)
-  file.copy(from=paste(ResultFiles_Path_G,"4Cb.csv",sep=""),to=paste(ResultFiles_Path_G,"4Cb_load.csv",sep=""),overwrite=T)
+  
+  tmp=paste(ResultFiles_Path_G,"2Cb.csv",sep="")
+  if( file.exists(tmp)){
+    loadToPositionHash(fname=tmp)
+    file.copy(from=tmp,to=paste(tmp,"_load.csv",sep=""),overwrite=T)
+  }
+  
+  tmp=paste(ResultFiles_Path_G,"3Cb.csv",sep="")
+  if( file.exists(tmp)){
+    loadToPositionHash(fname=tmp)
+    file.copy(from=tmp,to=paste(tmp,"_load.csv",sep=""),overwrite=T)
+  }
+  
+  tmp=paste(ResultFiles_Path_G,"4Cb.csv",sep="")
+  if( file.exists(tmp)){
+    loadToPositionHash(fname=tmp)
+    file.copy(from=tmp,to=paste(tmp,"_load.csv",sep=""),overwrite=T)
+  }
 }
 
 if(COMBINATION_HOT_START==F){
