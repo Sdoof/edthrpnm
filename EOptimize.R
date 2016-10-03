@@ -8,7 +8,7 @@ rm(list=ls())
 source('./ESourceRCode.R',encoding = 'UTF-8')
 
 #continue COMBINATION HOT START
-COMBINATION_HOT_START=T
+COMBINATION_HOT_START=F
 
 #speceif configuration is to be applied to first generation
 SPECIFIC_FIRSTG_SETTING=F
@@ -416,32 +416,59 @@ tmp_fil4 %>%
 
 #MERGE
 if(COMBINATION_HOT_START==T){
-  tmp=read.table(paste(ResultFiles_Path_G,"2Cb.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
-  tmp=tmp[,1:(length(opchain$Position)+1)]
-  tmp2=read.table(paste(ResultFiles_Path_G,"2Cb_load.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
-  tmp2=tmp2[,1:(length(opchain$Position)+1)]
+  #2Cb
+  rf=paste(ResultFiles_Path_G,"2Cb.csv",sep="")
+  tmp=read.table(rf,header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
+  #tmp=tmp[,1:(length(opchain$Position)+1)]
+  fname=paste(rf,"_load.csv",sep="")
+  if( file.exists(fname) ){
+    tmp2=read.table(fname,header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
+  }else{
+    tmp2=tmp[1,]
+  }
   tmp %>% dplyr::full_join(tmp2) -> tmp3
-  colnames(tmp3)=c(rep(1:length(opchain$Position)),"eval")
+  colnames(tmp3)=c(rep(1:length(opchain$Position)),
+                   "eval",
+                   rep(length(opchain$Position)+2:length(tmp3),
+                       length=length(tmp3)-(length(opchain$Position)+2)+1))
   tmp3 %>% dplyr::arrange(tmp3[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> tmp3
   write.table(tmp3,paste(ResultFiles_Path_G,"2Cb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
   
-  tmp=read.table(paste(ResultFiles_Path_G,"3Cb.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
-  tmp=tmp[,1:(length(opchain$Position)+1)]
-  tmp2=read.table(paste(ResultFiles_Path_G,"3Cb_load.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
-  tmp2=tmp2[,1:(length(opchain$Position)+1)]
+  #3Cb
+  rf=paste(ResultFiles_Path_G,"3Cb.csv",sep="")
+  tmp=read.table(rf,header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
+  #tmp=tmp[,1:(length(opchain$Position)+1)]
+  fname=paste(rf,"_load.csv",sep="")
+  if( file.exists(fname) ){
+    tmp2=read.table(fname,header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
+  }else{
+    tmp2=tmp[1,]
+  }
   tmp %>% dplyr::full_join(tmp2) -> tmp3
-  colnames(tmp3)=c(rep(1:length(opchain$Position)),"eval")
+  colnames(tmp3)=c(rep(1:length(opchain$Position)),
+                   "eval",
+                   rep(length(opchain$Position)+2:length(tmp3),
+                       length=length(tmp3)-(length(opchain$Position)+2)+1))
   tmp3 %>% dplyr::arrange(tmp3[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> tmp3
-  write.table(tmp3,paste(ResultFiles_Path_G,"3Cb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
+  write.table(tmp3,paste(ResultFiles_Path_G,"2Cb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
   
-  tmp=read.table(paste(ResultFiles_Path_G,"4Cb.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
-  tmp=tmp[,1:(length(opchain$Position)+1)]
-  tmp2=read.table(paste(ResultFiles_Path_G,"4Cb_load.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
-  tmp2=tmp2[,1:(length(opchain$Position)+1)]
+  #4Cb
+  rf=paste(ResultFiles_Path_G,"4Cb.csv",sep="")
+  tmp=read.table(rf,header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
+  #tmp=tmp[,1:(length(opchain$Position)+1)]
+  fname=paste(rf,"_load.csv",sep="")
+  if( file.exists(fname) ){
+    tmp2=read.table(fname,header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
+  }else{
+    tmp2=tmp[1,]
+  }
   tmp %>% dplyr::full_join(tmp2) -> tmp3
-  colnames(tmp3)=c(rep(1:length(opchain$Position)),"eval")
+  colnames(tmp3)=c(rep(1:length(opchain$Position)),
+                   "eval",
+                   rep(length(opchain$Position)+2:length(tmp3),
+                       length=length(tmp3)-(length(opchain$Position)+2)+1))
   tmp3 %>% dplyr::arrange(tmp3[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> tmp3
-  write.table(tmp3,paste(ResultFiles_Path_G,"4Cb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
+  write.table(tmp3,paste(ResultFiles_Path_G,"2Cb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
 }
   
 ## Save to a file
