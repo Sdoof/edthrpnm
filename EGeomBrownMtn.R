@@ -143,3 +143,29 @@ MHmakeRandomString <- function(n=1, length=12)
   return(randomString)
 }
 
+##LOCAL UTILITY: local file distinct unique position
+LocalDistinctPosition<-function(df){
+  df %>% dplyr::rowwise() %>% do(md5sum=digest(paste(unlist(.)[1:length(opchain$Position)],collapse=""))) -> md5sum
+  df$md5sum=unlist(md5sum)
+  df %>% dplyr::distinct(md5sum,.keep_all=TRUE) %>% dplyr::arrange(.[,(length(opchain$Position)+1)]) -> df
+  df$md5sum = NULL
+  return(df)
+}
+
+##LOCAL UTILITY: local function to just avoid code copy
+LocalMergeWriteFiles<-function(rf){
+  tmp=read.table(rf,header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
+  #tmp=tmp[,1:(length(opchain$Position)+1)]
+  fname=paste(rf,"_load.csv",sep="")
+  if( file.exists(fname) ){
+    tmp2=read.table(fname,header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
+  }else{
+    tmp2=tmp[1,]
+  }
+  tmp %>% dplyr::full_join(tmp2) -> tmp3
+  colnames(tmp3)[length(opchain$Position)+1]="eval"
+  tmp3=LocalDistinctPosition(df=tmp3)
+  write.table(tmp3,rf,row.names = F,col.names=F,sep=",",append=F)
+}
+
+

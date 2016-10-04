@@ -1150,22 +1150,27 @@ sampleMain<-function(sampleSpreadType,totalPopNum,targetExpDate,targetExpDate_f,
     tryCatch(
       if(val<(InitialPopThresh-1)){
         added_num<-added_num+1
-        if(isFileout){
-          cat(x,file=outFname,sep=",",append=TRUE);cat(",",file=outFname,append=TRUE)
-          cat(val,file=outFname,append=TRUE)
-          if(s1_idx!=0)
-            cat(",",s1_idx,file=outFname,append=TRUE)
-          if(s2_idx!=0){
-            cat(",",s2_idx,file=outFname,append=TRUE)
-          }
-          cat("\n",file=outFname,append=TRUE)
-        }
+      }else{
+        val=(ifelse(is.na(val),InitialPopThresh,val)+total_count)
       },
       error=function(e){
         message(e)
         cat("val:",val,"InitialPopThresh",InitialPopThresh,"\n")
+        val=(ifelse(is.na(val),InitialPopThresh,val)+total_count)
+        cat("val:",val,"InitialPopThresh",InitialPopThresh,"\n")
       }
     )
+    #write to the file
+    if(isFileout){
+      cat(x,file=outFname,sep=",",append=TRUE);cat(",",file=outFname,append=TRUE)
+      cat(val,file=outFname,append=TRUE)
+      if(s1_idx!=0)
+       cat(",",s1_idx,file=outFname,append=TRUE)
+      if(s2_idx!=0){
+       cat(",",s2_idx,file=outFname,append=TRUE)
+      }
+      cat("\n",file=outFname,append=TRUE)
+    }
     #add total_count and show count information
     total_count<-total_count+1
     if((added_num%%50)==0){
@@ -1279,6 +1284,7 @@ create_initial_exact_PutCall_polulation<-function(popnum,type,EvalFuncSetting,th
     tryCatch(
       if(val<thresh){
         added_num<-added_num+1
+        # write to the file
         if(isFileout){
           cat(x,file=fname,sep=",",append=TRUE);cat(",",file=fname,append=TRUE)
           cat(val,file=fname,"\n",append=TRUE)
@@ -1286,6 +1292,8 @@ create_initial_exact_PutCall_polulation<-function(popnum,type,EvalFuncSetting,th
       },
       error=function(e){
         message(e)
+        cat("val:",val,"thresh:",thresh,"x",x,"\n")
+        val=(ifelse(is.na(val),thresh,val)+total_count)
         cat("val:",val,"thresh:",thresh,"x",x,"\n")
       })
     #add total_count and show count information
@@ -1379,23 +1387,28 @@ create_combined_population<-function(popnum,EvalFuncSetting,thresh,plelem,ml,fna
     tryCatch(
       if(val<thresh){
         added_num<-added_num+1
-        if(isFileout){  
-          cat(x_new,file=fname,sep=",",append=TRUE);cat(",",file=fname,append=TRUE)
-          cat(val,file=fname,sep=",",append=TRUE);cat(",",file=fname,append=TRUE);
-          cat(pools[[ plelem[1] ]][[1]][2:3],file=fname,sep=",",append=TRUE);cat(",",file=fname,append=TRUE);cat(s1_score,file=fname,append=TRUE);cat(",",file=fname,append=TRUE)
-          cat(pools[[ plelem[2] ]][[1]][2:3],file=fname,sep=",",append=TRUE);cat(",",file=fname,append=TRUE);cat(s2_score,file=fname,append=TRUE)
-          if(length(plelem)==3){
-            cat(",",file=fname,append=TRUE)
-            cat(pools[[ plelem[3] ]][[1]][2:3],file=fname,sep=",",append=TRUE);cat(",",file=fname,append=TRUE);cat(s3_score,file=fname,append=TRUE)
-          }
-          cat("\n",file=fname,append=TRUE)
-        }
+      }else{
+        val=(ifelse(is.na(val),thresh,val)+total_count)
       },
       error=function(e){
         message(e)
         cat("val:",val,"thresh:",thresh,"x",x_new,"\n")
+        val=ifelse(is.na(val),thresh,val)+
+        cat("val:",val,"thresh:",thresh,"x",x,"\n")
       }
     )
+    #write to the file
+    if(isFileout){  
+      cat(x_new,file=fname,sep=",",append=TRUE);cat(",",file=fname,append=TRUE)
+      cat(val,file=fname,sep=",",append=TRUE);cat(",",file=fname,append=TRUE);
+      cat(pools[[ plelem[1] ]][[1]][2:3],file=fname,sep=",",append=TRUE);cat(",",file=fname,append=TRUE);cat(s1_score,file=fname,append=TRUE);cat(",",file=fname,append=TRUE)
+      cat(pools[[ plelem[2] ]][[1]][2:3],file=fname,sep=",",append=TRUE);cat(",",file=fname,append=TRUE);cat(s2_score,file=fname,append=TRUE)
+      if(length(plelem)==3){
+        cat(",",file=fname,append=TRUE)
+        cat(pools[[ plelem[3] ]][[1]][2:3],file=fname,sep=",",append=TRUE);cat(",",file=fname,append=TRUE);cat(s3_score,file=fname,append=TRUE)
+      }
+      cat("\n",file=fname,append=TRUE)
+    }
     #show count information
     if(((added_num%%50)==0)){
       cat(" added num:",added_num,"hash hit:",HASH_HIT_NUM,"hash num:",length(POSITION_OPTIM_HASH),"total_count",total_count," time:",(proc.time()-start_t)[3],"\n")

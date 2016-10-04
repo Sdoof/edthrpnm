@@ -369,38 +369,7 @@ getPositionWithGreeks<-function(tmp_fil){
   tmp_fil$AdvEffect<-unlist(tmp2$ThetaEffect)+unlist(tmp2$GammaEffect)
   return(tmp_fil)
 }
-#dataw with greeks
-#getPositionWithGreeks(tmp_fil) -> tmp_fil
-#getPositionWithGreeks(tmp_fil2) -> tmp_fil2
-#getPositionWithGreeks(tmp_fil3) -> tmp_fil3
-#getPositionWithGreeks(tmp_fil4) -> tmp_fil4
-
-##Filtering 
-#read again and again
-# Thresh_AdvEffect=as.numeric(ConfigParameters["ResultProcess_Thresh_AdvEffect",1])
-# F_Thrsh_Params_Names<-c("Score1","Score2","Score3","Delta1_Minus","Delta2_Minus","Delta3_Minus",
-#                         "Delta1_Plus","Delta2_Plus","Delta3_Plus","Thrsh_VegaE1","Thrsh_VegaE2","Thrsh_VegaE3",
-#                         "F_TopN1","F_TopN2","F_TopN3")
-# F_Thrsh_Params<- vector("list",length(F_Thrsh_Params_Names))
-# F_Thrsh_Params[[1]]<-as.numeric(ConfigParameters["ResultProcess_F_Thrsh_Score1",1])
-# F_Thrsh_Params[[2]]<-as.numeric(ConfigParameters["ResultProcess_F_Thrsh_Score2",1])
-# F_Thrsh_Params[[3]]<-as.numeric(ConfigParameters["ResultProcess_F_Thrsh_Score3",1])
-# F_Thrsh_Params[[4]]<-as.numeric(ConfigParameters["ResultProcess_F_Thrsh_Delta1_Minus",1])
-# F_Thrsh_Params[[5]]<-as.numeric(ConfigParameters["ResultProcess_F_Thrsh_Delta2_Minus",1])
-# F_Thrsh_Params[[6]]<-as.numeric(ConfigParameters["ResultProcess_F_Thrsh_Delta3_Minus",1])
-# F_Thrsh_Params[[7]]<-as.numeric(ConfigParameters["ResultProcess_F_Thrsh_Delta1_Plus",1])
-# F_Thrsh_Params[[8]]<-as.numeric(ConfigParameters["ResultProcess_F_Thrsh_Delta2_Plus",1])
-# F_Thrsh_Params[[9]]<-as.numeric(ConfigParameters["ResultProcess_F_Thrsh_Delta3_Plus",1])
-# F_Thrsh_Params[[10]]<-as.numeric(ConfigParameters["ResultProcess_F_Thrsh_VegaE1",1])
-# F_Thrsh_Params[[11]]<-as.numeric(ConfigParameters["ResultProcess_F_Thrsh_VegaE2",1])
-# F_Thrsh_Params[[12]]<-as.numeric(ConfigParameters["ResultProcess_F_Thrsh_VegaE3",1])
-# F_Thrsh_Params[[13]]<-as.numeric(ConfigParameters["ResultProcess_F_TopN1",1])
-# F_Thrsh_Params[[14]]<-as.numeric(ConfigParameters["ResultProcess_F_TopN2",1])
-# F_Thrsh_Params[[15]]<-as.numeric(ConfigParameters["ResultProcess_F_TopN3",1])
-# names(F_Thrsh_Params)<-F_Thrsh_Params_Names ; rm(F_Thrsh_Params_Names) 
-# (Thresh_AdvEffect)
-# (F_Thrsh_Params)
-
+#data for writing to files.
 tmp_fil %>% 
   dplyr::arrange(tmp_fil[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> tmp_fil_w
 
@@ -416,61 +385,10 @@ tmp_fil4 %>%
 
 #MERGE
 if(COMBINATION_HOT_START==T){
-  #2Cb
-  rf=paste(ResultFiles_Path_G,"2Cb.csv",sep="")
-  tmp=read.table(rf,header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
-  #tmp=tmp[,1:(length(opchain$Position)+1)]
-  fname=paste(rf,"_load.csv",sep="")
-  if( file.exists(fname) ){
-    tmp2=read.table(fname,header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
-  }else{
-    tmp2=tmp[1,]
-  }
-  tmp %>% dplyr::full_join(tmp2) -> tmp3
-  colnames(tmp3)=c(rep(1:length(opchain$Position)),
-                   "eval",
-                   rep(length(opchain$Position)+2:length(tmp3),
-                       length=length(tmp3)-(length(opchain$Position)+2)+1))
-  tmp3 %>% dplyr::arrange(tmp3[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> tmp3
-  write.table(tmp3,paste(ResultFiles_Path_G,"2Cb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
-  
-  #3Cb
-  rf=paste(ResultFiles_Path_G,"3Cb.csv",sep="")
-  tmp=read.table(rf,header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
-  #tmp=tmp[,1:(length(opchain$Position)+1)]
-  fname=paste(rf,"_load.csv",sep="")
-  if( file.exists(fname) ){
-    tmp2=read.table(fname,header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
-  }else{
-    tmp2=tmp[1,]
-  }
-  tmp %>% dplyr::full_join(tmp2) -> tmp3
-  colnames(tmp3)=c(rep(1:length(opchain$Position)),
-                   "eval",
-                   rep(length(opchain$Position)+2:length(tmp3),
-                       length=length(tmp3)-(length(opchain$Position)+2)+1))
-  tmp3 %>% dplyr::arrange(tmp3[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> tmp3
-  write.table(tmp3,paste(ResultFiles_Path_G,"2Cb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
-  
-  #4Cb
-  rf=paste(ResultFiles_Path_G,"4Cb.csv",sep="")
-  tmp=read.table(rf,header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
-  #tmp=tmp[,1:(length(opchain$Position)+1)]
-  fname=paste(rf,"_load.csv",sep="")
-  if( file.exists(fname) ){
-    tmp2=read.table(fname,header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
-  }else{
-    tmp2=tmp[1,]
-  }
-  tmp %>% dplyr::full_join(tmp2) -> tmp3
-  colnames(tmp3)=c(rep(1:length(opchain$Position)),
-                   "eval",
-                   rep(length(opchain$Position)+2:length(tmp3),
-                       length=length(tmp3)-(length(opchain$Position)+2)+1))
-  tmp3 %>% dplyr::arrange(tmp3[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> tmp3
-  write.table(tmp3,paste(ResultFiles_Path_G,"2Cb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
+  LocalMergeWriteFiles(rf=paste(ResultFiles_Path_G,"2Cb.csv",sep=""))
+  LocalMergeWriteFiles(rf=paste(ResultFiles_Path_G,"3Cb.csv",sep=""))
+  LocalMergeWriteFiles(rf=paste(ResultFiles_Path_G,"4Cb.csv",sep=""))
 }
-  
 ## Save to a file
 write.table(tmp_fil_w,paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition_",
                             format(Sys.time(),"%Y%b%d_%H%M%S"),".csv",sep=""),row.names = F,col.names=F,sep=",",append=F)

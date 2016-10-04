@@ -12,7 +12,7 @@ source('./ESourceRCode.R',encoding = 'UTF-8')
 COMBINATION_LOSSLIMIT_MULTIPLE=2
 
 #Cache Hash setting
-FILEPLUS_HOT_START=T
+FILEPLUS_HOT_START=F
 
 #Debug, Detail Mode
 IS_DEBUG_MODE=F
@@ -664,18 +664,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   
   #Merge file
   if( file.exists(outFname) && FILEPLUS_HOT_START){
-    tmp=read.table(outFname,header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
-    if( file.exists(paste(outFname,"_load.csv",sep="")))
-      tmp2=read.table(paste(outFname,"_load.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
-    else
-      tmp2=tmp[1,]
-    tmp %>% dplyr::full_join(tmp2) -> tmp3
-    colnames(tmp3)=c(rep(1:length(opchain$Position)),
-                     "eval",
-                     rep(length(opchain$Position)+2:length(tmp3),
-                         length=length(tmp3)-(length(opchain$Position)+2)+1))
-    tmp3 %>% dplyr::arrange(tmp3[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> tmp3
-    write.table(tmp3,outFname,row.names = F,col.names=F,sep=",",append=F)
+    LocalMergeWriteFiles(outFname)
   }
   
   #file handling
@@ -728,18 +717,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   
   #Merge file
   if( file.exists(outFname) && FILEPLUS_HOT_START){
-    tmp=read.table(outFname,header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
-    if( file.exists(paste(outFname,"_load.csv",sep="")))
-      tmp2=read.table(paste(outFname,"_load.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
-    else
-      tmp2=tmp[1,]
-    tmp %>% dplyr::full_join(tmp2) -> tmp3
-    colnames(tmp3)=c(rep(1:length(opchain$Position)),
-                     "eval",
-                     rep(length(opchain$Position)+2:length(tmp3),
-                         length=length(tmp3)-(length(opchain$Position)+2)+1))
-    tmp3 %>% dplyr::arrange(tmp3[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> tmp3
-    write.table(tmp3,outFname,row.names = F,col.names=F,sep=",",append=F)
+    LocalMergeWriteFiles(outFname)
   }
   
   #file handling
@@ -792,20 +770,9 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   
   #Merge file
   if( file.exists(outFname) && FILEPLUS_HOT_START){
-    tmp=read.table(outFname,header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
-    if( file.exists(paste(outFname,"_load.csv",sep="")))
-      tmp2=read.table(paste(outFname,"_load.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
-    else
-      tmp2=tmp[1,]
-    tmp %>% dplyr::full_join(tmp2) -> tmp3
-    colnames(tmp3)=c(rep(1:length(opchain$Position)),
-                     "eval",
-                     rep(length(opchain$Position)+2:length(tmp3),
-                         length=length(tmp3)-(length(opchain$Position)+2)+1))
-    tmp3 %>% dplyr::arrange(tmp3[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> tmp3
-    write.table(tmp3,outFname,row.names = F,col.names=F,sep=",",append=F)
+    LocalMergeWriteFiles(outFname)
   }
- 
+  
   #file handling
   tmp<-read.table(outFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
   tmp %>% dplyr::arrange(.[,length(opchain$Position)+1])  %>%
@@ -856,18 +823,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   
   #Merge file
   if( file.exists(outFname) && FILEPLUS_HOT_START){
-    tmp=read.table(outFname,header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
-    if( file.exists(paste(outFname,"_load.csv",sep="")))
-      tmp2=read.table(paste(outFname,"_load.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
-    else
-      tmp2=tmp[1,]
-    tmp %>% dplyr::full_join(tmp2) -> tmp3
-    colnames(tmp3)=c(rep(1:length(opchain$Position)),
-                     "eval",
-                     rep(length(opchain$Position)+2:length(tmp3),
-                         length=length(tmp3)-(length(opchain$Position)+2)+1))
-    tmp3 %>% dplyr::arrange(tmp3[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> tmp3
-    write.table(tmp3,outFname,row.names = F,col.names=F,sep=",",append=F)
+    LocalMergeWriteFiles(outFname)
   }
   
   #file handling
@@ -879,6 +835,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   #copy file to EvalPosition
   file.copy(from=outFname, to=paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition.csv",sep=""),overwrite=T)
 }
+
 ###FILE_PLUS_DOUBLE_DIAGONAL
 sampleSpreadType=FILE_PLUS_DOUBLE_DIAGONAL
 if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
@@ -919,18 +876,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   
   #Merge file
   if( file.exists(outFname) && FILEPLUS_HOT_START){
-    tmp=read.table(outFname,header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
-    if( file.exists(paste(outFname,"_load.csv",sep="")))
-      tmp2=read.table(paste(outFname,"_load.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
-    else
-      tmp2=tmp[1,]
-    tmp %>% dplyr::full_join(tmp2) -> tmp3
-    colnames(tmp3)=c(rep(1:length(opchain$Position)),
-                     "eval",
-                     rep(length(opchain$Position)+2:length(tmp3),
-                         length=length(tmp3)-(length(opchain$Position)+2)+1))
-    tmp3 %>% dplyr::arrange(tmp3[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> tmp3
-    write.table(tmp3,outFname,row.names = F,col.names=F,sep=",",append=F)
+    LocalMergeWriteFiles(outFname)
   }
   
   #file handling
@@ -991,19 +937,9 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
 
   #Merge file
   if( file.exists(outFname) && FILEPLUS_HOT_START){
-    tmp=read.table(outFname,header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
-    if( file.exists(paste(outFname,"_load.csv",sep="")))
-      tmp2=read.table(paste(outFname,"_load.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
-    else
-      tmp2=tmp[1,]
-    tmp %>% dplyr::full_join(tmp2) -> tmp3
-    colnames(tmp3)=c(rep(1:length(opchain$Position)),
-                     "eval",
-                     rep(length(opchain$Position)+2:length(tmp3),
-                         length=length(tmp3)-(length(opchain$Position)+2)+1))
-    write.table(tmp3,outFname,row.names = F,col.names=F,sep=",",append=F)
+    LocalMergeWriteFiles(outFname)
   }
- 
+  
   #file handling
   tmp<-read.table(outFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
   tmp %>% dplyr::arrange(.[,length(opchain$Position)+1])  %>%
