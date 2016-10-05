@@ -124,6 +124,264 @@ saveP2IVReg<-function(histPrc,histIV,dataNum,xDayInt,start_day=1,effectiv_suffix
   return(ret)
 }
 
+##
+# Daily Volatility of Implied Volatility statistic of selected subdata
+getDVIVStat <- function(histIV,xDayVol,effectiv_suffix,isDebug=F){
+  DVIV_V=rep(0,times=length(effectiv_suffix))
+  dviv_suff=1
+  # histIV[i+xdays], +(xdays)(->) means data backs to xdays PAST
+  # histIV[i-xdays], -(xdays)(<-) means data looks forward xdays FUTURE
+  for(i in 1:length(effectiv_suffix)) {
+    if(effectiv_suffix[i]<=length(histIV)-xDayVol){
+      histIV[effectiv_suffix[i]:(effectiv_suffix[i]+xDayVol)]
+      #toward the past
+      DVIV=annuual.daily.volatility( histIV[effectiv_suffix[i]:(effectiv_suffix[i]+xDayVol)] )$daily
+      if(isDebug)
+        cat("at",effectiv_suffix[i],
+            "DVIV",DVIV,"AVIV",DVIV*sqrt(252),
+            "IV",histIV[(effectiv_suffix[i])],
+            "\n")
+      DVIV_V[dviv_suff]=DVIV
+      dviv_suff=dviv_suff+1
+    }
+  }
+  DVIV=DVIV_V[1:(dviv_suff-1)]
+  return(DVIV)
+}
+
+##
+# select Suffix to icnlude the valid IV data
+selectSuffixToPredictHV <- function(histIV,a_low,d_low,a_high,d_high){
+  theIV=histIV[1]
+  SelectInclude=(histIV>=theIV*a_low | histIV>=(theIV-d_low))&(histIV<=theIV*a_high | histIV<=(theIV+d_high))
+  
+  which(SelectInclude==TRUE)->suffix_slctd
+  
+  return(suffix_slctd)
+}
+
+##
+# realized HV/IV ratio statistic of selected subdata
+getHVIVRStat <- function(histPrc,histIV,xDayVol,effectiv_suffix,isDebug=F){
+  HVIVR_V=rep(0,times=length(effectiv_suffix))
+  hvivr_suff=1
+  # histPrc[i+xdays], +(xdays)(->) means data backs to xdays PAST
+  # histPrc[i-xdays], -(xdays)(<-) means data looks forward xdays FUTURE
+  for(i in 1:length(effectiv_suffix)){
+    if(effectiv_suffix[i]>=xDayVol){
+      histPrc[effectiv_suffix[i]:(effectiv_suffix[i]+xDayVol)]
+      #toward the FUTURE
+      HVIVR=annuual.daily.volatility( histPrc[(effectiv_suffix[i]-xDayVol):effectiv_suffix[i]] )$anlzd/
+        (histIV[(effectiv_suffix[i])]/100)
+      if(isDebug)
+        cat("at",i,
+            "HV",annuual.daily.volatility( histPrc[(effectiv_suffix[i]-xDayVol):effectiv_suffix[i]] )$anlzd,
+            "IV",histIV[(effectiv_suffix[i])]/100,
+            "HVIVR",HVIVR,"\n")
+      HVIVR_V[hvivr_suff]=HVIVR
+      hvivr_suff=hvivr_suff+1
+    }
+  }
+  HVIVR=HVIVR_V[1:(hvivr_suff-1)]
+  return(HVIVR)
+}
+
+#####
+## Expected HV predict
+
+# select suffix
+effectiv_suffix=selectSuffixToPredictHV(histIV,a_low,d_low,a_high,d_high)
+
+# HVIVR statistic
+HVIVR=getHVIVRStat(histPrc,histIV,xDayVol=20,effectiv_suffix)
+mean(HVIVR)
+sd(HVIVR)
+mean(HVIVR[1:100])
+sd(HVIVR[1:100])
+
+# HVIVR statistic for all histIV data. effectiv_suffix are given as below.
+HVIVR=getHVIVRStat(histPrc,histIV,xDayVol=20,effectiv_suffix=seq(1:length(histIV)))
+mean(HVIVR)
+sd(HVIVR)
+mean(HVIVR[1:100])
+sd(HVIVR[1:100])
+
+cat("HV_IV_Adjust_Ratio mean",mean(HVIVR[1:100]),"\n")
+HV_IV_Adjust_Ratio=mean(HVIVR[1:100])+sd(HVIVR[1:100])
+cat("HV_IV_Adjust_Ratio mean+1sd",HV_IV_Adjust_Ratio,"\n")
+
+DVIV=getDVIVStat(histIV,xDayVol=dviv_caldays,effectiv_suffix,isDebug=F)
+AVIV=DVIV*sqrt(252)
+#total data AVIV 
+annuual.daily.volatility(histIV)$anlzd
+#first dviv_caldays AVIV
+annuual.daily.volatility(histIV[1:dviv_caldays])$anlzd
+
+mean(AVIV)
+mean(AVIV[1:100])
+
+#"ExpIVChange_Multiple coeffecient
+cat("ExpIVChange_Multiple",mean(AVIV[1:100])/annuual.daily.volatility(histIV[1:dviv_caldays])$anlzd,"\n")
+cat("ExpIVChange_Multiple",mean(DVIV[1:100])/annuual.daily.volatility(histIV[1:dviv_caldays])$daily,"\n")
+
+#####
+## Return Distribution Estimates
+
+##  Histgram
+xDayInt=EvalFuncSetting$holdDays
+tmp=saveP2IVReg(histPrc,histIV,DATA_NUM,xDayInt)
+tmp$lm
+if(IS_SELECTIVE_WEIGHT_ESTM){
+  selectSuffixForValidIV(histIV,xDayInt,a_low,d_low,a_high,d_high)->suffix_slctd
+  tmp=saveP2IVReg(histPrc,histIV,DATA_NUM,xDayInt,effectiv_suffix=suffix_slctd)
+}
+h <- dpih(tmp$P2IVxd$PCxdCtC)
+bins <- seq(min(tmp$P2IVxd$PCxdCtC)-3*h/2, max(tmp$P2IVxd$PCxdCtC)+3*h/2, by=h)
+hist(tmp$P2IVxd$PCxdCtC, breaks=bins)
+rm(h)
+
+est_density=density(tmp$P2IVxd$PCxdCtC,
+                    adjust = max(max(abs(tmp$P2IVxd$PCxdCtC))/(EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum),1),
+                    from=(-EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum),
+                    to=EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum,
+                    n=(2*EvalFuncSetting$UdlStepNum)+1)
+
+lines(est_density,xlim=c(-EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum,
+                         EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum),
+      ylim=c(0,1))
+frame()
+
+plot(est_density$x,est_density$y,col="blue")
+lines(est_density,xlim=c(-EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum,
+                         EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum),
+      ylim=c(0,1))
+
+
+est_weight=est_density$y/sum(est_density$y)
+
+frame()
+plot(est_density$x,est_weight,col="blue")
+
+anlzd_sd<-histIV[1]/100*HV_IV_Adjust_Ratio
+sd_hd<-(anlzd_sd/sqrt(252/EvalFuncSetting$holdDays))
+sknm_weight<-dsn(est_density$x,
+                 xi=EvalFuncSetting$holdDays/252*EvalFuncSetting$Weight_Drift,
+                 alpha=EvalFuncSetting$Weight_Skew*sd_hd,
+                 omega=sd_hd)
+sknm_weight=sknm_weight/sum(sknm_weight)
+par(new=T)
+plot(est_density$x,sknm_weight,col="red")
+
+print(est_weight)
+print(sknm_weight)
+
+cat("c(");cat(est_weight,sep="$");cat(")")
+
+#optimize EvalFuncSetting$UdlStepPct,EvalFuncSetting$UdlStepNum
+#weight below min_effective_rate is rounded to 0 on evaluation function
+min_effective_rate=(1/5000)
+#show effetive weight component
+as.numeric(est_weight>min_effective_rate)
+#effective(relevant) price range from center
+newPriceRangeFromCenter=
+  max(EvalFuncSetting$UdlStepNum-min(which(as.numeric(est_weight>(1/5000))==1)),
+      (EvalFuncSetting$UdlStepNum*2+1)-max(which(as.numeric(est_weight>(1/5000))==1)))*
+  EvalFuncSetting$UdlStepPct
+#if EvalFuncSetting$UdlStepNum is fixed
+newUdlStepPct=newPriceRangeFromCenter/EvalFuncSetting$UdlStepNum
+cat("new UdlStepPct",newUdlStepPct,"new UdlStepNum",EvalFuncSetting$UdlStepNum)
+#if EvalFuncSetting$UdlStepPct is changed
+newUdlStepNum=newPriceRangeFromCenter/EvalFuncSetting$UdlStepPct
+cat("new UdlStepPct",EvalFuncSetting$UdlStepPct,"new UdlStepNum",newUdlStepNum)
+#if newUdlStepNum is given arbitrary
+newUdlStepNum=10
+newUdlStepPct=newPriceRangeFromCenter/newUdlStepNum
+cat("new UdlStepPct",newUdlStepPct,"new UdlStepNum",newUdlStepNum)
+
+min(tmp$P2IVxd$PCxdCtC)
+#which.min(tmp$P2IVxd$PCxdCtC)
+Date[which.min(tmp$P2IVxd$PCxdCtC)]
+tmp$P2IVxd$IVCFxdCtC[which.min(tmp$P2IVxd$PCxdCtC)]
+#sd, mean and skewnewss
+sd(tmp$P2IVxd$PCxdCtC)
+mean(tmp$P2IVxd$PCxdCtC)
+mean((tmp$P2IVxd$PCxdCtC-mean(tmp$P2IVxd$PCxdCtC))^3)/(sd(tmp$P2IVxd$PCxdCtC)^3)
+#annualized sd and mean
+cat("sd anlzd",sd(tmp$P2IVxd$PCxdCtC)*sqrt(225/xDayInt),"\n")
+cat("drift anlzd",mean(tmp$P2IVxd$PCxdCtC)*(225/xDayInt),"\n")
+#Skewness as a multiple of SD
+cat("skew",
+    mean((tmp$P2IVxd$PCxdCtC-mean(tmp$P2IVxd$PCxdCtC))^3),"\n")
+
+##
+# Histgram One Day
+xDayInt=1
+tmp=saveP2IVReg(histPrc,histIV,DATA_NUM,xDayInt)
+tmp$lm
+if(IS_SELECTIVE_WEIGHT_ESTM){
+  selectSuffixForValidIV(histIV,xDayInt,a_low,d_low,a_high,d_high)->suffix_slctd
+  tmp=saveP2IVReg(histPrc,histIV,DATA_NUM,xDayInt,effectiv_suffix=suffix_slctd)
+}
+h <- dpih(tmp$P2IVxd$PCxdCtC)
+bins <- seq(min(tmp$P2IVxd$PCxdCtC)-3*h/2, max(tmp$P2IVxd$PCxdCtC)+3*h/2, by=h)
+hist(tmp$P2IVxd$PCxdCtC, breaks=bins)
+rm(h)
+
+est_density=density(tmp$P2IVxd$PCxdCtC,
+                    adjust = max(max(abs(tmp$P2IVxd$PCxdCtC))/(EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum),1),
+                    from=(-EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum),
+                    to=EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum,
+                    n=(2*EvalFuncSetting$UdlStepNum)+1)
+
+lines(est_density,xlim=c(-EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum,
+                         EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum),
+      ylim=c(0,1))
+frame()
+
+plot(est_density$x,est_density$y,col="blue")
+lines(est_density,xlim=c(-EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum,
+                         EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum),
+      ylim=c(0,1))
+
+
+est_weight=est_density$y/sum(est_density$y)
+
+frame()
+plot(est_density$x,est_weight,col="blue")
+
+HV_IV_Adjust_Ratio
+anlzd_sd<-histIV[1]/100*HV_IV_Adjust_Ratio
+sd_hd<-(anlzd_sd/sqrt(252/1))
+sknm_weight<-dsn(est_density$x,
+                 xi=EvalFuncSetting$holdDays/252*EvalFuncSetting$Weight_Drift,
+                 alpha=EvalFuncSetting$Weight_Skew*sd_hd,
+                 omega=sd_hd)
+sknm_weight=sknm_weight/sum(sknm_weight)
+par(new=T)
+plot(est_density$x,sknm_weight,col="red")
+
+print(est_weight)
+print(sknm_weight)
+
+cat("c(");cat(est_weight,sep="$");cat(")")
+
+min(tmp$P2IVxd$PCxdCtC)
+#which.min(tmp$P2IVxd$PCxdCtC)
+Date[which.min(tmp$P2IVxd$PCxdCtC)]
+tmp$P2IVxd$IVCFxdCtC[which.min(tmp$P2IVxd$PCxdCtC)]
+#sd, mean and skewnewss
+sd(tmp$P2IVxd$PCxdCtC)
+mean(tmp$P2IVxd$PCxdCtC)
+mean((tmp$P2IVxd$PCxdCtC-mean(tmp$P2IVxd$PCxdCtC))^3)/(sd(tmp$P2IVxd$PCxdCtC)^3)
+#annualized sd and mean
+cat("sd anlzd",sd(tmp$P2IVxd$PCxdCtC)*sqrt(225/xDayInt),"\n")
+cat("drift anlzd",mean(tmp$P2IVxd$PCxdCtC)*(225/xDayInt),"\n")
+#Skewness as a multiple of SD
+cat("skew",
+    mean((tmp$P2IVxd$PCxdCtC-mean(tmp$P2IVxd$PCxdCtC))^3),"\n")
+
+## PCndCtC_IVCFndCtC Regression
+
 ######
 ## 5d
 xDayInt=5
@@ -217,239 +475,3 @@ gg+geom_abline(intercept=tmp$lm$coefficient[1],slope=tmp$lm$coefficient[2],color
 #Load test
 load.PC2IV(PC=paste("PC",xDayInt,"dCtC",sep=""),IVC=paste("IVCF",xDayInt,"dCtC",sep=""))
 PC1dCtC_IVCF1dCtC
-
-####
-# expected HV predict
-
-##
-# select Suffix to icnlude the valid IV data
-selectSuffixToPredictHV <- function(histIV,a_low,d_low,a_high,d_high){
-  theIV=histIV[1]
-  SelectInclude=(histIV>=theIV*a_low | histIV>=(theIV-d_low))&(histIV<=theIV*a_high | histIV<=(theIV+d_high))
-  
-  which(SelectInclude==TRUE)->suffix_slctd
-  
-  return(suffix_slctd)
-}
-
-##
-# realized HV/IV ratio statistic of selected subdata
-getHVIVRStat <- function(histPrc,histIV,xDayVol,effectiv_suffix,isDebug=F){
-  HVIVR_V=rep(0,times=length(effectiv_suffix))
-  hvivr_suff=1
-  # histPrc[i+xdays], +(xdays)(->) means data backs to xdays PAST
-  # histPrc[i-xdays], -(xdays)(<-) means data looks forward xdays FUTURE
-  for(i in 1:length(effectiv_suffix)){
-    if(effectiv_suffix[i]>=xDayVol){
-      histPrc[effectiv_suffix[i]:(effectiv_suffix[i]+xDayVol)]
-      #toward the FUTURE
-      HVIVR=annuual.daily.volatility( histPrc[(effectiv_suffix[i]-xDayVol):effectiv_suffix[i]] )$anlzd/
-        (histIV[(effectiv_suffix[i])]/100)
-      if(isDebug)
-        cat("at",i,
-            "HV",annuual.daily.volatility( histPrc[(effectiv_suffix[i]-xDayVol):effectiv_suffix[i]] )$anlzd,
-            "IV",histIV[(effectiv_suffix[i])]/100,
-            "HVIVR",HVIVR,"\n")
-      HVIVR_V[hvivr_suff]=HVIVR
-      hvivr_suff=hvivr_suff+1
-    }
-  }
-  HVIVR=HVIVR_V[1:(hvivr_suff-1)]
-  return(HVIVR)
-}
-
-# select suffix
-effectiv_suffix=selectSuffixToPredictHV(histIV,a_low,d_low,a_high,d_high)
-
-# HVIVR statistic
-HVIVR=getHVIVRStat(histPrc,histIV,xDayVol=20,effectiv_suffix)
-mean(HVIVR)
-sd(HVIVR)
-mean(HVIVR[1:100])
-sd(HVIVR[1:100])
-
-# HVIVR statistic for all histIV data. effectiv_suffix are given as below.
-HVIVR=getHVIVRStat(histPrc,histIV,xDayVol=20,effectiv_suffix=seq(1:length(histIV)))
-mean(HVIVR)
-sd(HVIVR)
-mean(HVIVR[1:100])
-sd(HVIVR[1:100])
-
-cat("HV_IV_Adjust_Ratio mean",mean(HVIVR[1:100]),"\n")
-HV_IV_Adjust_Ratio=mean(HVIVR[1:100])+sd(HVIVR[1:100])
-cat("HV_IV_Adjust_Ratio mean+1sd",HV_IV_Adjust_Ratio,"\n")
-
-##
-# Daily Volatility of Implied Volatility statistic of selected subdata
-getDVIVStat <- function(histIV,xDayVol,effectiv_suffix,isDebug=F){
-  DVIV_V=rep(0,times=length(effectiv_suffix))
-  dviv_suff=1
-  # histIV[i+xdays], +(xdays)(->) means data backs to xdays PAST
-  # histIV[i-xdays], -(xdays)(<-) means data looks forward xdays FUTURE
-  for(i in 1:length(effectiv_suffix)) {
-    if(effectiv_suffix[i]<=length(histIV)-xDayVol){
-      histIV[effectiv_suffix[i]:(effectiv_suffix[i]+xDayVol)]
-      #toward the past
-      DVIV=annuual.daily.volatility( histIV[effectiv_suffix[i]:(effectiv_suffix[i]+xDayVol)] )$daily
-      if(isDebug)
-        cat("at",effectiv_suffix[i],
-            "DVIV",DVIV,"AVIV",DVIV*sqrt(252),
-            "IV",histIV[(effectiv_suffix[i])],
-            "\n")
-      DVIV_V[dviv_suff]=DVIV
-      dviv_suff=dviv_suff+1
-    }
-  }
-  DVIV=DVIV_V[1:(dviv_suff-1)]
-  return(DVIV)
-}
-
-DVIV=getDVIVStat(histIV,xDayVol=dviv_caldays,effectiv_suffix,isDebug=F)
-AVIV=DVIV*sqrt(252)
-#total data AVIV 
-annuual.daily.volatility(histIV)$anlzd
-#first dviv_caldays AVIV
-annuual.daily.volatility(histIV[1:dviv_caldays])$anlzd
-
-mean(AVIV)
-mean(AVIV[1:100])
-
-#"ExpIVChange_Multiple coeffecient
-cat("ExpIVChange_Multiple",mean(AVIV[1:100])/annuual.daily.volatility(histIV[1:dviv_caldays])$anlzd,"\n")
-cat("ExpIVChange_Multiple",mean(DVIV[1:100])/annuual.daily.volatility(histIV[1:dviv_caldays])$daily,"\n")
-
-#####
-## Return DistributionEstimates
-
-##  Histgram
-xDayInt=EvalFuncSetting$holdDays
-tmp=saveP2IVReg(histPrc,histIV,DATA_NUM,xDayInt)
-tmp$lm
-if(IS_SELECTIVE_WEIGHT_ESTM){
-  selectSuffixForValidIV(histIV,xDayInt,a_low,d_low,a_high,d_high)->suffix_slctd
-  tmp=saveP2IVReg(histPrc,histIV,DATA_NUM,xDayInt,effectiv_suffix=suffix_slctd)
-}
-h <- dpih(tmp$P2IVxd$PCxdCtC)
-bins <- seq(min(tmp$P2IVxd$PCxdCtC)-3*h/2, max(tmp$P2IVxd$PCxdCtC)+3*h/2, by=h)
-hist(tmp$P2IVxd$PCxdCtC, breaks=bins)
-rm(h)
-
-est_density=density(tmp$P2IVxd$PCxdCtC,
-                    adjust = max(max(abs(tmp$P2IVxd$PCxdCtC))/(EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum),1),
-                    from=(-EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum),
-                    to=EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum,
-                    n=(2*EvalFuncSetting$UdlStepNum)+1)
-
-lines(est_density,xlim=c(-EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum,
-                         EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum),
-      ylim=c(0,1))
-frame()
-
-plot(est_density$x,est_density$y,col="blue")
-lines(est_density,xlim=c(-EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum,
-                         EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum),
-      ylim=c(0,1))
-
-
-est_weight=est_density$y/sum(est_density$y)
-
-frame()
-plot(est_density$x,est_weight,col="blue")
-
-anlzd_sd<-histIV[1]/100*HV_IV_Adjust_Ratio
-sd_hd<-(anlzd_sd/sqrt(252/EvalFuncSetting$holdDays))
-sknm_weight<-dsn(est_density$x,
-                 xi=EvalFuncSetting$holdDays/252*EvalFuncSetting$Weight_Drift,
-                 alpha=EvalFuncSetting$Weight_Skew*sd_hd,
-                 omega=sd_hd)
-sknm_weight=sknm_weight/sum(sknm_weight)
-par(new=T)
-plot(est_density$x,sknm_weight,col="red")
-
-print(est_weight)
-print(sknm_weight)
-
-cat("c(");cat(est_weight,sep="$");cat(")")
-
-min(tmp$P2IVxd$PCxdCtC)
-#which.min(tmp$P2IVxd$PCxdCtC)
-Date[which.min(tmp$P2IVxd$PCxdCtC)]
-tmp$P2IVxd$IVCFxdCtC[which.min(tmp$P2IVxd$PCxdCtC)]
-#sd, mean and skewnewss
-sd(tmp$P2IVxd$PCxdCtC)
-mean(tmp$P2IVxd$PCxdCtC)
-mean((tmp$P2IVxd$PCxdCtC-mean(tmp$P2IVxd$PCxdCtC))^3)/(sd(tmp$P2IVxd$PCxdCtC)^3)
-#annualized sd and mean
-cat("sd anlzd",sd(tmp$P2IVxd$PCxdCtC)*sqrt(225/xDayInt),"\n")
-cat("drift anlzd",mean(tmp$P2IVxd$PCxdCtC)*(225/xDayInt),"\n")
-#Skewness as a multiple of SD
-cat("skew",
-    mean((tmp$P2IVxd$PCxdCtC-mean(tmp$P2IVxd$PCxdCtC))^3),"\n")
-
-##
-# Histgram One Day
-xDayInt=1
-tmp=saveP2IVReg(histPrc,histIV,DATA_NUM,xDayInt)
-tmp$lm
-if(IS_SELECTIVE_WEIGHT_ESTM){
-  selectSuffixForValidIV(histIV,xDayInt,a_low,d_low,a_high,d_high)->suffix_slctd
-  tmp=saveP2IVReg(histPrc,histIV,DATA_NUM,xDayInt,effectiv_suffix=suffix_slctd)
-}
-h <- dpih(tmp$P2IVxd$PCxdCtC)
-bins <- seq(min(tmp$P2IVxd$PCxdCtC)-3*h/2, max(tmp$P2IVxd$PCxdCtC)+3*h/2, by=h)
-hist(tmp$P2IVxd$PCxdCtC, breaks=bins)
-rm(h)
-
-est_density=density(tmp$P2IVxd$PCxdCtC,
-                    adjust = max(max(abs(tmp$P2IVxd$PCxdCtC))/(EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum),1),
-                    from=(-EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum),
-                    to=EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum,
-                    n=(2*EvalFuncSetting$UdlStepNum)+1)
-
-lines(est_density,xlim=c(-EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum,
-                         EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum),
-      ylim=c(0,1))
-frame()
-
-plot(est_density$x,est_density$y,col="blue")
-lines(est_density,xlim=c(-EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum,
-                         EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum),
-      ylim=c(0,1))
-
-
-est_weight=est_density$y/sum(est_density$y)
-
-frame()
-plot(est_density$x,est_weight,col="blue")
-
-HV_IV_Adjust_Ratio
-anlzd_sd<-histIV[1]/100*HV_IV_Adjust_Ratio
-sd_hd<-(anlzd_sd/sqrt(252/1))
-sknm_weight<-dsn(est_density$x,
-                 xi=EvalFuncSetting$holdDays/252*EvalFuncSetting$Weight_Drift,
-                 alpha=EvalFuncSetting$Weight_Skew*sd_hd,
-                 omega=sd_hd)
-sknm_weight=sknm_weight/sum(sknm_weight)
-par(new=T)
-plot(est_density$x,sknm_weight,col="red")
-
-print(est_weight)
-print(sknm_weight)
-
-cat("c(");cat(est_weight,sep="$");cat(")")
-
-min(tmp$P2IVxd$PCxdCtC)
-#which.min(tmp$P2IVxd$PCxdCtC)
-Date[which.min(tmp$P2IVxd$PCxdCtC)]
-tmp$P2IVxd$IVCFxdCtC[which.min(tmp$P2IVxd$PCxdCtC)]
-#sd, mean and skewnewss
-sd(tmp$P2IVxd$PCxdCtC)
-mean(tmp$P2IVxd$PCxdCtC)
-mean((tmp$P2IVxd$PCxdCtC-mean(tmp$P2IVxd$PCxdCtC))^3)/(sd(tmp$P2IVxd$PCxdCtC)^3)
-#annualized sd and mean
-cat("sd anlzd",sd(tmp$P2IVxd$PCxdCtC)*sqrt(225/xDayInt),"\n")
-cat("drift anlzd",mean(tmp$P2IVxd$PCxdCtC)*(225/xDayInt),"\n")
-#Skewness as a multiple of SD
-cat("skew",
-    mean((tmp$P2IVxd$PCxdCtC-mean(tmp$P2IVxd$PCxdCtC))^3),"\n")
-
