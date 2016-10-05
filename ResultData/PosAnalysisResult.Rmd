@@ -28,7 +28,7 @@ output: html_document
 EvalPos_fn=paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition.csv",sep='')
 
 #Here you spicify which position should be analyzed.
-DrawSpreads=c(1:30)
+DrawSpreads=c(1:2)
 #UDLY draw limit. given absolute % value
 UDLY_DrawRange<-0.22
 
@@ -97,14 +97,14 @@ if(evaldays[length(evaldays)]==min(get.busdays.between(opchain$Date,opchain$ExpD
 }else if(evaldays[length(evaldays)]<max_days) {
   evaldays[length(evaldays)+1]<-max_days
 }
-getPutCallnOfthePosition<-function(x){
-  type<-opchain$TYPE
-  putpos<-(type+OpType_Put_G)
-  putn<-sum( as.numeric((putpos*x)!=0) )
-  callpos<-(type+OpType_Call_G)
-  calln<-sum( as.numeric((callpos*x)!=0) )
-  return (c(putn,calln))
-}
+# getPutCallnOfthePosition<-function(x){
+#   type<-opchain$TYPE
+#   putpos<-(type+OpType_Put_G)
+#   putn<-sum( as.numeric((putpos*x)!=0) )
+#   callpos<-(type+OpType_Call_G)
+#   calln<-sum( as.numeric((callpos*x)!=0) )
+#   return (c(putn,calln))
+# }
 
 ## filter DrawSpreads<=nrow(EvalPos_fn)
 tmp<-read.table(EvalPos_fn,header=F,sep=",",colClasses="numeric")
