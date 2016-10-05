@@ -171,13 +171,16 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
     return(unacceptableVal)
   }
   
-  # calculating sd
-  pdist<-c(rep(rep(profit_vector,times=round(weight*100)),times=round(weight_IV*100)[2]),
-           rep(rep(profit_vector_vc_plus,times=round(weight*100)),times=round(weight_IV*100)[3]),
-           rep(rep(profit_vector_vc_minus,times=round(weight*100)),times=round(weight_IV*100)[1]))
+  # profit/loss distribution
+  pdist<-c(rep(rep(profit_vector,times=round(weight*5000)),times=round(weight_IV*100)[2]),
+           rep(rep(profit_vector_vc_plus,times=round(weight*5000)),times=round(weight_IV*100)[3]),
+           rep(rep(profit_vector_vc_minus,times=round(weight*5000)),times=round(weight_IV*100)[1]))
   
   if(Setting$UseSortinoRatio){
-    profit_sd=sd(pdist[pdist<0])
+    #other cost candidates
+    #profit_sd=mean((pdist<0)*pdist)
+    profit_sd=sd((pdist<0)*pdist)
+    #profit_sd=sd(pdist[pdist<0])
   }else{
     profit_sd<-sd(pdist)
   }
@@ -189,6 +192,23 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   
   ## c3 profit
   c3<- sum(c(profit_hdays_vc_minus,profit_hdays,profit_hdays_vc_plus)*weight_IV)
+  
+  ## Unit MinProfit Constraint
+  #just curent setting
+  Setting$UnitMinProfit=c(0,10,20,20,20,30,30,25,25,25)
+  total_unit=sum(abs(x))
+  if(total_unit!=0){
+    unitPorfit=c3/total_unit
+    if(isDetail){
+      cat(" :(c3)",c3,"(:ttlUnit)",total_unit," :(unitProfit)",unitPorfit,
+          " :(unitMinProfit)",Setting$UnitMinProfit[sum(as.numeric(x!=0))])
+    }
+    if(unitPorfit<Setting$UnitMinProfit[sum(as.numeric(x!=0))]){
+      return(unacceptableVal)
+    }
+  }else{
+    return(unacceptableVal)
+  }
   
   # ROIC
   profit_expctd=c3
@@ -332,7 +352,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
       if(B>0)
         cost=((A-B)/B)
     }
-    if(isDetail){cat(" :cost",cost)}
+    if(isDetail){cat(" :cost",cost,"\n")}
   }
   
   ##
@@ -341,7 +361,10 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   
   if(isDetail){
     ROIC_anlzd=ROIC*252/Setting$holdDays
-    cat(" :(val)",val,"\n");cat(" :(exp prft)",profit_expctd," :(maxloss):",maxLoss," :(ROIC)",ROIC," :(ROIC anlzd)",ROIC_anlzd,"\n")
+    cat(" :(val)",val);cat(" :(exp prft)",profit_expctd," :(maxloss):",maxLoss," :(ROIC)",ROIC," :(ROIC anlzd)",ROIC_anlzd,"\n")
+    if(B>0){
+      cat(" :(EcnVal)",(A-B)," :(RatioVal)",((A-B)/B),"\n")
+    }
   }
   return(val)
 }
@@ -1165,9 +1188,9 @@ sampleMain<-function(sampleSpreadType,totalPopNum,targetExpDate,targetExpDate_f,
       cat(x,file=outFname,sep=",",append=TRUE);cat(",",file=outFname,append=TRUE)
       cat(val,file=outFname,append=TRUE)
       if(s1_idx!=0)
-       cat(",",s1_idx,file=outFname,append=TRUE)
+        cat(",",s1_idx,file=outFname,append=TRUE)
       if(s2_idx!=0){
-       cat(",",s2_idx,file=outFname,append=TRUE)
+        cat(",",s2_idx,file=outFname,append=TRUE)
       }
       cat("\n",file=outFname,append=TRUE)
     }
@@ -1394,7 +1417,7 @@ create_combined_population<-function(popnum,EvalFuncSetting,thresh,plelem,ml,fna
         message(e)
         cat("val:",val,"thresh:",thresh,"x",x_new,"\n")
         val=ifelse(is.na(val),thresh,val)+
-        cat("val:",val,"thresh:",thresh,"x",x,"\n")
+          cat("val:",val,"thresh:",thresh,"x",x,"\n")
       }
     )
     #write to the file
