@@ -194,8 +194,6 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   c3<- sum(c(profit_hdays_vc_minus,profit_hdays,profit_hdays_vc_plus)*weight_IV)
   
   ## Unit MinProfit Constraint
-  #just curent setting
-  Setting$UnitMinProfit=c(0,10,20,20,20,30,30,25,25,25)
   total_unit=sum(abs(x))
   if(total_unit!=0){
     unitPorfit=c3/total_unit
@@ -360,11 +358,12 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   val<-cost 
   
   if(isDetail){
-    ROIC_anlzd=ROIC*252/Setting$holdDays
-    cat(" :(val)",val);cat(" :(exp prft)",profit_expctd," :(maxloss):",maxLoss," :(ROIC)",ROIC," :(ROIC anlzd)",ROIC_anlzd,"\n")
     if(B>0){
-      cat(" :(EcnVal)",(A-B)," :(RatioVal)",((A-B)/B),"\n")
+      cat(" :(EcnVal)",(A-B)," :(RatioVal)",((A-B)/B))
     }
+    cat(" :(val)",val,"\n")
+    ROIC_anlzd=ROIC*252/Setting$holdDays
+    cat(" :(exp prft)",profit_expctd," :(maxloss):",maxLoss," :(ROIC)",ROIC," :(ROIC anlzd)",ROIC_anlzd,"\n")
   }
   return(val)
 }
