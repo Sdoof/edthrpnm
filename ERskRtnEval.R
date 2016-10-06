@@ -192,16 +192,17 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   
   ## c3 profit
   c3<- sum(c(profit_hdays_vc_minus,profit_hdays,profit_hdays_vc_plus)*weight_IV)
+  profit_expctd=c3
   
   ## Unit MinProfit Constraint
   total_unit=sum(abs(x))
   if(total_unit!=0){
-    unitPorfit=c3/total_unit
+    unitPorfit=profit_expctd/total_unit
     if(isDetail){
-      cat(" :(c3)",c3,"(:ttlUnit)",total_unit," :(unitProfit)",unitPorfit,
-          " :(unitMinProfit)",Setting$UnitMinProfit[sum(as.numeric(x!=0))])
+      cat(" :(exp prft)",profit_expctd,"(:ttlUnit)",total_unit," :(unitProfit)",unitPorfit,
+          " :(unitMinProfit)",Setting$UnitMinProfit[total_unit])
     }
-    if(unitPorfit<Setting$UnitMinProfit[sum(as.numeric(x!=0))]){
+    if(unitPorfit<Setting$UnitMinProfit[total_unit]){
       return(unacceptableVal)
     }
   }else{
@@ -209,7 +210,6 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   }
   
   # ROIC
-  profit_expctd=c3
   ROIC=1.0
   if(profit_expctd<0){
     ROIC=0.0
@@ -350,7 +350,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
       if(B>0)
         cost=((A-B)/B)
     }
-    if(isDetail){cat(" :cost",cost,"\n")}
+    if(isDetail){cat(" :cost",cost)}
   }
   
   ##
@@ -359,12 +359,16 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   
   if(isDetail){
     if(B>0){
-      cat(" :(EcnVal)",(A-B)," :(RatioVal)",((A-B)/B))
+      if(Setting$EvalEconomicValue){
+        cat(" :(RatioVal)",((A-B)/B),"\n")
+      }else{
+        cat(" :(EcnVal)",(A-B),"\n")
+      }
     }
-    cat(" :(val)",val,"\n")
     ROIC_anlzd=ROIC*252/Setting$holdDays
     cat(" :(exp prft)",profit_expctd," :(maxloss):",maxLoss," :(ROIC)",ROIC," :(ROIC anlzd)",ROIC_anlzd,"\n")
   }
+  
   return(val)
 }
 
