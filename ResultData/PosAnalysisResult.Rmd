@@ -28,7 +28,7 @@ output: html_document
 EvalPos_fn=paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition.csv",sep='')
 
 #Here you spicify which position should be analyzed.
-DrawSpreads=c(1:2)
+DrawSpreads=c(1:30)
 #UDLY draw limit. given absolute % value
 UDLY_DrawRange<-0.22
 
