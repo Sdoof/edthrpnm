@@ -181,8 +181,6 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
     #profit_sd=(-1)*mean((pdist<0)*pdist)
     profit_sd=sd((pdist<0)*pdist)
     #profit_sd=sd(pdist[pdist<0])
-    #freq_coef=1000
-    #profit_sd=freq_coef*length(pdist[pdist<0])/length(pdist)
   }else{
     profit_sd<-sd(pdist)
   }
@@ -272,9 +270,6 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   ##
   # Advantageous Effects.
   c5<- sum((posEvalTbl$GammaEffect+posEvalTbl$ThetaEffect)*weight_Effect)+VommaEffect
-  if(Setting$VommaEffectAsDirectEffect){
-    c5<-sum((posEvalTbl$GammaEffect+posEvalTbl$ThetaEffect)*weight_Effect)
-  }
   if(isDetail){cat(" :(GammaEffect)",sum(posEvalTbl$GammaEffect*weight_Effect)," :(ThetaEffect)",sum(posEvalTbl$ThetaEffect*weight_Effect),
                    " :c5(AdvEffect_wght)",c5)}
   
@@ -311,14 +306,6 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   VegaEffect_Comp = (-1)*abs(VegaEffectWithSign)
   Vega_revised_offset=Vega_True
   
-  #VommaEffect treated as Vega Penalty/Reward
-  if(Setting$VommaEffectAsDirectEffect){
-    VegaEffect_Comp=VegaEffect_Comp+VommaEffect
-    if(isDetail){
-      cat(" :(VegeEffect<+VommaEffect>)",VegaEffect_Comp)
-    }
-  }
-  
   ##
   # Delta_Direct_Prf, Vega_Direct_Prf reflected as coef
   dlta_pref_coef<-(Delta_Direct_Prf==0)*(-1)+
@@ -339,7 +326,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   ##
   # cost7 All Effects.
   c7<- c5+c6
-  #if(isDetail){cat(" :c7(AllEffect)",c7)}
+  if(isDetail){cat(" :c7(AllEffect)",c7)}
   
   ##
   # total cost is weighted sum of each cost.
