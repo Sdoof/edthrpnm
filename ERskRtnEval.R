@@ -179,15 +179,18 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   if(Setting$UseSortinoRatio){
     #other cost candidates
     #profit_sd=(-1)*mean((pdist<0)*pdist)
-    profit_sd=sd((pdist<0)*pdist)
+    #profit_sd=(-1)*mean(pdist[pdist<0])
+    #profit_sd=sd((pdist<0)*pdist)
     #profit_sd=sd(pdist[pdist<0])
+    profit_sd=sd((pdist<0)*pdist)+(-1)*mean((pdist<0)*pdist)
   }else{
     profit_sd<-sd(pdist)
   }
   
   if(isDetail){
-    cat(" :(sd_SortinoR)",sd(pdist[pdist<0]));cat(" :(sd)",sd(pdist)); cat(" :(profit_sd)",profit_sd)
-    cat(" :(max_loss)",maxLoss);cat(" :(loss_limit_price)",Setting$LossLimitPrice)
+    cat(" :(sd)",sd(pdist)," :(sd_{pd<0})",sd(pdist[pdist<0]),":(sd_{(pd<0)*pd})",sd((pdist<0)*pdist),
+        " (:mean_{pd<0})",mean(pdist[pdist<0])," (:mean_{(pd<0)*pd})",mean((pdist<0)*pdist)," :(profit_sd)",profit_sd)
+    cat(" :(max_loss)",maxLoss," :(loss_limit_price)",Setting$LossLimitPrice)
   }
   
   ## c3 profit
