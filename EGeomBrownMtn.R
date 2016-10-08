@@ -168,4 +168,44 @@ LocalMergeWriteFiles<-function(rf){
   write.table(tmp3,rf,row.names = F,col.names=F,sep=",",append=F)
 }
 
+##LOCAL UTILITY: Economic/NonEconomic Value is also evaluated for top maxNum spreads 
+LocalflipScoreWriteToFile<-function(ResultFileName,maxNum){
+  evaTable<-read.table(ResultFileName,
+                       header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
+  evaTable=evaTable[,1:(length(opchain$Position)+1)]
+  colnames(evaTable)=c(rep(1:length(opchain$Position)),"eval")
+  flipFname=paste(ResultFileName,"_EcVFlp.csv",sep="")
+  
+  for(tmp_pos_idx in 1:min(nrow(evaTable),maxNum)){
+    evaPos<-unlist(evaTable[tmp_pos_idx,])[1:length(opchain$Position)]
+    evaScore=evaTable[tmp_pos_idx,length(opchain$Position)+1]
+    EvalFuncSetting$EvalEconomicValue<<-ifelse(EvalFuncSetting$EvalEconomicValue,F,T)
+    
+    posnum=sum(abs(evaPos))
+    tryCatch(
+      flipScore<-obj_Income_sgmd(evaPos,EvalFuncSetting,isDebug=F,isDetail=F,
+                                 udlStepNum=EvalFuncSetting$UdlStepNum,udlStepPct=EvalFuncSetting$UdlStepPct,
+                                 maxposnum=EvalFuncSetting$Maxposnum,PosMultip=PosMultip,
+                                 tail_rate=EvalFuncSetting$Tail_rate,lossLimitPrice=EvalFuncSetting$LossLimitPrice,
+                                 Delta_Direct_Prf=EvalFuncSetting$Delta_Direct_Prf[posnum],Vega_Direct_Prf=EvalFuncSetting$Vega_Direct_Prf[posnum],
+                                 Delta_Neutral_Offset=EvalFuncSetting$Delta_Neutral_Offset[posnum],Vega_Neutral_Offset=EvalFuncSetting$Vega_Neutral_Offset[posnum]),
+      error=function(e){
+        message(e)
+      }
+    )
+    flipScore
+    cat(evaPos,file=flipFname,sep=",",append=TRUE)
+    cat(",",flipScore,",",evaScore,file=flipFname,append=TRUE)
+    cat("\n",file=flipFname,append=TRUE)
+    
+    EvalFuncSetting$EvalEconomicValue<<-ifelse(EvalFuncSetting$EvalEconomicValue,F,T)
+  }
+  tmp<-read.table(flipFname,header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
+  tmp=tmp[,1:(length(opchain$Position)+2)]
+  colnames(tmp)=c(rep(1:length(opchain$Position)),"eval","eval_org")
+  tmp %>% dplyr::arrange(tmp[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> tmp
+  write.table(tmp,flipFname,row.names = F,col.names=F,sep=",",append=F)
+}
+
+
 

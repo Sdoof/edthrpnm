@@ -390,13 +390,24 @@ if(COMBINATION_HOT_START==T){
   LocalMergeWriteFiles(rf=paste(ResultFiles_Path_G,"4Cb.csv",sep=""))
 }
 ## Save to a file
-write.table(tmp_fil_w,paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition_",
-                            format(Sys.time(),"%Y%b%d_%H%M%S"),".csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
-write.table(tmp_fil_w2,paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition2_",
-                             format(Sys.time(),"%Y%b%d_%H%M%S"),".csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
-write.table(tmp_fil_w3,paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition3_",
-                             format(Sys.time(),"%Y%b%d_%H%M%S"),".csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
-write.table(tmp_fil_w4,paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition4_"
-                             ,format(Sys.time(),"%Y%b%d_%H%M%S"),".csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
 
+resultSaveFileRf=vector("list",4)
 
+resultSaveFileRf[[1]]=paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition_",
+               format(Sys.time(),"%Y%b%d_%H%M%S"),".csv",sep="")
+
+resultSaveFileRf[[2]]=paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition2_",
+               format(Sys.time(),"%Y%b%d_%H%M%S"),".csv",sep="")
+resultSaveFileRf[[3]]=paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition3_",
+               format(Sys.time(),"%Y%b%d_%H%M%S"),".csv",sep="")
+resultSaveFileRf[[4]]=paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition4_"
+      ,format(Sys.time(),"%Y%b%d_%H%M%S"),".csv",sep="")
+
+write.table(tmp_fil_w,resultSaveFileRf[[1]],row.names = F,col.names=F,sep=",",append=F)
+write.table(tmp_fil_w2,resultSaveFileRf[[2]],row.names = F,col.names=F,sep=",",append=F)
+write.table(tmp_fil_w3,resultSaveFileRf[[3]],row.names = F,col.names=F,sep=",",append=F)
+write.table(tmp_fil_w4,resultSaveFileRf[[4]],row.names = F,col.names=F,sep=",",append=F)
+
+for(tmp_file_idx in 1:1){
+  LocalflipScoreWriteToFile(resultSaveFileRf[[tmp_file_idx]],50)
+}
