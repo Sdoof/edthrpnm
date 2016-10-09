@@ -951,5 +951,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   
   #copy file to EvalPosition
   file.copy(from=outFname, to=paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition.csv",sep=""),overwrite=T)
+  #FlipEconomicValue
+  LocalflipScoreWriteToFile(evalPosFname,50)
 }
 
