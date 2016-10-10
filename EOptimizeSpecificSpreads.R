@@ -950,7 +950,8 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
   
   #copy file to EvalPosition
-  file.copy(from=outFname, to=paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition.csv",sep=""),overwrite=T)
+  evalPosFname=paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition.csv",sep="")
+  file.copy(from=outFname, to=evalPosFname,overwrite=T)
   #FlipEconomicValue
   LocalflipScoreWriteToFile(evalPosFname,50)
 }
