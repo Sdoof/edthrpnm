@@ -181,6 +181,9 @@ LocalflipScoreWriteToFile<-function(ResultFileName,maxNum){
     evaScore=evaTable[tmp_pos_idx,length(opchain$Position)+1]
     EvalFuncSetting$EvalEconomicValue<<-ifelse(EvalFuncSetting$EvalEconomicValue,F,T)
     
+    originalLossLimitPrice=EvalFuncSetting$LossLimitPrice
+    EvalFuncSetting$LossLimitPrice<<-EvalFuncSetting$LossLimitPrice*10
+    
     posnum=sum(abs(evaPos))
     tryCatch(
       flipScore<-obj_Income_sgmd(evaPos,EvalFuncSetting,isDebug=F,isDetail=F,
@@ -193,11 +196,11 @@ LocalflipScoreWriteToFile<-function(ResultFileName,maxNum){
         message(e)
       }
     )
-    flipScore
     cat(evaPos,file=flipFname,sep=",",append=TRUE)
     cat(",",flipScore,",",evaScore,file=flipFname,append=TRUE)
     cat("\n",file=flipFname,append=TRUE)
     
+    EvalFuncSetting$LossLimitPrice<<-originalLossLimitPrice
     EvalFuncSetting$EvalEconomicValue<<-ifelse(EvalFuncSetting$EvalEconomicValue,F,T)
   }
   tmp<-read.table(flipFname,header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
