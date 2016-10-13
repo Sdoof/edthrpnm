@@ -411,6 +411,6 @@ write.table(tmp_fil_w2,resultSaveFileRf[[2]],row.names = F,col.names=F,sep=",",a
 write.table(tmp_fil_w3,resultSaveFileRf[[3]],row.names = F,col.names=F,sep=",",append=F)
 write.table(tmp_fil_w4,resultSaveFileRf[[4]],row.names = F,col.names=F,sep=",",append=F)
 
-for(tmp_file_idx in 1:1){
+for(tmp_file_idx in 1:2){
   LocalflipScoreWriteToFile(resultSaveFileRf[[tmp_file_idx]],50)
 }
