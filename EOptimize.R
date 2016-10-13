@@ -164,7 +164,7 @@ if(Combined_Spread){
       dplyr::do(revVal=obj_Income_sgmd(unlist(.)[1:length(opchain$Position)],
                                        EvalFuncSetting,isDebug=F,isDetail=F,
                                        udlStepNum=EvalFuncSetting$UdlStepNum,udlStepPct=EvalFuncSetting$UdlStepPct,
-                                       maxposnum=EvalFuncSetting$Maxposnum,PosMultip=PosMultip,
+                                       maxposnum=length(EvalFuncSetting$Vega_Direct_Prf),PosMultip=PosMultip,
                                        tail_rate=EvalFuncSetting$Tail_rate,lossLimitPrice=EvalFuncSetting$LossLimitPrice,
                                        Delta_Direct_Prf=EvalFuncSetting$Delta_Direct_Prf[sum(as.numeric((unlist(.)[1:length(opchain$Position)])!=0))],
                                        Vega_Direct_Prf=EvalFuncSetting$Vega_Direct_Prf[sum(as.numeric((unlist(.)[1:length(opchain$Position)])!=0))],
@@ -189,7 +189,8 @@ if(Combined_Spread){
   #combinational search
   create_combined_population(popnum=PopN_1,EvalFuncSetting,thresh=Thresh_1,plelem=c(1,1),ml=Optimize_ml,
                              fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                             isFileout=TRUE,isDebug=FALSE,maxposn=length(EvalFuncSetting$Delta_Direct_Prf),PosMultip=PosMultip)
+                             ##maxposn is supposed to be 10 for SPX
+                             isFileout=TRUE,isDebug=FALSE,maxposn=length(EvalFuncSetting$Vega_Direct_Prf),PosMultip=PosMultip)
   #2Cb.csv
   st <- "powershell.exe .\\shell\\cmd3.ps1"
   system(st)
@@ -211,7 +212,8 @@ if(Combined_Spread){
   
   create_combined_population(popnum=PopN_2,EvalFuncSetting,thresh=Thresh_2,plelem=c(1,2),ml=Optimize_ml,
                              fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                             isFileout=TRUE,isDebug=FALSE,maxposn=length(EvalFuncSetting$Delta_Direct_Prf),PosMultip=PosMultip)
+                             ##maxposn is supposed to be 10 for SPX
+                             isFileout=TRUE,isDebug=FALSE,maxposn=length(EvalFuncSetting$Vega_Direct_Prf),PosMultip=PosMultip)
   
   #3Cb.csv
   st <- "powershell.exe .\\shell\\cmd5.ps1"
@@ -234,6 +236,7 @@ if(Combined_Spread){
   #combinational search
   create_combined_population(popnum=PopN_2,EvalFuncSetting,thresh=Thresh_2,plelem=c(1,3),ml=Optimize_ml,
                              fname=paste(".\\ResultData\\combine-Result-2Cb+2Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                             ##maxposn is supposed to be 12 for SPX
                              isFileout=TRUE,isDebug=FALSE,maxposn=length(EvalFuncSetting$Delta_Direct_Prf),PosMultip=PosMultip)
   #4Cb.csv
   st <- "powershell.exe .\\shell\\cmd7.ps1"
@@ -342,10 +345,10 @@ if(Combined_Spread){
 
 # Writing to files based on option legs total number
 total_res %>% dplyr::mutate(posn=(putn+calln)) -> total_res
-total_res %>%  dplyr::filter(posn==9 | posn==10) -> tmp_fil 
-total_res %>%  dplyr::filter(posn==7 | posn==8) -> tmp_fil2
-total_res %>%  dplyr::filter(posn==5 | posn==6) -> tmp_fil3
-total_res %>%  dplyr::filter(posn<=4) -> tmp_fil4
+total_res %>%  dplyr::filter(posn==11 | posn==12) -> tmp_fil 
+total_res %>%  dplyr::filter(posn==9 | posn==10) -> tmp_fil2
+total_res %>%  dplyr::filter(posn==7 | posn==8) -> tmp_fil3
+total_res %>%  dplyr::filter(posn<=6) -> tmp_fil4
 
 #position wiht Greeks
 getPositionWithGreeks<-function(tmp_fil){
