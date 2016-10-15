@@ -50,8 +50,8 @@ EvalFnc_Vega_Thresh_Plus,c(0$0$0$0$0$0$0$0$0$0$0$0)
 # c(x1$x2$x3, ...) prefernce of posnum=1,2,3... is x1,x2,x3....)
 EvalFnc_Delta_Direct_Prf,c(0$0$0$0$0$0$0$0$0$0$0$0)
 EvalFnc_Vega_Direct_Prf,c(0$0$0$0$0$0$0$0$0$0)
-# Delta(Vega)ãŒNeutralã¨ãªã‚‹å€¤ã‚’0ã‹ã‚‰ã“ã®å€¤ã«å¤‰æ›´ã™ã‚‹
-# Vega_Neutral_Offsetã¯æœªå®Ÿè£…ã€‚
+# Delta(Vega)‚ªNeutral‚Æ‚È‚é’l‚ğ0‚©‚ç‚±‚Ì’l‚É•ÏX‚·‚é
+# Vega_Neutral_Offset‚Í–¢À‘•B
 EvalFnc_Delta_Neutral_Offset,c(0$0$0$0$0$0$0$0$0$0$0$0)
 EvalFnc_Vega_Neutral_Offset,c(0$0$0$0$0$0$0$0$0$0)
 #Coeffeciants

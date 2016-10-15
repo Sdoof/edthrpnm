@@ -11,22 +11,22 @@ TimeToExp_Limit_Closeness_G,0.2
 holdDays,18
 ResultFiles_Path_G,C:\Users\kuby\edthrpnm\ResultData\
 #TARGET DATES
-TARGET_EXPDATE,2016/12/15
-TARGET_EXPDATE_FRONT,2016/11/30
-TARGET_EXPDATE_BACK,2017/12/30
+TARGET_EXPDATE,2016/12/30
+TARGET_EXPDATE_FRONT,2016/12/15
+TARGET_EXPDATE_BACK,2017/1/19
 #Specify SpreadType, 0:Automatically defined 1..n: Spread type		
 Spread_Type,14
 ## Evaluation Function Related Settings
 EvalFnc_UdlStepNum,14
-EvalFnc_UdlStepPct,0.0085
+EvalFnc_UdlStepPct,0.01
 EvalFnc_Posnum,c(2$3$4)
 EvalFnc_Tail_rate,0.4
 EvalFnc_LossLimitPrice,-3500
-EvalFnc_HV_IV_Adjust_Ratio,0.87
+EvalFnc_HV_IV_Adjust_Ratio,0.9
 #Weight explicitly assigned HoldDay
-EvalFnc_Weight_Explicit,c(0.0006868042$0.001428183$0.0009121229$0.002037072$0.003966585$0.005540264$0.008988517$0.01208544$0.01544046$0.02531438$0.03779449$0.05375521$0.06552709$0.08645195$0.1194693$0.1348788$0.1339918$0.1150181$0.08370638$0.05042797$0.02268939$0.009537339$0.004475598$0.003055977$0.001404208$0.001104137$0.0003043385$8.030778e-06$1.424806e-08)
+EvalFnc_Weight_Explicit,c(0.0005881584$0.000489636$0.001566239$0.002519648$0.002707365$0.00580463$0.009254132$0.01389737$0.01741408$0.02656227$0.04073309$0.05843781$0.07270122$0.09103186$0.12039$0.1454708$0.143791$0.1143417$0.0728964$0.03641126$0.01470755$0.005951233$0.001983541$0.0003382364$1.080734e-05$3.174019e-08$6.659319e-12$1.087887e-16$0)
 #Weight explicitly assigned 1 Day
-EvalFnc_Weight_Explicit_1D,c(1.542362e-17$1.124312e-17$1.177216e-17$0$3.356327e-18$0$0$3.137494e-18$0$4.092349e-11$0.001191123$0.00525945$0.03325981$0.1637136$0.5785217$0.1941269$0.02277892$0.00114851$2.243413e-16$0$0$2.251341e-17$0$0$0$1.435506e-17$0$0$4.131608e-18)
+EvalFnc_Weight_Explicit_1D,c(1.868232e-17$1.003157e-17$3.296015e-18$2.476835e-18$2.809675e-17$1.194154e-18$5.333456e-19$1.497841e-17$0$8.255631e-18$4.925784e-06$0.001350221$0.02334341$0.165006$0.6128451$0.1784637$0.01898483$1.888731e-06$0$0$0$5.400077e-17$1.049135e-17$0$2.468792e-18$1.186741e-17$3.049665e-18$0$3.321314e-17)
 #0:Flase 1:True  Whether using Sigmoid Function for Cost calculation or not
 EvalFnc_EvalSigmoidFunc,0
 #0: value is ratio (AdvEffect-Cost)/AdvEffect, 1: value is Economic Value (Difference of AdvEffect-Cost)
@@ -50,8 +50,8 @@ EvalFnc_Vega_Thresh_Plus,c(0$0$0$0$0$0$0$0$0$0$0$0)
 # c(x1$x2$x3, ...) prefernce of posnum=1,2,3... is x1,x2,x3....)
 EvalFnc_Delta_Direct_Prf,c(0$0$0$0$0$0$0$0$0$0$0$0)
 EvalFnc_Vega_Direct_Prf,c(0$0$0$0$0$0$0$0$0$0)
-# Delta(Vega)„ÅåNeutral„Å®„Å™„ÇãÂÄ§„Çí0„Åã„Çâ„Åì„ÅÆÂÄ§„Å´Â§âÊõ¥„Åô„Çã
-# Vega_Neutral_Offset„ÅØÊú™ÂÆüË£Ö„ÄÇ
+# Delta(Vega)Ç™NeutralÇ∆Ç»ÇÈílÇ0Ç©ÇÁÇ±ÇÃílÇ…ïœçXÇ∑ÇÈ
+# Vega_Neutral_OffsetÇÕñ¢é¿ëïÅB
 EvalFnc_Delta_Neutral_Offset,c(0$0$0$0$0$0$0$0$0$0$0$0)
 EvalFnc_Vega_Neutral_Offset,c(0$0$0$0$0$0$0$0$0$0)
 #Coeffeciants
@@ -66,7 +66,7 @@ EvalFnc_SigmoidA_Numerator,0.0060
 #Denominator=AdvEffect+Profit More is good.
 EvalFnc_SigmoidA_Denominator,0.0040
 #Multiped by the most recent DVIV to create the actually used DVIV. 1 should be default value.
-EvalFnc_ExpIVChange_Multiple,0.85
+EvalFnc_ExpIVChange_Multiple,1.0
 # 0:Flase 1:True (theta must be Positive)
 EvalFnc_ThetaEffectPositive,0
 # 0:sd as cost 1:maxloss as cost 	
