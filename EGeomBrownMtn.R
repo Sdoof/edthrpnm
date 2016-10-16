@@ -210,5 +210,25 @@ LocalflipScoreWriteToFile<-function(ResultFileName,maxNum){
   write.table(tmp,flipFname,row.names = F,col.names=F,sep=",",append=F)
 }
 
+##LOCAL UTILITY: return String of the sampling condition
+LocalcreateSampleConditionStr<-function(EvalFuncSetting){
+  outStr=paste(EvalFuncSetting$UdlStepPct*1000,"x",EvalFuncSetting$UdlStepNum,"-",EvalFuncSetting$holdDays,"d-",
+               EvalFuncSetting$Profit_Coef,"_",EvalFuncSetting$AdvEffect_Coef,"-",
+               EvalFuncSetting$DrctlEffect_Coef,"_",EvalFuncSetting$MaxLoss_Coef,"-",
+               "DOf$",EvalFuncSetting$Delta_Neutral_Offset[1],
+               "DTh$",EvalFuncSetting$Delta_Thresh_Minus[1],"_",EvalFuncSetting$Delta_Thresh_Plus[1],"-",
+               "VOf$",EvalFuncSetting$Vega_Neutral_Offset[1],
+               "VTh$",EvalFuncSetting$Vega_Thresh_Minus[1],"_",EvalFuncSetting$Vega_Thresh_Plus[1],"-",
+               "HIVR$",EvalFuncSetting$HV_IV_Adjust_Ratio,"-",
+               "GkW$",EvalFuncSetting$GreekEfctOnHldD,"-",
+               "Cvx$",ifelse(EvalFuncSetting$EvalConvex,"T","F"),"-",
+               "Sor$",ifelse(EvalFuncSetting$UseSortinoRatio,"T","F"),"-",
+               "Ecv$",ifelse(EvalFuncSetting$EvalEconomicValue,"T","F"),"-",
+               "LLt$",EvalFuncSetting$LossLimitPrice,
+               sep="")
+  return(outStr)
+}
+
+
 
 

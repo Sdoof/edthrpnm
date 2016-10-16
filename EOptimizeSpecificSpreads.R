@@ -105,19 +105,7 @@ SpreadTypeToDir[[FILE_PLUS_DOUBLE_DIAGONAL]]=c(126,4,14,24,34)
 #functions used for this script only
 createOutFname<-function(targetExpDate,targetExpDate_f,targetExpDate_b,spreadRatio,EvalFuncSetting){
   outFname=paste(".\\ResultData\\",Underying_Symbol_G,"-",SpreadTypeNames[[sampleSpreadType]],"-",
-                 EvalFuncSetting$UdlStepPct*1000,"x",EvalFuncSetting$UdlStepNum,"-",EvalFuncSetting$holdDays,"d-",
-                 EvalFuncSetting$Profit_Coef,"_",EvalFuncSetting$AdvEffect_Coef,"-",
-                 EvalFuncSetting$DrctlEffect_Coef,"_",EvalFuncSetting$MaxLoss_Coef,"-",
-                 "DOf$",EvalFuncSetting$Delta_Neutral_Offset[1],
-                 "DTh$",EvalFuncSetting$Delta_Thresh_Minus[1],"_",EvalFuncSetting$Delta_Thresh_Plus[1],"-",
-                 "VOf$",EvalFuncSetting$Vega_Neutral_Offset[1],
-                 "VTh$",EvalFuncSetting$Vega_Thresh_Minus[1],"_",EvalFuncSetting$Vega_Thresh_Plus[1],"-",
-                 "HIVR$",EvalFuncSetting$HV_IV_Adjust_Ratio,"-",
-                 "GkW$",EvalFuncSetting$GreekEfctOnHldD,"-",
-                 "Cvx$",ifelse(EvalFuncSetting$EvalConvex,"T","F"),"-",
-                 "Sor$",ifelse(EvalFuncSetting$UseSortinoRatio,"T","F"),"-",
-                 "Ecv$",ifelse(EvalFuncSetting$EvalEconomicValue,"T","F"),"-",
-                 "LLt$",EvalFuncSetting$LossLimitPrice,"-",
+                 LocalcreateSampleConditionStr(EvalFuncSetting),"-",
                  "TgD$",format(as.Date(targetExpDate,format="%Y/%m/%d"),"%m%d"),"_",format(as.Date(targetExpDate_f,format="%Y/%m/%d"),"%m%d"),"_",format(as.Date(targetExpDate_b,format="%Y/%m/%d"),"%m%d"),
                  ".csv",sep="")
   return(outFname)

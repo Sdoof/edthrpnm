@@ -19,6 +19,9 @@ COMBINATION_LOSSLIMIT_MULTIPLE=2
 #cache for the position
 HASH_HIT_NUM=0
 
+#touch the file whose name shows the configuration of this search
+file.create(paste(ResultFiles_Path_G,LocalcreateSampleConditionStr(EvalFuncSetting)))
+
 ##
 # Creating First Generation
 
@@ -30,7 +33,7 @@ HASH_HIT_NUM=0
 #whose member's E(X) is as big as possible would be reasonable.
 #Risk side evaluation is not so simple. RisK(X+Y) != Risk(X)+Risk(Y), expectiing risk of
 #X and Y could be canceled by combination.
-#This is the reason we could exploit the combinational optimizational approach.
+#This is the reason we could exploit the combinational optimization approach.
 
 if(SPECIFIC_FIRSTG_SETTING==T){
   #copy original setting
