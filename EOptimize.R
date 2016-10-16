@@ -143,12 +143,15 @@ if(COMBINATION_HOT_START==F){
 
 #combined population serach
 if(Combined_Spread){
-  #LossLimitPrice adjust
+  ##
+  #  LossLimitPrice adjust
   originalLossLimitPrice=EvalFuncSetting$LossLimitPrice
   EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*COMBINATION_LOSSLIMIT_MULTIPLE
   
-  ### 2(exact x exact) Combinations (2Cb)
-  #read 1Cb.csv
+  ###
+  ##   2(exact x exact) Combinations (2Cb)
+  
+  ##read 1Cb.csv, then making pools for combinational search
   tmp<-read.table(paste(ResultFiles_Path_G,"1Cb.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
   tmp=tmp[,1:(length(opchain$Position)+1)]
   colnames(tmp)=c(rep(1:length(opchain$Position)),"eval")
@@ -156,8 +159,7 @@ if(Combined_Spread){
   write.table(tmp,paste(ResultFiles_Path_G,"1Cb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
   tmp %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% head(TopN_1) -> tmp
   
-  ##
-  # revalue the position for the value to be compatilbe  with following process
+  ## revalue the position for the value to be compatilbe with following process
   if(SPECIFIC_FIRSTG_SETTING==T){
     file.copy(from=paste(ResultFiles_Path_G,"1Cb.csv",sep=""),to=paste(ResultFiles_Path_G,"1Cb_org.csv",sep=""),overwrite=T)
     tmp %>% dplyr::rowwise() %>%
@@ -183,84 +185,88 @@ if(Combined_Spread){
     POSITION_OPTIM_HASH[ unlist(tmp2$md5sum) ]<-unlist(tmp2$revVal)
   }
   
-  ## or when all results are mixed together regardress of the number of Putn and Calln, pools[[1]] should be set as
-  # c(1,0,0) <- c(1Cb{=exact}, Putn not spicified, Calln not spicified)
+  # making pools 
+  #   when all results are mixed together regardress of the number of Putn and Calln, pools[[1]] should be set as
+  #   c(1,0,0) <- c(1Cb{=exact}, Putn not spicified, Calln not spicified)
   pools<-list(list(c(1,0,0),tmp)) #No.[[1]]
   rm(tmp)
   #combinational search
   create_combined_population(popnum=PopN_1,EvalFuncSetting,thresh=Thresh_1,plelem=c(1,1),ml=Optimize_ml,
                              fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                              isFileout=TRUE,isDebug=FALSE,maxposn=length(EvalFuncSetting$Vega_Direct_Prf),PosMultip=PosMultip)
-  #2Cb.csv
+  #creating 2Cb.csv
   st <- "powershell.exe .\\shell\\cmd3.ps1"
   system(st)
   st <- "powershell.exe .\\shell\\cmd4.ps1"
   system(st)
   st <- "powershell.exe -Command \" del .\\ResultData\\2Cb-.csv \" "
   system(st) ;rm(st)
-  #read 2Cb.csv
+  #read, sort and rewrite to the file
   tmp<-read.table(paste(ResultFiles_Path_G,"2Cb.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
   tmp=tmp[,1:(length(opchain$Position)+1)]
   colnames(tmp)=c(rep(1:length(opchain$Position)),"eval")
   tmp %>% dplyr::arrange(tmp[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> tmp
   write.table(tmp,paste(ResultFiles_Path_G,"2Cb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
-  tmp %>% dplyr::arrange(.[,length(iniPos)+1]) %>% head(TopN_2) -> tmp
+
+  ###
+  ##   3(2Cb x 1Cb) Combinations (3Cb)
   
-  ### 3(2Cb x 1Cb) Combinations (3Cb)
+  #adding pools' element
+  tmp %>% dplyr::arrange(.[,length(iniPos)+1]) %>% head(TopN_2) -> tmp
   pools[2]<-list(list(c(1,0,0),tmp)) #No.[[2]]
   pools<<-pools
-  
+  #combinational search
   create_combined_population(popnum=PopN_2,EvalFuncSetting,thresh=Thresh_2,plelem=c(1,2),ml=Optimize_ml,
                              fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                              isFileout=TRUE,isDebug=FALSE,maxposn=10,PosMultip=PosMultip)
   
-  #3Cb.csv
+  #creating 3Cb.csv
   st <- "powershell.exe .\\shell\\cmd5.ps1"
   system(st)
   st <- "powershell.exe .\\shell\\cmd6.ps1"
   system(st)
   st <- "powershell.exe -Command \" del .\\ResultData\\3Cb-.csv \" "
   system(st) ;rm(st)
-  #read 3Cb.csv
+  #read, sort and rewrite to the file
   tmp<-read.table(paste(ResultFiles_Path_G,"3Cb.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
   tmp=tmp[,1:(length(opchain$Position)+1)]
   colnames(tmp)=c(rep(1:length(opchain$Position)),"eval")
   tmp %>% dplyr::arrange(tmp[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> tmp
   write.table(tmp,paste(ResultFiles_Path_G,"3Cb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
-  tmp %>% dplyr::arrange(.[,length(iniPos)+1]) %>% head(TopN_2) -> tmp
+
+  ###
+  ##  4(3Cb x 1Cb currently shown as 2Cb+2Cb) Combinations (4Cb)
   
-  ### 4(3Cb x 1Cb currently shown as 2Cb+2Cb) Combinations (4Cb)
+  #adding pools' element
+  tmp %>% dplyr::arrange(.[,length(iniPos)+1]) %>% head(TopN_2) -> tmp
   pools[3]<-list(list(c(1,0,0),tmp)) #No.[[3]]
   pools<<-pools
-  
   #combinational search
   create_combined_population(popnum=PopN_2,EvalFuncSetting,thresh=Thresh_2,plelem=c(1,3),ml=Optimize_ml,
                              fname=paste(".\\ResultData\\combine-Result-2Cb+2Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                              isFileout=TRUE,isDebug=FALSE,maxposn=length(EvalFuncSetting$Vega_Direct_Prf),PosMultip=PosMultip)
-  #4Cb.csv
+  #creating 4Cb.csv
   st <- "powershell.exe .\\shell\\cmd7.ps1"
   system(st)
   st <- "powershell.exe .\\shell\\cmd8.ps1"
   system(st)
   st <- "powershell.exe -Command \" del .\\ResultData\\4Cb-.csv \" "
   system(st) ;rm(st)
-  
+  #read, sort and rewrite to the file
   tmp<-read.table(paste(ResultFiles_Path_G,"4Cb.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
   tmp=tmp[,1:(length(opchain$Position)+1)]
   colnames(tmp)=c(rep(1:length(opchain$Position)),"eval")
   tmp %>% dplyr::arrange(tmp[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> tmp
   write.table(tmp,paste(ResultFiles_Path_G,"4Cb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
   
-  #LossLimitPrice's original value is returned
+  ##
+  # LossLimitPrice's original value is returned
   EvalFuncSetting$LossLimitPrice=originalLossLimitPrice
-  
-  rm(pools)
 }
 
 ###
 ##
 # Result Post Proceccing
-
 
 #Threas Score
 Thresh_Score1=as.numeric(ConfigParameters["ResultProcess_Thresh_Score1",1])
