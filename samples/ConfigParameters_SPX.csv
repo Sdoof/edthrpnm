@@ -49,11 +49,11 @@ EvalFnc_Vega_Thresh_Plus,c(0$0$0$0$0$0$0$0$0$0$0$0)
 # DRCTAL_Taste:  0:like neutral, 1(>0):long -1(<0):short
 # c(x1$x2$x3, ...) prefernce of posnum=1,2,3... is x1,x2,x3....)
 EvalFnc_Delta_Direct_Prf,c(0$0$0$0$0$0$0$0$0$0$0$0)
-EvalFnc_Vega_Direct_Prf,c(0$0$0$0$0$0$0$0$0$0)
+EvalFnc_Vega_Direct_Prf,c(0$0$0$0$0$0$0$0$0$0$0$0)
 # Delta(Vega)がNeutralとなる値を0からこの値に変更する
 # Vega_Neutral_Offsetは未実装。
 EvalFnc_Delta_Neutral_Offset,c(0$0$0$0$0$0$0$0$0$0$0$0)
-EvalFnc_Vega_Neutral_Offset,c(0$0$0$0$0$0$0$0$0$0)
+EvalFnc_Vega_Neutral_Offset,c(0$0$0$0$0$0$0$0$0$0$0$0)
 #Coeffeciants
 EvalFnc_Profit_Coef,1.0
 EvalFnc_AdvEffect_Coef,0

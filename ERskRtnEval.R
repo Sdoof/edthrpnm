@@ -2,7 +2,7 @@
 # functions optimized
 
 obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
-                            udlStepNum,udlStepPct,maxposnum,PosMultip,
+                            udlStepNum,udlStepPct,PosMultip,
                             tail_rate,lossLimitPrice,
                             Delta_Direct_Prf,Vega_Direct_Prf,
                             Delta_Neutral_Offset,Vega_Neutral_Offset){
@@ -1161,7 +1161,7 @@ sampleMain<-function(sampleSpreadType,totalPopNum,targetExpDate,targetExpDate_f,
       tryCatch(
         val<-obj_Income_sgmd(x,EvalFuncSetting,isDebug=isDebug,isDetail=isDetail,
                              udlStepNum=EvalFuncSetting$UdlStepNum,udlStepPct=EvalFuncSetting$UdlStepPct,
-                             maxposnum=EvalFuncSetting$Maxposnum,PosMultip=PosMultip,
+                             PosMultip=PosMultip,
                              tail_rate=EvalFuncSetting$Tail_rate,lossLimitPrice=EvalFuncSetting$LossLimitPrice,
                              Delta_Direct_Prf=EvalFuncSetting$Delta_Direct_Prf[posnum],Vega_Direct_Prf=EvalFuncSetting$Vega_Direct_Prf[posnum],
                              Delta_Neutral_Offset=EvalFuncSetting$Delta_Neutral_Offset[posnum],Vega_Neutral_Offset=EvalFuncSetting$Vega_Neutral_Offset[posnum]),
@@ -1295,7 +1295,7 @@ create_initial_exact_PutCall_polulation<-function(popnum,type,EvalFuncSetting,th
         val<-obj_Income_sgmd(x,EvalFuncSetting,isDebug=isDebug,isDetail=isDetail,
                              #val<-obj_fixedpt_sgmd(x,EvalFuncSetting,isDebug=isDebug,isDetail=isDetail,
                              udlStepNum=EvalFuncSetting$UdlStepNum,udlStepPct=EvalFuncSetting$UdlStepPct,
-                             maxposnum=EvalFuncSetting$Maxposnum,PosMultip=PosMultip,
+                             PosMultip=PosMultip,
                              tail_rate=EvalFuncSetting$Tail_rate,lossLimitPrice=EvalFuncSetting$LossLimitPrice,
                              Delta_Direct_Prf=EvalFuncSetting$Delta_Direct_Prf[posnum],Vega_Direct_Prf=EvalFuncSetting$Vega_Direct_Prf[posnum],
                              Delta_Neutral_Offset=EvalFuncSetting$Delta_Neutral_Offset[posnum],Vega_Neutral_Offset=EvalFuncSetting$Vega_Neutral_Offset[posnum]),
@@ -1399,7 +1399,7 @@ create_combined_population<-function(popnum,EvalFuncSetting,thresh,plelem,ml,fna
       tryCatch(
         val<-obj_Income_sgmd(x_new,EvalFuncSetting,isDebug=isDebug,isDetail=isDebug,
                              udlStepNum=EvalFuncSetting$UdlStepNum,udlStepPct=EvalFuncSetting$UdlStepPct,
-                             maxposnum=EvalFuncSetting$Maxposnum,PosMultip=PosMultip,
+                             PosMultip=PosMultip,
                              tail_rate=EvalFuncSetting$Tail_rate,lossLimitPrice=EvalFuncSetting$LossLimitPrice,
                              Delta_Direct_Prf=EvalFuncSetting$Delta_Direct_Prf[posnum],Vega_Direct_Prf=EvalFuncSetting$Vega_Direct_Prf[posnum],
                              Delta_Neutral_Offset=EvalFuncSetting$Delta_Neutral_Offset[posnum],Vega_Neutral_Offset=EvalFuncSetting$Vega_Neutral_Offset[posnum]),
@@ -1423,7 +1423,7 @@ create_combined_population<-function(popnum,EvalFuncSetting,thresh,plelem,ml,fna
         message(e)
         cat("val:",val,"thresh:",thresh,"x",x_new,"\n")
         val=ifelse(is.na(val),thresh,val)+
-          cat("val:",val,"thresh:",thresh,"x",x,"\n")
+          cat("val:",val,"thresh:",thresh,"x",x_new,"\n")
       }
     )
     #write to the file

@@ -164,7 +164,7 @@ if(Combined_Spread){
       dplyr::do(revVal=obj_Income_sgmd(unlist(.)[1:length(opchain$Position)],
                                        EvalFuncSetting,isDebug=F,isDetail=F,
                                        udlStepNum=EvalFuncSetting$UdlStepNum,udlStepPct=EvalFuncSetting$UdlStepPct,
-                                       maxposnum=length(EvalFuncSetting$Vega_Direct_Prf),PosMultip=PosMultip,
+                                       PosMultip=PosMultip,
                                        tail_rate=EvalFuncSetting$Tail_rate,lossLimitPrice=EvalFuncSetting$LossLimitPrice,
                                        Delta_Direct_Prf=EvalFuncSetting$Delta_Direct_Prf[sum(as.numeric((unlist(.)[1:length(opchain$Position)])!=0))],
                                        Vega_Direct_Prf=EvalFuncSetting$Vega_Direct_Prf[sum(as.numeric((unlist(.)[1:length(opchain$Position)])!=0))],
@@ -189,7 +189,6 @@ if(Combined_Spread){
   #combinational search
   create_combined_population(popnum=PopN_1,EvalFuncSetting,thresh=Thresh_1,plelem=c(1,1),ml=Optimize_ml,
                              fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                             ##maxposn is supposed to be 10 for SPX
                              isFileout=TRUE,isDebug=FALSE,maxposn=length(EvalFuncSetting$Vega_Direct_Prf),PosMultip=PosMultip)
   #2Cb.csv
   st <- "powershell.exe .\\shell\\cmd3.ps1"
@@ -212,8 +211,7 @@ if(Combined_Spread){
   
   create_combined_population(popnum=PopN_2,EvalFuncSetting,thresh=Thresh_2,plelem=c(1,2),ml=Optimize_ml,
                              fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                             ##maxposn is supposed to be 10 for SPX
-                             isFileout=TRUE,isDebug=FALSE,maxposn=length(EvalFuncSetting$Vega_Direct_Prf),PosMultip=PosMultip)
+                             isFileout=TRUE,isDebug=FALSE,maxposn=10,PosMultip=PosMultip)
   
   #3Cb.csv
   st <- "powershell.exe .\\shell\\cmd5.ps1"
@@ -236,8 +234,7 @@ if(Combined_Spread){
   #combinational search
   create_combined_population(popnum=PopN_2,EvalFuncSetting,thresh=Thresh_2,plelem=c(1,3),ml=Optimize_ml,
                              fname=paste(".\\ResultData\\combine-Result-2Cb+2Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                             ##maxposn is supposed to be 12 for SPX
-                             isFileout=TRUE,isDebug=FALSE,maxposn=length(EvalFuncSetting$Delta_Direct_Prf),PosMultip=PosMultip)
+                             isFileout=TRUE,isDebug=FALSE,maxposn=length(EvalFuncSetting$Vega_Direct_Prf),PosMultip=PosMultip)
   #4Cb.csv
   st <- "powershell.exe .\\shell\\cmd7.ps1"
   system(st)

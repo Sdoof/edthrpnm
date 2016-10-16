@@ -1,5 +1,15 @@
+#First determine Which directory(folder) this instance belongs
+currentdir=getwd()
+dirInstance=""
+if(length(grep("2",currentdir))>=1)
+  dirInstance=2
+if(length(grep("3",currentdir))>=1)
+  dirInstance=3
+if(length(grep("4",currentdir))>=1)
+  dirInstance=4
+
 #Config File
-ConfigFileName_G="ConfigParameters.csv"
+ConfigFileName_G=paste("ConfigParameters",dirInstance,".csv",sep="")
 DataFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\MarketData\\data\\"
 
 ConfigParameters<-read.table(paste(DataFiles_Path_G,ConfigFileName_G,sep=""),
@@ -124,14 +134,6 @@ histIV %>% #dplyr::filter(as.Date(Date,format="%Y/%m/%d")<=max(as.Date(opchain$D
 ##
 # opchain,position,histIV,iniPos must exist as Global Variables.
 
-#Which directory(folder) this instance belongs
-dirInstance=""
-if(length(grep("2", ConfigFileName_G))>=1)
-  dirInstance=2
-if(length(grep("3", ConfigFileName_G))>=1)
-  dirInstance=3
-if(length(grep("4", ConfigFileName_G))>=1)
-  dirInstance=4
 
 #Option Chain and Position Data. Here we use UDL_Positions_Pre
 rf<-paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep="")
