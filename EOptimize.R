@@ -148,6 +148,7 @@ if(Combined_Spread){
   EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*COMBINATION_LOSSLIMIT_MULTIPLE
   
   ### 2(exact x exact) Combinations (2Cb)
+  #read 1Cb.csv
   tmp<-read.table(paste(ResultFiles_Path_G,"1Cb.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
   tmp=tmp[,1:(length(opchain$Position)+1)]
   colnames(tmp)=c(rep(1:length(opchain$Position)),"eval")
@@ -220,12 +221,13 @@ if(Combined_Spread){
   system(st)
   st <- "powershell.exe -Command \" del .\\ResultData\\3Cb-.csv \" "
   system(st) ;rm(st)
-  
+  #read 3Cb.csv
   tmp<-read.table(paste(ResultFiles_Path_G,"3Cb.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
   tmp=tmp[,1:(length(opchain$Position)+1)]
   colnames(tmp)=c(rep(1:length(opchain$Position)),"eval")
   tmp %>% dplyr::arrange(tmp[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> tmp
   write.table(tmp,paste(ResultFiles_Path_G,"3Cb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
+  tmp %>% dplyr::arrange(.[,length(iniPos)+1]) %>% head(TopN_2) -> tmp
   
   ### 4(3Cb x 1Cb currently shown as 2Cb+2Cb) Combinations (4Cb)
   pools[3]<-list(list(c(1,0,0),tmp)) #No.[[3]]
