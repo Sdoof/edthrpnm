@@ -188,7 +188,7 @@ LocalflipScoreWriteToFile<-function(ResultFileName,maxNum){
     tryCatch(
       flipScore<-obj_Income_sgmd(evaPos,EvalFuncSetting,isDebug=F,isDetail=F,
                                  udlStepNum=EvalFuncSetting$UdlStepNum,udlStepPct=EvalFuncSetting$UdlStepPct,
-                                 maxposnum=EvalFuncSetting$Maxposnum,PosMultip=PosMultip,
+                                 PosMultip=PosMultip,
                                  tail_rate=EvalFuncSetting$Tail_rate,lossLimitPrice=EvalFuncSetting$LossLimitPrice,
                                  Delta_Direct_Prf=EvalFuncSetting$Delta_Direct_Prf[posnum],Vega_Direct_Prf=EvalFuncSetting$Vega_Direct_Prf[posnum],
                                  Delta_Neutral_Offset=EvalFuncSetting$Delta_Neutral_Offset[posnum],Vega_Neutral_Offset=EvalFuncSetting$Vega_Neutral_Offset[posnum]),
