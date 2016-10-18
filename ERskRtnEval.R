@@ -221,12 +221,18 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   }
   
   ## c8 metric
+  InCoefSD=0.9
+  InCoefMaxLoss=0.1
   c8<- profit_sd
-  if(Setting$EvalConvex)
-    c8<- (-1)*maxLoss
-  else
+  if(Setting$EvalConvex){
+    c8<- (-1)*maxLoss*InCoefMaxLoss + InCoefSD*profit_sd
+    if(isDetail){cat(" :InCoefSD",InCoefSD,"x :profit_sd",profit_sd,
+                     "+ :InCoefMaxLoss",InCoefMaxLoss,"x :maxLoss",(-1)*maxLoss,
+                     " = :c8(profit_sd_maxloss)",c8)}
+  }else{
     c8<- profit_sd
-  if(isDetail){cat(" :c8(profit_sd or max_loss)",c8)}
+    if(isDetail){cat(" :c8(profit_sd)",c8)}
+  }
   
   ##
   # Greek Effects calculations. Forward looking indicator. Use first day's posEvalTble.
