@@ -123,7 +123,23 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   posEvalTbl<-posStepDays$scene[[length(posStepDays)]]
   profit_vector<-(posEvalTbl$Price-posStepDays$scene[[1]]$Price[udlStepNum + 1])
   profit_hdays<-sum(profit_vector*weight)
-  if(isDetail){cat(" :(1stD price",posStepDays$scene[[1]]$Price[udlStepNum + 1]);cat(" :(prft_vec)",profit_vector);cat(" :(prft_wght)",profit_hdays)}
+  if(isDetail){cat(" :(1stD price)",posStepDays$scene[[1]]$Price[udlStepNum + 1],
+                   " :(prft_vec)",profit_vector," :(prft_wght)",profit_hdays)}
+  
+  ##
+  # Day 1 profit profile
+  if(isDetail){
+    posOn1DayTbl=posStepDays$scene[[1]]
+    #cat("\n:(1st day evalTble)\n");print(posOn1DayTbl)
+    profit_On1Day_vector=(posOn1DayTbl$Price-posStepDays$scene[[1]]$Price[udlStepNum + 1])
+    cat(" <<1Day profit :(prft_vec_On1Day)",profit_On1Day_vector,
+        " :(prft_vec_On1Day_hdd_weight)",mean(profit_On1Day_vector*weight),
+        " :(prft_vec_On1Day_hdd_sd)",sd(rep(profit_On1Day_vector,times=round(weight*1000)))
+    )
+    tmp_1D=profit_vector-profit_On1Day_vector
+    cat(" :(prfit_hd1Day_diff)",tmp_1D," :(prfit_hd1Day_diff_wght)",sum(tmp_1D*weight),
+        " :(prfit_hd1Day_diffAbs_wght)",sum(abs(tmp_1D)*weight)," 1Day profit>>")
+  }
   
   ##
   # Profit Scenario When IV goes Up
