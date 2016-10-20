@@ -127,21 +127,6 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
                    " :(prft_vec)",profit_vector," :(prft_wght)",profit_hdays)}
   
   ##
-  # Day 1 profit profile
-  if(isDetail){
-    posOn1DayTbl=posStepDays$scene[[1]]
-    #cat("\n:(1st day evalTble)\n");print(posOn1DayTbl)
-    profit_On1Day_vector=(posOn1DayTbl$Price-posStepDays$scene[[1]]$Price[udlStepNum + 1])
-    cat(" <<1Day profit :(prft_vec_On1Day)",profit_On1Day_vector,
-        " :(prft_vec_On1Day_hdd_weight)",mean(profit_On1Day_vector*weight),
-        " :(prft_vec_On1Day_hdd_sd)",sd(rep(profit_On1Day_vector,times=round(weight*1000)))
-    )
-    tmp_1D=profit_vector-profit_On1Day_vector
-    cat(" :(prfit_hd1Day_diff)",tmp_1D," :(prfit_hd1Day_diff_wght)",sum(tmp_1D*weight),
-        " :(prfit_hd1Day_diffAbs_wght)",sum(abs(tmp_1D)*weight)," 1Day profit>>")
-  }
-  
-  ##
   # Profit Scenario When IV goes Up
   posEvalTbl<-posStepDays_vc_plus$scene[[length(posStepDays)]]
   profit_vector_vc_plus<-(posEvalTbl$Price-posStepDays$scene[[1]]$Price[udlStepNum + 1])
@@ -203,6 +188,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
     profit_sd<-sd(pdist)
   }
   
+  
   if(isDetail){
     cat(" :(sd)",sd(pdist)," :(sd_{pd<0})",sd(pdist[pdist<0]),":(sd_{(pd<0)*pd})",sd((pdist<0)*pdist),
         " (:mean_{pd<0})",mean(pdist[pdist<0])," (:mean_{(pd<0)*pd})",mean((pdist<0)*pdist)," :(profit_sd)",profit_sd)
@@ -228,6 +214,33 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
     return(unacceptableVal)
   }
   
+  ##
+  # Day 1 profit profile
+  posOn1DayTbl=posStepDays$scene[[1]]
+  profit_On1Day_vector=(posOn1DayTbl$Price-posStepDays$scene[[1]]$Price[udlStepNum + 1])
+  tmp_1D=profit_vector-profit_On1Day_vector
+  prfit_hd1Day_diff_wght=sum(tmp_1D*weight)
+  prfit_hd1Day_AbsDiff_wght=sum(abs(tmp_1D)*weight)
+  if(isDetail){
+    #cat("\n:(1st day evalTble)\n");print(posOn1DayTbl)
+    cat(" <<1Day profit :(prft_vec_On1Day)",profit_On1Day_vector,
+        " :(prft_vec_On1Day_hdd_weight)",mean(profit_On1Day_vector*weight),
+        " :(prft_vec_On1Day_hdd_sd)",sd(rep(profit_On1Day_vector,times=round(weight*1000))))
+    cat(" :(prfit_hd1Day_diff)",tmp_1D," :(prfit_hd1Day_diff_wght)",prfit_hd1Day_diff_wght,
+        " :(prfit_hd1Day_diffAbs_wght)",prfit_hd1Day_AbsDiff_wght," 1Day profit>>")
+  }
+  
+  EvalHd1DayDiff=T
+  CoefHd1DayDiff=1.5
+  if(EvalHd1DayDiff){
+    profit_sd=profit_sd+CoefHd1DayDiff*abs(prfit_hd1Day_diff_wght)
+    if(isDetail){
+      cat(" :profit_sd += CoefHd1DayDiff",CoefHd1DayDiff,
+          " x :(abs(prfit_hd1Day_diff_wght))",abs(prfit_hd1Day_diff_wght),
+          " =",profit_sd)
+    }
+  }
+  
   # ROIC
   ROIC=1.0
   if(profit_expctd<0){
@@ -237,8 +250,8 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   }
   
   ## c8 metric
-  InCoefSD=0.9
-  InCoefMaxLoss=0.1
+  InCoefSD=0.97
+  InCoefMaxLoss=0.03
   c8<- profit_sd
   if(Setting$EvalConvex){
     c8<- (-1)*maxLoss*InCoefMaxLoss + InCoefSD*profit_sd
@@ -249,6 +262,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
     c8<- profit_sd
     if(isDetail){cat(" :c8(profit_sd)",c8)}
   }
+  
   
   ##
   # Greek Effects calculations. Forward looking indicator. Use first day's posEvalTble.
