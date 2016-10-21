@@ -230,12 +230,12 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
         " :(prfit_hd1Day_diffAbs_wght)",prfit_hd1Day_AbsDiff_wght," 1Day profit>>")
   }
   
-  EvalHd1DayDiff=T
-  CoefHd1DayDiff=1.5
-  if(EvalHd1DayDiff){
-    profit_sd=profit_sd+CoefHd1DayDiff*abs(prfit_hd1Day_diff_wght)
+  if(Setting$Eval1DayDist){
+    #profit_sd=profit_sd+Setting$Coef1DayDist*prfit_hd1Day_diff_wght
+    profit_sd=profit_sd+Setting$Coef1DayDist*abs(prfit_hd1Day_diff_wght)
     if(isDetail){
-      cat(" :profit_sd += CoefHd1DayDiff",CoefHd1DayDiff,
+      cat(" :profit_sd += Setting$Coef1DayDist",Setting$Coef1DayDist,
+          #" x :(prfit_hd1Day_diff_wght)",prfit_hd1Day_diff_wght,
           " x :(abs(prfit_hd1Day_diff_wght))",abs(prfit_hd1Day_diff_wght),
           " =",profit_sd)
     }
@@ -250,8 +250,8 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   }
   
   ## c8 metric
-  InCoefSD=0.97
-  InCoefMaxLoss=0.03
+  InCoefSD=EvalFuncSetting$ConvexEvalInCoef["InCoefSD"]
+  InCoefMaxLoss=EvalFuncSetting$ConvexEvalInCoef["InCoefMaxLoss"]
   c8<- profit_sd
   if(Setting$EvalConvex){
     c8<- (-1)*maxLoss*InCoefMaxLoss + InCoefSD*profit_sd

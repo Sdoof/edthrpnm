@@ -61,7 +61,7 @@ EvFNames <- c("holdDays","UdlStepNum","UdlStepPct","Posnum","Tail_rate","LossLim
               "Delta_Direct_Prf","Vega_Direct_Prf","Delta_Neutral_Offset","Vega_Neutral_Offset",
               "Profit_Coef","AdvEffect_Coef","AllEffect_Coef","DrctlEffect_Coef","MaxLoss_Coef",
               "SigmoidA_Numerator","SigmoidA_Denominator","ExpIVChange_Multiple","ThetaEffectPositive",
-              "EvalConvex","UseSortinoRatio",
+              "EvalConvex","ConvexEvalInCoef","UseSortinoRatio","Eval1DayDist","Coef1DayDist",
               "DeltaHedge","GreekEfctOnHldD")
 
 EvalFuncSetting<-vector("list",length(EvFNames))
@@ -100,12 +100,15 @@ EvalFuncSetting[[31]]<-as.numeric(ConfigParameters["EvalFnc_SigmoidA_Denominator
 EvalFuncSetting[[32]]<-as.numeric(ConfigParameters["EvalFnc_ExpIVChange_Multiple",1])
 EvalFuncSetting[[33]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_ThetaEffectPositive",1])==1,TRUE,FALSE)
 EvalFuncSetting[[34]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_EvalConvex",1])==1,TRUE,FALSE)
-EvalFuncSetting[[35]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_UseSortinoRatio",1])==1,TRUE,FALSE)
-EvalFuncSetting[[36]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_DeltaHedgeToEvalProfit",1])==1,TRUE,FALSE)
-EvalFuncSetting[[37]]<-as.numeric(ConfigParameters["EvalFnc_GreekEffectEvalOnHoldDay",1])
+EvalFuncSetting[[35]]<-eval(parse(text=gsub("\\$",",",ConfigParameters["EvalFnc_ConvexEvalInCoef",1])))
+EvalFuncSetting[[36]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_UseSortinoRatio",1])==1,TRUE,FALSE)
+EvalFuncSetting[[37]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_Eval1DayDist",1])==1,TRUE,FALSE)
+EvalFuncSetting[[38]]<-as.numeric(ConfigParameters["EvalFnc_Coef1DayDist",1])
+EvalFuncSetting[[39]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_DeltaHedgeToEvalProfit",1])==1,TRUE,FALSE)
+EvalFuncSetting[[40]]<-as.numeric(ConfigParameters["EvalFnc_GreekEffectEvalOnHoldDay",1])
 
 names(EvalFuncSetting)<-EvFNames
-rm(EvFNames)
+names(EvalFuncSetting$ConvexEvalInCoef) <- c("InCoefSD","InCoefMaxLoss") 
 
 #MuLtipler for creating initial populaitons
 Optimize_ml=as.numeric(ConfigParameters["Optimize_ml",1])

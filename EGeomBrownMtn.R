@@ -9,7 +9,7 @@ annuual.daily.volatility <- function(p){
   #sum(log(p_/p))^2/(length(p)-1)/(length(p)-1-1) 
   daily_<-sqrt(sum(log(p_/p)^2)/(length(p)-1-1)-sum(log(p_/p))^2/(length(p)-1)/(length(p)-1-1))
   vol_<-daily_*sqrt(252)
- 
+  
   ret_names<-c("anlzd","daily")
   ret_ <- vector("list",length(ret_names))
   ret_[[1]]<-vol_
@@ -212,6 +212,14 @@ LocalflipScoreWriteToFile<-function(ResultFileName,maxNum){
 
 ##LOCAL UTILITY: return String of the sampling condition
 LocalcreateSampleConditionStr<-function(EvalFuncSetting){
+  
+  ConvexEvalInCoef_chunk=ifelse(EvalFuncSetting$EvalConvex,
+                                paste(EvalFuncSetting$ConvexEvalInCoef["InCoefSD"]*100,"_",
+                                      EvalFuncSetting$ConvexEvalInCoef["InCoefMaxLoss"]*100,sep=""),"")
+  
+  Eval1DayDist_chunk=ifelse(EvalFuncSetting$Eval1DayDist,
+                            paste(EvalFuncSetting$Coef1DayDist,sep=""),"")
+  
   outStr=paste(EvalFuncSetting$UdlStepPct*1000,"x",EvalFuncSetting$UdlStepNum,"-",EvalFuncSetting$holdDays,"d-",
                EvalFuncSetting$Profit_Coef,"_",EvalFuncSetting$AdvEffect_Coef,"-",
                EvalFuncSetting$DrctlEffect_Coef,"_",EvalFuncSetting$MaxLoss_Coef,"-",
@@ -221,8 +229,9 @@ LocalcreateSampleConditionStr<-function(EvalFuncSetting){
                "VTh$",EvalFuncSetting$Vega_Thresh_Minus[1],"_",EvalFuncSetting$Vega_Thresh_Plus[1],"-",
                "HIVR$",EvalFuncSetting$HV_IV_Adjust_Ratio,"-",
                "GkW$",EvalFuncSetting$GreekEfctOnHldD,"-",
-               "Cvx$",ifelse(EvalFuncSetting$EvalConvex,"T","F"),"-",
+               "Cvx$",ifelse(EvalFuncSetting$EvalConvex,"T","F"),ConvexEvalInCoef_chunk,"-",
                "Sor$",ifelse(EvalFuncSetting$UseSortinoRatio,"T","F"),"-",
+               "1Day$",ifelse(EvalFuncSetting$Eval1DayDist,"T","F"),Eval1DayDist_chunk,"-",
                "Ecv$",ifelse(EvalFuncSetting$EvalEconomicValue,"T","F"),"-",
                "LLt$",EvalFuncSetting$LossLimitPrice,
                sep="")
