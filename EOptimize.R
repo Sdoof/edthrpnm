@@ -264,7 +264,7 @@ if(Combined_Spread){
   ##  4(3Cb x 1Cb currently shown as 2Cb+2Cb) Combinations (4Cb)
   
   maxposn_tmp=length(EvalFuncSetting$Vega_Direct_Prf)
-  if(max(EvalFuncSetting$Posnum)*3<=maxposn_tmp){
+  if(max(EvalFuncSetting$Posnum)*4<=maxposn_tmp){
     #adding pools' element
     tmp %>% dplyr::arrange(.[,length(iniPos)+1]) %>% head(TopN_2) -> tmp
     pools[3]<-list(list(c(1,0,0),tmp)) #No.[[3]]
@@ -272,7 +272,7 @@ if(Combined_Spread){
     #combinational search
     create_combined_population(popnum=PopN_2,EvalFuncSetting,thresh=Thresh_2,plelem=c(1,3),ml=Optimize_ml,
                                fname=paste(".\\ResultData\\combine-Result-2Cb+2Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                               isFileout=TRUE,isDebug=FALSE,maxposn=length(EvalFuncSetting$Vega_Direct_Prf),PosMultip=PosMultip)
+                               isFileout=TRUE,isDebug=FALSE,maxposn=maxposn_tmp,PosMultip=PosMultip)
     #creating 4Cb.csv
     st <- "powershell.exe .\\shell\\cmd7.ps1"
     system(st)
@@ -290,7 +290,7 @@ if(Combined_Spread){
   ###
   ##  6(3Cb x 3Cb currently shown as 2Cb+2Cb) Combinations (4Cb)
   maxposn_tmp=length(EvalFuncSetting$Vega_Direct_Prf)
-  if(max(EvalFuncSetting$Posnum)*4<=maxposn_tmp){
+  if(max(EvalFuncSetting$Posnum)*5<=maxposn_tmp){
     #adding pools' element
     tmp %>% dplyr::arrange(.[,length(iniPos)+1]) %>% head(TopN_2) -> tmp
     pools[4]<-list(list(c(1,0,0),tmp)) #No.[[4]]
@@ -510,6 +510,4 @@ write.table(tmp_fil_w2,resultSaveFileRf[[2]],row.names = F,col.names=F,sep=",",a
 write.table(tmp_fil_w3,resultSaveFileRf[[3]],row.names = F,col.names=F,sep=",",append=F)
 write.table(tmp_fil_w4,resultSaveFileRf[[4]],row.names = F,col.names=F,sep=",",append=F)
 
-for(tmp_file_idx in 1:2){
-  LocalflipScoreWriteToFile(resultSaveFileRf[[tmp_file_idx]],50)
-}
+LocalflipScoreWriteToFile(resultSaveFileRf[[2]],50)
