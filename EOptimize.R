@@ -25,6 +25,7 @@ file.create(tmp_touchfile)
 cat("Weight_Explicit",EvalFuncSetting$Weight_Explicit,"\n",file=tmp_touchfile,sep=",",append=TRUE)
 cat("Weight_Explicit_1D",EvalFuncSetting$Weight_Explicit_1D,"\n",file=tmp_touchfile,sep=",",append=TRUE)
 cat("UnitMinProfit",EvalFuncSetting$UnitMinProfit,"\n",file=tmp_touchfile,sep=",",append=TRUE)
+cat("Posnum",EvalFuncSetting$Posnum,"\n",file=tmp_touchfile,sep=",",append=TRUE)
 
 ##
 # Creating First Generation
