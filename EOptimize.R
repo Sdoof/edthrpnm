@@ -233,7 +233,7 @@ if(Combined_Spread){
   colnames(tmp)=c(rep(1:length(opchain$Position)),"eval")
   tmp %>% dplyr::arrange(tmp[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> tmp
   write.table(tmp,paste(ResultFiles_Path_G,"2Cb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
-
+  
   ###
   ##   3(2Cb x 1Cb) Combinations (3Cb)
   maxposn_tmp=10
@@ -259,34 +259,33 @@ if(Combined_Spread){
   colnames(tmp)=c(rep(1:length(opchain$Position)),"eval")
   tmp %>% dplyr::arrange(tmp[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> tmp
   write.table(tmp,paste(ResultFiles_Path_G,"3Cb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
-
+  
   ###
   ##  4(3Cb x 1Cb currently shown as 2Cb+2Cb) Combinations (4Cb)
   
   maxposn_tmp=length(EvalFuncSetting$Vega_Direct_Prf)
-  if(max(EvalFuncSetting$Posnum)*4<=maxposn_tmp){
-    #adding pools' element
-    tmp %>% dplyr::arrange(.[,length(iniPos)+1]) %>% head(TopN_2) -> tmp
-    pools[3]<-list(list(c(1,0,0),tmp)) #No.[[3]]
-    pools<<-pools
-    #combinational search
-    create_combined_population(popnum=PopN_2,EvalFuncSetting,thresh=Thresh_2,plelem=c(1,3),ml=Optimize_ml,
-                               fname=paste(".\\ResultData\\combine-Result-2Cb+2Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                               isFileout=TRUE,isDebug=FALSE,maxposn=maxposn_tmp,PosMultip=PosMultip)
-    #creating 4Cb.csv
-    st <- "powershell.exe .\\shell\\cmd7.ps1"
-    system(st)
-    st <- "powershell.exe .\\shell\\cmd8.ps1"
-    system(st)
-    st <- "powershell.exe -Command \" del .\\ResultData\\4Cb-.csv \" "
-    system(st) ;rm(st)
-    #read, sort and rewrite to the file
-    tmp<-read.table(paste(ResultFiles_Path_G,"4Cb.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
-    tmp=tmp[,1:(length(opchain$Position)+1)]
-    colnames(tmp)=c(rep(1:length(opchain$Position)),"eval")
-    tmp %>% dplyr::arrange(tmp[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> tmp
-    write.table(tmp,paste(ResultFiles_Path_G,"4Cb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
-  }
+  #adding pools' element
+  tmp %>% dplyr::arrange(.[,length(iniPos)+1]) %>% head(TopN_2) -> tmp
+  pools[3]<-list(list(c(1,0,0),tmp)) #No.[[3]]
+  pools<<-pools
+  #combinational search
+  create_combined_population(popnum=PopN_2,EvalFuncSetting,thresh=Thresh_2,plelem=c(1,3),ml=Optimize_ml,
+                             fname=paste(".\\ResultData\\combine-Result-2Cb+2Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                             isFileout=TRUE,isDebug=FALSE,maxposn=maxposn_tmp,PosMultip=PosMultip)
+  #creating 4Cb.csv
+  st <- "powershell.exe .\\shell\\cmd7.ps1"
+  system(st)
+  st <- "powershell.exe .\\shell\\cmd8.ps1"
+  system(st)
+  st <- "powershell.exe -Command \" del .\\ResultData\\4Cb-.csv \" "
+  system(st) ;rm(st)
+  #read, sort and rewrite to the file
+  tmp<-read.table(paste(ResultFiles_Path_G,"4Cb.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
+  tmp=tmp[,1:(length(opchain$Position)+1)]
+  colnames(tmp)=c(rep(1:length(opchain$Position)),"eval")
+  tmp %>% dplyr::arrange(tmp[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> tmp
+  write.table(tmp,paste(ResultFiles_Path_G,"4Cb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
+  
   ###
   ##  6(3Cb x 3Cb currently shown as 2Cb+2Cb) Combinations (4Cb)
   maxposn_tmp=length(EvalFuncSetting$Vega_Direct_Prf)
@@ -422,7 +421,6 @@ if(Combined_Spread){
     dplyr::full_join(total_res,res1) %>% dplyr::arrange(.[,length(iniPos)+1]) %>% dplyr::distinct() -> total_res
     rm(res1)
   }
-  
 }
 
 # Writing to files based on option legs total number
@@ -454,15 +452,16 @@ getPositionWithGreeks<-function(tmp_fil){
   tmp_fil$AdvEffect<-unlist(tmp2$ThetaEffect)+unlist(tmp2$GammaEffect)
   return(tmp_fil)
 }
+
 #data for writing to files.
 tmp_fil %>% 
   dplyr::arrange(tmp_fil[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> tmp_fil_w
 
 tmp_fil2 %>% 
-    dplyr::arrange(tmp_fil2[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> tmp_fil_w2
+  dplyr::arrange(tmp_fil2[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> tmp_fil_w2
 
 tmp_fil3 %>% 
-    dplyr::arrange(tmp_fil3[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> tmp_fil_w3
+  dplyr::arrange(tmp_fil3[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> tmp_fil_w3
 
 tmp_fil4 %>% 
   dplyr::arrange(tmp_fil4[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> tmp_fil_w4
@@ -496,14 +495,14 @@ if(COMBINATION_HOT_START==T){
 resultSaveFileRf=vector("list",4)
 
 resultSaveFileRf[[1]]=paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition_",
-               format(Sys.time(),"%Y%b%d_%H%M%S"),".csv",sep="")
+                            format(Sys.time(),"%Y%b%d_%H%M%S"),".csv",sep="")
 
 resultSaveFileRf[[2]]=paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition2_",
-               format(Sys.time(),"%Y%b%d_%H%M%S"),".csv",sep="")
+                            format(Sys.time(),"%Y%b%d_%H%M%S"),".csv",sep="")
 resultSaveFileRf[[3]]=paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition3_",
-               format(Sys.time(),"%Y%b%d_%H%M%S"),".csv",sep="")
+                            format(Sys.time(),"%Y%b%d_%H%M%S"),".csv",sep="")
 resultSaveFileRf[[4]]=paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition4_"
-      ,format(Sys.time(),"%Y%b%d_%H%M%S"),".csv",sep="")
+                            ,format(Sys.time(),"%Y%b%d_%H%M%S"),".csv",sep="")
 
 write.table(tmp_fil_w,resultSaveFileRf[[1]],row.names = F,col.names=F,sep=",",append=F)
 write.table(tmp_fil_w2,resultSaveFileRf[[2]],row.names = F,col.names=F,sep=",",append=F)
