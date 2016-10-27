@@ -16,24 +16,22 @@ SPECIFIC_FIRSTG_SETTING=F
 #COMBINATION LossLimit Multipe
 COMBINATION_LOSSLIMIT_MULTIPLE=2
 
+#cache for the position
+HASH_HIT_NUM=0
+
 #Combine Target Generation: 
 # c(1Cb tgt,2Cb tgt,3Cb tgt ,4Cb tge,5Cb tgt) where 1Cb should be 0
 # xCb tgt means: when xCb combination is created, combine (x-1)Cb with CombineTargetGeneration[xCb_tgt_idx]
 #  for example: when CombineTargetGeneration=c(0,1,2,2,2),
 #    3Cb target is created, combine 2Cb target with 2Cb target(=CombineTargetGeneration[3])
 #    4Cb target is created, combine 3Cb target with 2Cb target(=CombineTargetGeneration[4])
-CombineTargetGeneration=c(0,1,1,1,1)
-
-#cache for the position
-HASH_HIT_NUM=0
-
+EvalFuncSetting$CombineTargetGeneration
 #Maxed Combine max posnum is calculated
-CombinedMaxPosnum=rep(0,times=5)
+CombinedMaxPosnum=rep(0,times=length(EvalFuncSetting$CombineTargetGeneration))
 CombinedMaxPosnum[1]=max(EvalFuncSetting$Posnum)
-CombinedMaxPosnum[2]=CombinedMaxPosnum[CombineTargetGeneration[2]]+CombinedMaxPosnum[1]
-CombinedMaxPosnum[3]=CombinedMaxPosnum[CombineTargetGeneration[3]]+CombinedMaxPosnum[2]
-CombinedMaxPosnum[4]=CombinedMaxPosnum[CombineTargetGeneration[4]]+CombinedMaxPosnum[3]
-CombinedMaxPosnum[5]=CombinedMaxPosnum[CombineTargetGeneration[5]]+CombinedMaxPosnum[4]
+for(tmp in 2:length(CombinedMaxPosnum)){
+  CombinedMaxPosnum[tmp]=CombinedMaxPosnum[EvalFuncSetting$CombineTargetGeneration[tmp]]+CombinedMaxPosnum[(tmp-1)]
+}
 
 #touch the file whose name shows the configuration of this search
 tmp_touchfile=paste(ResultFiles_Path_G,LocalcreateSampleConditionStr(EvalFuncSetting),".csv",sep="")
@@ -42,7 +40,7 @@ cat("Weight_Explicit",EvalFuncSetting$Weight_Explicit,"\n",file=tmp_touchfile,se
 cat("Weight_Explicit_1D",EvalFuncSetting$Weight_Explicit_1D,"\n",file=tmp_touchfile,sep=",",append=TRUE)
 cat("UnitMinProfit",EvalFuncSetting$UnitMinProfit,"\n",file=tmp_touchfile,sep=",",append=TRUE)
 cat("Posnum",EvalFuncSetting$Posnum,"\n",file=tmp_touchfile,sep=",",append=TRUE)
-cat("CombineTargetGeneration",CombineTargetGeneration,"\n",file=tmp_touchfile,sep=",",append=TRUE)
+cat("CombineTargetGeneration",EvalFuncSetting$CombineTargetGeneration,"\n",file=tmp_touchfile,sep=",",append=TRUE)
 cat("CombinedMaxPosnum",CombinedMaxPosnum,"\n",file=tmp_touchfile,sep=",",append=TRUE)
 
 ##
@@ -236,7 +234,7 @@ if(Combined_Spread){
   
   maxposn_tmp=length(EvalFuncSetting$Vega_Direct_Prf)
   #combinational search
-  create_combined_population(popnum=PopN_1,EvalFuncSetting,thresh=Thresh_1,plelem=c(CombineTargetGeneration[2],1),ml=Optimize_ml,
+  create_combined_population(popnum=PopN_1,EvalFuncSetting,thresh=Thresh_1,plelem=c(EvalFuncSetting$CombineTargetGeneration[2],1),ml=Optimize_ml,
                              fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                              isFileout=TRUE,isDebug=FALSE,maxposn=maxposn_tmp,PosMultip=PosMultip)
   #creating 2Cb.csv
@@ -261,7 +259,7 @@ if(Combined_Spread){
   pools[2]<-list(list(c(1,0,0),tmp)) #No.[[2]]
   pools<<-pools
   #combinational search
-  create_combined_population(popnum=PopN_2,EvalFuncSetting,thresh=Thresh_2,plelem=c(CombineTargetGeneration[3],2),ml=Optimize_ml,
+  create_combined_population(popnum=PopN_2,EvalFuncSetting,thresh=Thresh_2,plelem=c(EvalFuncSetting$CombineTargetGeneration[3],2),ml=Optimize_ml,
                              fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                              isFileout=TRUE,isDebug=FALSE,maxposn=maxposn_tmp,PosMultip=PosMultip)
   
@@ -288,7 +286,7 @@ if(Combined_Spread){
   pools[3]<-list(list(c(1,0,0),tmp)) #No.[[3]]
   pools<<-pools
   #combinational search
-  create_combined_population(popnum=PopN_2,EvalFuncSetting,thresh=Thresh_2,plelem=c(CombineTargetGeneration[4],3),ml=Optimize_ml,
+  create_combined_population(popnum=PopN_2,EvalFuncSetting,thresh=Thresh_2,plelem=c(EvalFuncSetting$CombineTargetGeneration[4],3),ml=Optimize_ml,
                              fname=paste(".\\ResultData\\combine-Result-2Cb+2Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                              isFileout=TRUE,isDebug=FALSE,maxposn=maxposn_tmp,PosMultip=PosMultip)
   #creating 4Cb.csv
@@ -314,7 +312,7 @@ if(Combined_Spread){
     pools[4]<-list(list(c(1,0,0),tmp)) #No.[[4]]
     pools<<-pools
     #combinational search
-    create_combined_population(popnum=PopN_2,EvalFuncSetting,thresh=Thresh_2,plelem=c(CombineTargetGeneration[5],4),ml=Optimize_ml,
+    create_combined_population(popnum=PopN_2,EvalFuncSetting,thresh=Thresh_2,plelem=c(EvalFuncSetting$CombineTargetGeneration[5],4),ml=Optimize_ml,
                                fname=paste(".\\ResultData\\combine-Result-3Cb+2Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                isFileout=TRUE,isDebug=FALSE,maxposn=maxposn_tmp,PosMultip=PosMultip)
     #creating 5Cb.csv
