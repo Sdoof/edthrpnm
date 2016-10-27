@@ -16,8 +16,24 @@ SPECIFIC_FIRSTG_SETTING=F
 #COMBINATION LossLimit Multipe
 COMBINATION_LOSSLIMIT_MULTIPLE=2
 
+#Combine Target Generation: 
+# c(1Cb tgt,2Cb tgt,3Cb tgt ,4Cb tge,5Cb tgt) where 1Cb should be 0
+# xCb tgt means: when xCb combination is created, combine (x-1)Cb with CombineTargetGeneration[xCb_tgt_idx]
+#  for example: when CombineTargetGeneration=c(0,1,2,2,2),
+#    3Cb target is created, combine 2Cb target with 2Cb target(=CombineTargetGeneration[3])
+#    4Cb target is created, combine 3Cb target with 2Cb target(=CombineTargetGeneration[4])
+CombineTargetGeneration=c(0,1,1,1,1)
+
 #cache for the position
 HASH_HIT_NUM=0
+
+#Maxed Combine max posnum is calculated
+CombinedMaxPosnum=rep(0,times=5)
+CombinedMaxPosnum[1]=max(EvalFuncSetting$Posnum)
+CombinedMaxPosnum[2]=CombinedMaxPosnum[CombineTargetGeneration[2]]+CombinedMaxPosnum[1]
+CombinedMaxPosnum[3]=CombinedMaxPosnum[CombineTargetGeneration[3]]+CombinedMaxPosnum[2]
+CombinedMaxPosnum[4]=CombinedMaxPosnum[CombineTargetGeneration[4]]+CombinedMaxPosnum[3]
+CombinedMaxPosnum[5]=CombinedMaxPosnum[CombineTargetGeneration[5]]+CombinedMaxPosnum[4]
 
 #touch the file whose name shows the configuration of this search
 tmp_touchfile=paste(ResultFiles_Path_G,LocalcreateSampleConditionStr(EvalFuncSetting),".csv",sep="")
@@ -26,6 +42,8 @@ cat("Weight_Explicit",EvalFuncSetting$Weight_Explicit,"\n",file=tmp_touchfile,se
 cat("Weight_Explicit_1D",EvalFuncSetting$Weight_Explicit_1D,"\n",file=tmp_touchfile,sep=",",append=TRUE)
 cat("UnitMinProfit",EvalFuncSetting$UnitMinProfit,"\n",file=tmp_touchfile,sep=",",append=TRUE)
 cat("Posnum",EvalFuncSetting$Posnum,"\n",file=tmp_touchfile,sep=",",append=TRUE)
+cat("CombineTargetGeneration",CombineTargetGeneration,"\n",file=tmp_touchfile,sep=",",append=TRUE)
+cat("CombinedMaxPosnum",CombinedMaxPosnum,"\n",file=tmp_touchfile,sep=",",append=TRUE)
 
 ##
 # Creating First Generation
@@ -81,7 +99,7 @@ if(COMBINATION_HOT_START==T){
     file.copy(from=tmp,to=paste(tmp,"_load.csv",sep=""),overwrite=T)
   }
   
-  tmp=paste(ResultFiles_Path_G,"6Cb.csv",sep="")
+  tmp=paste(ResultFiles_Path_G,"5Cb.csv",sep="")
   if( file.exists(tmp)){
     loadToPositionHash(fname=tmp)
     file.copy(from=tmp,to=paste(tmp,"_load.csv",sep=""),overwrite=T)
@@ -218,7 +236,7 @@ if(Combined_Spread){
   
   maxposn_tmp=length(EvalFuncSetting$Vega_Direct_Prf)
   #combinational search
-  create_combined_population(popnum=PopN_1,EvalFuncSetting,thresh=Thresh_1,plelem=c(1,1),ml=Optimize_ml,
+  create_combined_population(popnum=PopN_1,EvalFuncSetting,thresh=Thresh_1,plelem=c(CombineTargetGeneration[2],1),ml=Optimize_ml,
                              fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                              isFileout=TRUE,isDebug=FALSE,maxposn=maxposn_tmp,PosMultip=PosMultip)
   #creating 2Cb.csv
@@ -243,7 +261,7 @@ if(Combined_Spread){
   pools[2]<-list(list(c(1,0,0),tmp)) #No.[[2]]
   pools<<-pools
   #combinational search
-  create_combined_population(popnum=PopN_2,EvalFuncSetting,thresh=Thresh_2,plelem=c(1,2),ml=Optimize_ml,
+  create_combined_population(popnum=PopN_2,EvalFuncSetting,thresh=Thresh_2,plelem=c(CombineTargetGeneration[3],2),ml=Optimize_ml,
                              fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                              isFileout=TRUE,isDebug=FALSE,maxposn=maxposn_tmp,PosMultip=PosMultip)
   
@@ -270,7 +288,7 @@ if(Combined_Spread){
   pools[3]<-list(list(c(1,0,0),tmp)) #No.[[3]]
   pools<<-pools
   #combinational search
-  create_combined_population(popnum=PopN_2,EvalFuncSetting,thresh=Thresh_2,plelem=c(1,3),ml=Optimize_ml,
+  create_combined_population(popnum=PopN_2,EvalFuncSetting,thresh=Thresh_2,plelem=c(CombineTargetGeneration[4],3),ml=Optimize_ml,
                              fname=paste(".\\ResultData\\combine-Result-2Cb+2Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                              isFileout=TRUE,isDebug=FALSE,maxposn=maxposn_tmp,PosMultip=PosMultip)
   #creating 4Cb.csv
@@ -288,30 +306,30 @@ if(Combined_Spread){
   write.table(tmp,paste(ResultFiles_Path_G,"4Cb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
   
   ###
-  ##  6(3Cb x 3Cb currently shown as 2Cb+2Cb) Combinations (4Cb)
+  ##  5(3Cb x 2Cb currently shown as 2Cb+2Cb) Combinations (5Cb)
   maxposn_tmp=length(EvalFuncSetting$Vega_Direct_Prf)
-  if(max(EvalFuncSetting$Posnum)*5<=maxposn_tmp){
+  if(CombinedMaxPosnum[4] <= maxposn_tmp){
     #adding pools' element
     tmp %>% dplyr::arrange(.[,length(iniPos)+1]) %>% head(TopN_2) -> tmp
     pools[4]<-list(list(c(1,0,0),tmp)) #No.[[4]]
     pools<<-pools
     #combinational search
-    create_combined_population(popnum=PopN_2,EvalFuncSetting,thresh=Thresh_2,plelem=c(1,4),ml=Optimize_ml,
-                               fname=paste(".\\ResultData\\combine-Result-3Cb+3Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+    create_combined_population(popnum=PopN_2,EvalFuncSetting,thresh=Thresh_2,plelem=c(CombineTargetGeneration[5],4),ml=Optimize_ml,
+                               fname=paste(".\\ResultData\\combine-Result-3Cb+2Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                isFileout=TRUE,isDebug=FALSE,maxposn=maxposn_tmp,PosMultip=PosMultip)
-    #creating 4Cb.csv
+    #creating 5Cb.csv
     st <- "powershell.exe .\\shell\\cmd9.ps1"
     system(st)
     st <- "powershell.exe .\\shell\\cmd10.ps1"
     system(st)
-    st <- "powershell.exe -Command \" del .\\ResultData\\6Cb-.csv \" "
+    st <- "powershell.exe -Command \" del .\\ResultData\\5Cb-.csv \" "
     system(st) ;rm(st)
     #read, sort and rewrite to the file
-    tmp<-read.table(paste(ResultFiles_Path_G,"6Cb.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
+    tmp<-read.table(paste(ResultFiles_Path_G,"5Cb.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
     tmp=tmp[,1:(length(opchain$Position)+1)]
     colnames(tmp)=c(rep(1:length(opchain$Position)),"eval")
     tmp %>% dplyr::arrange(tmp[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> tmp
-    write.table(tmp,paste(ResultFiles_Path_G,"6Cb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
+    write.table(tmp,paste(ResultFiles_Path_G,"5Cb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
   }
   
   ##
@@ -403,18 +421,18 @@ if(Combined_Spread){
   rm(res1)
   
   ##
-  # 6Cb
-  if(file.exists(paste(ResultFiles_Path_G,"6Cb.csv",sep=""))){
-    res1<-read.table(paste(ResultFiles_Path_G,"6Cb.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
+  # 5Cb
+  if(file.exists(paste(ResultFiles_Path_G,"5Cb.csv",sep=""))){
+    res1<-read.table(paste(ResultFiles_Path_G,"5Cb.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
     res1=res1[,1:(length(opchain$Position)+1)]
-    write.table(res1,paste(ResultFiles_Path_G,"6Cb.cmb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
+    write.table(res1,paste(ResultFiles_Path_G,"5Cb.cmb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
     colnames(res1)=c(rep(1:length(opchain$Position)),"eval")
     res1 %>% dplyr::arrange(res1[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> res1
     #posnum put call
     res1[,1:length(opchain$Position)] %>% dplyr::rowwise() %>% dplyr::do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp
     tmp  %>% dplyr::rowwise() %>% dplyr::do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp2
     res1$putn<-unlist(tmp2$putn);res1$calln<-unlist(tmp2$calln);rm(tmp);rm(tmp2)
-    write.table(res1,paste(ResultFiles_Path_G,"6Cb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
+    write.table(res1,paste(ResultFiles_Path_G,"5Cb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
     #over the specified socre
     res1 %>% dplyr::filter(.[,length(opchain$Position)+1]<Thresh_2) -> res1
     
@@ -486,7 +504,7 @@ if(COMBINATION_HOT_START==T){
     LocalMergeWriteFiles(rf=rf_)
   }
   
-  rf_=paste(ResultFiles_Path_G,"6Cb.csv",sep="")
+  rf_=paste(ResultFiles_Path_G,"5Cb.csv",sep="")
   if(file.exists(rf_)){
     LocalMergeWriteFiles(rf=rf_)
   }
