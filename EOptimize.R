@@ -42,6 +42,8 @@ cat("UnitMinProfit",EvalFuncSetting$UnitMinProfit,"\n",file=tmp_touchfile,sep=",
 cat("Posnum",EvalFuncSetting$Posnum,"\n",file=tmp_touchfile,sep=",",append=TRUE)
 cat("CombineTargetGeneration",EvalFuncSetting$CombineTargetGeneration,"\n",file=tmp_touchfile,sep=",",append=TRUE)
 cat("CombinedMaxPosnum",CombinedMaxPosnum,"\n",file=tmp_touchfile,sep=",",append=TRUE)
+cat("TopN_1",TopN_1,"TopN_2",TopN_2,"\n",file=tmp_touchfile,sep=",",append=TRUE)
+cat("PopN_1",PopN_1,"PopN_2",PopN_2,"\n",file=tmp_touchfile,sep=",",append=TRUE)
 
 ##
 # Creating First Generation
