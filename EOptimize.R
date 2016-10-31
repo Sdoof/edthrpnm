@@ -123,11 +123,11 @@ if(COMBINATION_HOT_START==F){
                                               isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
     }
     if(sum(EvalFuncSetting$Posnum==4)!=0){
-      create_initial_exact_PutCall_polulation(popnum=100,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
-                                              putn=4,calln=0,ml=Optimize_ml,
-                                              fname=paste(".\\ResultData\\inipop-04P4C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                                              PosMultip,
-                                              isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
+      # create_initial_exact_PutCall_polulation(popnum=100,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
+      #                                         putn=4,calln=0,ml=Optimize_ml,
+      #                                         fname=paste(".\\ResultData\\inipop-04P4C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+      #                                         PosMultip,
+      #                                         isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
       create_initial_exact_PutCall_polulation(popnum=200,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
                                               putn=2,calln=2,ml=Optimize_ml,
                                               fname=paste(".\\ResultData\\inipop-04P2C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
@@ -140,11 +140,11 @@ if(COMBINATION_HOT_START==F){
                                               isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
     }
     if(sum(EvalFuncSetting$Posnum==3)!=0){
-      create_initial_exact_PutCall_polulation(popnum=100,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
-                                              putn=3,calln=0,ml=Optimize_ml,
-                                              fname=paste(".\\ResultData\\inipop-03P3C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                                              PosMultip,
-                                              isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
+      # create_initial_exact_PutCall_polulation(popnum=100,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
+      #                                         putn=3,calln=0,ml=Optimize_ml,
+      #                                         fname=paste(".\\ResultData\\inipop-03P3C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+      #                                         PosMultip,
+      #                                         isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
       create_initial_exact_PutCall_polulation(popnum=100,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
                                               putn=0,calln=3,ml=Optimize_ml,
                                               fname=paste(".\\ResultData\\inipop-03P0C3-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
@@ -236,79 +236,84 @@ if(Combined_Spread){
   
   maxposn_tmp=length(EvalFuncSetting$Vega_Direct_Prf)
   #combinational search
-  create_combined_population(popnum=PopN_1,EvalFuncSetting,thresh=Thresh_1,plelem=c(EvalFuncSetting$CombineTargetGeneration[2],1),ml=Optimize_ml,
-                             fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                             isFileout=TRUE,isDebug=FALSE,maxposn=maxposn_tmp,PosMultip=PosMultip)
-  #creating 2Cb.csv
-  st <- "powershell.exe .\\shell\\cmd3.ps1"
-  system(st)
-  st <- "powershell.exe .\\shell\\cmd4.ps1"
-  system(st)
-  st <- "powershell.exe -Command \" del .\\ResultData\\2Cb-.csv \" "
-  system(st) ;rm(st)
-  #read, sort and rewrite to the file
-  tmp<-read.table(paste(ResultFiles_Path_G,"2Cb.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
-  tmp=tmp[,1:(length(opchain$Position)+1)]
-  colnames(tmp)=c(rep(1:length(opchain$Position)),"eval")
-  tmp %>% dplyr::arrange(tmp[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> tmp
-  write.table(tmp,paste(ResultFiles_Path_G,"2Cb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
+  if(CombinedMaxPosnum[1] < maxposn_tmp){
+    create_combined_population(popnum=PopN_1,EvalFuncSetting,thresh=Thresh_1,plelem=c(EvalFuncSetting$CombineTargetGeneration[2],1),ml=Optimize_ml,
+                               fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                               isFileout=TRUE,isDebug=FALSE,maxposn=maxposn_tmp,PosMultip=PosMultip)
+    #creating 2Cb.csv
+    st <- "powershell.exe .\\shell\\cmd3.ps1"
+    system(st)
+    st <- "powershell.exe .\\shell\\cmd4.ps1"
+    system(st)
+    st <- "powershell.exe -Command \" del .\\ResultData\\2Cb-.csv \" "
+    system(st) ;rm(st)
+    #read, sort and rewrite to the file
+    tmp<-read.table(paste(ResultFiles_Path_G,"2Cb.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
+    tmp=tmp[,1:(length(opchain$Position)+1)]
+    colnames(tmp)=c(rep(1:length(opchain$Position)),"eval")
+    tmp %>% dplyr::arrange(tmp[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> tmp
+    write.table(tmp,paste(ResultFiles_Path_G,"2Cb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
+  }
   
   ###
   ##   3(2Cb x 1Cb) Combinations (3Cb)
-  maxposn_tmp=10
-  #adding pools' element
-  tmp %>% dplyr::arrange(.[,length(iniPos)+1]) %>% head(TopN_2) -> tmp
-  pools[2]<-list(list(c(1,0,0),tmp)) #No.[[2]]
-  pools<<-pools
-  #combinational search
-  create_combined_population(popnum=PopN_2,EvalFuncSetting,thresh=Thresh_2,plelem=c(EvalFuncSetting$CombineTargetGeneration[3],2),ml=Optimize_ml,
-                             fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                             isFileout=TRUE,isDebug=FALSE,maxposn=maxposn_tmp,PosMultip=PosMultip)
-  
-  #creating 3Cb.csv
-  st <- "powershell.exe .\\shell\\cmd5.ps1"
-  system(st)
-  st <- "powershell.exe .\\shell\\cmd6.ps1"
-  system(st)
-  st <- "powershell.exe -Command \" del .\\ResultData\\3Cb-.csv \" "
-  system(st) ;rm(st)
-  #read, sort and rewrite to the file
-  tmp<-read.table(paste(ResultFiles_Path_G,"3Cb.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
-  tmp=tmp[,1:(length(opchain$Position)+1)]
-  colnames(tmp)=c(rep(1:length(opchain$Position)),"eval")
-  tmp %>% dplyr::arrange(tmp[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> tmp
-  write.table(tmp,paste(ResultFiles_Path_G,"3Cb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
+  maxposn_tmp=length(EvalFuncSetting$Vega_Direct_Prf)
+  if(CombinedMaxPosnum[2] < maxposn_tmp){
+    #adding pools' element
+    tmp %>% dplyr::arrange(.[,length(iniPos)+1]) %>% head(TopN_2) -> tmp
+    pools[2]<-list(list(c(1,0,0),tmp)) #No.[[2]]
+    pools<<-pools
+    #combinational search
+    create_combined_population(popnum=PopN_2,EvalFuncSetting,thresh=Thresh_2,plelem=c(EvalFuncSetting$CombineTargetGeneration[3],2),ml=Optimize_ml,
+                               fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                               isFileout=TRUE,isDebug=FALSE,maxposn=maxposn_tmp,PosMultip=PosMultip)
+    
+    #creating 3Cb.csv
+    st <- "powershell.exe .\\shell\\cmd5.ps1"
+    system(st)
+    st <- "powershell.exe .\\shell\\cmd6.ps1"
+    system(st)
+    st <- "powershell.exe -Command \" del .\\ResultData\\3Cb-.csv \" "
+    system(st) ;rm(st)
+    #read, sort and rewrite to the file
+    tmp<-read.table(paste(ResultFiles_Path_G,"3Cb.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
+    tmp=tmp[,1:(length(opchain$Position)+1)]
+    colnames(tmp)=c(rep(1:length(opchain$Position)),"eval")
+    tmp %>% dplyr::arrange(tmp[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> tmp
+    write.table(tmp,paste(ResultFiles_Path_G,"3Cb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
+  }
   
   ###
   ##  4(3Cb x 1Cb currently shown as 2Cb+2Cb) Combinations (4Cb)
-  
   maxposn_tmp=length(EvalFuncSetting$Vega_Direct_Prf)
-  #adding pools' element
-  tmp %>% dplyr::arrange(.[,length(iniPos)+1]) %>% head(TopN_2) -> tmp
-  pools[3]<-list(list(c(1,0,0),tmp)) #No.[[3]]
-  pools<<-pools
-  #combinational search
-  create_combined_population(popnum=PopN_2,EvalFuncSetting,thresh=Thresh_2,plelem=c(EvalFuncSetting$CombineTargetGeneration[4],3),ml=Optimize_ml,
-                             fname=paste(".\\ResultData\\combine-Result-2Cb+2Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                             isFileout=TRUE,isDebug=FALSE,maxposn=maxposn_tmp,PosMultip=PosMultip)
-  #creating 4Cb.csv
-  st <- "powershell.exe .\\shell\\cmd7.ps1"
-  system(st)
-  st <- "powershell.exe .\\shell\\cmd8.ps1"
-  system(st)
-  st <- "powershell.exe -Command \" del .\\ResultData\\4Cb-.csv \" "
-  system(st) ;rm(st)
-  #read, sort and rewrite to the file
-  tmp<-read.table(paste(ResultFiles_Path_G,"4Cb.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
-  tmp=tmp[,1:(length(opchain$Position)+1)]
-  colnames(tmp)=c(rep(1:length(opchain$Position)),"eval")
-  tmp %>% dplyr::arrange(tmp[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> tmp
-  write.table(tmp,paste(ResultFiles_Path_G,"4Cb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
+  if(CombinedMaxPosnum[3] < maxposn_tmp){
+    #adding pools' element
+    tmp %>% dplyr::arrange(.[,length(iniPos)+1]) %>% head(TopN_2) -> tmp
+    pools[3]<-list(list(c(1,0,0),tmp)) #No.[[3]]
+    pools<<-pools
+    #combinational search
+    create_combined_population(popnum=PopN_2,EvalFuncSetting,thresh=Thresh_2,plelem=c(EvalFuncSetting$CombineTargetGeneration[4],3),ml=Optimize_ml,
+                               fname=paste(".\\ResultData\\combine-Result-2Cb+2Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                               isFileout=TRUE,isDebug=FALSE,maxposn=maxposn_tmp,PosMultip=PosMultip)
+    #creating 4Cb.csv
+    st <- "powershell.exe .\\shell\\cmd7.ps1"
+    system(st)
+    st <- "powershell.exe .\\shell\\cmd8.ps1"
+    system(st)
+    st <- "powershell.exe -Command \" del .\\ResultData\\4Cb-.csv \" "
+    system(st) ;rm(st)
+    #read, sort and rewrite to the file
+    tmp<-read.table(paste(ResultFiles_Path_G,"4Cb.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
+    tmp=tmp[,1:(length(opchain$Position)+1)]
+    colnames(tmp)=c(rep(1:length(opchain$Position)),"eval")
+    tmp %>% dplyr::arrange(tmp[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> tmp
+    write.table(tmp,paste(ResultFiles_Path_G,"4Cb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
+  }
   
   ###
   ##  5(3Cb x 2Cb currently shown as 2Cb+2Cb) Combinations (5Cb)
   maxposn_tmp=length(EvalFuncSetting$Vega_Direct_Prf)
-  if(CombinedMaxPosnum[4] <= maxposn_tmp){
+  if(CombinedMaxPosnum[4] < maxposn_tmp){
     #adding pools' element
     tmp %>% dplyr::arrange(.[,length(iniPos)+1]) %>% head(TopN_2) -> tmp
     pools[4]<-list(list(c(1,0,0),tmp)) #No.[[4]]
@@ -363,62 +368,68 @@ res1 -> total_res ; rm(res1)
 if(Combined_Spread){
   ##
   # 2Cb
-  res1<-read.table(paste(ResultFiles_Path_G,"2Cb.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
-  res1=res1[,1:(length(opchain$Position)+1)]
-  write.table(res1,paste(ResultFiles_Path_G,"2Cb.cmb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
-  colnames(res1)=c(rep(1:length(opchain$Position)),"eval")
-  res1 %>% dplyr::arrange(res1[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> res1
-  #posnum put call
-  res1[,1:length(opchain$Position)] %>% dplyr::rowwise() %>% dplyr::do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp
-  tmp  %>% dplyr::rowwise() %>% dplyr::do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp2
-  res1$putn<-unlist(tmp2$putn);res1$calln<-unlist(tmp2$calln);rm(tmp);rm(tmp2)
-  write.table(res1,paste(ResultFiles_Path_G,"2Cb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
-  #over the specified socre
-  res1 %>% dplyr::filter(.[,length(opchain$Position)+1]<Thresh_1) -> res1
-  #factorと認識されたときの変換 #res1$V1<-as.numeric(as.character(res1$V1))
-  
-  #full join
-  dplyr::full_join(total_res,res1) %>% dplyr::arrange(.[,length(iniPos)+1]) %>% dplyr::distinct() -> total_res
-  rm(res1)
+  if(file.exists(paste(ResultFiles_Path_G,"2Cb.csv",sep=""))){
+    res1<-read.table(paste(ResultFiles_Path_G,"2Cb.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
+    res1=res1[,1:(length(opchain$Position)+1)]
+    write.table(res1,paste(ResultFiles_Path_G,"2Cb.cmb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
+    colnames(res1)=c(rep(1:length(opchain$Position)),"eval")
+    res1 %>% dplyr::arrange(res1[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> res1
+    #posnum put call
+    res1[,1:length(opchain$Position)] %>% dplyr::rowwise() %>% dplyr::do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp
+    tmp  %>% dplyr::rowwise() %>% dplyr::do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp2
+    res1$putn<-unlist(tmp2$putn);res1$calln<-unlist(tmp2$calln);rm(tmp);rm(tmp2)
+    write.table(res1,paste(ResultFiles_Path_G,"2Cb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
+    #over the specified socre
+    res1 %>% dplyr::filter(.[,length(opchain$Position)+1]<Thresh_1) -> res1
+    #factorと認識されたときの変換 #res1$V1<-as.numeric(as.character(res1$V1))
+    
+    #full join
+    dplyr::full_join(total_res,res1) %>% dplyr::arrange(.[,length(iniPos)+1]) %>% dplyr::distinct() -> total_res
+    rm(res1)
+  }
   
   ##
   # 3Cb
-  res1<-read.table(paste(ResultFiles_Path_G,"3Cb.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
-  res1=res1[,1:(length(opchain$Position)+1)]
-  write.table(res1,paste(ResultFiles_Path_G,"3Cb.cmb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
-  colnames(res1)=c(rep(1:length(opchain$Position)),"eval")
-  res1 %>% dplyr::arrange(res1[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> res1
-  #posnum put call
-  res1[,1:length(opchain$Position)] %>% dplyr::rowwise() %>% dplyr::do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp
-  tmp  %>% dplyr::rowwise() %>% dplyr::do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp2
-  res1$putn<-unlist(tmp2$putn);res1$calln<-unlist(tmp2$calln);rm(tmp);rm(tmp2)
-  write.table(res1,paste(ResultFiles_Path_G,"3Cb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
-  #over the specified socre
-  res1 %>% dplyr::filter(.[,length(opchain$Position)+1]<Thresh_2) -> res1
-  #factorと認識されたときの変換 #res1$V1<-as.numeric(as.character(res1$V1))
-  
-  #full join
-  dplyr::full_join(total_res,res1) %>% dplyr::arrange(.[,length(iniPos)+1]) %>% dplyr::distinct() -> total_res
-  rm(res1)
+  if(file.exists(paste(ResultFiles_Path_G,"3Cb.csv",sep=""))){
+    res1<-read.table(paste(ResultFiles_Path_G,"3Cb.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
+    res1=res1[,1:(length(opchain$Position)+1)]
+    write.table(res1,paste(ResultFiles_Path_G,"3Cb.cmb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
+    colnames(res1)=c(rep(1:length(opchain$Position)),"eval")
+    res1 %>% dplyr::arrange(res1[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> res1
+    #posnum put call
+    res1[,1:length(opchain$Position)] %>% dplyr::rowwise() %>% dplyr::do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp
+    tmp  %>% dplyr::rowwise() %>% dplyr::do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp2
+    res1$putn<-unlist(tmp2$putn);res1$calln<-unlist(tmp2$calln);rm(tmp);rm(tmp2)
+    write.table(res1,paste(ResultFiles_Path_G,"3Cb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
+    #over the specified socre
+    res1 %>% dplyr::filter(.[,length(opchain$Position)+1]<Thresh_2) -> res1
+    #factorと認識されたときの変換 #res1$V1<-as.numeric(as.character(res1$V1))
+    
+    #full join
+    dplyr::full_join(total_res,res1) %>% dplyr::arrange(.[,length(iniPos)+1]) %>% dplyr::distinct() -> total_res
+    rm(res1)
+  }
   
   ##
   #  4Cb
-  res1<-read.table(paste(ResultFiles_Path_G,"4Cb.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
-  res1=res1[,1:(length(opchain$Position)+1)]
-  write.table(res1,paste(ResultFiles_Path_G,"4Cb.cmb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
-  colnames(res1)=c(rep(1:length(opchain$Position)),"eval")
-  res1 %>% dplyr::arrange(res1[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> res1
-  #posnum put call
-  res1[,1:length(opchain$Position)] %>% dplyr::rowwise() %>% dplyr::do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp
-  tmp  %>% dplyr::rowwise() %>% dplyr::do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp2
-  res1$putn<-unlist(tmp2$putn);res1$calln<-unlist(tmp2$calln);rm(tmp);rm(tmp2)
-  write.table(res1,paste(ResultFiles_Path_G,"4Cb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
-  #over the specified socre
-  res1 %>% dplyr::filter(.[,length(opchain$Position)+1]<Thresh_2) -> res1
-  
-  #full join
-  dplyr::full_join(total_res,res1) %>% dplyr::arrange(.[,length(iniPos)+1]) %>% dplyr::distinct() -> total_res
-  rm(res1)
+  if(file.exists(paste(ResultFiles_Path_G,"4Cb.csv",sep=""))){
+    res1<-read.table(paste(ResultFiles_Path_G,"4Cb.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
+    res1=res1[,1:(length(opchain$Position)+1)]
+    write.table(res1,paste(ResultFiles_Path_G,"4Cb.cmb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
+    colnames(res1)=c(rep(1:length(opchain$Position)),"eval")
+    res1 %>% dplyr::arrange(res1[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> res1
+    #posnum put call
+    res1[,1:length(opchain$Position)] %>% dplyr::rowwise() %>% dplyr::do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp
+    tmp  %>% dplyr::rowwise() %>% dplyr::do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp2
+    res1$putn<-unlist(tmp2$putn);res1$calln<-unlist(tmp2$calln);rm(tmp);rm(tmp2)
+    write.table(res1,paste(ResultFiles_Path_G,"4Cb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
+    #over the specified socre
+    res1 %>% dplyr::filter(.[,length(opchain$Position)+1]<Thresh_2) -> res1
+    
+    #full join
+    dplyr::full_join(total_res,res1) %>% dplyr::arrange(.[,length(iniPos)+1]) %>% dplyr::distinct() -> total_res
+    rm(res1)
+  }
   
   ##
   # 5Cb
@@ -528,4 +539,4 @@ write.table(tmp_fil_w2,resultSaveFileRf[[2]],row.names = F,col.names=F,sep=",",a
 write.table(tmp_fil_w3,resultSaveFileRf[[3]],row.names = F,col.names=F,sep=",",append=F)
 write.table(tmp_fil_w4,resultSaveFileRf[[4]],row.names = F,col.names=F,sep=",",append=F)
 
-LocalflipScoreWriteToFile(resultSaveFileRf[[2]],50)
+LocalflipScoreWriteToFile(resultSaveFileRf[[3]],50)
