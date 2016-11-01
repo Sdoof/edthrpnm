@@ -42,8 +42,8 @@ cat("UnitMinProfit",EvalFuncSetting$UnitMinProfit,"\n",file=tmp_touchfile,sep=",
 cat("Posnum",EvalFuncSetting$Posnum,"\n",file=tmp_touchfile,sep=",",append=TRUE)
 cat("CombineTargetGeneration",EvalFuncSetting$CombineTargetGeneration,"\n",file=tmp_touchfile,sep=",",append=TRUE)
 cat("CombinedMaxPosnum",CombinedMaxPosnum,"\n",file=tmp_touchfile,sep=",",append=TRUE)
-cat("TopN_1",TopN_1,"TopN_2",TopN_2,"\n",file=tmp_touchfile,sep=",",append=TRUE)
-cat("PopN_1",PopN_1,"PopN_2",PopN_2,"\n",file=tmp_touchfile,sep=",",append=TRUE)
+cat("TopN",TopN,"\n",file=tmp_touchfile,sep=",",append=TRUE)
+cat("PopN",PopN,"\n",file=tmp_touchfile,sep=",",append=TRUE)
 
 ##
 # Creating First Generation
@@ -200,7 +200,7 @@ if(Combined_Spread){
   #write to a file
   write.table(tmp,paste(ResultFiles_Path_G,"1Cb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
   # TopN_1 selection
-  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% head(TopN_1) -> tmp
+  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% head(TopN[1]) -> tmp
   
   ## revalue the position for the value to be compatilbe with following process
   if(SPECIFIC_FIRSTG_SETTING==T){
@@ -237,7 +237,7 @@ if(Combined_Spread){
   maxposn_tmp=length(EvalFuncSetting$Vega_Direct_Prf)
   #combinational search
   if(CombinedMaxPosnum[1] < maxposn_tmp){
-    create_combined_population(popnum=PopN_1,EvalFuncSetting,thresh=Thresh_1,plelem=c(EvalFuncSetting$CombineTargetGeneration[2],1),ml=Optimize_ml,
+    create_combined_population(popnum=PopN[2],EvalFuncSetting,thresh=ThreshN[2],plelem=c(EvalFuncSetting$CombineTargetGeneration[2],1),ml=Optimize_ml,
                                fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                isFileout=TRUE,isDebug=FALSE,maxposn=maxposn_tmp,PosMultip=PosMultip)
     #creating 2Cb.csv
@@ -260,11 +260,11 @@ if(Combined_Spread){
   maxposn_tmp=length(EvalFuncSetting$Vega_Direct_Prf)
   if(CombinedMaxPosnum[2] < maxposn_tmp){
     #adding pools' element
-    tmp %>% dplyr::arrange(.[,length(iniPos)+1]) %>% head(TopN_2) -> tmp
+    tmp %>% dplyr::arrange(.[,length(iniPos)+1]) %>% head(TopN[2]) -> tmp
     pools[2]<-list(list(c(1,0,0),tmp)) #No.[[2]]
     pools<<-pools
     #combinational search
-    create_combined_population(popnum=PopN_2,EvalFuncSetting,thresh=Thresh_2,plelem=c(EvalFuncSetting$CombineTargetGeneration[3],2),ml=Optimize_ml,
+    create_combined_population(popnum=PopN[3],EvalFuncSetting,thresh=ThreshN[3],plelem=c(EvalFuncSetting$CombineTargetGeneration[3],2),ml=Optimize_ml,
                                fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                isFileout=TRUE,isDebug=FALSE,maxposn=maxposn_tmp,PosMultip=PosMultip)
     
@@ -288,11 +288,11 @@ if(Combined_Spread){
   maxposn_tmp=length(EvalFuncSetting$Vega_Direct_Prf)
   if(CombinedMaxPosnum[3] < maxposn_tmp){
     #adding pools' element
-    tmp %>% dplyr::arrange(.[,length(iniPos)+1]) %>% head(TopN_2) -> tmp
+    tmp %>% dplyr::arrange(.[,length(iniPos)+1]) %>% head(TopN[3]) -> tmp
     pools[3]<-list(list(c(1,0,0),tmp)) #No.[[3]]
     pools<<-pools
     #combinational search
-    create_combined_population(popnum=PopN_2,EvalFuncSetting,thresh=Thresh_2,plelem=c(EvalFuncSetting$CombineTargetGeneration[4],3),ml=Optimize_ml,
+    create_combined_population(popnum=PopN[4],EvalFuncSetting,thresh=ThreshN[4],plelem=c(EvalFuncSetting$CombineTargetGeneration[4],3),ml=Optimize_ml,
                                fname=paste(".\\ResultData\\combine-Result-2Cb+2Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                isFileout=TRUE,isDebug=FALSE,maxposn=maxposn_tmp,PosMultip=PosMultip)
     #creating 4Cb.csv
@@ -315,11 +315,11 @@ if(Combined_Spread){
   maxposn_tmp=length(EvalFuncSetting$Vega_Direct_Prf)
   if(CombinedMaxPosnum[4] < maxposn_tmp){
     #adding pools' element
-    tmp %>% dplyr::arrange(.[,length(iniPos)+1]) %>% head(TopN_2) -> tmp
+    tmp %>% dplyr::arrange(.[,length(iniPos)+1]) %>% head(TopN[4]) -> tmp
     pools[4]<-list(list(c(1,0,0),tmp)) #No.[[4]]
     pools<<-pools
     #combinational search
-    create_combined_population(popnum=PopN_2,EvalFuncSetting,thresh=Thresh_2,plelem=c(EvalFuncSetting$CombineTargetGeneration[5],4),ml=Optimize_ml,
+    create_combined_population(popnum=PopN[5],EvalFuncSetting,thresh=ThreshN[5],plelem=c(EvalFuncSetting$CombineTargetGeneration[5],4),ml=Optimize_ml,
                                fname=paste(".\\ResultData\\combine-Result-3Cb+2Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                isFileout=TRUE,isDebug=FALSE,maxposn=maxposn_tmp,PosMultip=PosMultip)
     #creating 5Cb.csv
@@ -346,11 +346,6 @@ if(Combined_Spread){
 ##
 # Result Post Proceccing
 
-#Threas Score
-Thresh_Score1=as.numeric(ConfigParameters["ResultProcess_Thresh_Score1",1])
-Thresh_Score2=as.numeric(ConfigParameters["ResultProcess_Thresh_Score2",1])
-Thresh_Score3=as.numeric(ConfigParameters["ResultProcess_Thresh_Score3",1])
-
 ##
 # Exact (1Cb)
 res1<-read.table(paste(ResultFiles_Path_G,"1Cb.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
@@ -358,7 +353,7 @@ res1=res1[,1:(length(opchain$Position)+1)]
 colnames(res1)=c(rep(1:length(opchain$Position)),"eval")
 res1 %>% dplyr::arrange(res1[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> res1
 #over the specified socre
-res1 %>% dplyr::filter(.[,length(opchain$Position)+1]<Thresh_1) -> res1
+res1 %>% dplyr::filter(.[,length(opchain$Position)+1]<ThreshN[1]) -> res1
 #posnum put call
 res1[,1:length(opchain$Position)] %>% dplyr::rowwise() %>% dplyr::do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp
 tmp  %>% dplyr::rowwise() %>% dplyr::do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp2
@@ -380,7 +375,7 @@ if(Combined_Spread){
     res1$putn<-unlist(tmp2$putn);res1$calln<-unlist(tmp2$calln);rm(tmp);rm(tmp2)
     write.table(res1,paste(ResultFiles_Path_G,"2Cb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
     #over the specified socre
-    res1 %>% dplyr::filter(.[,length(opchain$Position)+1]<Thresh_1) -> res1
+    res1 %>% dplyr::filter(.[,length(opchain$Position)+1]<ThreshN[2]) -> res1
     #factorと認識されたときの変換 #res1$V1<-as.numeric(as.character(res1$V1))
     
     #full join
@@ -402,7 +397,7 @@ if(Combined_Spread){
     res1$putn<-unlist(tmp2$putn);res1$calln<-unlist(tmp2$calln);rm(tmp);rm(tmp2)
     write.table(res1,paste(ResultFiles_Path_G,"3Cb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
     #over the specified socre
-    res1 %>% dplyr::filter(.[,length(opchain$Position)+1]<Thresh_2) -> res1
+    res1 %>% dplyr::filter(.[,length(opchain$Position)+1]<ThreshN[3]) -> res1
     #factorと認識されたときの変換 #res1$V1<-as.numeric(as.character(res1$V1))
     
     #full join
@@ -424,7 +419,7 @@ if(Combined_Spread){
     res1$putn<-unlist(tmp2$putn);res1$calln<-unlist(tmp2$calln);rm(tmp);rm(tmp2)
     write.table(res1,paste(ResultFiles_Path_G,"4Cb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
     #over the specified socre
-    res1 %>% dplyr::filter(.[,length(opchain$Position)+1]<Thresh_2) -> res1
+    res1 %>% dplyr::filter(.[,length(opchain$Position)+1]<ThreshN[4]) -> res1
     
     #full join
     dplyr::full_join(total_res,res1) %>% dplyr::arrange(.[,length(iniPos)+1]) %>% dplyr::distinct() -> total_res
@@ -445,7 +440,7 @@ if(Combined_Spread){
     res1$putn<-unlist(tmp2$putn);res1$calln<-unlist(tmp2$calln);rm(tmp);rm(tmp2)
     write.table(res1,paste(ResultFiles_Path_G,"5Cb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
     #over the specified socre
-    res1 %>% dplyr::filter(.[,length(opchain$Position)+1]<Thresh_2) -> res1
+    res1 %>% dplyr::filter(.[,length(opchain$Position)+1]<ThreshN[5]) -> res1
     
     #full join
     dplyr::full_join(total_res,res1) %>% dplyr::arrange(.[,length(iniPos)+1]) %>% dplyr::distinct() -> total_res
