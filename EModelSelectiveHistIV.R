@@ -279,13 +279,13 @@ cat("c(");cat(est_weight,sep="$");cat(")")
 
 #optimize EvalFuncSetting$UdlStepPct,EvalFuncSetting$UdlStepNum
 #weight below min_effective_rate is rounded to 0 on evaluation function
-min_effective_rate=(1/5000)
+min_effective_rate=(1/400)
 #show effetive weight component
 as.numeric(est_weight>min_effective_rate)
 #effective(relevant) price range from center
 newPriceRangeFromCenter=
-  max(EvalFuncSetting$UdlStepNum-min(which(as.numeric(est_weight>(1/5000))==1)),
-      (EvalFuncSetting$UdlStepNum*2+1)-max(which(as.numeric(est_weight>(1/5000))==1)))*
+  max(EvalFuncSetting$UdlStepNum-min(which(as.numeric(est_weight>min_effective_rate)==1)),
+      (EvalFuncSetting$UdlStepNum*2+1)-max(which(as.numeric(est_weight>min_effective_rate)==1)))*
   EvalFuncSetting$UdlStepPct
 #if EvalFuncSetting$UdlStepNum is fixed
 newUdlStepPct=newPriceRangeFromCenter/EvalFuncSetting$UdlStepNum
