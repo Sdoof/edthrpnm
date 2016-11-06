@@ -131,7 +131,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   posEvalTbl<-posStepDays_vc_plus$scene[[length(posStepDays)]]
   profit_vector_vc_plus<-(posEvalTbl$Price-posStepDays$scene[[1]]$Price[udlStepNum + 1])
   profit_hdays_vc_plus<-sum(profit_vector_vc_plus*weight)
-  if(isDetail){cat(" :(prft_vec_vc+)",profit_vector_vc_plus);cat(" :(prft_wght_vc+)",profit_hdays_vc_plus)}
+  if(isDetail){cat(" :(prft_vec_vc+)",profit_vector_vc_plus," :(prft_wght_vc+)",profit_hdays_vc_plus)}
   
   ##
   # Profit Scenario When IV goes Down
@@ -187,7 +187,6 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   }else{
     profit_sd<-sd(pdist)
   }
-  
   
   if(isDetail){
     cat(" :(sd)",sd(pdist)," :(sd_{pd<0})",sd(pdist[pdist<0]),":(sd_{(pd<0)*pd})",sd((pdist<0)*pdist),
@@ -249,10 +248,11 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   }
   
   ## c8 metric
-  InCoefSD=EvalFuncSetting$ConvexEvalInCoef["InCoefSD"]
-  InCoefMaxLoss=EvalFuncSetting$ConvexEvalInCoef["InCoefMaxLoss"]
   c8<- profit_sd
+  
   if(Setting$EvalConvex){
+    InCoefSD=EvalFuncSetting$ConvexEvalInCoef["InCoefSD"]
+    InCoefMaxLoss=EvalFuncSetting$ConvexEvalInCoef["InCoefMaxLoss"]
     c8<- (-1)*maxLoss*InCoefMaxLoss + InCoefSD*profit_sd
     if(isDetail){cat(" :InCoefSD",InCoefSD,"x :profit_sd",profit_sd,
                      "+ :InCoefMaxLoss",InCoefMaxLoss,"x :maxLoss",(-1)*maxLoss,
@@ -261,7 +261,6 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
     c8<- profit_sd
     if(isDetail){cat(" :c8(profit_sd)",c8)}
   }
-  
   
   ##
   # Greek Effects calculations. Forward looking indicator. Use first day's posEvalTble.
