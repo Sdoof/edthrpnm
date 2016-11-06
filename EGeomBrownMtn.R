@@ -222,7 +222,7 @@ LocalcreateSampleConditionStr<-function(EvalFuncSetting){
   
   outStr=paste(EvalFuncSetting$UdlStepPct*1000,"x",EvalFuncSetting$UdlStepNum,"-",EvalFuncSetting$holdDays,"d-",
                EvalFuncSetting$Profit_Coef,"_",EvalFuncSetting$AdvEffect_Coef,"-",
-               EvalFuncSetting$DrctlEffect_Coef,"_",EvalFuncSetting$MaxLoss_Coef,"-",
+               EvalFuncSetting$DrctlEffect_Coef["DeltaECoef"],"_",EvalFuncSetting$DrctlEffect_Coef["VegaECoef"],"_",EvalFuncSetting$MaxLoss_Coef,"-",
                "DOf$",EvalFuncSetting$Delta_Neutral_Offset[1],
                "DTh$",EvalFuncSetting$Delta_Thresh_Minus[1],"_",EvalFuncSetting$Delta_Thresh_Plus[1],"-",
                "VOf$",EvalFuncSetting$Vega_Neutral_Offset[1],

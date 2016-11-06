@@ -95,7 +95,7 @@ EvalFuncSetting[[25]]<-eval(parse(text=gsub("\\$",",",ConfigParameters["EvalFnc_
 EvalFuncSetting[[26]]<-as.numeric(ConfigParameters["EvalFnc_Profit_Coef",1])
 EvalFuncSetting[[27]]<-as.numeric(ConfigParameters["EvalFnc_AdvEffect_Coef",1])
 EvalFuncSetting[[28]]<-as.numeric(ConfigParameters["EvalFnc_AllEffect_Coef",1]) 
-EvalFuncSetting[[29]]<-as.numeric(ConfigParameters["EvalFnc_DrctlEffect_Coef",1])
+EvalFuncSetting[[29]]<-eval(parse(text=gsub("\\$",",",ConfigParameters["EvalFnc_DrctlEffect_Coef",1])))
 EvalFuncSetting[[30]]<-as.numeric(ConfigParameters["EvalFnc_MaxLoss_Coef",1])
 EvalFuncSetting[[31]]<-as.numeric(ConfigParameters["EvalFnc_SigmoidA_Numerator",1])
 EvalFuncSetting[[32]]<-as.numeric(ConfigParameters["EvalFnc_SigmoidA_Denominator",1])
@@ -110,6 +110,7 @@ EvalFuncSetting[[40]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_DeltaHedgeToE
 EvalFuncSetting[[41]]<-as.numeric(ConfigParameters["EvalFnc_GreekEffectEvalOnHoldDay",1])
 
 names(EvalFuncSetting)<-EvFNames
+names(EvalFuncSetting$DrctlEffect_Coef) <- c("DeltaECoef","VegaECoef") 
 names(EvalFuncSetting$ConvexEvalInCoef) <- c("InCoefSD","InCoefMaxLoss") 
 
 #MuLtipler for creating initial populaitons

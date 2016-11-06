@@ -16,6 +16,10 @@ SPECIFIC_FIRSTG_SETTING=F
 #COMBINATION LossLimit Multipe
 COMBINATION_LOSSLIMIT_MULTIPLE=2
 
+#Debug, Detail Mode
+IS_DEBUG_MODE=F
+IS_DETAIL_MODE=F
+
 #cache for the position
 HASH_HIT_NUM=0
 
@@ -115,29 +119,29 @@ if(COMBINATION_HOT_START==F){
                                               putn=3,calln=2,ml=Optimize_ml,
                                               fname=paste(".\\ResultData\\inipop-05P3C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                               PosMultip,
-                                              isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
+                                              isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
       create_initial_exact_PutCall_polulation(popnum=250,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
                                               putn=2,calln=3,ml=Optimize_ml,
                                               fname=paste(".\\ResultData\\inipop-05P2C3-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                               PosMultip,
-                                              isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
+                                              isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
     }
     if(sum(EvalFuncSetting$Posnum==4)!=0){
       # create_initial_exact_PutCall_polulation(popnum=100,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
       #                                         putn=4,calln=0,ml=Optimize_ml,
       #                                         fname=paste(".\\ResultData\\inipop-04P4C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
       #                                         PosMultip,
-      #                                         isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
+      #                                         isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
       create_initial_exact_PutCall_polulation(popnum=200,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
                                               putn=2,calln=2,ml=Optimize_ml,
                                               fname=paste(".\\ResultData\\inipop-04P2C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                               PosMultip,
-                                              isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
+                                              isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
       create_initial_exact_PutCall_polulation(popnum=100,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
                                               putn=0,calln=4,ml=Optimize_ml,
                                               fname=paste(".\\ResultData\\inipop-04P0C4-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                               PosMultip,
-                                              isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
+                                              isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
     }
     if(sum(EvalFuncSetting$Posnum==3)!=0){
       # create_initial_exact_PutCall_polulation(popnum=100,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
@@ -149,19 +153,19 @@ if(COMBINATION_HOT_START==F){
                                               putn=0,calln=3,ml=Optimize_ml,
                                               fname=paste(".\\ResultData\\inipop-03P0C3-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                               PosMultip,
-                                              isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
+                                              isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
     }
     if(sum(EvalFuncSetting$Posnum==2)!=0){
       create_initial_exact_PutCall_polulation(popnum=50,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
                                               putn=2,calln=0,ml=Optimize_ml,
                                               fname=paste(".\\ResultData\\inipop-02P2C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                               PosMultip,
-                                              isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
+                                              isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
       create_initial_exact_PutCall_polulation(popnum=50,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
                                               putn=0,calln=2,ml=Optimize_ml,
                                               fname=paste(".\\ResultData\\inipop-02P0C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                               PosMultip,
-                                              isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
+                                              isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
     }
   }
   #Restore original setting
@@ -208,7 +212,7 @@ if(Combined_Spread){
     tmp %>% dplyr::rowwise() %>%
       # x = unlist(.)[1:length(opchain$Position)]
       dplyr::do(revVal=obj_Income_sgmd(unlist(.)[1:length(opchain$Position)],
-                                       EvalFuncSetting,isDebug=F,isDetail=F,
+                                       EvalFuncSetting,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE,
                                        udlStepNum=EvalFuncSetting$UdlStepNum,udlStepPct=EvalFuncSetting$UdlStepPct,
                                        PosMultip=PosMultip,
                                        tail_rate=EvalFuncSetting$Tail_rate,lossLimitPrice=EvalFuncSetting$LossLimitPrice,
@@ -239,7 +243,7 @@ if(Combined_Spread){
   if(CombinedMaxPosnum[1] < maxposn_tmp){
     create_combined_population(popnum=PopN[2],EvalFuncSetting,thresh=ThreshN[2],plelem=c(EvalFuncSetting$CombineTargetGeneration[2],1),ml=Optimize_ml,
                                fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                               isFileout=TRUE,isDebug=FALSE,maxposn=maxposn_tmp,PosMultip=PosMultip)
+                               isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE,maxposn=maxposn_tmp,PosMultip=PosMultip)
     #creating 2Cb.csv
     st <- "powershell.exe .\\shell\\cmd3.ps1"
     system(st)
@@ -266,7 +270,7 @@ if(Combined_Spread){
     #combinational search
     create_combined_population(popnum=PopN[3],EvalFuncSetting,thresh=ThreshN[3],plelem=c(EvalFuncSetting$CombineTargetGeneration[3],2),ml=Optimize_ml,
                                fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                               isFileout=TRUE,isDebug=FALSE,maxposn=maxposn_tmp,PosMultip=PosMultip)
+                               isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE,maxposn=maxposn_tmp,PosMultip=PosMultip)
     
     #creating 3Cb.csv
     st <- "powershell.exe .\\shell\\cmd5.ps1"
@@ -294,7 +298,7 @@ if(Combined_Spread){
     #combinational search
     create_combined_population(popnum=PopN[4],EvalFuncSetting,thresh=ThreshN[4],plelem=c(EvalFuncSetting$CombineTargetGeneration[4],3),ml=Optimize_ml,
                                fname=paste(".\\ResultData\\combine-Result-2Cb+2Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                               isFileout=TRUE,isDebug=FALSE,maxposn=maxposn_tmp,PosMultip=PosMultip)
+                               isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE,maxposn=maxposn_tmp,PosMultip=PosMultip)
     #creating 4Cb.csv
     st <- "powershell.exe .\\shell\\cmd7.ps1"
     system(st)
@@ -321,7 +325,7 @@ if(Combined_Spread){
     #combinational search
     create_combined_population(popnum=PopN[5],EvalFuncSetting,thresh=ThreshN[5],plelem=c(EvalFuncSetting$CombineTargetGeneration[5],4),ml=Optimize_ml,
                                fname=paste(".\\ResultData\\combine-Result-3Cb+2Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                               isFileout=TRUE,isDebug=FALSE,maxposn=maxposn_tmp,PosMultip=PosMultip)
+                               isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE,maxposn=maxposn_tmp,PosMultip=PosMultip)
     #creating 5Cb.csv
     st <- "powershell.exe .\\shell\\cmd9.ps1"
     system(st)

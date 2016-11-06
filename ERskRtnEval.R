@@ -216,21 +216,20 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   
   ##
   # Day 1 profit profile
-  posOn1DayTbl=posStepDays$scene[[1]]
-  profit_On1Day_vector=(posOn1DayTbl$Price-posStepDays$scene[[1]]$Price[udlStepNum + 1])
-  tmp_1D=profit_vector-profit_On1Day_vector
-  prfit_hd1Day_diff_wght=sum(tmp_1D*weight)
-  prfit_hd1Day_AbsDiff_wght=sum(abs(tmp_1D)*weight)
-  if(isDetail){
-    #cat("\n:(1st day evalTble)\n");print(posOn1DayTbl)
-    cat(" <<1Day profit :(prft_vec_On1Day)",profit_On1Day_vector,
-        " :(prft_vec_On1Day_hdd_weight)",mean(profit_On1Day_vector*weight),
-        " :(prft_vec_On1Day_hdd_sd)",sd(rep(profit_On1Day_vector,times=round(weight*1000))))
-    cat(" :(prfit_hd1Day_diff)",tmp_1D," :(prfit_hd1Day_diff_wght)",prfit_hd1Day_diff_wght,
-        " :(prfit_hd1Day_diffAbs_wght)",prfit_hd1Day_AbsDiff_wght," 1Day profit>>")
-  }
-  
   if(Setting$Eval1DayDist){
+    posOn1DayTbl=posStepDays$scene[[1]]
+    profit_On1Day_vector=(posOn1DayTbl$Price-posStepDays$scene[[1]]$Price[udlStepNum + 1])
+    tmp_1D=profit_vector-profit_On1Day_vector
+    prfit_hd1Day_diff_wght=sum(tmp_1D*weight)
+    prfit_hd1Day_AbsDiff_wght=sum(abs(tmp_1D)*weight)
+    if(isDetail){
+      #cat("\n:(1st day evalTble)\n");print(posOn1DayTbl)
+      cat(" <<1Day profit :(prft_vec_On1Day)",profit_On1Day_vector,
+          " :(prft_vec_On1Day_hdd_weight)",mean(profit_On1Day_vector*weight),
+          " :(prft_vec_On1Day_hdd_sd)",sd(rep(profit_On1Day_vector,times=round(weight*1000))))
+      cat(" :(prfit_hd1Day_diff)",tmp_1D," :(prfit_hd1Day_diff_wght)",prfit_hd1Day_diff_wght,
+          " :(prfit_hd1Day_diffAbs_wght)",prfit_hd1Day_AbsDiff_wght," 1Day profit>>")
+    }
     #profit_sd=profit_sd+Setting$Coef1DayDist*prfit_hd1Day_diff_wght
     profit_sd=profit_sd+Setting$Coef1DayDist*abs(prfit_hd1Day_diff_wght)
     if(isDetail){
@@ -357,22 +356,23 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   
   ##
   # Directional Effect
-  c6<- vega_pref_coef*VegaEffect_Comp+dlta_pref_coef*DeltaEffect_Comp
+  
+  c6=(dlta_pref_coef*DeltaEffect_Comp)
+  c7=(vega_pref_coef*VegaEffect_Comp)
   if(isDetail){
-    cat(" :(vega_pref_coef",vega_pref_coef," x :VegaE_new",VegaEffect_Comp,
-        "+ :dlta_pref_coef",dlta_pref_coef," x :DeltaE_new",DeltaEffect_Comp," = :(DrctlEffect)c6 ",c6,")")
+    cat(" :vega_pref_coef",vega_pref_coef,"x :VegaE_new",VegaEffect_Comp,
+        "+ :dlta_pref_coef",dlta_pref_coef,"x :DeltaE_new",DeltaEffect_Comp)
   }
-  ##
-  # cost7 All Effects.
-  c7<- c5+c6
-  if(isDetail){cat(" :c7(AllEffect)",c7)}
   
   ##
   # total cost is weighted sum of each cost.
-  A<-Setting$DrctlEffect_Coef*c6 + Setting$AllEffect_Coef*c7 + Setting$MaxLoss_Coef*c8
+  DirectEffect_Comp=Setting$DrctlEffect_Coef["DeltaECoef"]*c6 + Setting$DrctlEffect_Coef["VegaECoef"]*c7
+  A<-DirectEffect_Comp + Setting$MaxLoss_Coef*c8
   B<-Setting$AdvEffect_Coef*c5+Setting$Profit_Coef*c3
   
-  if(isDetail){cat(" :Coef_Drct",Setting$DrctlEffect_Coef,"x",c6,"+:Coef_AllE",Setting$AllEffect_Coef,"x",c7,"+ :Coef_MaxLoss(SD)",Setting$MaxLoss_Coef,"x",c8,"= Numr",A)}
+  if(isDetail){cat(" (:Coef_DeltaE",Setting$DrctlEffect_Coef["DeltaECoef"],"x",c6,
+                   "+ :Coef_VegaE",Setting$DrctlEffect_Coef["VegaECoef"],"x",c7,
+                   ") =:DirectE",DirectEffect_Comp,"+ :Coef_MaxLoss(SD)",Setting$MaxLoss_Coef,"x",c8,"= Numr",A)}
   if(isDetail){cat(" :Coef_Adv",Setting$AdvEffect_Coef,"x",c5,"+:Coef_Prft",Setting$Profit_Coef,"x",c3,"= Denom",B)}
   
   cost=unacceptableVal
@@ -481,7 +481,6 @@ getVommaEffect<-function(pos,greek,ividx,dviv,multi,hdd){
   vommaEffect<-vomma*(expIVChange^2)/2
   vommaEffect
 }
-
 
 ##
 #  Factory of Volatility Level Regression Result
@@ -764,7 +763,6 @@ reflectPosChg<- function(process_df,days,IV_DEVIATION=0,MIN_IVIDX_CHG=(-0.5)){
   
   pos
 }
-
 
 createPositionEvalTable<-function(position,udlStepNum,udlStepPct,multi,hdd,HV_IV_Adjust_Ratio){
   udlChgPct<-seq(-udlStepPct*udlStepNum,udlStepPct*udlStepNum,length=(2*udlStepNum)+1)
@@ -1389,7 +1387,7 @@ getPutCallnOfthePosition<-function(x){
 #function for seraching candidate by combination 
 # two sample examples. one from pools[[2]], the other from pools[[3]]
 #ceiling(runif(1, min=1e-320, max=nrow(pools[[2]][[2]])))
-create_combined_population<-function(popnum,EvalFuncSetting,thresh,plelem,ml,fname,isFileout=FALSE,isDebug=FALSE,maxposn,PosMultip){
+create_combined_population<-function(popnum,EvalFuncSetting,thresh,plelem,ml,fname,isFileout=FALSE,isDebug=FALSE,isDetail=FALSE,maxposn,PosMultip){
   added_num<-0
   total_count<-0
   cat("hash hit:",HASH_HIT_NUM,"hash length",length(POSITION_OPTIM_HASH),"\n")
@@ -1433,7 +1431,7 @@ create_combined_population<-function(popnum,EvalFuncSetting,thresh,plelem,ml,fna
     md5sumOfPos=digest(paste(x_new,collapse = ""))
     if(has.key(md5sumOfPos, POSITION_OPTIM_HASH)==FALSE){
       tryCatch(
-        val<-obj_Income_sgmd(x_new,EvalFuncSetting,isDebug=isDebug,isDetail=isDebug,
+        val<-obj_Income_sgmd(x_new,EvalFuncSetting,isDebug=isDebug,isDetail=isDetail,
                              udlStepNum=EvalFuncSetting$UdlStepNum,udlStepPct=EvalFuncSetting$UdlStepPct,
                              PosMultip=PosMultip,
                              tail_rate=EvalFuncSetting$Tail_rate,lossLimitPrice=EvalFuncSetting$LossLimitPrice,
