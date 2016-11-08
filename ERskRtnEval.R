@@ -268,9 +268,12 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   ##
   # True Vega and Vomma Effect
   VegaEffectWithSign= (profit_hdays_vc_plus-profit_hdays_vc_minus)/2
+  #VegaEffect_Comp = (-1)*abs(VegaEffectWithSign)
+  VegaEffect_Comp = (-1)*sum(abs((profit_vector_vc_plus-profit_vector_vc_minus)/2)*weight)
   VommaEffect=((profit_hdays_vc_plus + profit_hdays_vc_minus)/2)-profit_hdays
   Vega_True=VegaEffectWithSign/(expIVChange*100)
-  if(isDetail){cat(" :(Vega)",Vega_True," :(VegaEffectWithSign)",VegaEffectWithSign," :(VommaEffect)",VommaEffect)}
+  if(isDetail){cat(" :(Vega)",Vega_True," :(VegaEffectWithSign)",VegaEffectWithSign,
+                   " :(VegaEffect)",VegaEffect_Comp," :(VommaEffect)",VommaEffect)}
   
   ## Greek Effect calculation Scene
   #  default first day
@@ -340,7 +343,6 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   ##
   #    Vega
   
-  VegaEffect_Comp = (-1)*abs(VegaEffectWithSign)
   Vega_revised_offset=Vega_True
   
   ##
