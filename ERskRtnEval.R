@@ -183,7 +183,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
     #profit_sd=(-1)*mean(pdist[pdist<0])
     #profit_sd=sd((pdist<0)*pdist)
     #profit_sd=sd(pdist[pdist<0])
-    profit_sd=sd((pdist<0)*pdist)+(-1)*mean((pdist<0)*pdist)
+    profit_sd=sd(pdist[pdist<0])+(-1)*mean(pdist[pdist<0])
   }else{
     profit_sd<-sd(pdist)
   }
