@@ -65,15 +65,13 @@ cat("PopN",PopN,"\n",file=tmp_touchfile,sep=",",append=TRUE)
 if(SPECIFIC_FIRSTG_SETTING==T){
   #copy original setting
   origEvalFuncSetting=EvalFuncSetting
-  #changed setting
-  EvalFuncSetting$Delta_Thresh_Minus=rep(min(EvalFuncSetting$Delta_Thresh_Minus)-3,
-                                         length(EvalFuncSetting$Delta_Thresh_Minus))
-  EvalFuncSetting$Delta_Thresh_Plus=rep(max(EvalFuncSetting$Delta_Thresh_Plus)+3,
-                                        length(EvalFuncSetting$Delta_Thresh_Plus))
-  EvalFuncSetting$Vega_Thresh_Minus=rep(min(EvalFuncSetting$Vega_Thresh_Minus)-30,
-                                        length(EvalFuncSetting$Vega_Thresh_Minus))
-  EvalFuncSetting$Vega_Thresh_Plus=rep(max(EvalFuncSetting$Vega_Thresh_Plus)+30,
-                                       length(EvalFuncSetting$Vega_Thresh_Plus))
+  #switch "DeltaECoef" coefficient value with "VegaECoef" value
+  tmp_drecoef=EvalFuncSetting$DrctlEffect_Coef["DeltaECoef"]
+  EvalFuncSetting$DrctlEffect_Coef["DeltaECoef"]=EvalFuncSetting$DrctlEffect_Coef["VegaECoef"]
+  EvalFuncSetting$DrctlEffect_Coef["VegaECoef"]=tmp_drecoef
+  rm(tmp_drecoef)
+  #write to the touch file
+  cat("1StGen.DrctlEfct",EvalFuncSetting$DrctlEffect_Coef,"\n",file=tmp_touchfile,sep=",",append=TRUE)
 }
 
 if(COMBINATION_HOT_START==T){
@@ -171,6 +169,8 @@ if(COMBINATION_HOT_START==F){
   #Restore original setting
   if(SPECIFIC_FIRSTG_SETTING==T){
     EvalFuncSetting=origEvalFuncSetting
+    #write to the touch file
+    cat("Restrd.DrctlEfct",EvalFuncSetting$DrctlEffect_Coef,"\n",file=tmp_touchfile,sep=",",append=TRUE)
   }
   #1Cb.csv
   st <- "powershell.exe .\\shell\\cmd1.ps1"
@@ -179,7 +179,6 @@ if(COMBINATION_HOT_START==F){
   system(st)
   st <- "powershell.exe -Command \" del .\\ResultData\\1Cb-.csv \" "
   system(st) ;rm(st)
-  
 }
 
 #combined population serach
@@ -222,6 +221,11 @@ if(Combined_Spread){
                                        Vega_Neutral_Offset=EvalFuncSetting$Vega_Neutral_Offset[sum(as.numeric((unlist(.)[1:length(opchain$Position)])!=0))])
       ) ->tmp2
     tmp[,length(opchain$Position)+1]=unlist(tmp2)
+    #posnum put call
+    tmp[,1:length(opchain$Position)] %>% dplyr::rowwise() %>% dplyr::do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp2
+    tmp2  %>% dplyr::rowwise() %>% dplyr::do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp3
+    tmp$putn<-unlist(tmp3$putn);tmp$calln<-unlist(tmp3$calln);rm(tmp2);rm(tmp3)
+    #write to a file
     write.table(tmp,paste(ResultFiles_Path_G,"1Cb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
     tmp %>% dplyr::rowwise() %>%
       # x = unlist(.)[1:length(opchain$Position)]
@@ -232,7 +236,7 @@ if(Combined_Spread){
     POSITION_OPTIM_HASH[ unlist(tmp2$md5sum) ]<-unlist(tmp2$revVal)
   }
   
-  # making pools 
+  ## Making pools 
   #   when all results are mixed together regardress of the number of Putn and Calln, pools[[1]] should be set as
   #   c(1,0,0) <- c(1Cb{=exact}, Putn not spicified, Calln not spicified)
   pools<-list(list(c(1,0,0),tmp)) #No.[[1]]
@@ -271,7 +275,6 @@ if(Combined_Spread){
     create_combined_population(popnum=PopN[3],EvalFuncSetting,thresh=ThreshN[3],plelem=c(EvalFuncSetting$CombineTargetGeneration[3],2),ml=Optimize_ml,
                                fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE,maxposn=maxposn_tmp,PosMultip=PosMultip)
-    
     #creating 3Cb.csv
     st <- "powershell.exe .\\shell\\cmd5.ps1"
     system(st)
@@ -315,7 +318,7 @@ if(Combined_Spread){
   }
   
   ###
-  ##  5(3Cb x 2Cb currently shown as 2Cb+2Cb) Combinations (5Cb)
+  ##  5(3Cb x 2Cb) Combinations (5Cb)
   maxposn_tmp=length(EvalFuncSetting$Vega_Direct_Prf)
   if(CombinedMaxPosnum[4] < maxposn_tmp){
     #adding pools' element
@@ -484,17 +487,20 @@ getPositionWithGreeks<-function(tmp_fil){
 
 #data for writing to files.
 tmp_fil %>% 
-  dplyr::arrange(tmp_fil[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> tmp_fil_w
+  dplyr::arrange(tmp_fil[,(length(opchain$Position)+1)]) %>%
+  dplyr::distinct(eval,.keep_all=TRUE) -> tmp_fil_w
 
 tmp_fil2 %>% 
-  dplyr::arrange(tmp_fil2[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> tmp_fil_w2
+  dplyr::arrange(tmp_fil2[,(length(opchain$Position)+1)]) %>%
+  dplyr::distinct(eval,.keep_all=TRUE) -> tmp_fil_w2
 
 tmp_fil3 %>% 
-  dplyr::arrange(tmp_fil3[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> tmp_fil_w3
+  dplyr::arrange(tmp_fil3[,(length(opchain$Position)+1)]) %>%
+  dplyr::distinct(eval,.keep_all=TRUE) -> tmp_fil_w3
 
 tmp_fil4 %>% 
-  dplyr::arrange(tmp_fil4[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> tmp_fil_w4
-
+  dplyr::arrange(tmp_fil4[,(length(opchain$Position)+1)]) %>%
+  dplyr::distinct(eval,.keep_all=TRUE) -> tmp_fil_w4
 
 #MERGE
 if(COMBINATION_HOT_START==T){
@@ -519,13 +525,11 @@ if(COMBINATION_HOT_START==T){
     LocalMergeWriteFiles(rf=rf_)
   }
 }
+
 ## Save to a file
-
 resultSaveFileRf=vector("list",4)
-
 resultSaveFileRf[[1]]=paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition_",
                             format(Sys.time(),"%Y%b%d_%H%M%S"),".csv",sep="")
-
 resultSaveFileRf[[2]]=paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition2_",
                             format(Sys.time(),"%Y%b%d_%H%M%S"),".csv",sep="")
 resultSaveFileRf[[3]]=paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition3_",
@@ -538,4 +542,4 @@ write.table(tmp_fil_w2,resultSaveFileRf[[2]],row.names = F,col.names=F,sep=",",a
 write.table(tmp_fil_w3,resultSaveFileRf[[3]],row.names = F,col.names=F,sep=",",append=F)
 write.table(tmp_fil_w4,resultSaveFileRf[[4]],row.names = F,col.names=F,sep=",",append=F)
 
-LocalflipScoreWriteToFile(resultSaveFileRf[[3]],50)
+#LocalflipScoreWriteToFile(resultSaveFileRf[[3]],50)
