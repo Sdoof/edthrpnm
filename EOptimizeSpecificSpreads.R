@@ -120,7 +120,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   targetExpDate_f=targetExpDate
   targetExpDate_b=targetExpDate
   spreadRatio=c(1,1,1)
-  totalPopNum=PopN_1/10*8
+  totalPopNum=PopN[1]
   
   #output file name
   outFname=createOutFname(targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,spreadRatio=spreadRatio,EvalFuncSetting=EvalFuncSetting)
@@ -142,7 +142,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
   
   #pool setting
-  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% head(min(50,max(4,nrow(.)/2))) -> tmp
+  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% head(min(TopN[1],max(4,nrow(.)/2))) -> tmp
   pools<<-list(list(c(1,0,0),tmp))
 }
 ### DIAGONAL Candiates for Combination
@@ -152,7 +152,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   targetExpDate_f=TARGET_EXPDATE_FRONT
   targetExpDate_b=TARGET_EXPDATE_BACK
   spreadRatio=c(1,1,1)
-  totalPopNum=PopN_1/10*8
+  totalPopNum=PopN[1]/2
   
   #output file name
   outFname=createOutFname(targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,spreadRatio=spreadRatio,EvalFuncSetting=EvalFuncSetting)
@@ -174,7 +174,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
   
   #pool setting
-  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% head(min(100,max(4,nrow(.)/2))) -> tmp
+  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% head(min(TopN[1]/2,max(4,nrow(.)/2))) -> tmp
   pools<<-list(list(c(1,0,0),tmp))
 }
 
@@ -185,7 +185,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   targetExpDate_f=TARGET_EXPDATE_FRONT
   targetExpDate_b=TARGET_EXPDATE_BACK
   spreadRatio=c(1,1,1)
-  totalPopNum=PopN_1*2
+  totalPopNum=PopN[1]
   
   #output file name
   outFname=createOutFname(targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,spreadRatio=spreadRatio,EvalFuncSetting=EvalFuncSetting)
@@ -206,7 +206,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
     dplyr::distinct() -> tmp
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
   #pool setting
-  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% head(min(1000,max(4,nrow(.)/2))) -> tmp
+  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% head(min(TopN[1],max(4,nrow(.)/2))) -> tmp
   pools<<-list(list(c(1,0,0),tmp))
   
   #copy file to READ-SPREAD
@@ -220,7 +220,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   targetExpDate_f=TARGET_EXPDATE_FRONT
   targetExpDate_b=TARGET_EXPDATE_BACK
   spreadRatio=c(1,1,1)
-  totalPopNum=PopN_1*2
+  totalPopNum=PopN[1]
   
   #output file name
   outFname=createOutFname(targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,spreadRatio=spreadRatio,EvalFuncSetting=EvalFuncSetting)
@@ -241,7 +241,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
     distinct() -> tmp
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
   #pool setting
-  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% head(min(1000,max(4,nrow(.)/2))) -> tmp
+  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% head(min(TopN[1],max(4,nrow(.)/2))) -> tmp
   pools<<-list(list(c(1,0,0),tmp))
   
   #copy file to READ-SPREAD
@@ -255,7 +255,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   targetExpDate_f=TARGET_EXPDATE_FRONT
   targetExpDate_b=TARGET_EXPDATE_BACK
   spreadRatio=c(1,1,1)
-  totalPopNum=PopN_1*2
+  totalPopNum=PopN[1]
   
   #output file name
   outFname=createOutFname(targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,spreadRatio=spreadRatio,EvalFuncSetting=EvalFuncSetting)
@@ -276,7 +276,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
     dplyr::distinct() -> tmp
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
   #pool setting
-  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% head(min(1000,max(4,nrow(.)/2))) -> tmp
+  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% head(min(TopN[1],max(4,nrow(.)/2))) -> tmp
   pools<<-list(list(c(1,0,0),tmp))
   
   #copy file to READ-SPREAD
@@ -290,7 +290,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   targetExpDate_f=TARGET_EXPDATE_FRONT
   targetExpDate_b=TARGET_EXPDATE_BACK
   spreadRatio=c(1,1,1)
-  totalPopNum=PopN_1*2
+  totalPopNum=PopN[1]
   
   #output file name
   outFname=createOutFname(targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,spreadRatio=spreadRatio,EvalFuncSetting=EvalFuncSetting)
@@ -311,7 +311,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
     distinct() -> tmp
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
   #pool setting
-  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% head(min(1000,max(4,nrow(.)/2))) -> tmp
+  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% head(min(TopN[1],max(4,nrow(.)/2))) -> tmp
   pools<<-list(list(c(1,0,0),tmp))
   
   #copy file to READ-SPREAD
@@ -324,7 +324,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   targetExpDate=TARGET_EXPDATE
   targetExpDate_f=TARGET_EXPDATE_FRONT
   targetExpDate_b=TARGET_EXPDATE_BACK
-  totalPopNum=PopN_1*2
+  totalPopNum=PopN[1]
   
   #spread ratio 1
   spreadRatio=c(1,1,1)
@@ -353,7 +353,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
   
   #pool setting
-  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% head(min(40,max(4,nrow(.)))) -> tmp
+  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% head(min(TopN[1],max(4,nrow(.)))) -> tmp
   pools<<-list(list(c(1,0,0),tmp))
   
   ##
@@ -411,7 +411,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   targetExpDate=TARGET_EXPDATE
   targetExpDate_f=TARGET_EXPDATE_FRONT
   targetExpDate_b=TARGET_EXPDATE_BACK
-  totalPopNum=PopN_1*2
+  totalPopNum=PopN[1]
   
   #spread ratio 1
   spreadRatio=c(1,1,1)
@@ -437,7 +437,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
     dplyr::distinct() -> tmp
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
   #pool setting
-  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% head(min(50,max(4,nrow(.)/2))) -> tmp
+  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% head(min(TopN[1],max(4,nrow(.)/2))) -> tmp
   pools<<-list(list(c(1,0,0),tmp))
   
   ##
@@ -480,7 +480,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   targetExpDate=TARGET_EXPDATE
   targetExpDate_f=TARGET_EXPDATE_FRONT
   targetExpDate_b=TARGET_EXPDATE_BACK
-  totalPopNum=PopN_1/10*8
+  totalPopNum=PopN[2]
   
   #spread ratio 1
   spreadRatio=c(1,1,1)
@@ -515,7 +515,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   targetExpDate=TARGET_EXPDATE
   targetExpDate_f=TARGET_EXPDATE_FRONT
   targetExpDate_b=TARGET_EXPDATE_BACK
-  totalPopNum=PopN_1
+  totalPopNum=PopN[2]
   
   #spread ratio 1
   spreadRatio=c(1,1,1)
@@ -550,7 +550,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   targetExpDate=TARGET_EXPDATE
   targetExpDate_f=TARGET_EXPDATE_FRONT
   targetExpDate_b=TARGET_EXPDATE_BACK
-  totalPopNum=PopN_1
+  totalPopNum=PopN[1]
   
   #spread ratio 1
   spreadRatio=c(1,1,1)
@@ -584,7 +584,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   targetExpDate=TARGET_EXPDATE
   targetExpDate_f=TARGET_EXPDATE_FRONT
   targetExpDate_b=TARGET_EXPDATE_BACK
-  totalPopNum=PopN_1
+  totalPopNum=PopN[1]
   
   #spread ratio 1
   spreadRatio=c(1,1,1)
@@ -618,7 +618,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   targetExpDate=TARGET_EXPDATE
   targetExpDate_f=TARGET_EXPDATE_FRONT
   targetExpDate_b=TARGET_EXPDATE_BACK
-  totalPopNum=PopN_1/10*8
+  totalPopNum=PopN[2]
   
   #spread ratio 1
   spreadRatio=c(1,1,1)
@@ -636,7 +636,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   readFname=paste(ResultFiles_Path_G,Underying_Symbol_G,"-READ-SPREAD.csv",sep="")
   tmp<-read.table(readFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
   colnames(tmp)<-c(1:ncol(tmp))
-  tmp %>% arrange(.[,length(opchain$Position)+1]) %>% head(min(100,max(4,nrow(.)/2))) -> tmp
+  tmp %>% arrange(.[,length(opchain$Position)+1]) %>% head(min(TopN[2],max(4,nrow(.)/2))) -> tmp
   pools<<-list(list(c(1,0,0),tmp))
   
   #sampling
@@ -671,7 +671,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   targetExpDate=TARGET_EXPDATE
   targetExpDate_f=TARGET_EXPDATE_FRONT
   targetExpDate_b=TARGET_EXPDATE_BACK
-  totalPopNum=PopN_1/10*8
+  totalPopNum=PopN[2]/4
   
   #spread ratio 1
   spreadRatio=c(1,1,1)
@@ -689,7 +689,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   readFname=paste(ResultFiles_Path_G,Underying_Symbol_G,"-READ-SPREAD.csv",sep="")
   tmp<-read.table(readFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
   colnames(tmp)<-c(1:ncol(tmp))
-  tmp %>% arrange(.[,length(opchain$Position)+1]) %>% head(min(100,max(4,nrow(.)/2))) -> tmp
+  tmp %>% arrange(.[,length(opchain$Position)+1]) %>% head(min(TopN[2]/4,max(4,nrow(.)/2))) -> tmp
   pools<<-list(list(c(1,0,0),tmp))
   
   #sampling
@@ -724,7 +724,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   targetExpDate=TARGET_EXPDATE
   targetExpDate_f=TARGET_EXPDATE_FRONT
   targetExpDate_b=TARGET_EXPDATE_BACK
-  totalPopNum=PopN_1/10*8
+  totalPopNum=PopN[2]/4
   
   #spread ratio 1
   spreadRatio=c(1,1,1)
@@ -742,7 +742,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   readFname=paste(ResultFiles_Path_G,Underying_Symbol_G,"-READ-SPREAD.csv",sep="")
   tmp<-read.table(readFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
   colnames(tmp)<-c(1:ncol(tmp))
-  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% head(min(100,max(4,nrow(.)/2))) -> tmp
+  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% head(min(TopN[2]/4,max(4,nrow(.)/2))) -> tmp
   pools<<-list(list(c(1,0,0),tmp))
   
   #sampling
@@ -777,7 +777,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   targetExpDate=TARGET_EXPDATE
   targetExpDate_f=TARGET_EXPDATE_FRONT
   targetExpDate_b=TARGET_EXPDATE_BACK
-  totalPopNum=PopN_1
+  totalPopNum=PopN[2]
   
   #spread ratio 1
   spreadRatio=c(1,1,1)
@@ -795,7 +795,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   readFname=paste(ResultFiles_Path_G,Underying_Symbol_G,"-READ-SPREAD.csv",sep="")
   tmp<-read.table(readFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
   colnames(tmp)<-c(1:ncol(tmp))
-  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% head(min(100,max(4,nrow(.)/2))) -> tmp
+  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% head(min(TopN[2],max(4,nrow(.)/2))) -> tmp
   pools<<-list(list(c(1,0,0),tmp))
   
   #sampling
@@ -830,7 +830,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   targetExpDate=TARGET_EXPDATE
   targetExpDate_f=TARGET_EXPDATE_FRONT
   targetExpDate_b=TARGET_EXPDATE_BACK
-  totalPopNum=PopN_1 #PopN_1/10*12
+  totalPopNum=PopN[2]
   
   #spread ratio 1
   spreadRatio=c(1,1,1)
@@ -848,7 +848,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   readFname=paste(ResultFiles_Path_G,Underying_Symbol_G,"-READ-SPREAD.csv",sep="")
   tmp<-read.table(readFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
   colnames(tmp)<-c(1:ncol(tmp))
-  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% head(min(100,max(4,nrow(.)/2))) -> tmp
+  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% head(min(TopN[2],max(4,nrow(.)/2))) -> tmp
   pools<<-list(list(c(1,0,0),tmp))
   
   #sampling
@@ -886,7 +886,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   targetExpDate=TARGET_EXPDATE
   targetExpDate_f=TARGET_EXPDATE_FRONT
   targetExpDate_b=TARGET_EXPDATE_BACK
-  totalPopNum=PopN_1
+  totalPopNum=PopN[2]
   
   #spread ratio 1
   spreadRatio=c(1,1,1)
@@ -904,14 +904,14 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   readFname=paste(ResultFiles_Path_G,Underying_Symbol_G,"-READ-SPREAD.csv",sep="")
   tmp<-read.table(readFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
   colnames(tmp)<-c(1:ncol(tmp))
-  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% head(min(100,max(4,nrow(.)/2))) -> tmp
+  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% head(min(TopN[2],max(4,nrow(.)/2))) -> tmp
   pools<-list(list(c(1,0,0),tmp))
   
   #read first file and pool setting
   readFname=paste(ResultFiles_Path_G,Underying_Symbol_G,"-READ-SPREAD2.csv",sep="")
   tmp<-read.table(readFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
   colnames(tmp)<-c(1:ncol(tmp))
-  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% head(min(100,max(4,nrow(.)/2))) -> tmp
+  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% head(min(TopN[2],max(4,nrow(.)/2))) -> tmp
   pools[2]<-list(list(c(1,0,0),tmp))
   pools<<-pools
   
