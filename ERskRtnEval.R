@@ -1259,7 +1259,7 @@ sampleMain<-function(sampleSpreadType,totalPopNum,targetExpDate,targetExpDate_f,
 # as the case of even number (half +1 long, the other half -1 short).
 # When the each position of returned compound spread is 1 or -1, the spread position are multiplied by ml. 
 
-create_initial_exact_PutCall_polulation<-function(popnum,type,EvalFuncSetting,thresh,putn,calln,ml,fname,PosMultip,
+createInitialExactPutCallPopulation<-function(popnum,type,EvalFuncSetting,thresh,putn,calln,ml,fname,PosMultip,
                                                   isFileout=FALSE,isDebug=FALSE,isDetail=FALSE){
   added_num<-0
   total_count<-0

@@ -11,7 +11,7 @@ source('./ESourceRCode.R',encoding = 'UTF-8')
 COMBINATION_HOT_START=F
 
 #speceif configuration is to be applied to first generation
-SPECIFIC_FIRSTG_SETTING=T
+SPECIFIC_FIRSTG_SETTING=F
 
 #COMBINATION LossLimit Multipe
 COMBINATION_LOSSLIMIT_MULTIPLE=2
@@ -26,11 +26,11 @@ HASH_HIT_NUM=0
 #Combine Target Generation: 
 # c(1Cb tgt,2Cb tgt,3Cb tgt ,4Cb tge,5Cb tgt) where 1Cb should be 0
 # xCb tgt means: when xCb combination is created, combine (x-1)Cb with CombineTargetGeneration[xCb_tgt_idx]
-#  for example: when CombineTargetGeneration=c(0,1,2,2,2),
-#    3Cb target is created, combine 2Cb target with 2Cb target(=CombineTargetGeneration[3])
-#    4Cb target is created, combine 3Cb target with 2Cb target(=CombineTargetGeneration[4])
+#  for example: When CombineTargetGeneration=c(0,1,2,2,2),
+#    3Cb target is created by combining 2Cb target with 2Cb target(=CombineTargetGeneration[3])
+#    4Cb target is created by combining 3Cb target with 2Cb target(=CombineTargetGeneration[4])
 EvalFuncSetting$CombineTargetGeneration
-#Maxed Combine max posnum is calculated
+#Combinee Max posnum is calculated
 CombinedMaxPosnum=rep(0,times=length(EvalFuncSetting$CombineTargetGeneration))
 CombinedMaxPosnum[1]=max(EvalFuncSetting$Posnum)
 for(tmp in 2:length(CombinedMaxPosnum)){
@@ -50,12 +50,12 @@ cat("TopN",TopN,"\n",file=tmp_touchfile,sep=",",append=TRUE)
 cat("PopN",PopN,"\n",file=tmp_touchfile,sep=",",append=TRUE)
 
 ##
-# Creating First Generation
+# Creating a First Generation
 
 #If speceif configuration is to be applied to first generation. 
 
 #The objective to change the configuration when creating a population of first generation is
-#to try to make the expected return (profit) as big as possible.
+#to try to make the expected return (profit) reasonably good while preserving diversity of the population.
 #Remember if X and Y is independent, E(X+Y)=E(X)+E(Y). So trying to get a population
 #whose member's E(X) is as big as possible would be reasonable.
 #Risk side evaluation is not so simple. RisK(X+Y) != Risk(X)+Risk(Y), expectiing risk of
@@ -70,7 +70,7 @@ if(SPECIFIC_FIRSTG_SETTING==T){
   EvalFuncSetting$DrctlEffect_Coef["DeltaECoef"]=EvalFuncSetting$DrctlEffect_Coef["VegaECoef"]
   EvalFuncSetting$DrctlEffect_Coef["VegaECoef"]=tmp_drecoef
   rm(tmp_drecoef)
-  EvalFuncSetting$MaxLoss_Coef=EvalFuncSetting$MaxLoss_Coef*0.5
+  #EvalFuncSetting$MaxLoss_Coef=EvalFuncSetting$MaxLoss_Coef*0.5
   
   #Give some leeway to Directional Effect
   EvalFuncSetting$Delta_Thresh_Minus=rep(min(EvalFuncSetting$Delta_Thresh_Minus)-2.5,
@@ -81,14 +81,22 @@ if(SPECIFIC_FIRSTG_SETTING==T){
                                         length(EvalFuncSetting$Vega_Thresh_Minus))
   EvalFuncSetting$Vega_Thresh_Plus=rep(max(EvalFuncSetting$Vega_Thresh_Plus)+30,
                                        length(EvalFuncSetting$Vega_Thresh_Plus))
-  #Use economic Value
+  #Use economic Value or not
+  #if only profit is concerned. ONLY POSSIBLE WHEN USING EconomicValue
+  #EvalFuncSetting$DrctlEffect_Coef["DeltaECoef"]=0
+  #EvalFuncSetting$DrctlEffect_Coef["VegaECoef"]=0
+  #EvalFuncSetting$MaxLoss_Coef=0
   #EvalFuncSetting$EvalEconomicValue=T
+  
+  #Use SortinoRatio or not
+  #EvalFuncSetting$UseSortinoRatio=T
   
   #write to the touch file
   cat("1StGen.DrctlEfct",EvalFuncSetting$DrctlEffect_Coef,"MaxLoss_Coef",EvalFuncSetting$MaxLoss_Coef ,"\n",file=tmp_touchfile,sep=",",append=TRUE)
   cat("1StGen.Delta_Thresh",EvalFuncSetting$Delta_Thresh_Minus,"_",EvalFuncSetting$Delta_Thresh_Plus,"\n",file=tmp_touchfile,sep=",",append=TRUE)
   cat("1StGen.Vega_Thresh",EvalFuncSetting$Vega_Thresh_Minus,"_",EvalFuncSetting$Vega_Thresh_Plus,"\n",file=tmp_touchfile,sep=",",append=TRUE)
   cat("1StGen.EvalEconomicValue",EvalFuncSetting$EvalEconomicValue,"\n",file=tmp_touchfile,sep=",",append=TRUE)
+  cat("1StGen.UseSortinoRatio",EvalFuncSetting$UseSortinoRatio,"\n",file=tmp_touchfile,sep=",",append=TRUE)
 }
 
 if(COMBINATION_HOT_START==T){
@@ -130,53 +138,53 @@ if(COMBINATION_HOT_START==F){
   for(itr in 1:InitialPopCreateLoopNum){
     cat("itr:",itr,"\n")
     if(sum(EvalFuncSetting$Posnum==5)!=0){
-      create_initial_exact_PutCall_polulation(popnum=250,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
+      createInitialExactPutCallPopulation(popnum=250,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
                                               putn=3,calln=2,ml=Optimize_ml,
                                               fname=paste(".\\ResultData\\inipop-05P3C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                               PosMultip,
                                               isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
-      create_initial_exact_PutCall_polulation(popnum=250,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
+      createInitialExactPutCallPopulation(popnum=250,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
                                               putn=2,calln=3,ml=Optimize_ml,
                                               fname=paste(".\\ResultData\\inipop-05P2C3-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                               PosMultip,
                                               isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
     }
     if(sum(EvalFuncSetting$Posnum==4)!=0){
-      create_initial_exact_PutCall_polulation(popnum=100,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
-                                              putn=4,calln=0,ml=Optimize_ml,
-                                              fname=paste(".\\ResultData\\inipop-04P4C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                                              PosMultip,
-                                              isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
-      create_initial_exact_PutCall_polulation(popnum=200,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
+      # createInitialExactPutCallPopulation(popnum=100,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
+      #                                         putn=4,calln=0,ml=Optimize_ml,
+      #                                         fname=paste(".\\ResultData\\inipop-04P4C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+      #                                         PosMultip,
+      #                                         isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
+      createInitialExactPutCallPopulation(popnum=200,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
                                               putn=2,calln=2,ml=Optimize_ml,
                                               fname=paste(".\\ResultData\\inipop-04P2C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                               PosMultip,
                                               isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
-      create_initial_exact_PutCall_polulation(popnum=100,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
+      createInitialExactPutCallPopulation(popnum=100,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
                                               putn=0,calln=4,ml=Optimize_ml,
                                               fname=paste(".\\ResultData\\inipop-04P0C4-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                               PosMultip,
                                               isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
     }
     if(sum(EvalFuncSetting$Posnum==3)!=0){
-      create_initial_exact_PutCall_polulation(popnum=100,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
-                                              putn=3,calln=0,ml=Optimize_ml,
-                                              fname=paste(".\\ResultData\\inipop-03P3C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                                              PosMultip,
-                                              isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-      create_initial_exact_PutCall_polulation(popnum=100,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
+      # createInitialExactPutCallPopulation(popnum=100,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
+      #                                         putn=3,calln=0,ml=Optimize_ml,
+      #                                         fname=paste(".\\ResultData\\inipop-03P3C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+      #                                         PosMultip,
+      #                                         isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
+      createInitialExactPutCallPopulation(popnum=100,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
                                               putn=0,calln=3,ml=Optimize_ml,
                                               fname=paste(".\\ResultData\\inipop-03P0C3-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                               PosMultip,
                                               isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
     }
     if(sum(EvalFuncSetting$Posnum==2)!=0){
-      create_initial_exact_PutCall_polulation(popnum=50,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
+      createInitialExactPutCallPopulation(popnum=50,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
                                               putn=2,calln=0,ml=Optimize_ml,
                                               fname=paste(".\\ResultData\\inipop-02P2C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                               PosMultip,
                                               isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
-      create_initial_exact_PutCall_polulation(popnum=50,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
+      createInitialExactPutCallPopulation(popnum=50,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
                                               putn=0,calln=2,ml=Optimize_ml,
                                               fname=paste(".\\ResultData\\inipop-02P0C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                               PosMultip,
@@ -186,12 +194,12 @@ if(COMBINATION_HOT_START==F){
   #Restore original setting
   if(SPECIFIC_FIRSTG_SETTING==T){
     EvalFuncSetting=origEvalFuncSetting
-    #write to the touch file
-    cat("Restrd.DrctlEfct",EvalFuncSetting$DrctlEffect_Coef,"\n",file=tmp_touchfile,sep=",",append=TRUE)
+    #write to the touched file
     cat("Restrd.DrctlEfct",EvalFuncSetting$DrctlEffect_Coef,"MaxLoss_Coef",EvalFuncSetting$MaxLoss_Coef ,"\n",file=tmp_touchfile,sep=",",append=TRUE)
     cat("Restrd.Delta_Thresh",EvalFuncSetting$Delta_Thresh_Minus,"_",EvalFuncSetting$Delta_Thresh_Plus,"\n",file=tmp_touchfile,sep=",",append=TRUE)
     cat("Restrd.Vega_Thresh",EvalFuncSetting$Vega_Thresh_Minus,"_",EvalFuncSetting$Vega_Thresh_Plus,"\n",file=tmp_touchfile,sep=",",append=TRUE)
     cat("Restrd.EvalEconomicValue",EvalFuncSetting$EvalEconomicValue,"\n",file=tmp_touchfile,sep=",",append=TRUE)
+    cat("Restrd.UseSortinoRatio",EvalFuncSetting$UseSortinoRatio,"\n",file=tmp_touchfile,sep=",",append=TRUE)
   }
   #1Cb.csv
   st <- "powershell.exe .\\shell\\cmd1.ps1"
@@ -202,7 +210,7 @@ if(COMBINATION_HOT_START==F){
   system(st) ;rm(st)
 }
 
-#combined population serach
+#combined population search
 if(Combined_Spread){
   ##
   #  LossLimitPrice adjust
