@@ -274,7 +274,7 @@ if(Combined_Spread){
   maxposn_tmp=length(EvalFuncSetting$Vega_Direct_Prf)
   #combinational search
   if(CombinedMaxPosnum[1] < maxposn_tmp){
-    create_combined_population(popnum=PopN[2],EvalFuncSetting,thresh=ThreshN[2],plelem=c(EvalFuncSetting$CombineTargetGeneration[2],1),ml=Optimize_ml,
+    createCombinedPopulation(popnum=PopN[2],EvalFuncSetting,thresh=ThreshN[2],plelem=c(EvalFuncSetting$CombineTargetGeneration[2],1),ml=Optimize_ml,
                                fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE,maxposn=maxposn_tmp,PosMultip=PosMultip)
     #creating 2Cb.csv
@@ -301,7 +301,7 @@ if(Combined_Spread){
     pools[2]<-list(list(c(1,0,0),tmp)) #No.[[2]]
     pools<<-pools
     #combinational search
-    create_combined_population(popnum=PopN[3],EvalFuncSetting,thresh=ThreshN[3],plelem=c(EvalFuncSetting$CombineTargetGeneration[3],2),ml=Optimize_ml,
+    createCombinedPopulation(popnum=PopN[3],EvalFuncSetting,thresh=ThreshN[3],plelem=c(EvalFuncSetting$CombineTargetGeneration[3],2),ml=Optimize_ml,
                                fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE,maxposn=maxposn_tmp,PosMultip=PosMultip)
     #creating 3Cb.csv
@@ -328,7 +328,7 @@ if(Combined_Spread){
     pools[3]<-list(list(c(1,0,0),tmp)) #No.[[3]]
     pools<<-pools
     #combinational search
-    create_combined_population(popnum=PopN[4],EvalFuncSetting,thresh=ThreshN[4],plelem=c(EvalFuncSetting$CombineTargetGeneration[4],3),ml=Optimize_ml,
+    createCombinedPopulation(popnum=PopN[4],EvalFuncSetting,thresh=ThreshN[4],plelem=c(EvalFuncSetting$CombineTargetGeneration[4],3),ml=Optimize_ml,
                                fname=paste(".\\ResultData\\combine-Result-2Cb+2Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE,maxposn=maxposn_tmp,PosMultip=PosMultip)
     #creating 4Cb.csv
@@ -355,7 +355,7 @@ if(Combined_Spread){
     pools[4]<-list(list(c(1,0,0),tmp)) #No.[[4]]
     pools<<-pools
     #combinational search
-    create_combined_population(popnum=PopN[5],EvalFuncSetting,thresh=ThreshN[5],plelem=c(EvalFuncSetting$CombineTargetGeneration[5],4),ml=Optimize_ml,
+    createCombinedPopulation(popnum=PopN[5],EvalFuncSetting,thresh=ThreshN[5],plelem=c(EvalFuncSetting$CombineTargetGeneration[5],4),ml=Optimize_ml,
                                fname=paste(".\\ResultData\\combine-Result-3Cb+2Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE,maxposn=maxposn_tmp,PosMultip=PosMultip)
     #creating 5Cb.csv

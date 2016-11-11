@@ -1390,7 +1390,7 @@ getPutCallnOfthePosition<-function(x){
 #function for seraching candidate by combination 
 # two sample examples. one from pools[[2]], the other from pools[[3]]
 #ceiling(runif(1, min=1e-320, max=nrow(pools[[2]][[2]])))
-create_combined_population<-function(popnum,EvalFuncSetting,thresh,plelem,ml,fname,isFileout=FALSE,isDebug=FALSE,isDetail=FALSE,maxposn,PosMultip){
+createCombinedPopulation<-function(popnum,EvalFuncSetting,thresh,plelem,ml,fname,isFileout=FALSE,isDebug=FALSE,isDetail=FALSE,maxposn,PosMultip){
   added_num<-0
   total_count<-0
   cat("hash hit:",HASH_HIT_NUM,"hash length",length(POSITION_OPTIM_HASH),"\n")
