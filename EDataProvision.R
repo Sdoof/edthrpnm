@@ -415,8 +415,11 @@ filterPosition <- function(opchain,
                            #Delta_Limit_Call_MAX=c(0.25,0.55,0.55),Delta_Limit_Call_MIN=c(0.09,0.25,0.25),
                            #ATM/OOM
                            Delta_Limit_Put_MAX=c(0.25,0.55,0.55),Delta_Limit_Put_MIN=c(0.09,0.25,0.25),
-                           #Delta_Limit_Call_MAX=c(0.25,0.30,0.30),Delta_Limit_Call_MIN=c(0.09,0.11,0.11),
+                             #Delta_Limit_Call_MAX=c(0.25,0.30,0.30),Delta_Limit_Call_MIN=c(0.09,0.11,0.11),
                            Delta_Limit_Call_MAX=c(0.25,0.32,0.30),Delta_Limit_Call_MIN=c(0.09,0.08,0.08),
+                           #CALL ONLY
+                           #Delta_Limit_Put_MAX=c(0,0,0),Delta_Limit_Put_MIN=c(0,0,0),
+                           #Delta_Limit_Call_MAX=c(0.55,0.55,0.55),Delta_Limit_Call_MIN=c(0.09,0.08,0.08),
                            TARGET_EXPDATE,TARGET_EXPDATE_FRONT,TARGET_EXPDATE_BACK){
   ##
   #  Filter Target Ranges 
