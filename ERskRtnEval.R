@@ -1260,7 +1260,7 @@ sampleMain<-function(sampleSpreadType,totalPopNum,targetExpDate,targetExpDate_f,
 # When the each position of returned compound spread is 1 or -1, the spread position are multiplied by ml. 
 
 createInitialExactPutCallPopulation<-function(popnum,type,EvalFuncSetting,thresh,putn,calln,ml,fname,PosMultip,
-                                                  isFileout=FALSE,isDebug=FALSE,isDetail=FALSE){
+                                              isFileout=FALSE,isDebug=FALSE,isDetail=FALSE){
   added_num<-0
   total_count<-0
   cat("hash hit:",HASH_HIT_NUM,"hash length",length(POSITION_OPTIM_HASH),"\n")
@@ -1269,7 +1269,7 @@ createInitialExactPutCallPopulation<-function(popnum,type,EvalFuncSetting,thresh
     #Put   
     idxy<-as.numeric(type==OpType_Put_G)*rep(1:length(iniPos),length=length(iniPos))
     if(isDebug){ cat(" put pos:",idxy) }
-    if(putn>0 && sum(idxy)==0)
+    if(putn>length(idxy[idxy>0]))
       break
     
     y<-rep(0,times=length(iniPos))
@@ -1295,7 +1295,7 @@ createInitialExactPutCallPopulation<-function(popnum,type,EvalFuncSetting,thresh
     #Call
     idxy<-as.numeric(type==OpType_Call_G)*rep(1:length(iniPos),length=length(iniPos))
     if(isDebug){ cat(" call pos:",idxy) }
-    if(calln>0 && sum(idxy)==0)
+    if(calln>length(idxy[idxy>0]))
       break
     
     z<-rep(0,times=length(iniPos))
