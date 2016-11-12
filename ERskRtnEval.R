@@ -1269,6 +1269,9 @@ createInitialExactPutCallPopulation<-function(popnum,type,EvalFuncSetting,thresh
     #Put   
     idxy<-as.numeric(type==OpType_Put_G)*rep(1:length(iniPos),length=length(iniPos))
     if(isDebug){ cat(" put pos:",idxy) }
+    if(putn>0 && sum(idxy)==0)
+      break
+    
     y<-rep(0,times=length(iniPos))
     if(sum(idxy)>0){
       idxy<-idxy[idxy!=0]
@@ -1292,6 +1295,9 @@ createInitialExactPutCallPopulation<-function(popnum,type,EvalFuncSetting,thresh
     #Call
     idxy<-as.numeric(type==OpType_Call_G)*rep(1:length(iniPos),length=length(iniPos))
     if(isDebug){ cat(" call pos:",idxy) }
+    if(calln>0 && sum(idxy)==0)
+      break
+    
     z<-rep(0,times=length(iniPos))
     if(sum(idxy)>0){
       idxy<-idxy[idxy!=0]
