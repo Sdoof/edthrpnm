@@ -856,7 +856,7 @@ sampleVerticalSpread<-function(targetOpTyep,verticalType,targetExpDate,
       (opchain$Strike[idxy[2]]>=opchain$Strike[idxy[1]])*(verticalType==BEAR_VERTICAL_SPREAD_TYPE)*rev(idxy) +
       (opchain$Strike[idxy[2]]<opchain$Strike[idxy[1]])*(verticalType==BEAR_VERTICAL_SPREAD_TYPE)*idxy ->idxy
     if(isDebug){ cat("idxy:",idxy) }
-    #y<-rep(0,times=length(iniPos))
+    #y<-rep(0,times=length(opchain$Position))
     y_shift<-0
     n_shift<-(2)
     y[idxy[(1+y_shift):(y_shift+(n_shift/2))]]<-(1)
@@ -876,19 +876,19 @@ sampleDiagonalSpread<-function(targetOpTyep,diagonalType,targetExpDate_f,targetE
     idxy<-idxy[idxy!=0]
     #if(isDebug){ cat(" put pos cand :",idxy) }
     idxy<-sample(idxy,size=1,replace=T,prob=NULL)
-    #y<-rep(0,times=length(iniPos))
+    #y<-rep(0,times=length(opchain$Position))
     y[idxy[1]]<-as.numeric(diagonalType==DIAGONAL_TYPE_LONG)*(-1) +
       as.numeric(diagonalType==DIAGONAL_TYPE_SHORT)*(1)
   }
   #Back
   idxy<-as.numeric(opchain$TYPE==targetOpTyep)*
     as.numeric(opchain$ExpDate==targetExpDate_b)*rep(1:length(opchain$TYPE),length=length(opchain$TYPE))
-  z<-rep(0,times=length(iniPos))
+  z<-rep(0,times=length(opchain$Position))
   if(sum(idxy)>0){
     idxy<-idxy[idxy!=0]
     #if(isDebug){ cat(" put pos cand :",idxy) }
     idxy<-sample(idxy,size=1,replace=T,prob=NULL)
-    #y<-rep(0,times=length(iniPos))
+    #y<-rep(0,times=length(opchain$Position))
     z[idxy[1]]<-as.numeric(diagonalType==DIAGONAL_TYPE_LONG)*(1) +
       as.numeric(diagonalType==DIAGONAL_TYPE_SHORT)*(-1)
   }
@@ -986,7 +986,7 @@ sampleMain<-function(sampleSpreadType,totalPopNum,targetExpDate,targetExpDate_f,
     }else if(sampleSpreadType==POOL_PLUS_SINGLE_DIAGONAL_SMPLING){
       
       s1<-pools[[ 1 ]][[2]][ceiling(runif(1, min=1e-320, max=nrow(pools[[1]][[2]]))), ]
-      y<-unlist(s1[1:length(iniPos)]);s1_score<-as.numeric(s1[length(s1)])
+      y<-unlist(s1[1:length(opchain$Position)]);s1_score<-as.numeric(s1[length(s1)])
       
       z=sampleDiagonalSpread(targetOpTyep=ifelse(runif(1)<=0.500000,OpType_Put_G,OpType_Call_G),
                              diagonalType=ifelse(runif(1)<=0.500000,DIAGONAL_TYPE_LONG,DIAGONAL_TYPE_SHORT),
@@ -996,7 +996,7 @@ sampleMain<-function(sampleSpreadType,totalPopNum,targetExpDate,targetExpDate_f,
     }else if(sampleSpreadType==POOL_PLUS_DOUBLE_DIAGONAL_SMPLING){
       
       s1<-pools[[ 1 ]][[2]][ceiling(runif(1, min=1e-320, max=nrow(pools[[1]][[2]]))), ]
-      y<-unlist(s1[1:length(iniPos)]);s1_score<-as.numeric(s1[length(s1)])
+      y<-unlist(s1[1:length(opchain$Position)]);s1_score<-as.numeric(s1[length(s1)])
       
       diagonalType=ifelse(runif(1)<=0.500000,DIAGONAL_TYPE_LONG,DIAGONAL_TYPE_SHORT)
       z=sampleDiagonalSpread(targetOpTyep=OpType_Put_G,
@@ -1014,7 +1014,7 @@ sampleMain<-function(sampleSpreadType,totalPopNum,targetExpDate,targetExpDate_f,
       
       s1_idx=ceiling(runif(1, min=1e-320, max=nrow(pools[[1]][[2]])))
       s1<-pools[[ 1 ]][[2]][s1_idx, ]
-      y<-unlist(s1[1:length(iniPos)]);s1_score<-as.numeric(s1[length(s1)])
+      y<-unlist(s1[1:length(opchain$Position)]);s1_score<-as.numeric(s1[length(s1)])
       
       z=sampleDiagonalSpread(targetOpTyep=ifelse(runif(1)<=0.500000,OpType_Put_G,OpType_Call_G),
                              diagonalType=ifelse(runif(1)<=0.500000,DIAGONAL_TYPE_LONG,DIAGONAL_TYPE_SHORT),
@@ -1024,7 +1024,7 @@ sampleMain<-function(sampleSpreadType,totalPopNum,targetExpDate,targetExpDate_f,
     }else if(sampleSpreadType==FILE_PLUS_VERTICAL_CREDIT_SPREAD){
       
       s1<-pools[[ 1 ]][[2]][ceiling(runif(1, min=1e-320, max=nrow(pools[[1]][[2]]))), ]
-      y<-unlist(s1[1:length(iniPos)]);s1_score<-as.numeric(s1[length(s1)])
+      y<-unlist(s1[1:length(opchain$Position)]);s1_score<-as.numeric(s1[length(s1)])
       
       if(runif(1)<=0.500000){
         z=sampleVerticalSpread(targetOpTyep=OpType_Put_G,
@@ -1039,7 +1039,7 @@ sampleMain<-function(sampleSpreadType,totalPopNum,targetExpDate,targetExpDate_f,
     }else if(sampleSpreadType==FILE_PLUS_VERTICAL_DEBT_SPREAD){
       
       s1<-pools[[ 1 ]][[2]][ceiling(runif(1, min=1e-320, max=nrow(pools[[1]][[2]]))), ]
-      y<-unlist(s1[1:length(iniPos)]);s1_score<-as.numeric(s1[length(s1)])
+      y<-unlist(s1[1:length(opchain$Position)]);s1_score<-as.numeric(s1[length(s1)])
       
       if(runif(1)<=0.500000){
         z=sampleVerticalSpread(targetOpTyep=OpType_Put_G,
@@ -1054,7 +1054,7 @@ sampleMain<-function(sampleSpreadType,totalPopNum,targetExpDate,targetExpDate_f,
     }else if(sampleSpreadType==FILE_PLUS_IRON_CONDOR){
       
       s1<-pools[[ 1 ]][[2]][ceiling(runif(1, min=1e-320, max=nrow(pools[[1]][[2]]))), ]
-      y<-unlist(s1[1:length(iniPos)]);s1_score<-as.numeric(s1[length(s1)])
+      y<-unlist(s1[1:length(opchain$Position)]);s1_score<-as.numeric(s1[length(s1)])
       
       z=sampleVerticalSpread(targetOpTyep=OpType_Put_G,
                              verticalType=BULL_VERTICAL_SPREAD_TYPE,
@@ -1069,11 +1069,11 @@ sampleMain<-function(sampleSpreadType,totalPopNum,targetExpDate,targetExpDate_f,
       
       s1_idx=ceiling(runif(1, min=1e-320, max=nrow(pools[[1]][[2]])))
       s1<-pools[[ 1 ]][[2]][s1_idx, ]
-      y<-unlist(s1[1:length(iniPos)]);s1_score<-as.numeric(s1[length(s1)])
+      y<-unlist(s1[1:length(opchain$Position)]);s1_score<-as.numeric(s1[length(s1)])
       
       s2_idx=ceiling(runif(1, min=1e-320, max=nrow(pools[[  2 ]][[2]])))
       s2<-pools[[ 2 ]][[2]][s2_idx, ]
-      z<-unlist(s2[1:length(iniPos)]);s2_score<-as.numeric(s2[length(s2)])
+      z<-unlist(s2[1:length(opchain$Position)]);s2_score<-as.numeric(s2[length(s2)])
       
       x<-y*spreadRatio[1]+z*spreadRatio[2]
     }else if(sampleSpreadType==FILE_PLUS_DOUBLE_DIAGONAL){
@@ -1082,7 +1082,7 @@ sampleMain<-function(sampleSpreadType,totalPopNum,targetExpDate,targetExpDate_f,
       
       s1_idx=ceiling(runif(1, min=1e-320, max=nrow(pools[[1]][[2]])))
       s1<-pools[[ 1 ]][[2]][s1_idx, ]
-      y<-unlist(s1[1:length(iniPos)]);s1_score<-as.numeric(s1[length(s1)])
+      y<-unlist(s1[1:length(opchain$Position)]);s1_score<-as.numeric(s1[length(s1)])
       
       diagonalType=ifelse(runif(1)<=0.500000,DIAGONAL_TYPE_LONG,DIAGONAL_TYPE_SHORT)
       z=sampleDiagonalSpread(targetOpTyep=ifelse(runif(1)<=0.500000,OpType_Put_G,OpType_Call_G),
@@ -1267,18 +1267,18 @@ createInitialExactPutCallPopulation<-function(popnum,type,EvalFuncSetting,thresh
   start_t<-proc.time()
   while(TRUE){
     #Put   
-    idxy<-as.numeric(type==OpType_Put_G)*rep(1:length(iniPos),length=length(iniPos))
+    idxy<-as.numeric(type==OpType_Put_G)*rep(1:length(opchain$Position),length=length(opchain$Position))
     if(isDebug){ cat(" put pos:",idxy) }
     if(putn>length(idxy[idxy>0]))
       break
     
-    y<-rep(0,times=length(iniPos))
+    y<-rep(0,times=length(opchain$Position))
     if(sum(idxy)>0){
       idxy<-idxy[idxy!=0]
       #if(isDebug){ cat(" put pos cand :",idxy) }
       idxy<-sample(idxy,size=putn,replace=FALSE,prob=NULL)
       if(isDebug){ cat(" put idxy:",idxy) }
-      #y<-rep(0,times=length(iniPos))
+      #y<-rep(0,times=length(opchain$Position))
       y_shift<-0
       putn_shift<-putn
       if((putn%%2)!=0){
@@ -1293,17 +1293,17 @@ createInitialExactPutCallPopulation<-function(popnum,type,EvalFuncSetting,thresh
       }
     }
     #Call
-    idxy<-as.numeric(type==OpType_Call_G)*rep(1:length(iniPos),length=length(iniPos))
+    idxy<-as.numeric(type==OpType_Call_G)*rep(1:length(opchain$Position),length=length(opchain$Position))
     if(isDebug){ cat(" call pos:",idxy) }
     if(calln>length(idxy[idxy>0]))
       break
     
-    z<-rep(0,times=length(iniPos))
+    z<-rep(0,times=length(opchain$Position))
     if(sum(idxy)>0){
       idxy<-idxy[idxy!=0]
       idxy<-sample(idxy,size=calln,replace=FALSE,prob=NULL)
       if(isDebug){ cat(" call idxy:",idxy) }
-      #z<-rep(0,times=length(iniPos))
+      #z<-rep(0,times=length(opchain$Position))
       z_shift<-0
       calln_shift<-calln
       if((calln%%2)!=0){
@@ -1403,20 +1403,20 @@ createCombinedPopulation<-function(popnum,EvalFuncSetting,thresh,plelem,ml,fname
   start_t<-proc.time()
   while(TRUE) {
     s1<-pools[[ plelem[1] ]][[2]][ceiling(runif(1, min=1e-320, max=nrow(pools[[ plelem[1] ]][[2]]))), ]
-    s1_pos<-unlist(s1[1:length(iniPos)]);s1_score<-as.numeric(s1[length(s1)])
+    s1_pos<-unlist(s1[1:length(opchain$Position)]);s1_score<-as.numeric(s1[length(s1)])
     if(isDebug){cat("s1 :",s1_pos," sc:",s1_score)   }
     
     s2<-pools[[ plelem[2] ]][[2]][ceiling(runif(1, min=1e-320, max=nrow(pools[[  plelem[2] ]][[2]]))), ]
-    s2_pos<-unlist(s2[1:length(iniPos)]);s2_score<-as.numeric(s2[length(s2)])
+    s2_pos<-unlist(s2[1:length(opchain$Position)]);s2_score<-as.numeric(s2[length(s2)])
     if(isDebug){cat(" s2 :",s2_pos," sc:",s2_score)   }
     
-    s3_pos<-rep(0,times=length(iniPos))
+    s3_pos<-rep(0,times=length(opchain$Position))
     if(length(plelem)==3){
       s3<-pools[[ plelem[3] ]][[2]][ceiling(runif(1, min=1e-320, max=nrow(pools[[  plelem[3] ]][[2]]))), ]
-      s3_pos<-unlist(s3[1:length(iniPos)]);s3_score<-as.numeric(s3[length(s3)])
+      s3_pos<-unlist(s3[1:length(opchain$Position)]);s3_score<-as.numeric(s3[length(s3)])
       if(isDebug){cat(" s3 :",s3_pos," sc:",s3_score)   }
     }  
-    x_new<-rep(0,times=length(iniPos))
+    x_new<-rep(0,times=length(opchain$Position))
     x_new<-s1_pos+s2_pos+s3_pos
     x_new<-as.numeric((sum(x_new%%7)!=0))*x_new+as.numeric((sum(x_new%%7)==0))*x_new/7
     x_new<-as.numeric((sum(x_new%%5)!=0))*x_new+as.numeric((sum(x_new%%5)==0))*x_new/5
@@ -1495,7 +1495,7 @@ createCombinedPopulation<-function(popnum,EvalFuncSetting,thresh,plelem,ml,fname
 createCombineCandidatePool<-function(fname,pnum=1000,nrows=-1,skip=0,method=1){
   pool<-read.csv(fname, header=FALSE,nrows=nrows,skip=skip)
   pnum<-as.numeric((pnum==0))*nrow(pool)+as.numeric((pnum!=0))*pnum
-  pool %>% dplyr::arrange(pool[,(length(iniPos)+1)]) %>% dplyr::distinct() -> pool
+  pool %>% dplyr::arrange(pool[,(length(opchain$Position)+1)]) %>% dplyr::distinct() -> pool
   
   
   #select specific nums. some optional methods

@@ -139,15 +139,15 @@ if(COMBINATION_HOT_START==F){
     cat("itr:",itr,"\n")
     if(sum(EvalFuncSetting$Posnum==5)!=0){
       createInitialExactPutCallPopulation(popnum=250,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
-                                              putn=3,calln=2,ml=Optimize_ml,
-                                              fname=paste(".\\ResultData\\inipop-05P3C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                                              PosMultip,
-                                              isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
+                                          putn=3,calln=2,ml=Optimize_ml,
+                                          fname=paste(".\\ResultData\\inipop-05P3C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                                          PosMultip,
+                                          isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
       createInitialExactPutCallPopulation(popnum=250,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
-                                              putn=2,calln=3,ml=Optimize_ml,
-                                              fname=paste(".\\ResultData\\inipop-05P2C3-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                                              PosMultip,
-                                              isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
+                                          putn=2,calln=3,ml=Optimize_ml,
+                                          fname=paste(".\\ResultData\\inipop-05P2C3-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                                          PosMultip,
+                                          isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
     }
     if(sum(EvalFuncSetting$Posnum==4)!=0){
       # createInitialExactPutCallPopulation(popnum=100,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
@@ -156,15 +156,15 @@ if(COMBINATION_HOT_START==F){
       #                                         PosMultip,
       #                                         isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
       createInitialExactPutCallPopulation(popnum=200,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
-                                              putn=2,calln=2,ml=Optimize_ml,
-                                              fname=paste(".\\ResultData\\inipop-04P2C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                                              PosMultip,
-                                              isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
+                                          putn=2,calln=2,ml=Optimize_ml,
+                                          fname=paste(".\\ResultData\\inipop-04P2C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                                          PosMultip,
+                                          isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
       createInitialExactPutCallPopulation(popnum=100,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
-                                              putn=0,calln=4,ml=Optimize_ml,
-                                              fname=paste(".\\ResultData\\inipop-04P0C4-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                                              PosMultip,
-                                              isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
+                                          putn=0,calln=4,ml=Optimize_ml,
+                                          fname=paste(".\\ResultData\\inipop-04P0C4-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                                          PosMultip,
+                                          isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
     }
     if(sum(EvalFuncSetting$Posnum==3)!=0){
       # createInitialExactPutCallPopulation(popnum=100,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
@@ -173,22 +173,22 @@ if(COMBINATION_HOT_START==F){
       #                                         PosMultip,
       #                                         isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
       createInitialExactPutCallPopulation(popnum=100,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
-                                              putn=0,calln=3,ml=Optimize_ml,
-                                              fname=paste(".\\ResultData\\inipop-03P0C3-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                                              PosMultip,
-                                              isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
+                                          putn=0,calln=3,ml=Optimize_ml,
+                                          fname=paste(".\\ResultData\\inipop-03P0C3-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                                          PosMultip,
+                                          isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
     }
     if(sum(EvalFuncSetting$Posnum==2)!=0){
       createInitialExactPutCallPopulation(popnum=50,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
-                                              putn=2,calln=0,ml=Optimize_ml,
-                                              fname=paste(".\\ResultData\\inipop-02P2C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                                              PosMultip,
-                                              isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
+                                          putn=2,calln=0,ml=Optimize_ml,
+                                          fname=paste(".\\ResultData\\inipop-02P2C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                                          PosMultip,
+                                          isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
       createInitialExactPutCallPopulation(popnum=50,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
-                                              putn=0,calln=2,ml=Optimize_ml,
-                                              fname=paste(".\\ResultData\\inipop-02P0C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                                              PosMultip,
-                                              isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
+                                          putn=0,calln=2,ml=Optimize_ml,
+                                          fname=paste(".\\ResultData\\inipop-02P0C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                                          PosMultip,
+                                          isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
     }
   }
   #Restore original setting
@@ -275,8 +275,8 @@ if(Combined_Spread){
   #combinational search
   if(CombinedMaxPosnum[1] < maxposn_tmp){
     createCombinedPopulation(popnum=PopN[2],EvalFuncSetting,thresh=ThreshN[2],plelem=c(EvalFuncSetting$CombineTargetGeneration[2],1),ml=Optimize_ml,
-                               fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                               isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE,maxposn=maxposn_tmp,PosMultip=PosMultip)
+                             fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                             isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE,maxposn=maxposn_tmp,PosMultip=PosMultip)
     #creating 2Cb.csv
     st <- "powershell.exe .\\shell\\cmd3.ps1"
     system(st)
@@ -297,13 +297,13 @@ if(Combined_Spread){
   maxposn_tmp=length(EvalFuncSetting$Vega_Direct_Prf)
   if(CombinedMaxPosnum[2] < maxposn_tmp){
     #adding pools' element
-    tmp %>% dplyr::arrange(.[,length(iniPos)+1]) %>% head(TopN[2]) -> tmp
+    tmp %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% head(TopN[2]) -> tmp
     pools[2]<-list(list(c(1,0,0),tmp)) #No.[[2]]
     pools<<-pools
     #combinational search
     createCombinedPopulation(popnum=PopN[3],EvalFuncSetting,thresh=ThreshN[3],plelem=c(EvalFuncSetting$CombineTargetGeneration[3],2),ml=Optimize_ml,
-                               fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                               isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE,maxposn=maxposn_tmp,PosMultip=PosMultip)
+                             fname=paste(".\\ResultData\\combine-Result-1Cb+1Cb+1Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                             isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE,maxposn=maxposn_tmp,PosMultip=PosMultip)
     #creating 3Cb.csv
     st <- "powershell.exe .\\shell\\cmd5.ps1"
     system(st)
@@ -324,13 +324,13 @@ if(Combined_Spread){
   maxposn_tmp=length(EvalFuncSetting$Vega_Direct_Prf)
   if(CombinedMaxPosnum[3] < maxposn_tmp){
     #adding pools' element
-    tmp %>% dplyr::arrange(.[,length(iniPos)+1]) %>% head(TopN[3]) -> tmp
+    tmp %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% head(TopN[3]) -> tmp
     pools[3]<-list(list(c(1,0,0),tmp)) #No.[[3]]
     pools<<-pools
     #combinational search
     createCombinedPopulation(popnum=PopN[4],EvalFuncSetting,thresh=ThreshN[4],plelem=c(EvalFuncSetting$CombineTargetGeneration[4],3),ml=Optimize_ml,
-                               fname=paste(".\\ResultData\\combine-Result-2Cb+2Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                               isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE,maxposn=maxposn_tmp,PosMultip=PosMultip)
+                             fname=paste(".\\ResultData\\combine-Result-2Cb+2Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                             isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE,maxposn=maxposn_tmp,PosMultip=PosMultip)
     #creating 4Cb.csv
     st <- "powershell.exe .\\shell\\cmd7.ps1"
     system(st)
@@ -351,13 +351,13 @@ if(Combined_Spread){
   maxposn_tmp=length(EvalFuncSetting$Vega_Direct_Prf)
   if(CombinedMaxPosnum[4] < maxposn_tmp){
     #adding pools' element
-    tmp %>% dplyr::arrange(.[,length(iniPos)+1]) %>% head(TopN[4]) -> tmp
+    tmp %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% head(TopN[4]) -> tmp
     pools[4]<-list(list(c(1,0,0),tmp)) #No.[[4]]
     pools<<-pools
     #combinational search
     createCombinedPopulation(popnum=PopN[5],EvalFuncSetting,thresh=ThreshN[5],plelem=c(EvalFuncSetting$CombineTargetGeneration[5],4),ml=Optimize_ml,
-                               fname=paste(".\\ResultData\\combine-Result-3Cb+2Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                               isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE,maxposn=maxposn_tmp,PosMultip=PosMultip)
+                             fname=paste(".\\ResultData\\combine-Result-3Cb+2Cb-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                             isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE,maxposn=maxposn_tmp,PosMultip=PosMultip)
     #creating 5Cb.csv
     st <- "powershell.exe .\\shell\\cmd9.ps1"
     system(st)
@@ -415,7 +415,7 @@ if(Combined_Spread){
     #factorと認識されたときの変換 #res1$V1<-as.numeric(as.character(res1$V1))
     
     #full join
-    dplyr::full_join(total_res,res1) %>% dplyr::arrange(.[,length(iniPos)+1]) %>% dplyr::distinct() -> total_res
+    dplyr::full_join(total_res,res1) %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% dplyr::distinct() -> total_res
     rm(res1)
   }
   
@@ -437,7 +437,7 @@ if(Combined_Spread){
     #factorと認識されたときの変換 #res1$V1<-as.numeric(as.character(res1$V1))
     
     #full join
-    dplyr::full_join(total_res,res1) %>% dplyr::arrange(.[,length(iniPos)+1]) %>% dplyr::distinct() -> total_res
+    dplyr::full_join(total_res,res1) %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% dplyr::distinct() -> total_res
     rm(res1)
   }
   
@@ -458,7 +458,7 @@ if(Combined_Spread){
     res1 %>% dplyr::filter(.[,length(opchain$Position)+1]<ThreshN[4]) -> res1
     
     #full join
-    dplyr::full_join(total_res,res1) %>% dplyr::arrange(.[,length(iniPos)+1]) %>% dplyr::distinct() -> total_res
+    dplyr::full_join(total_res,res1) %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% dplyr::distinct() -> total_res
     rm(res1)
   }
   
@@ -479,7 +479,7 @@ if(Combined_Spread){
     res1 %>% dplyr::filter(.[,length(opchain$Position)+1]<ThreshN[5]) -> res1
     
     #full join
-    dplyr::full_join(total_res,res1) %>% dplyr::arrange(.[,length(iniPos)+1]) %>% dplyr::distinct() -> total_res
+    dplyr::full_join(total_res,res1) %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% dplyr::distinct() -> total_res
     rm(res1)
   }
 }
@@ -493,7 +493,7 @@ total_res %>%  dplyr::filter(posn<=6) -> tmp_fil4
 
 #position wiht Greeks
 getPositionWithGreeks<-function(tmp_fil){
-  tmp_fil[,1:length(iniPos)] %>% dplyr::rowwise() %>% 
+  tmp_fil[,1:length(opchain$Position)] %>% dplyr::rowwise() %>% 
     dplyr::do(theGreks=getPositionGreeks(hollowNonZeroPosition(unlist(.)),
                                          multi=PosMultip,
                                          hdd=holdDays,
