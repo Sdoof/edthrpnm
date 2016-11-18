@@ -1365,8 +1365,9 @@ createInitialExactPutCallPopulation<-function(popnum,type,EvalFuncSetting,thresh
       error=function(e){
         message(e)
         cat("val:",val,"thresh:",thresh,"x",x,"\n")
-        val=(ifelse(is.na(val),thresh,val)+total_count)
+        val=ifelse(is.na(val),thresh,val)+total_count
         cat("val:",val,"thresh:",thresh,"x",x,"\n")
+        POSITION_OPTIM_HASH[md5sumOfPos]<<-val
       })
     #add total_count and show count information
     total_count<-total_count+1
@@ -1465,8 +1466,9 @@ createCombinedPopulation<-function(popnum,EvalFuncSetting,thresh,plelem,ml,fname
       error=function(e){
         message(e)
         cat("val:",val,"thresh:",thresh,"x",x_new,"\n")
-        val=ifelse(is.na(val),thresh,val)+
-          cat("val:",val,"thresh:",thresh,"x",x_new,"\n")
+        val=ifelse(is.na(val),thresh,val)+total_count
+        cat("val:",val,"thresh:",thresh,"x",x_new,"\n")
+        POSITION_OPTIM_HASH[md5sumOfPos]<<-val
       }
     )
     #write to the file
