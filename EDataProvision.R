@@ -17,7 +17,7 @@ isFiltered=T
 TargetFileName=paste("_Positions_Pre_",format(Sys.time(),"%Y%b%d_%H%M%S"),".csv",sep="")
 #for recording the ATMIV adjusted opchain, set isSkewCalc=F AND isFiltered=F
 if(isSkewCalc){
-    TargetFileName=paste("_OPChain_Pos_",format(Sys.time(),"%Y%b%d_%H%M%S"),".csv",sep="")
+  TargetFileName=paste("_OPChain_Pos_",format(Sys.time(),"%Y%b%d_%H%M%S"),".csv",sep="")
 }else if(isFiltered==F)
   TargetFileName=paste("_OPChain_RECORD_",format(Sys.time(),"%Y%b%d_%H%M%S"),".csv",sep="")
 
@@ -96,11 +96,11 @@ makeFOPChainContainer<-function(){
   #groub_by(Some1,Some2,Some3) acts as Unique Key (One or combination of Attribute(s) ) 
   #%>% Then other Columns(Attributes) are summarised.
   tmp %>% dplyr::group_by(Strike,Date,ExpDate,TYPE) %>% dplyr::summarise(ContactName=ContactName[which.min(Tdiff)],
-                                                           Last=Last[which.min(Tdiff)],Bid=Bid[which.min(Tdiff)],
-                                                           Ask=Ask[which.min(Tdiff)],Price=Price[which.min(Tdiff)],
-                                                           UDLY=UDLY[which.min(Tdiff)],
-                                                           FutExpDate=FutExpDate[which.min(Tdiff)],
-                                                           TdiffMin=min(Tdiff)) %>% as.data.frame() -> tmp
+                                                                         Last=Last[which.min(Tdiff)],Bid=Bid[which.min(Tdiff)],
+                                                                         Ask=Ask[which.min(Tdiff)],Price=Price[which.min(Tdiff)],
+                                                                         UDLY=UDLY[which.min(Tdiff)],
+                                                                         FutExpDate=FutExpDate[which.min(Tdiff)],
+                                                                         TdiffMin=min(Tdiff)) %>% as.data.frame() -> tmp
   tmp %>% arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="%Y/%m/%d"),desc(TYPE),Strike) -> tmp
   
   #reassigne tmp as opch_pr_
@@ -113,7 +113,7 @@ makeFOPChainContainer<-function(){
   time_DateToFutExpDate=as.numeric(difftime(as.Date(opch_pr_$FutExpDate,format="%Y/%m/%d"),as.Date(opch_pr_$Date,format="%Y/%m/%d")), units="days")/365
   opch_pr_$DateToFutExpDate=time_DateToFutExpDate
   opch_pr_ %>% dplyr::group_by(Date,FutExpDate) %>% dplyr::summarise(UDLY=UDLY[which.min(DateToFutExpDate)],
-                                                       DateToFutExpDate=DateToFutExpDate[which.min(DateToFutExpDate)])  %>% as.data.frame() -> tmp
+                                                                     DateToFutExpDate=DateToFutExpDate[which.min(DateToFutExpDate)])  %>% as.data.frame() -> tmp
   tmp %>% dplyr::arrange(desc(as.Date(Date,format="%Y/%m/%d")),as.Date(FutExpDate,format="%Y/%m/%d")) -> tmp
   
   # approximate forward rate by using 2 latest FUT Price, solving the equation that the 1st FUT's Spot price equals 2nd one.
@@ -383,8 +383,8 @@ filterVerticalSpread <- function(opchain,
 
 #called by filterPosition
 filterDiagonalSpread <- function(opchain, TARGET_D,
-                         Delta_Limit_Put_MIN,Delta_Limit_Put_MAX,
-                         Delta_Limit_Call_MIN,Delta_Limit_Call_MAX){
+                                 Delta_Limit_Put_MIN,Delta_Limit_Put_MAX,
+                                 Delta_Limit_Call_MIN,Delta_Limit_Call_MAX){
   
   opchain %>%  dplyr::filter(ExpDate==TARGET_D,TYPE==OpType_Put_G) %>% dplyr::filter(abs(Delta)>Delta_Limit_Put_MIN)  %>% 
     dplyr::filter(abs(Delta)<Delta_Limit_Put_MAX) -> opchain_diag_Put
@@ -404,22 +404,25 @@ filterDiagonalSpread <- function(opchain, TARGET_D,
 # Delta_Limit_(Put/Call)_(MAX/MIN) c(IronCondor{VerticalSpread},DIAGONAL_FRONT,DIAGONAL_BACK)
 
 filterPosition <- function(opchain,
-                           #OOM/OOM
-                           #Delta_Limit_Put_MAX=c(0.25,0.30,0.30),Delta_Limit_Put_MIN=c(0.09,0.11,0.11),
-                           #Delta_Limit_Call_MAX=c(0.25,0.32,0.30),Delta_Limit_Call_MIN=c(0.09,0.11,0.11),
-                           #ATM/ATM
-                           #Delta_Limit_Put_MAX=c(0.25,0.55,0.55),Delta_Limit_Put_MIN=c(0.09,0.25,0.25),
-                           #Delta_Limit_Call_MAX=c(0.25,0.55,0.55),Delta_Limit_Call_MIN=c(0.09,0.25,0.25),
-                           #OOM/ATM
-                           #Delta_Limit_Put_MAX=c(0.25,0.30,0.30),Delta_Limit_Put_MIN=c(0.09,0.11,0.11),
-                           #Delta_Limit_Call_MAX=c(0.25,0.55,0.55),Delta_Limit_Call_MIN=c(0.09,0.25,0.25),
-                           #ATM/OOM
-                           Delta_Limit_Put_MAX=c(0.25,0.55,0.55),Delta_Limit_Put_MIN=c(0.09,0.25,0.25),
-                             #Delta_Limit_Call_MAX=c(0.25,0.30,0.30),Delta_Limit_Call_MIN=c(0.09,0.11,0.11),
-                           Delta_Limit_Call_MAX=c(0.25,0.32,0.30),Delta_Limit_Call_MIN=c(0.09,0.08,0.08),
-                           #CALL ONLY
+                           #Put{OOM,OOM}/ Call{OOM,OOM}
+                           #Delta_Limit_Put_MAX=c(0,0.32,0.30),Delta_Limit_Put_MIN=c(0,0.08,0.08),
+                           #Delta_Limit_Call_MAX=c(0,0.32,0.30),Delta_Limit_Call_MIN=c(0,0.08,0.08),
+                           #Put{ATM,ATM}/Call{ATM,ATM}
+                           #Delta_Limit_Put_MAX=c(0,0.55,0.55),Delta_Limit_Put_MIN=c(0,0.25,0.25),
+                           #Delta_Limit_Call_MAX=c(0,0.55,0.55),Delta_Limit_Call_MIN=c(0,0.25,0.25),
+                           #Put{OOM,OOM}/Call{ATM,ATM}
+                           #Delta_Limit_Put_MAX=c(0,0.30,0.30),Delta_Limit_Put_MIN=c(0,0.11,0.11),
+                           #Delta_Limit_Call_MAX=c(0,0.55,0.55),Delta_Limit_Call_MIN=c(0,0.25,0.25),
+                           #Put{ATM,ATM}/Call{OOM,OOM}
+                           #Delta_Limit_Put_MAX=c(0,0.55,0.55),Delta_Limit_Put_MIN=c(0,0.25,0.25),
+                             #Delta_Limit_Call_MAX=c(0,0.30,0.30),Delta_Limit_Call_MIN=c(0,0.11,0.11),
+                           #Delta_Limit_Call_MAX=c(0,0.32,0.30),Delta_Limit_Call_MIN=c(0,0.08,0.08),
+                           #CALL ONLY{ALL,ALL}
                            #Delta_Limit_Put_MAX=c(0,0,0),Delta_Limit_Put_MIN=c(0,0,0),
-                           #Delta_Limit_Call_MAX=c(0.55,0.55,0.55),Delta_Limit_Call_MIN=c(0.09,0.08,0.08),
+                           #Delta_Limit_Call_MAX=c(0,0.55,0.55),Delta_Limit_Call_MIN=c(0,0.08,0.08),
+                           #Put{ATM,ATM}/Call{ATM,OOM} TUNED
+                           Delta_Limit_Put_MAX=c(0,0.55,0.55),Delta_Limit_Put_MIN=c(0,0.25,0.25),
+                           Delta_Limit_Call_MAX=c(0,0.55,0.40),Delta_Limit_Call_MIN=c(0,0.15,0.08),
                            TARGET_EXPDATE,TARGET_EXPDATE_FRONT,TARGET_EXPDATE_BACK){
   ##
   #  Filter Target Ranges 
@@ -475,8 +478,8 @@ if(!isSkewCalc){
 
 #select and sort
 opchain %>% dplyr::select(Date,ExpDate,TYPE,Strike,ContactName,Position,UDLY,Price,
-                   Delta,Gamma,Vega,Theta,Rho,OrigIV,ATMIV,IVIDX,
-                   HowfarOOM,TimeToExpDate,Moneyness.Nm) %>% 
+                          Delta,Gamma,Vega,Theta,Rho,OrigIV,ATMIV,IVIDX,
+                          HowfarOOM,TimeToExpDate,Moneyness.Nm) %>% 
   dplyr::arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="%Y/%m/%d"),desc(TYPE),Strike) -> opchain
 opchain$Position<-ifelse(is.na(opchain$Position), 0, opchain$Position)
 
