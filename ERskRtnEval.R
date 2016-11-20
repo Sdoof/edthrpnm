@@ -185,7 +185,14 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
     #profit_sd=sd(pdist[pdist<0])
     ## select one of them below
     #profit_sd=sd((pdist<0)*pdist)+(-1)*mean((pdist<0)*pdist)
-    profit_sd=sd(pdist[pdist<0])+(-1)*mean(pdist[pdist<0])
+    {
+      if(sum(pdist<0)>=2)
+        profit_sd=sd(pdist[pdist<0])+(-1)*mean(pdist[pdist<0])
+      else if(sum(pdist<0)==1)
+        profit_sd=(-1)*mean(pdist[pdist<0])
+      else
+        profit_sd=0
+    }
   }else{
     profit_sd<-sd(pdist)
   }
