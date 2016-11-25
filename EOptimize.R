@@ -66,30 +66,28 @@ if(SPECIFIC_FIRSTG_SETTING==T){
   #copy original setting
   origEvalFuncSetting=EvalFuncSetting
   #switch "DeltaECoef" coefficient value with "VegaECoef" value
-  tmp_drecoef=EvalFuncSetting$DrctlEffect_Coef["DeltaECoef"]
-  EvalFuncSetting$DrctlEffect_Coef["DeltaECoef"]=EvalFuncSetting$DrctlEffect_Coef["VegaECoef"]
-  EvalFuncSetting$DrctlEffect_Coef["VegaECoef"]=tmp_drecoef
-  rm(tmp_drecoef)
+  #tmp_drecoef=EvalFuncSetting$DrctlEffect_Coef["DeltaECoef"]
+  #EvalFuncSetting$DrctlEffect_Coef["DeltaECoef"]=EvalFuncSetting$DrctlEffect_Coef["VegaECoef"]
+  #EvalFuncSetting$DrctlEffect_Coef["VegaECoef"]=tmp_drecoef
+  #rm(tmp_drecoef)
   #EvalFuncSetting$MaxLoss_Coef=EvalFuncSetting$MaxLoss_Coef*0.5
   
   #Give some leeway to Directional Effect
-  EvalFuncSetting$Delta_Thresh_Minus=rep(min(EvalFuncSetting$Delta_Thresh_Minus)-2.5,
-                                         length(EvalFuncSetting$Delta_Thresh_Minus))
-  EvalFuncSetting$Delta_Thresh_Plus=rep(max(EvalFuncSetting$Delta_Thresh_Plus)+(2.5),
-                                        length(EvalFuncSetting$Delta_Thresh_Plus))
-  EvalFuncSetting$Vega_Thresh_Minus=rep(min(EvalFuncSetting$Vega_Thresh_Minus)-30,
-                                        length(EvalFuncSetting$Vega_Thresh_Minus))
-  EvalFuncSetting$Vega_Thresh_Plus=rep(max(EvalFuncSetting$Vega_Thresh_Plus)+30,
-                                       length(EvalFuncSetting$Vega_Thresh_Plus))
+  #EvalFuncSetting$Delta_Thresh_Minus=rep(min(EvalFuncSetting$Delta_Thresh_Minus)-2.5,
+  #                                       length(EvalFuncSetting$Delta_Thresh_Minus))
+  #EvalFuncSetting$Delta_Thresh_Plus=rep(max(EvalFuncSetting$Delta_Thresh_Plus)+(2.5),
+  #                                      length(EvalFuncSetting$Delta_Thresh_Plus))
+  #EvalFuncSetting$Vega_Thresh_Minus=rep(min(EvalFuncSetting$Vega_Thresh_Minus)-30,
+  #                                      length(EvalFuncSetting$Vega_Thresh_Minus))
+  #EvalFuncSetting$Vega_Thresh_Plus=rep(max(EvalFuncSetting$Vega_Thresh_Plus)+30,
+  #                                     length(EvalFuncSetting$Vega_Thresh_Plus))
+  
   #Use economic Value or not
   #if only profit is concerned. ONLY POSSIBLE WHEN USING EconomicValue
-  #EvalFuncSetting$DrctlEffect_Coef["DeltaECoef"]=0
-  #EvalFuncSetting$DrctlEffect_Coef["VegaECoef"]=0
-  #EvalFuncSetting$MaxLoss_Coef=0
-  #EvalFuncSetting$EvalEconomicValue=T
+  #EvalFuncSetting$EvalEconomicValue=ifelse(EvalFuncSetting$EvalEconomicValue,F,T)
   
-  #Use SortinoRatio or not
-  #EvalFuncSetting$UseSortinoRatio=T
+  #Use SortinoRatio swtich
+  EvalFuncSetting$UseSortinoRatio=ifelse(EvalFuncSetting$UseSortinoRatio,F,T)
   
   #write to the touch file
   cat("1StGen.DrctlEfct",EvalFuncSetting$DrctlEffect_Coef,"MaxLoss_Coef",EvalFuncSetting$MaxLoss_Coef ,"\n",file=tmp_touchfile,sep=",",append=TRUE)
