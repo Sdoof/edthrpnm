@@ -9,11 +9,11 @@ rm(list=ls())
 source('./ESourceRCode.R',encoding = 'UTF-8')
 
 #Data Num.
-DATA_NUM=252*10 # about x years equivalent 
+DATA_NUM=252*15 # about x years equivalent 
 
 #read data file
-histPrc<-read.table(paste(DataFiles_Path_G,Underying_Symbol_G,"_Hist.csv",sep=""),header=T,sep=",")
-histIV<-read.table(paste(DataFiles_Path_G,Underying_Symbol_G,"_IV.csv",sep=""),header=T,sep=",")
+histPrc<-read.table(paste(DataFiles_Path_G,Underying_Symbol_G,"_Hist.csv",sep=""),header=T,stringsAsFactors=F,sep=",")
+histIV<-read.table(paste(DataFiles_Path_G,Underying_Symbol_G,"_IV.csv",sep=""),header=T,stringsAsFactors=F,sep=",")
 
 #inner joing for modify data inconsistency
 dplyr::inner_join(histPrc, histIV, by = "Date")->injoinPrcIV
