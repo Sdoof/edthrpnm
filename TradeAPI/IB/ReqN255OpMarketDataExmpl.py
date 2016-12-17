@@ -242,14 +242,14 @@ def writeToFile(sectype,symbol):
 # -- main  ---------------------------------------------------------------------
 #18 elements finish in xx mins
 opContractList = [
-    makeOptContract(sym='N225', exp='20161208', strike='', right='C'),
-    makeOptContract(sym='N225', exp='20161208', strike='', right='P'),
     makeOptContract(sym='N225', exp='20170112', strike='', right='C'),
     makeOptContract(sym='N225', exp='20170112', strike='', right='P'),
     makeOptContract(sym='N225', exp='20170209', strike='', right='C'),
     makeOptContract(sym='N225', exp='20170209', strike='', right='P'),
     makeOptContract(sym='N225', exp='20170309', strike='', right='C'),
-    makeOptContract(sym='N225', exp='20170309', strike='', right='P')
+    makeOptContract(sym='N225', exp='20170309', strike='', right='P'),
+    makeOptContract(sym='N225', exp='20170413', strike='', right='C'),
+    makeOptContract(sym='N225', exp='20170413', strike='', right='P')
 ]
 
 idxContractList = [makeIndexContract(sym='N225',exchange='OSE.JPN')]
