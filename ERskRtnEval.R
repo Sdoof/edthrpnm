@@ -696,7 +696,7 @@ hollowNonZeroPosition<-function(pos){
 #   3      0.12   <S3:data.frame>
 # <S3:data.frame> is original data frame which only UDLY are modified.
 # This function reflects Date,IV,etc after udlChg% change for the UDLYs in "days" days.
-reflectPosChg<- function(process_df,days,IV_DEVIATION=0,MIN_IVIDX_CHG=(-0.5)){
+reflectPosChg<- function(process_df,days,IV_DEVIATION=0,MIN_IVIDX_CHG=(-0.25)){
   pos<-as.data.frame(process_df$pos[1])
   chg<-as.numeric(process_df$udlChgPct[1])
   # print(chg)
