@@ -9,7 +9,7 @@ rm(list=ls())
 source('./ESourceRCode.R',encoding = 'UTF-8')
 
 #Data Num.
-DATA_NUM=252*15 # about x years equivalent 
+DATA_NUM=252*10 # about x years equivalent 
 
 #read data file
 histPrc<-read.table(paste(DataFiles_Path_G,Underying_Symbol_G,"_Hist.csv",sep=""),header=T,stringsAsFactors=F,sep=",")
@@ -30,10 +30,10 @@ cat("Realized Vol(200d anlzd)",annuual.daily.volatility(histPrc[1:200])$anlzd*10
 #selective parmeters
 IS_SELECTIVE_HISTIV_REGR=T
 IS_SELECTIVE_WEIGHT_ESTM=T
-a_low=0.8
-d_low=5
-a_high=1.25
-d_high=5
+a_low=0.9
+d_low=2
+a_high=1.1
+d_high=2
 
 ##
 # select Suffix to icnlude the valid IV data and make the selected suffix suitable to 
