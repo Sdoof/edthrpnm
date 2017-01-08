@@ -488,4 +488,65 @@ opchain$Position<-ifelse(is.na(opchain$Position), 0, opchain$Position)
 wf_<-paste(DataFiles_Path_G,Underying_Symbol_G,TargetFileName,sep="")
 write.table(opchain,wf_,quote=T,row.names=F,sep=",")
 
+## Interporating Strike Price if necessary
+
+createInterpolatedPrice <- function(Date=DateTmp,
+                                    ExpDate=ExpDateTmp,
+                                    TYPE=TYPETmp,
+                                    Strike=StrikeTmp,
+                                    atmiv){
+  
+  interpolated=data.frame(Date=Date,ExpDate=ExpDate,TYPE=TYPE,Strike=Strike)
+  
+  interpolated %>% 
+    dplyr::left_join(atmiv,by=c("Date","ExpDate","TYPE")) -> interpolated
+  
+  interpolated$Moneyness.Frac=interpolated$Strike/interpolated$UDLY
+  interpolated$TimeToExpDate=get.busdays.between(start=interpolated$Date,end=interpolated$ExpDate)/(252/12)
+  interpolated$Moneyness.Nm=log(interpolated$Moneyness.Frac)/interpolated$ATMIV/sqrt(interpolated$TimeToExpDate)
+  interpolated$OrigIV=interpolated$ATMIV*get.predicted.spline.skew(SkewModel,interpolated$Moneyness.Nm)
+  
+  tmp<-set.EuropeanOptionValueGreeks(interpolated)
+  interpolated$Price<-tmp$Price
+  interpolated$Delta<-tmp$Delta
+  interpolated$Gamma<-tmp$Gamma
+  interpolated$Vega<-tmp$Vega
+  interpolated$Theta<-tmp$Theta
+  interpolated$Rho<-tmp$Rho
+  
+  interpolated %>% dplyr::select(Date,ExpDate,TYPE,StriNke,UDLY,Price,
+                                Delta,Gamma,Vega,Theta,Rho,OrigIV,ATMIV,IVIDX,
+                                TimeToExpDate,Moneyness.Nm) %>% 
+    dplyr::arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="%Y/%m/%d"),desc(TYPE),Strike) -> interpolated
+  
+  retun(interpolated)
+  
+}
+#create atmiv
+opchain %>% dplyr::select(Date,ExpDate,TYPE,UDLY,ATMIV,IVIDX) %>%
+  dplyr::arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="%Y/%m/%d"),desc(TYPE)) %>%
+  dplyr::distinct() -> atmiv
+
+TYPETmp=c(-1,-1,-1,-1)
+StrikeTmp=c(2325,2375,2425,2475)
+DateTmp=rep("2017/1/06",times=length(StrikeTmp))
+ExpDateTmp=rep("2017/4/28",times=length(StrikeTmp))
+
+interpolated=
+  createInterpolatedPrice(Date=DateTmp,ExpDate=ExpDateTmp,TYPE=TYPETmp,Strike=StrikeTmp,atmiv=atmiv)
+
+#Write to a file
+write.table(interpolated,
+            paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre-Interpolated.csv",sep=""),quote=T,row.names=F,sep=",")
+
+interpolated$ContactName=rep("Interpolated",times=nrow(interpolated))
+interpolated$Last=interpolated$Bid=interpolated$Ask=interpolated$Price
+
+#for UDL_OPChain_PreForPos.csv
+interpolated %>% dplyr::select(Strike,ContactName,Last,Bid,Ask,Date,ExpDate,TYPE) %>%
+  dplyr::arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="%Y/%m/%d"),desc(TYPE)) -> interpolated
+
+write.table(interpolated,
+            paste(DataFiles_Path_G,Underying_Symbol_G,"_OPChain_PreForPos-Interpolated.csv",sep=""),quote=T,row.names=F,sep=",")
+
 rm(list=ls())
