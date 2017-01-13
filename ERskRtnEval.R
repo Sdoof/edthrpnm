@@ -277,8 +277,21 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   ##
   # True Vega and Vomma Effect
   VegaEffectWithSign= (profit_hdays_vc_plus-profit_hdays_vc_minus)/2
-  #VegaEffect_Comp = (-1)*abs(VegaEffectWithSign)
   VegaEffect_Comp = (-1)*sum(abs((profit_vector_vc_plus-profit_vector_vc_minus)/2)*weight)
+  #Conditional Vega Long/Short/Neutral
+  #VegaLong when udlChgPct<0, and Vega Neutral when udlChgPct>=0
+  if((Vega_Direct_Prf>0)*(Vega_Direct_Prf<1)){
+    if(isDetail){cat(":(VegaEffect Neu)",VegaEffect_Comp)}
+    VegaEffect_Comp = (-1)*sum(
+      (udlChgPct<0)*(profit_vector_vc_minus-profit_vector_vc_plus)/2*weight + abs((udlChgPct>=0)*(profit_vector_vc_plus-profit_vector_vc_minus)/2*weight)
+    )
+    if(isDetail){cat(":(VegaEffect VegLNeu)",VegaEffect_Comp)}
+  }else if((Vega_Direct_Prf>0)){ #Vega Long
+    VegaEffect_Comp = (-1)*(-1)*VegaEffectWithSign
+  }else if((Vega_Direct_Prf<0)){ #Vega Short
+    VegaEffect_Comp = (-1)*VegaEffectWithSign
+  }
+  #Vomma Effect
   VommaEffect=((profit_hdays_vc_plus + profit_hdays_vc_minus)/2)-profit_hdays
   Vega_True=VegaEffectWithSign/(expIVChange*100)
   if(isDetail){cat(" :(Vega)",Vega_True," :(VegaEffectWithSign)",VegaEffectWithSign,
@@ -360,9 +373,10 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
     (Delta_Direct_Prf>0)*(Delta_revised_offset>=0)+(Delta_Direct_Prf>0)*(Delta_revised_offset<0)*(-1)+
     (Delta_Direct_Prf<0)*(Delta_revised_offset>=0)*(-1)+(Delta_Direct_Prf<0)*(Delta_revised_offset<0)
   
-  vega_pref_coef<-(Vega_Direct_Prf==0)*(-1)+
-    (Vega_Direct_Prf>0)*(Vega_revised_offset>=0)+(Vega_Direct_Prf>0)*(Vega_revised_offset<0)*(-1)+
-    (Vega_Direct_Prf<0)*(Vega_revised_offset>=0)*(-1)+(Vega_Direct_Prf<0)*(Vega_revised_offset<0)
+  vega_pref_coef=(-1)
+  #vega_pref_coef<-(Vega_Direct_Prf==0)*(-1)+
+  #  (Vega_Direct_Prf>0)*(Vega_revised_offset>=0)+(Vega_Direct_Prf>0)*(Vega_revised_offset<0)*(-1)+
+  #  (Vega_Direct_Prf<0)*(Vega_revised_offset>=0)*(-1)+(Vega_Direct_Prf<0)*(Vega_revised_offset<0)
   
   ##
   # Directional Effect
