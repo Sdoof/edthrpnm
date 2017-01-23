@@ -257,6 +257,8 @@ opContractList = [
     makeOptContract(sym='SPX', exp='20170420', strike='', right='C'),
     makeOptContract(sym='SPX', exp='20170428', strike='', right='P'),
     makeOptContract(sym='SPX', exp='20170428', strike='', right='C'),
+    makeOptContract(sym='SPX', exp='20170518', strike='', right='P'),
+    makeOptContract(sym='SPX', exp='20170518', strike='', right='C'),
     makeOptContract(sym='SPX', exp='20170531', strike='', right='P'),
     makeOptContract(sym='SPX', exp='20170531', strike='', right='C'),
     makeOptContract(sym='SPX', exp='20170615', strike='', right='P'),
@@ -268,6 +270,8 @@ opContractList = [
     makeOptContract(sym='RUT', exp='20170331', strike='', right='P'),
     makeOptContract(sym='RUT', exp='20170331', strike='', right='C'),
     makeOptContract(sym='RUT', exp='20170428', strike='', right='P'),
+    makeOptContract(sym='RUT', exp='20170518', strike='', right='C'),
+    makeOptContract(sym='RUT', exp='20170518', strike='', right='P'),
     makeOptContract(sym='RUT', exp='20170428', strike='', right='C'),
     makeOptContract(sym='RUT', exp='20170531', strike='', right='P'),
     makeOptContract(sym='RUT', exp='20170531', strike='', right='C')
