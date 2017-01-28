@@ -146,21 +146,21 @@ if(COMBINATION_HOT_START==F){
                                           isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
     }
     if(sum(EvalFuncSetting$Posnum==4)!=0){
-      # createInitialExactPutCallPopulation(popnum=50,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
-      #                                         putn=4,calln=0,ml=Optimize_ml,
-      #                                         fname=paste(".\\ResultData\\inipop-04P4C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-      #                                         PosMultip,
-      #                                         isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
+      createInitialExactPutCallPopulation(popnum=100,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
+                                              putn=4,calln=0,ml=Optimize_ml,
+                                              fname=paste(".\\ResultData\\inipop-04P4C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                                              PosMultip,
+                                              isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
       createInitialExactPutCallPopulation(popnum=200,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
                                           putn=2,calln=2,ml=Optimize_ml,
                                           fname=paste(".\\ResultData\\inipop-04P2C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                           PosMultip,
                                           isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
-      # createInitialExactPutCallPopulation(popnum=100,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
-      #                                     putn=0,calln=4,ml=Optimize_ml,
-      #                                     fname=paste(".\\ResultData\\inipop-04P0C4-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-      #                                     PosMultip,
-      #                                      isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
+      createInitialExactPutCallPopulation(popnum=100,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
+                                          putn=0,calln=4,ml=Optimize_ml,
+                                          fname=paste(".\\ResultData\\inipop-04P0C4-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+                                          PosMultip,
+                                           isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
     }
     if(sum(EvalFuncSetting$Posnum==3)!=0){
       createInitialExactPutCallPopulation(popnum=50,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
