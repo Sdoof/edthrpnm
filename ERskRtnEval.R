@@ -508,23 +508,41 @@ getVommaEffect<-function(pos,greek,ividx,dviv,multi,hdd){
 
 ##
 #  Factory of Volatility Level Regression Result
-get.Volatility.Level.Regression<-function(Days=holdDays,ctoc=TRUE){
+get.Volatility.Level.Regression<-function(Days=holdDays,ctoc=TRUE,linearModel=F){
   daysCandidate=c(1,3,5,7,12,18)
   daysdiff=abs(c(daysCandidate)-Days)
   days_idx=min(which( abs(daysdiff) == min(daysdiff)))
   Days=daysCandidate[days_idx]
-  if(Days==1){
-    return(PC1dCtC_IVCF1dCtC)
-  } else if(Days==3){
-    return(PC3dCtC_IVCF3dCtC)
-  }else if(Days==5){
-    return(PC5dCtC_IVCF5dCtC)
-  }else if(Days==7){
-    return(PC7dCtC_IVCF7dCtC)
-  }else if(Days==12){
-    return(PC12dCtC_IVCF12dCtC)
-  }else if(Days==18){
-    return(PC18dCtC_IVCF18dCtC)
+  
+  if(linearModel==F){
+    if(Days==1){
+      return(PC1dCtC_NL_IVCF1dCtC)
+    } else if(Days==3){
+      return(PC3dCtC_NL_IVCF3dCtC)
+    }else if(Days==5){
+      return(PC5dCtC_NL_IVCF5dCtC)
+    }else if(Days==7){
+      return(PC7dCtC_NL_IVCF7dCtC)
+    }else if(Days==12){
+      return(PC12dCtC_NL_IVCF12dCtC)
+    }else if(Days==18){
+      return(PC18dCtC_NL_IVCF18dCtC)
+    }
+  }
+  if(linearModel==T){
+    if(Days==1){
+      return(PC1dCtC_IVCF1dCtC)
+    } else if(Days==3){
+      return(PC3dCtC_IVCF3dCtC)
+    }else if(Days==5){
+      return(PC5dCtC_IVCF5dCtC)
+    }else if(Days==7){
+      return(PC7dCtC_IVCF7dCtC)
+    }else if(Days==12){
+      return(PC12dCtC_IVCF12dCtC)
+    }else if(Days==18){
+      return(PC18dCtC_IVCF18dCtC)
+    }
   }
 }
 
@@ -710,7 +728,7 @@ hollowNonZeroPosition<-function(pos){
 #   3      0.12   <S3:data.frame>
 # <S3:data.frame> is original data frame which only UDLY are modified.
 # This function reflects Date,IV,etc after udlChg% change for the UDLYs in "days" days.
-reflectPosChg<- function(process_df,days,IV_DEVIATION=0,MIN_IVIDX_CHG=(-0.25)){
+reflectPosChg<- function(process_df,days,IV_DEVIATION=0,MIN_IVIDX_CHG=(-0.5)){
   pos<-as.data.frame(process_df$pos[1])
   chg<-as.numeric(process_df$udlChgPct[1])
   # print(chg)

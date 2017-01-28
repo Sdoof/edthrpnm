@@ -9,7 +9,7 @@ rm(list=ls())
 source('./ESourceRCode.R',encoding = 'UTF-8')
 
 #Data Num.
-DATA_NUM=252*10 # about x years equivalent 
+DATA_NUM=252*15 # about x years equivalent 
 
 #read data file
 histPrc<-read.table(paste(DataFiles_Path_G,Underying_Symbol_G,"_Hist.csv",sep=""),header=T,stringsAsFactors=F,sep=",")
@@ -120,6 +120,36 @@ saveP2IVReg<-function(histPrc,histIV,dataNum,xDayInt,start_day=1,effectiv_suffix
   ret <- vector("list",length(ret_names))
   ret[[1]]<-P2IVxd
   ret[[2]]<-norns.lm
+  names(ret)<-ret_names
+  return(ret)
+}
+
+#Non Linear
+saveP2IVNonLReg<-function(histPrc,histIV,dataNum,xDayInt,df,start_day=1,effectiv_suffix=0){
+  tmp=Price2IVIDX(histPrc,histIV,dataNum,xDayInt,start_day,effectiv_suffix=effectiv_suffix)
+  P2IVxd=tmp$P2IVxd
+  co=tmp$cor
+  print(co)
+  
+  #linear regression
+  model.ss<-smooth.spline(P2IVxd$PCxdCtC,
+                          P2IVxd$IVCFxdCtC,
+                          df=df)
+  
+  (predict.c <- predict(model.ss,x=seq(-0.2,0.2,by=0.005)))
+  
+  save.NLPC2IV(model=model.ss,
+               PC=paste("PC",xDayInt,"dCtC",sep=""),
+               IVC=paste("IVCF",xDayInt,"dCtC",sep=""),
+               cor=co,
+               pcstat=c(mean(tmp$PCxdCtC),sd(tmp$PCxdCtC)),
+               ivstat=c(mean(tmp$IVCFxdCtC),sd(tmp$IVCFxdCtC)))
+  
+  #returned list
+  ret_names<-c("P2IVxd","model")
+  ret <- vector("list",length(ret_names))
+  ret[[1]]<-P2IVxd
+  ret[[2]]<-predict.c
   names(ret)<-ret_names
   return(ret)
 }
@@ -380,8 +410,6 @@ cat("drift anlzd",mean(tmp$P2IVxd$PCxdCtC)*(225/xDayInt),"\n")
 cat("skew",
     mean((tmp$P2IVxd$PCxdCtC-mean(tmp$P2IVxd$PCxdCtC))^3),"\n")
 
-## PCndCtC_IVCFndCtC Regression
-
 ######
 ## 5d
 xDayInt=5
@@ -394,11 +422,33 @@ if(IS_SELECTIVE_HISTIV_REGR){
   selectSuffixForValidIV(histIV,xDayInt,a_low,d_low,a_high,d_high)->suffix_slctd
   tmp=saveP2IVReg(histPrc,histIV,DATA_NUM,xDayInt,effectiv_suffix=suffix_slctd)
 }
-(gg<-ggplot(tmp$P2IVxd,aes(x=PCxdCtC,y=IVCFxdCtC))+geom_point(alpha=0.2))
-gg+geom_abline(intercept=tmp$lm$coefficient[1],slope=tmp$lm$coefficient[2],color="orange")
+(gg<-ggplot(tmp$P2IVxd,aes(x=PCxdCtC,y=IVCFxdCtC))+geom_point(alpha=0.08)+
+  geom_abline(intercept=tmp$lm$coefficient[1],slope=tmp$lm$coefficient[2],color="orange")+
+  xlim(min(tmp$P2IVxd$PCxdCtC)*1.2,max(tmp$P2IVxd$PCxdCtC)*1.2)+
+  ylim(min(tmp$P2IVxd$IVCFxdCtC)*1.2,max(tmp$P2IVxd$IVCFxdCtC)*1.2)
+)
 #Load test
 load.PC2IV(PC=paste("PC",xDayInt,"dCtC",sep=""),IVC=paste("IVCF",xDayInt,"dCtC",sep=""))
 PC5dCtC_IVCF5dCtC
+
+#Non Linear Regression
+tmp=saveP2IVNonLReg(histPrc,histIV,DATA_NUM,xDayInt,df=5.5)
+tmp$model
+if(IS_SELECTIVE_HISTIV_REGR){
+  #suffix for PCxdCtC adn IVCFxdCtC which have shifted xDayInt toward past
+  #which means, for example, suffix 1 for PCxdCtC  means 1+xDayInt for corresponding histIV data.
+  #use selectSuffixToPredictHV to get the suffix for histIV(histPrc) data
+  selectSuffixForValidIV(histIV,xDayInt,a_low,d_low,a_high,d_high)->suffix_slctd
+  tmp=saveP2IVNonLReg(histPrc,histIV,DATA_NUM,xDayInt,df=5.5,effectiv_suffix=suffix_slctd)
+}
+(gg<-ggplot(tmp$P2IVxd,aes(x=PCxdCtC,y=IVCFxdCtC))+geom_point(alpha=0.08)+
+    geom_line(data=data.frame(PCxdCtC=tmp$model$x,IVCFxdCtC=tmp$model$y),aes(PCxdCtC,IVCFxdCtC),color="red")+
+    xlim(min(tmp$P2IVxd$PCxdCtC)*1.2,max(tmp$P2IVxd$PCxdCtC)*1.2)+
+    ylim(min(tmp$P2IVxd$IVCFxdCtC)*1.2,max(tmp$P2IVxd$IVCFxdCtC)*1.2)
+)
+#Load test
+load.NLPC2IV(PC=paste("PC",xDayInt,"dCtC",sep=""),IVC=paste("IVCF",xDayInt,"dCtC",sep=""))
+PC5dCtC_NL_IVCF5dCtC
 
 #####
 ##   3d
@@ -409,11 +459,33 @@ if(IS_SELECTIVE_HISTIV_REGR){
   selectSuffixForValidIV(histIV,xDayInt,a_low,d_low,a_high,d_high)->suffix_slctd
   tmp=saveP2IVReg(histPrc,histIV,DATA_NUM,xDayInt,effectiv_suffix=suffix_slctd)
 }
-(gg<-ggplot(tmp$P2IVxd,aes(x=PCxdCtC,y=IVCFxdCtC))+geom_point(alpha=0.2))
-gg+geom_abline(intercept=tmp$lm$coefficient[1],slope=tmp$lm$coefficient[2],color="orange")
+(gg<-ggplot(tmp$P2IVxd,aes(x=PCxdCtC,y=IVCFxdCtC))+geom_point(alpha=0.08)+
+    geom_abline(intercept=tmp$lm$coefficient[1],slope=tmp$lm$coefficient[2],color="orange")+
+    xlim(min(tmp$P2IVxd$PCxdCtC)*1.2,max(tmp$P2IVxd$PCxdCtC)*1.2)+
+    ylim(min(tmp$P2IVxd$IVCFxdCtC)*1.2,max(tmp$P2IVxd$IVCFxdCtC)*1.2)
+)
 #Load test
 load.PC2IV(PC=paste("PC",xDayInt,"dCtC",sep=""),IVC=paste("IVCF",xDayInt,"dCtC",sep=""))
 PC3dCtC_IVCF3dCtC
+
+#Non Linear Regression
+tmp=saveP2IVNonLReg(histPrc,histIV,DATA_NUM,xDayInt,df=5.5)
+tmp$model
+if(IS_SELECTIVE_HISTIV_REGR){
+  #suffix for PCxdCtC adn IVCFxdCtC which have shifted xDayInt toward past
+  #which means, for example, suffix 1 for PCxdCtC  means 1+xDayInt for corresponding histIV data.
+  #use selectSuffixToPredictHV to get the suffix for histIV(histPrc) data
+  selectSuffixForValidIV(histIV,xDayInt,a_low,d_low,a_high,d_high)->suffix_slctd
+  tmp=saveP2IVNonLReg(histPrc,histIV,DATA_NUM,xDayInt,df=5.5,effectiv_suffix=suffix_slctd)
+}
+(gg<-ggplot(tmp$P2IVxd,aes(x=PCxdCtC,y=IVCFxdCtC))+geom_point(alpha=0.08)+
+    geom_line(data=data.frame(PCxdCtC=tmp$model$x,IVCFxdCtC=tmp$model$y),aes(PCxdCtC,IVCFxdCtC),color="red")+
+    xlim(min(tmp$P2IVxd$PCxdCtC)*1.2,max(tmp$P2IVxd$PCxdCtC)*1.2)+
+    ylim(min(tmp$P2IVxd$IVCFxdCtC)*1.2,max(tmp$P2IVxd$IVCFxdCtC)*1.2)
+)
+#Load test
+load.NLPC2IV(PC=paste("PC",xDayInt,"dCtC",sep=""),IVC=paste("IVCF",xDayInt,"dCtC",sep=""))
+PC3dCtC_NL_IVCF3dCtC
 
 #####
 ##   7d
@@ -424,12 +496,33 @@ if(IS_SELECTIVE_HISTIV_REGR){
   selectSuffixForValidIV(histIV,xDayInt,a_low,d_low,a_high,d_high)->suffix_slctd
   tmp=saveP2IVReg(histPrc,histIV,DATA_NUM,xDayInt,effectiv_suffix=suffix_slctd)
 }
-tmp=saveP2IVReg(histPrc,histIV,DATA_NUM,xDayInt,effectiv_suffix=suffix_slctd)
-(gg<-ggplot(tmp$P2IVxd,aes(x=PCxdCtC,y=IVCFxdCtC))+geom_point(alpha=0.2))
-gg+geom_abline(intercept=tmp$lm$coefficient[1],slope=tmp$lm$coefficient[2],color="orange")
+(gg<-ggplot(tmp$P2IVxd,aes(x=PCxdCtC,y=IVCFxdCtC))+geom_point(alpha=0.08)+
+    geom_abline(intercept=tmp$lm$coefficient[1],slope=tmp$lm$coefficient[2],color="orange")+
+    xlim(min(tmp$P2IVxd$PCxdCtC)*1.2,max(tmp$P2IVxd$PCxdCtC)*1.2)+
+    ylim(min(tmp$P2IVxd$IVCFxdCtC)*1.2,max(tmp$P2IVxd$IVCFxdCtC)*1.2)
+)
 #Load test
 load.PC2IV(PC=paste("PC",xDayInt,"dCtC",sep=""),IVC=paste("IVCF",xDayInt,"dCtC",sep=""))
 PC7dCtC_IVCF7dCtC
+
+#Non Linear Regression
+tmp=saveP2IVNonLReg(histPrc,histIV,DATA_NUM,xDayInt,df=5.5)
+tmp$model
+if(IS_SELECTIVE_HISTIV_REGR){
+  #suffix for PCxdCtC adn IVCFxdCtC which have shifted xDayInt toward past
+  #which means, for example, suffix 1 for PCxdCtC  means 1+xDayInt for corresponding histIV data.
+  #use selectSuffixToPredictHV to get the suffix for histIV(histPrc) data
+  selectSuffixForValidIV(histIV,xDayInt,a_low,d_low,a_high,d_high)->suffix_slctd
+  tmp=saveP2IVNonLReg(histPrc,histIV,DATA_NUM,xDayInt,df=5.5,effectiv_suffix=suffix_slctd)
+}
+(gg<-ggplot(tmp$P2IVxd,aes(x=PCxdCtC,y=IVCFxdCtC))+geom_point(alpha=0.08)+
+    geom_line(data=data.frame(PCxdCtC=tmp$model$x,IVCFxdCtC=tmp$model$y),aes(PCxdCtC,IVCFxdCtC),color="red")+
+    xlim(min(tmp$P2IVxd$PCxdCtC)*1.2,max(tmp$P2IVxd$PCxdCtC)*1.2)+
+    ylim(min(tmp$P2IVxd$IVCFxdCtC)*1.2,max(tmp$P2IVxd$IVCFxdCtC)*1.2)
+)
+#Load test
+load.NLPC2IV(PC=paste("PC",xDayInt,"dCtC",sep=""),IVC=paste("IVCF",xDayInt,"dCtC",sep=""))
+PC7dCtC_NL_IVCF7dCtC
 
 #####
 ##  12d
@@ -440,11 +533,33 @@ if(IS_SELECTIVE_HISTIV_REGR){
   selectSuffixForValidIV(histIV,xDayInt,a_low,d_low,a_high,d_high)->suffix_slctd
   tmp=saveP2IVReg(histPrc,histIV,DATA_NUM,xDayInt,effectiv_suffix=suffix_slctd)
 }
-(gg<-ggplot(tmp$P2IVxd,aes(x=PCxdCtC,y=IVCFxdCtC))+geom_point(alpha=0.2))
-gg+geom_abline(intercept=tmp$lm$coefficient[1],slope=tmp$lm$coefficient[2],color="orange")
+(gg<-ggplot(tmp$P2IVxd,aes(x=PCxdCtC,y=IVCFxdCtC))+geom_point(alpha=0.08)+
+    geom_abline(intercept=tmp$lm$coefficient[1],slope=tmp$lm$coefficient[2],color="orange")+
+    xlim(min(tmp$P2IVxd$PCxdCtC)*1.2,max(tmp$P2IVxd$PCxdCtC)*1.2)+
+    ylim(min(tmp$P2IVxd$IVCFxdCtC)*1.2,max(tmp$P2IVxd$IVCFxdCtC)*1.2)
+)
 #Load test
 load.PC2IV(PC=paste("PC",xDayInt,"dCtC",sep=""),IVC=paste("IVCF",xDayInt,"dCtC",sep=""))
 PC12dCtC_IVCF12dCtC
+
+#Non Linear Regression
+tmp=saveP2IVNonLReg(histPrc,histIV,DATA_NUM,xDayInt,df=5.5)
+tmp$model
+if(IS_SELECTIVE_HISTIV_REGR){
+  #suffix for PCxdCtC adn IVCFxdCtC which have shifted xDayInt toward past
+  #which means, for example, suffix 1 for PCxdCtC  means 1+xDayInt for corresponding histIV data.
+  #use selectSuffixToPredictHV to get the suffix for histIV(histPrc) data
+  selectSuffixForValidIV(histIV,xDayInt,a_low,d_low,a_high,d_high)->suffix_slctd
+  tmp=saveP2IVNonLReg(histPrc,histIV,DATA_NUM,xDayInt,df=5.5,effectiv_suffix=suffix_slctd)
+}
+(gg<-ggplot(tmp$P2IVxd,aes(x=PCxdCtC,y=IVCFxdCtC))+geom_point(alpha=0.08)+
+    geom_line(data=data.frame(PCxdCtC=tmp$model$x,IVCFxdCtC=tmp$model$y),aes(PCxdCtC,IVCFxdCtC),color="red")+
+    xlim(min(tmp$P2IVxd$PCxdCtC)*1.2,max(tmp$P2IVxd$PCxdCtC)*1.2)+
+    ylim(min(tmp$P2IVxd$IVCFxdCtC)*1.2,max(tmp$P2IVxd$IVCFxdCtC)*1.2)
+)
+#Load test
+load.NLPC2IV(PC=paste("PC",xDayInt,"dCtC",sep=""),IVC=paste("IVCF",xDayInt,"dCtC",sep=""))
+PC12dCtC_NL_IVCF12dCtC
 
 #####
 ##  18d
@@ -455,11 +570,33 @@ if(IS_SELECTIVE_HISTIV_REGR){
   selectSuffixForValidIV(histIV,xDayInt,a_low,d_low,a_high,d_high)->suffix_slctd
   tmp=saveP2IVReg(histPrc,histIV,DATA_NUM,xDayInt,effectiv_suffix=suffix_slctd)
 }
-(gg<-ggplot(tmp$P2IVxd,aes(x=PCxdCtC,y=IVCFxdCtC))+geom_point(alpha=0.2))
-gg+geom_abline(intercept=tmp$lm$coefficient[1],slope=tmp$lm$coefficient[2],color="orange")
+(gg<-ggplot(tmp$P2IVxd,aes(x=PCxdCtC,y=IVCFxdCtC))+geom_point(alpha=0.08)+
+    geom_abline(intercept=tmp$lm$coefficient[1],slope=tmp$lm$coefficient[2],color="orange")+
+    xlim(min(tmp$P2IVxd$PCxdCtC)*1.2,max(tmp$P2IVxd$PCxdCtC)*1.2)+
+    ylim(min(tmp$P2IVxd$IVCFxdCtC)*1.2,max(tmp$P2IVxd$IVCFxdCtC)*1.2)
+)
 #Load test
 load.PC2IV(PC=paste("PC",xDayInt,"dCtC",sep=""),IVC=paste("IVCF",xDayInt,"dCtC",sep=""))
 PC18dCtC_IVCF18dCtC
+
+#Non Linear Regression
+tmp=saveP2IVNonLReg(histPrc,histIV,DATA_NUM,xDayInt,df=5.5)
+tmp$model
+if(IS_SELECTIVE_HISTIV_REGR){
+  #suffix for PCxdCtC adn IVCFxdCtC which have shifted xDayInt toward past
+  #which means, for example, suffix 1 for PCxdCtC  means 1+xDayInt for corresponding histIV data.
+  #use selectSuffixToPredictHV to get the suffix for histIV(histPrc) data
+  selectSuffixForValidIV(histIV,xDayInt,a_low,d_low,a_high,d_high)->suffix_slctd
+  tmp=saveP2IVNonLReg(histPrc,histIV,DATA_NUM,xDayInt,df=5.5,effectiv_suffix=suffix_slctd)
+}
+(gg<-ggplot(tmp$P2IVxd,aes(x=PCxdCtC,y=IVCFxdCtC))+geom_point(alpha=0.08)+
+    geom_line(data=data.frame(PCxdCtC=tmp$model$x,IVCFxdCtC=tmp$model$y),aes(PCxdCtC,IVCFxdCtC),color="red")+
+    xlim(min(tmp$P2IVxd$PCxdCtC)*1.2,max(tmp$P2IVxd$PCxdCtC)*1.2)+
+    ylim(min(tmp$P2IVxd$IVCFxdCtC)*1.2,max(tmp$P2IVxd$IVCFxdCtC)*1.2)
+)
+#Load test
+load.NLPC2IV(PC=paste("PC",xDayInt,"dCtC",sep=""),IVC=paste("IVCF",xDayInt,"dCtC",sep=""))
+PC18dCtC_NL_IVCF18dCtC
 
 #####
 ##   1d
@@ -470,8 +607,32 @@ if(IS_SELECTIVE_HISTIV_REGR){
   selectSuffixForValidIV(histIV,xDayInt,a_low,d_low,a_high,d_high)->suffix_slctd
   tmp=saveP2IVReg(histPrc,histIV,DATA_NUM,xDayInt,effectiv_suffix=suffix_slctd)
 }
-(gg<-ggplot(tmp$P2IVxd,aes(x=PCxdCtC,y=IVCFxdCtC))+geom_point(alpha=0.2))
-gg+geom_abline(intercept=tmp$lm$coefficient[1],slope=tmp$lm$coefficient[2],color="orange")
+(gg<-ggplot(tmp$P2IVxd,aes(x=PCxdCtC,y=IVCFxdCtC))+geom_point(alpha=0.08)+
+    geom_abline(intercept=tmp$lm$coefficient[1],slope=tmp$lm$coefficient[2],color="orange")+
+    xlim(min(tmp$P2IVxd$PCxdCtC)*1.2,max(tmp$P2IVxd$PCxdCtC)*1.2)+
+    ylim(min(tmp$P2IVxd$IVCFxdCtC)*1.2,max(tmp$P2IVxd$IVCFxdCtC)*1.2)
+)
+
 #Load test
 load.PC2IV(PC=paste("PC",xDayInt,"dCtC",sep=""),IVC=paste("IVCF",xDayInt,"dCtC",sep=""))
 PC1dCtC_IVCF1dCtC
+
+#Non Linear Regression
+tmp=saveP2IVNonLReg(histPrc,histIV,DATA_NUM,xDayInt,df=5.5)
+tmp$model
+if(IS_SELECTIVE_HISTIV_REGR){
+  #suffix for PCxdCtC adn IVCFxdCtC which have shifted xDayInt toward past
+  #which means, for example, suffix 1 for PCxdCtC  means 1+xDayInt for corresponding histIV data.
+  #use selectSuffixToPredictHV to get the suffix for histIV(histPrc) data
+  selectSuffixForValidIV(histIV,xDayInt,a_low,d_low,a_high,d_high)->suffix_slctd
+  tmp=saveP2IVNonLReg(histPrc,histIV,DATA_NUM,xDayInt,df=5.5,effectiv_suffix=suffix_slctd)
+}
+(gg<-ggplot(tmp$P2IVxd,aes(x=PCxdCtC,y=IVCFxdCtC))+geom_point(alpha=0.08)+
+    geom_line(data=data.frame(PCxdCtC=tmp$model$x,IVCFxdCtC=tmp$model$y),aes(PCxdCtC,IVCFxdCtC),color="red")+
+    xlim(min(tmp$P2IVxd$PCxdCtC)*1.2,max(tmp$P2IVxd$PCxdCtC)*1.2)+
+    ylim(min(tmp$P2IVxd$IVCFxdCtC)*1.2,max(tmp$P2IVxd$IVCFxdCtC)*1.2)
+)
+#Load test
+load.NLPC2IV(PC=paste("PC",xDayInt,"dCtC",sep=""),IVC=paste("IVCF",xDayInt,"dCtC",sep=""))
+PC1dCtC_NL_IVCF1dCtC
+

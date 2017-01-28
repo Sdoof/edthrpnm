@@ -43,6 +43,21 @@ save.PC2IV <- function (model, PC, IVC,cor,pcstat,ivstat) {
   save(reg_saved,file=reg_saved_fn)  
 }
 
+#Non Linear
+save.NLPC2IV <- function (model, PC, IVC,cor,pcstat,ivstat) {
+  reg_saved<-list(model)
+  reg_saved<-c(reg_saved,list(cor))
+  data.frame(Avr=pcstat[1],SD=pcstat[2]) %>% 
+    full_join(data.frame(Avr=ivstat[1],SD=ivstat[2])) -> stat
+  rownames(stat)<-c("PC","IVC") 
+  reg_saved<-c(reg_saved,list(stat))
+  names(reg_saved)<-c("model","cor","stat")
+  
+  #saved file name.
+  reg_saved_fn<-paste(DataFiles_Path_G,Underying_Symbol_G,"_NL_",PC,"_",IVC,sep="")
+  save(reg_saved,file=reg_saved_fn)  
+}
+
 #Load volatility Level correlaiton and regression function
 load.PC2IV <- function (PC,IVC) {
   #load file name.
@@ -51,19 +66,40 @@ load.PC2IV <- function (PC,IVC) {
   assign(paste(PC,"_",IVC,sep=""), reg_saved,env=.GlobalEnv)
 }
 
+#Non Linear
+load.NLPC2IV <- function (PC,IVC) {
+  #load file name.
+  reg_load_fn <- paste(DataFiles_Path_G,Underying_Symbol_G,"_NL_",PC,"_",IVC,sep="")
+  load(reg_load_fn)
+  assign(paste(PC,"_NL_",IVC,sep=""), reg_saved,env=.GlobalEnv)
+}
+
+
 #Just like get.predected.Skew. The differnce is here we only use linier regression
-get.predicted.IVIDXChange<-function(model,xmin=-0.03,xmax=0.03,x_by=0.01){  
-  intercept=model$coefficient[1]
-  slope=model$coefficient[2]
-  names(intercept)<-c("1"); names(slope)<-c("1")
-  if(x_by==0){
-    x<-c(xmin)
-    y<-intercept+slope*xmin
-  }else{
-    x<-seq(xmin,xmax,by=x_by)
-    y<-intercept+slope*x   
+get.predicted.IVIDXChange<-function(model,xmin=-0.03,xmax=0.03,x_by=0.01,linearModel=F){
+  if(linearModel==T){
+    intercept=model$coefficient[1]
+    slope=model$coefficient[2]
+    names(intercept)<-c("1"); names(slope)<-c("1")
+    if(x_by==0){
+      x<-c(xmin)
+      y<-intercept+slope*xmin
+    }else{
+      x<-seq(xmin,xmax,by=x_by)
+      y<-intercept+slope*x   
+    }
+    ivchg<-data.frame(PC=x,IVIDXC=y)
   }
-  ivchg<-data.frame(PC=x,IVIDXC=y)
+  if(linearModel==F){
+    if(x_by==0){
+      x<-xmin
+      y<-predict(model,x=x)
+    }else{
+      x<-seq(xmin,xmax,by=x_by)
+      y<-predict(model,x=x) 
+    }
+    ivchg<-data.frame(PC=y$x,IVIDXC=y$y)
+  }
   ivchg
 }
 
