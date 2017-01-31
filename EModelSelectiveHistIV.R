@@ -5,6 +5,8 @@ library(dplyr)
 library(sn)
 library(MASS)
 library(KernSmooth)
+library(gsl)
+library(PearsonDS)
 rm(list=ls())
 source('./ESourceRCode.R',encoding = 'UTF-8')
 
@@ -270,6 +272,7 @@ bins <- seq(min(tmp$P2IVxd$PCxdCtC)-3*h/2, max(tmp$P2IVxd$PCxdCtC)+3*h/2, by=h)
 hist(tmp$P2IVxd$PCxdCtC, breaks=bins)
 rm(h)
 
+#density estimation by Kernel method
 est_density=density(tmp$P2IVxd$PCxdCtC,
                     adjust = max(max(abs(tmp$P2IVxd$PCxdCtC))/(EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum),1),
                     from=(-EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum),
@@ -292,56 +295,57 @@ est_weight=est_density$y/sum(est_density$y)
 frame()
 plot(est_density$x,est_weight,col="blue")
 
-anlzd_sd<-histIV[1]/100*HV_IV_Adjust_Ratio
-sd_hd<-(anlzd_sd/sqrt(252/EvalFuncSetting$holdDays))
-sknm_weight<-dsn(est_density$x,
-                 xi=EvalFuncSetting$holdDays/252*EvalFuncSetting$Weight_Drift,
-                 alpha=EvalFuncSetting$Weight_Skew*sd_hd,
-                 omega=sd_hd)
-sknm_weight=sknm_weight/sum(sknm_weight)
-par(new=T)
-plot(est_density$x,sknm_weight,col="red")
+#####
+##  moment estimation and moment transformation for desirable "should be headged" Distribution
 
-print(est_weight)
-print(sknm_weight)
+moment_org=empMoments(tmp$P2IVxd$PCxdCtC)
+#just show anualized mean and sd
+cat("dift original",moment_org["mean"]*252/EvalFuncSetting$holdDays,"\n")
+cat("vol original",sqrt(moment_org["variance"])*sqrt(252/EvalFuncSetting$holdDays),"\n")
 
-cat("c(");cat(est_weight,sep="$");cat(")")
+##
+# transormed moment
+moment_trnsfm=moment_org
+
+#drift transformed (annualized)
+dfift_trnsfm=0
+moment_trnsfm["mean"]=dfift_trnsfm/(252/EvalFuncSetting$holdDays)
+
+#volatility transformed (annualized)
+vol_trnsfm=sqrt(moment_org["variance"])*sqrt(252/EvalFuncSetting$holdDays)*1
+moment_trnsfm["variance"]=(vol_trnsfm/sqrt(252/EvalFuncSetting$holdDays))^2
+
+#randam generate
+tmp_data=rpearson(25000,moments=moment_trnsfm)
+empMoments(tmp_data)
+#histgram
+h <- dpih(tmp_data)
+bins <- seq(min(tmp_data)-3*h/2, max(tmp_data)+3*h/2, by=h)
+hist(tmp_data, breaks=bins)
+#density estimation
+est_density=dpearson(seq(
+  (-EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum),
+  EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum,
+  by=EvalFuncSetting$UdlStepPct),
+  moments=moment_trnsfm)
+
+est_density=est_density/sum(est_density)
+
+cat("c(");cat(est_density,sep="$");cat(")")
 
 #optimize EvalFuncSetting$UdlStepPct,EvalFuncSetting$UdlStepNum
 #weight below min_effective_rate is rounded to 0 on evaluation function
-min_effective_rate=(1/400)
+min_effective_rate=(1/500)
 #show effetive weight component
-as.numeric(est_weight>min_effective_rate)
+as.numeric(est_density>min_effective_rate)
 #effective(relevant) price range from center
 newPriceRangeFromCenter=
-  max(EvalFuncSetting$UdlStepNum-min(which(as.numeric(est_weight>min_effective_rate)==1)),
-      (EvalFuncSetting$UdlStepNum*2+1)-max(which(as.numeric(est_weight>min_effective_rate)==1)))*
+  max(EvalFuncSetting$UdlStepNum-min(which(as.numeric(est_density>min_effective_rate)==1)),
+      (EvalFuncSetting$UdlStepNum*2+1)-max(which(as.numeric(est_density>min_effective_rate)==1)))*
   EvalFuncSetting$UdlStepPct
 #if EvalFuncSetting$UdlStepNum is fixed
 newUdlStepPct=newPriceRangeFromCenter/EvalFuncSetting$UdlStepNum
 cat("new UdlStepPct",newUdlStepPct,"new UdlStepNum",EvalFuncSetting$UdlStepNum)
-#if EvalFuncSetting$UdlStepPct is changed
-newUdlStepNum=newPriceRangeFromCenter/EvalFuncSetting$UdlStepPct
-cat("new UdlStepPct",EvalFuncSetting$UdlStepPct,"new UdlStepNum",newUdlStepNum)
-#if newUdlStepNum is given arbitrary
-newUdlStepNum=10
-newUdlStepPct=newPriceRangeFromCenter/newUdlStepNum
-cat("new UdlStepPct",newUdlStepPct,"new UdlStepNum",newUdlStepNum)
-
-min(tmp$P2IVxd$PCxdCtC)
-#which.min(tmp$P2IVxd$PCxdCtC)
-Date[which.min(tmp$P2IVxd$PCxdCtC)]
-tmp$P2IVxd$IVCFxdCtC[which.min(tmp$P2IVxd$PCxdCtC)]
-#sd, mean and skewnewss
-sd(tmp$P2IVxd$PCxdCtC)
-mean(tmp$P2IVxd$PCxdCtC)
-mean((tmp$P2IVxd$PCxdCtC-mean(tmp$P2IVxd$PCxdCtC))^3)/(sd(tmp$P2IVxd$PCxdCtC)^3)
-#annualized sd and mean
-cat("sd anlzd",sd(tmp$P2IVxd$PCxdCtC)*sqrt(225/xDayInt),"\n")
-cat("drift anlzd",mean(tmp$P2IVxd$PCxdCtC)*(225/xDayInt),"\n")
-#Skewness as a multiple of SD
-cat("skew",
-    mean((tmp$P2IVxd$PCxdCtC-mean(tmp$P2IVxd$PCxdCtC))^3),"\n")
 
 ##
 # Histgram One Day
@@ -373,42 +377,47 @@ lines(est_density,xlim=c(-EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum,
                          EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum),
       ylim=c(0,1))
 
+est_density=est_density$y/sum(est_density$y)
 
-est_weight=est_density$y/sum(est_density$y)
+#####
+##  moment estimation and moment transformation for desirable "should be headged" Distribution
 
-frame()
-plot(est_density$x,est_weight,col="blue")
+moment_org=empMoments(tmp$P2IVxd$PCxdCtC)
+(moment_org)
+#just show anualized mean and sd
+cat("dift original",moment_org["mean"]*252,"\n")
+cat("vol original",sqrt(moment_org["variance"])*sqrt(252),"\n")
 
-HV_IV_Adjust_Ratio
-anlzd_sd<-histIV[1]/100*HV_IV_Adjust_Ratio
-sd_hd<-(anlzd_sd/sqrt(252/1))
-sknm_weight<-dsn(est_density$x,
-                 xi=EvalFuncSetting$holdDays/252*EvalFuncSetting$Weight_Drift,
-                 alpha=EvalFuncSetting$Weight_Skew*sd_hd,
-                 omega=sd_hd)
-sknm_weight=sknm_weight/sum(sknm_weight)
-par(new=T)
-plot(est_density$x,sknm_weight,col="red")
+##
+# transormed moment
+moment_trnsfm=moment_org
 
-print(est_weight)
-print(sknm_weight)
+#drift transformed (annualized)
+dfift_trnsfm=0
+moment_trnsfm["mean"]=dfift_trnsfm/(252)
+
+#volatility transformed (annualized)
+vol_trnsfm=sqrt(moment_org["variance"])*sqrt(252)*1
+moment_trnsfm["variance"]=(vol_trnsfm/sqrt(252))^2
+
+(moment_trnsfm)
+
+#randam generate
+tmp_data=rpearson(25000,moments=moment_trnsfm)
+empMoments(tmp_data)
+#histgram
+h <- dpih(tmp_data)
+bins <- seq(min(tmp_data)-3*h/2, max(tmp_data)+3*h/2, by=h)
+hist(tmp_data, breaks=bins)
+#density estimation
+est_density=dpearson(seq(
+  (-EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum),
+  EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum,
+  by=EvalFuncSetting$UdlStepPct),
+  moments=moment_trnsfm)
+est_density=est_density/sum(est_density)
 
 cat("c(");cat(est_weight,sep="$");cat(")")
-
-min(tmp$P2IVxd$PCxdCtC)
-#which.min(tmp$P2IVxd$PCxdCtC)
-Date[which.min(tmp$P2IVxd$PCxdCtC)]
-tmp$P2IVxd$IVCFxdCtC[which.min(tmp$P2IVxd$PCxdCtC)]
-#sd, mean and skewnewss
-sd(tmp$P2IVxd$PCxdCtC)
-mean(tmp$P2IVxd$PCxdCtC)
-mean((tmp$P2IVxd$PCxdCtC-mean(tmp$P2IVxd$PCxdCtC))^3)/(sd(tmp$P2IVxd$PCxdCtC)^3)
-#annualized sd and mean
-cat("sd anlzd",sd(tmp$P2IVxd$PCxdCtC)*sqrt(225/xDayInt),"\n")
-cat("drift anlzd",mean(tmp$P2IVxd$PCxdCtC)*(225/xDayInt),"\n")
-#Skewness as a multiple of SD
-cat("skew",
-    mean((tmp$P2IVxd$PCxdCtC-mean(tmp$P2IVxd$PCxdCtC))^3),"\n")
 
 ######
 ## 5d
