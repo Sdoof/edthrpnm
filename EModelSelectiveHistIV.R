@@ -1,8 +1,6 @@
 library(RQuantLib)
 library(ggplot2)
-library(plyr)
 library(dplyr)
-library(sn)
 library(MASS)
 library(KernSmooth)
 library(gsl)
@@ -300,11 +298,11 @@ plot(est_density$x,est_weight,col="blue")
 
 moment_org=empMoments(tmp$P2IVxd$PCxdCtC)
 #just show anualized mean and sd
-cat("dift original",moment_org["mean"]*252/EvalFuncSetting$holdDays,"\n")
-cat("vol original",sqrt(moment_org["variance"])*sqrt(252/EvalFuncSetting$holdDays),"\n")
+cat("mean original anlzd",moment_org["mean"]*252/EvalFuncSetting$holdDays,"\n")
+cat("vol original anlzd",sqrt(moment_org["variance"])*sqrt(252/EvalFuncSetting$holdDays),"\n")
 
-##
-# transormed moment
+###
+##  transormed moment
 moment_trnsfm=moment_org
 
 #drift transformed (annualized)
@@ -316,7 +314,7 @@ vol_trnsfm=sqrt(moment_org["variance"])*sqrt(252/EvalFuncSetting$holdDays)*1
 moment_trnsfm["variance"]=(vol_trnsfm/sqrt(252/EvalFuncSetting$holdDays))^2
 
 #randam generate
-tmp_data=rpearson(25000,moments=moment_trnsfm)
+tmp_data=rpearson(20000,moments=moment_trnsfm)
 empMoments(tmp_data)
 #histgram
 h <- dpih(tmp_data)
@@ -332,6 +330,23 @@ est_density=dpearson(seq(
 est_density=est_density/sum(est_density)
 
 cat("c(");cat(est_density,sep="$");cat(")")
+
+##
+# show IVCFxdCtC distribution for info
+h <- dpih(tmp$P2IVxd$IVCFxdCtC)
+bins <- seq(min(tmp$P2IVxd$IVCFxdCtC)-3*h/2, max(tmp$P2IVxd$IVCFxdCtC)+3*h/2, by=h)
+hist(tmp$P2IVxd$IVCFxdCtC, breaks=bins)
+#random generation
+moment_IVCF=empMoments(tmp$P2IVxd$IVCFxdCtC)
+#just show anualized mean and sd
+cat("mean original anlzd",moment_IVCF["mean"]*252/EvalFuncSetting$holdDays,"\n")
+cat("vol original anlzd",sqrt(moment_IVCF["variance"])*sqrt(252/EvalFuncSetting$holdDays),"\n")
+tmp_data=rpearson(2000,moments=moment_IVCF)
+empMoments(tmp_data)
+#histgram
+h <- dpih(tmp_data)
+bins <- seq(min(tmp_data)-3*h/2, max(tmp_data)+3*h/2, by=h)
+hist(tmp_data, breaks=bins)
 
 #optimize EvalFuncSetting$UdlStepPct,EvalFuncSetting$UdlStepNum
 #weight below min_effective_rate is rounded to 0 on evaluation function
