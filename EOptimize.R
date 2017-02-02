@@ -49,7 +49,8 @@ cat("CombinedMaxPosnum",CombinedMaxPosnum,"\n",file=tmp_touchfile,sep=",",append
 cat("TopN",TopN,"\n",file=tmp_touchfile,sep=",",append=TRUE)
 cat("PopN",PopN,"\n",file=tmp_touchfile,sep=",",append=TRUE)
 cat("ExpIVChange_Multiple",EvalFuncSetting$ExpIVChange_Multiple,"\n",file=tmp_touchfile,sep=",",append=TRUE)
-
+cat("Delta_Direct_Prf",EvalFuncSetting$Delta_Direct_Prf,"\n",file=tmp_touchfile,sep=",",append=TRUE)
+cat("Vega_Direct_Prf",EvalFuncSetting$Vega_Direct_Prf,"\n",file=tmp_touchfile,sep=",",append=TRUE)
 
 ##
 # Creating a First Generation
@@ -134,12 +135,12 @@ if(COMBINATION_HOT_START==F){
   for(itr in 1:InitialPopCreateLoopNum){
     cat("itr:",itr,"\n")
     if(sum(EvalFuncSetting$Posnum==5)!=0){
-      createInitialExactPutCallPopulation(popnum=250,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
+      createInitialExactPutCallPopulation(popnum=100,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
                                           putn=3,calln=2,ml=Optimize_ml,
                                           fname=paste(".\\ResultData\\inipop-05P3C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                           PosMultip,
                                           isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
-      createInitialExactPutCallPopulation(popnum=250,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
+      createInitialExactPutCallPopulation(popnum=70,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
                                           putn=2,calln=3,ml=Optimize_ml,
                                           fname=paste(".\\ResultData\\inipop-05P2C3-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                           PosMultip,
@@ -151,16 +152,16 @@ if(COMBINATION_HOT_START==F){
                                               fname=paste(".\\ResultData\\inipop-04P4C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                               PosMultip,
                                               isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
-      createInitialExactPutCallPopulation(popnum=200,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
+      createInitialExactPutCallPopulation(popnum=75,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
                                           putn=2,calln=2,ml=Optimize_ml,
                                           fname=paste(".\\ResultData\\inipop-04P2C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                           PosMultip,
                                           isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
-      createInitialExactPutCallPopulation(popnum=100,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
-                                          putn=0,calln=4,ml=Optimize_ml,
-                                          fname=paste(".\\ResultData\\inipop-04P0C4-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                                          PosMultip,
-                                           isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
+      # createInitialExactPutCallPopulation(popnum=50,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
+      #                                     putn=0,calln=4,ml=Optimize_ml,
+      #                                     fname=paste(".\\ResultData\\inipop-04P0C4-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+      #                                     PosMultip,
+      #                                      isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
     }
     if(sum(EvalFuncSetting$Posnum==3)!=0){
       createInitialExactPutCallPopulation(popnum=50,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
@@ -168,19 +169,19 @@ if(COMBINATION_HOT_START==F){
                                           fname=paste(".\\ResultData\\inipop-03P3C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                           PosMultip,
                                           isFileout=TRUE,isDebug=FALSE,isDetail=FALSE)
-      createInitialExactPutCallPopulation(popnum=50,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
-                                          putn=0,calln=3,ml=Optimize_ml,
-                                          fname=paste(".\\ResultData\\inipop-03P0C3-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
-                                          PosMultip,
-                                          isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
+      # createInitialExactPutCallPopulation(popnum=25,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
+      #                                     putn=0,calln=3,ml=Optimize_ml,
+      #                                     fname=paste(".\\ResultData\\inipop-03P0C3-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
+      #                                     PosMultip,
+      #                                     isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
     }
     if(sum(EvalFuncSetting$Posnum==2)!=0){
-      createInitialExactPutCallPopulation(popnum=50,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
+      createInitialExactPutCallPopulation(popnum=30,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
                                           putn=2,calln=0,ml=Optimize_ml,
                                           fname=paste(".\\ResultData\\inipop-02P2C0-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                           PosMultip,
                                           isFileout=TRUE,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE)
-      createInitialExactPutCallPopulation(popnum=50,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
+      createInitialExactPutCallPopulation(popnum=30,opchain$TYPE,EvalFuncSetting,thresh=InitialPopThresh,
                                           putn=0,calln=2,ml=Optimize_ml,
                                           fname=paste(".\\ResultData\\inipop-02P0C2-",format(Sys.time(),"%Y-%b-%d"),".csv",sep=""),
                                           PosMultip,
