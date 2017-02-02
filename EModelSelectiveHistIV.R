@@ -1,6 +1,8 @@
 library(RQuantLib)
 library(ggplot2)
 library(dplyr)
+library(digest)
+library(hash)
 library(MASS)
 library(KernSmooth)
 library(gsl)
@@ -288,10 +290,12 @@ lines(est_density,xlim=c(-EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum,
       ylim=c(0,1))
 
 
-est_weight=est_density$y/sum(est_density$y)
+est_density=est_density$y/sum(est_density$y)
 
 frame()
 plot(est_density$x,est_weight,col="blue")
+
+cat("c(");cat(est_density,sep="$");cat(")")
 
 #####
 ##  moment estimation and moment transformation for desirable "should be headged" Distribution
@@ -394,6 +398,8 @@ lines(est_density,xlim=c(-EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum,
 
 est_density=est_density$y/sum(est_density$y)
 
+cat("c(");cat(est_density,sep="$");cat(")")
+
 #####
 ##  moment estimation and moment transformation for desirable "should be headged" Distribution
 
@@ -432,7 +438,7 @@ est_density=dpearson(seq(
   moments=moment_trnsfm)
 est_density=est_density/sum(est_density)
 
-cat("c(");cat(est_weight,sep="$");cat(")")
+cat("c(");cat(est_density,sep="$");cat(")")
 
 ######
 ## 5d
