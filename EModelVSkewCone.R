@@ -6,8 +6,8 @@ rm(list=ls())
 source('./ESourceRCode.R',encoding = 'UTF-8')
 
 #MAX ExpToDate for Skew Regression
-SkewRegressionTimeToExpDateMin<-1.75
-SkewRegressionTimeToExpDateMax<-3.4
+SkewRegressionTimeToExpDateMin<-1.5
+SkewRegressionTimeToExpDateMax<-4
 
 #We get regression only past this day. Currently reflected on Skew only.
 #should apply Vcone, etc.
@@ -193,7 +193,7 @@ rm(models,vplot,predict.c)
 
 #atmiv filtering
 atmiv->atmiv.org #atmiv.org used later for IV Change to IVIDX Up and Down # atmiv=atmiv.org
-atmiv %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")>=as.Date("2016/9/21",format="%Y/%m/%d")) -> atmiv
+atmiv %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")>=as.Date("2017/2/3",format="%Y/%m/%d")) -> atmiv
 #create another column
 atmiv$ATMIDXIV.f=atmiv$ATMIV/atmiv$IVIDX
 #Minimus TimeToExpDate filtering
@@ -265,8 +265,9 @@ atmiv_hist %>% dplyr::full_join(atmiv.org) %>%
   dplyr::arrange(desc(TYPE),as.Date(ExpDate,format="%Y/%m/%d"),as.Date(Date,format="%Y/%m/%d")) %>% 
   dplyr::select(Date,ExpDate,TYPE,ATMIV,Strike,UDLY,IVIDX,TimeToExpDate,Moneyness.Frac,displace) -> atmiv_hist
 
-write.table(atmiv_hist,paste(DataFiles_Path_G,Underying_Symbol_G,"-ATMIV-VCONE-ANAL_Hist.csv",sep=""),row.names = F,col.names=T,sep=",",append=F)
+tail(atmiv_hist,n=100)
 
+write.table(atmiv_hist,paste(DataFiles_Path_G,Underying_Symbol_G,"-ATMIV-VCONE-ANAL_Hist.csv",sep=""),row.names = F,col.names=T,sep=",",append=F)
 
 ##
 # Vcone Regression
@@ -626,13 +627,5 @@ get.ATMIV.f.VolChg(model=CallIVDown_ATMIV.f.IVIDX.f_1D$model,
                    x_idx=CallIVDown_ATMIV.f.IVIDX.f_1D$x,
                    y_idx=CallIVDown_ATMIV.f.IVIDX.f_1D$y,
                    month=2.5)
-
-## vectorized test
-col_TYPE=c(1,1,-1,-1)
-col_TimeToExpDate=c(2.5,4,2.5,4)
-get.ATMIV.f_1D.Regression.Result(pos,up_dn=(1.20-1),days=1,hdd=18,ividx.f = 1.2)
-get.ATMIV.f_1D.Regression.Result(pos,up_dn=(0.8-1),days=1,hdd=18,ividx.f = 0.8)
-
-
 
 
