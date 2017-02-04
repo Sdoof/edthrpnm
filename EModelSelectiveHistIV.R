@@ -272,28 +272,21 @@ bins <- seq(min(tmp$P2IVxd$PCxdCtC)-3*h/2, max(tmp$P2IVxd$PCxdCtC)+3*h/2, by=h)
 hist(tmp$P2IVxd$PCxdCtC, breaks=bins)
 rm(h)
 
-#density estimation by Kernel method
-est_density=density(tmp$P2IVxd$PCxdCtC,
-                    adjust = max(max(abs(tmp$P2IVxd$PCxdCtC))/(EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum),1),
-                    from=(-EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum),
-                    to=EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum,
-                    n=(2*EvalFuncSetting$UdlStepNum)+1)
+#randam generate
+tmp_data=rpearson(20000,moments=empMoments(tmp$P2IVxd$PCxdCtC))
+empMoments(tmp_data)
+#histgram
+h <- dpih(tmp_data)
+bins <- seq(min(tmp_data)-3*h/2, max(tmp_data)+3*h/2, by=h)
+hist(tmp_data, breaks=bins)
+#density estimation
+est_density=dpearson(seq(
+  (-EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum),
+  EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum,
+  by=EvalFuncSetting$UdlStepPct),
+  moments=empMoments(tmp$P2IVxd$PCxdCtC))
 
-lines(est_density,xlim=c(-EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum,
-                         EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum),
-      ylim=c(0,1))
-frame()
-
-plot(est_density$x,est_density$y,col="blue")
-lines(est_density,xlim=c(-EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum,
-                         EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum),
-      ylim=c(0,1))
-
-
-est_density=est_density$y/sum(est_density$y)
-
-frame()
-plot(est_density$x,est_weight,col="blue")
+est_density=est_density/sum(est_density)
 
 cat("c(");cat(est_density,sep="$");cat(")")
 
@@ -380,23 +373,21 @@ bins <- seq(min(tmp$P2IVxd$PCxdCtC)-3*h/2, max(tmp$P2IVxd$PCxdCtC)+3*h/2, by=h)
 hist(tmp$P2IVxd$PCxdCtC, breaks=bins)
 rm(h)
 
-est_density=density(tmp$P2IVxd$PCxdCtC,
-                    adjust = max(max(abs(tmp$P2IVxd$PCxdCtC))/(EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum),1),
-                    from=(-EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum),
-                    to=EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum,
-                    n=(2*EvalFuncSetting$UdlStepNum)+1)
+#randam generate
+tmp_data=rpearson(20000,moments=empMoments(tmp$P2IVxd$PCxdCtC))
+empMoments(tmp_data)
+#histgram
+h <- dpih(tmp_data)
+bins <- seq(min(tmp_data)-3*h/2, max(tmp_data)+3*h/2, by=h)
+hist(tmp_data, breaks=bins)
+#density estimation
+est_density=dpearson(seq(
+  (-EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum),
+  EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum,
+  by=EvalFuncSetting$UdlStepPct),
+  moments=empMoments(tmp$P2IVxd$PCxdCtC))
 
-lines(est_density,xlim=c(-EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum,
-                         EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum),
-      ylim=c(0,1))
-frame()
-
-plot(est_density$x,est_density$y,col="blue")
-lines(est_density,xlim=c(-EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum,
-                         EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum),
-      ylim=c(0,1))
-
-est_density=est_density$y/sum(est_density$y)
+est_density=est_density/sum(est_density)
 
 cat("c(");cat(est_density,sep="$");cat(")")
 
