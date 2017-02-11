@@ -288,6 +288,13 @@ est_density=dpearson(seq(
 
 est_density=est_density/sum(est_density)
 
+frame()
+plot(seq(
+  (-EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum),
+  EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum,
+  by=EvalFuncSetting$UdlStepPct),
+  est_density,col="blue")
+
 cat("c(");cat(est_density,sep="$");cat(")")
 
 #####
@@ -299,7 +306,7 @@ cat("mean original anlzd",moment_org["mean"]*252/EvalFuncSetting$holdDays,"\n")
 cat("vol original anlzd",sqrt(moment_org["variance"])*sqrt(252/EvalFuncSetting$holdDays),"\n")
 
 ###
-##  transormed moment
+##  transormed moment mean neutral
 moment_trnsfm=moment_org
 
 #drift transformed (annualized)
@@ -309,7 +316,35 @@ moment_trnsfm["mean"]=dfift_trnsfm/(252/EvalFuncSetting$holdDays)
 #volatility transformed (annualized)
 vol_trnsfm=sqrt(moment_org["variance"])*sqrt(252/EvalFuncSetting$holdDays)*1
 moment_trnsfm["variance"]=(vol_trnsfm/sqrt(252/EvalFuncSetting$holdDays))^2
+(moment_org)
+(moment_trnsfm)
+#randam generate
+tmp_data=rpearson(20000,moments=moment_trnsfm)
+empMoments(tmp_data)
+#histgram
+h <- dpih(tmp_data)
+bins <- seq(min(tmp_data)-3*h/2, max(tmp_data)+3*h/2, by=h)
+hist(tmp_data, breaks=bins)
+#density estimation
+est_density=dpearson(seq(
+  (-EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum),
+  EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum,
+  by=EvalFuncSetting$UdlStepPct),
+  moments=moment_trnsfm)
 
+est_density=est_density/sum(est_density)
+
+cat("c(");cat(est_density,sep="$");cat(")")
+
+###
+##  transormed moment opposite mean
+moment_trnsfm=moment_org
+
+#drift transformed (annualized)
+dfift_trnsfm_ration=0.8
+moment_trnsfm["mean"]=moment_org["mean"]*(-1)*dfift_trnsfm_ration
+(moment_org)
+(moment_trnsfm)
 #randam generate
 tmp_data=rpearson(20000,moments=moment_trnsfm)
 empMoments(tmp_data)
@@ -386,8 +421,14 @@ est_density=dpearson(seq(
   EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum,
   by=EvalFuncSetting$UdlStepPct),
   moments=empMoments(tmp$P2IVxd$PCxdCtC))
-
 est_density=est_density/sum(est_density)
+
+frame()
+plot(seq(
+  (-EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum),
+  EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum,
+  by=EvalFuncSetting$UdlStepPct),
+  est_density,col="blue")
 
 cat("c(");cat(est_density,sep="$");cat(")")
 
@@ -411,7 +452,7 @@ moment_trnsfm["mean"]=dfift_trnsfm/(252)
 #volatility transformed (annualized)
 vol_trnsfm=sqrt(moment_org["variance"])*sqrt(252)*1
 moment_trnsfm["variance"]=(vol_trnsfm/sqrt(252))^2
-
+(moment_org)
 (moment_trnsfm)
 
 #randam generate
@@ -427,6 +468,33 @@ est_density=dpearson(seq(
   EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum,
   by=EvalFuncSetting$UdlStepPct),
   moments=moment_trnsfm)
+est_density=est_density/sum(est_density)
+
+cat("c(");cat(est_density,sep="$");cat(")")
+
+###
+##  transormed moment opposite mean
+moment_trnsfm=moment_org
+
+#drift transformed (annualized)
+dfift_trnsfm_ration=0.8
+moment_trnsfm["mean"]=moment_org["mean"]*(-1)*dfift_trnsfm_ration
+(moment_org)
+(moment_trnsfm)
+#randam generate
+tmp_data=rpearson(20000,moments=moment_trnsfm)
+empMoments(tmp_data)
+#histgram
+h <- dpih(tmp_data)
+bins <- seq(min(tmp_data)-3*h/2, max(tmp_data)+3*h/2, by=h)
+hist(tmp_data, breaks=bins)
+#density estimation
+est_density=dpearson(seq(
+  (-EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum),
+  EvalFuncSetting$UdlStepPct*EvalFuncSetting$UdlStepNum,
+  by=EvalFuncSetting$UdlStepPct),
+  moments=moment_trnsfm)
+
 est_density=est_density/sum(est_density)
 
 cat("c(");cat(est_density,sep="$");cat(")")
