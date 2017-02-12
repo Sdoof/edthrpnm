@@ -232,6 +232,9 @@ if(Combined_Spread){
   # TopN_1 selection
   tmp %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% head(TopN[1]) -> tmp
   
+  # clear hash to improve performance
+  hash::clear(POSITION_OPTIM_HASH)
+  
   ## revalue the position for the value to be compatilbe with following process
   if(SPECIFIC_FIRSTG_SETTING==T){
     file.copy(from=paste(ResultFiles_Path_G,"1Cb.csv",sep=""),to=paste(ResultFiles_Path_G,"1Cb_org.csv",sep=""),overwrite=T)
@@ -259,7 +262,7 @@ if(Combined_Spread){
       # revVal = unlist(.)[length(opchain$Position)+1]
       dplyr::do(md5sum=digest(paste(unlist(.)[1:length(opchain$Position)],collapse = "")),revVal=unlist(.)[length(opchain$Position)+1]
       ) -> tmp2
-    #hash::clear(POSITION_OPTIM_HASH) not necessary
+    #not necessary. just in case.
     POSITION_OPTIM_HASH[ unlist(tmp2$md5sum) ]<-unlist(tmp2$revVal)
   }
   
