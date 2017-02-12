@@ -6,8 +6,8 @@ rm(list=ls())
 source('./ESourceRCode.R',encoding = 'UTF-8')
 
 #MAX ExpToDate for Skew Regression
-SkewRegressionTimeToExpDateMin<-1.5
-SkewRegressionTimeToExpDateMax<-4
+SkewRegressionTimeToExpDateMin<-1.6
+SkewRegressionTimeToExpDateMax<-3.5
 
 #We get regression only past this day. Currently reflected on Skew only.
 #should apply Vcone, etc.
@@ -193,7 +193,7 @@ rm(models,vplot,predict.c)
 
 #atmiv filtering
 atmiv->atmiv.org #atmiv.org used later for IV Change to IVIDX Up and Down # atmiv=atmiv.org
-atmiv %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")>=as.Date("2017/2/3",format="%Y/%m/%d")) -> atmiv
+atmiv %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")>=as.Date("2017/2/10",format="%Y/%m/%d")) -> atmiv
 #create another column
 atmiv$ATMIDXIV.f=atmiv$ATMIV/atmiv$IVIDX
 #Minimus TimeToExpDate filtering
