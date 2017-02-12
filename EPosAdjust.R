@@ -82,10 +82,5 @@ for(ithPos in 1:nrow(evalPositions)) {
 write.table(cbind(evalPositions,score_v,orig_score,posnums_v),paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition.csv",sep=""),sep=",",
             quote=T,col.names=F,row.names=F,append=F)
 
-source('./EPlaySimulation.R',encoding = 'UTF-8')
-source('./ResultData/StimResult.Rmd',encoding = 'UTF-8')
-
-rm(list=ls())
-
 
 
