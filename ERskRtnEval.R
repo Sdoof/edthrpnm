@@ -229,7 +229,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
     #1D Table
     posEvalTbl1D=posStepDays$scene[[1]]
     profit_1D_vector=(posEvalTbl1D$Price-posStepDays$scene[[1]]$Price[udlStepNum + 1])
-    #distance from 1D and hdDay profit curv assuming the same hdDay weight
+    #distance from 1D and hdDay profit curv assuming the same holding days weight
     tmp_1D=profit_vector-profit_1D_vector
     profit_hd1D_diff_wght=sum(tmp_1D*weight)
     profit_hd1D_AbsDiff_wght=sum(abs(tmp_1D)*weight)
@@ -277,12 +277,11 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
       cat(" :(profit_hd1D_diff_vc_minus_wght)",profit_hd1D_diff_vc_minus_wght,
           " :(prfit_hd1Day_diffAbs_vc_minus_wght)",profit_hd1D_AbsDiff_vc_minus_wght," 1Day profit>>")
     }
-    #profit_sd=profit_sd+Setting$Coef1DayDist*abs(prfit_hd1Day_diff_wght)
     # if(isDetail){
     #   cat(" :profit_sd += Setting$Coef1DayDist",Setting$Coef1DayDist,
-    #      #" x :(prfit_hd1Day_diff_wght)",prfit_hd1Day_diff_wght,
-    #      " x :(abs(prfit_hd1Day_diff_wght))",abs(prfit_hd1Day_diff_wght),
-    #      " =",profit_sd)
+    #       #" x :(profit_hd1D_diff_wght)",profit_hd1D_diff_wght,
+    #       " x :(abs(profit_hd1D_diff_wght))",abs(profit_hd1D_diff_wght),
+    #       " =",profit_sd)
     # }
   }
   
@@ -423,7 +422,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   if(Setting$Eval1DayDist){
     VegaEffect_Comp=VegaEffect_Comp+VegaEffect_Comp1D
     if(isDetail){
-      cat(" :VegaE+=(:VegaEffect_Comp1D=",VegaEffect_Comp1D,")")
+      cat(" (:VegaE+= VegaEffect_Comp1D",VegaEffect_Comp1D,")")
     }
   }
   c7=(vega_pref_coef*VegaEffect_Comp)
