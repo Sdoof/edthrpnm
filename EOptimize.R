@@ -4,6 +4,8 @@ library(dplyr)
 library(pracma)
 library(digest)
 library(hash)
+library(gsl)
+library(PearsonDS)
 rm(list=ls())
 source('./ESourceRCode.R',encoding = 'UTF-8')
 
