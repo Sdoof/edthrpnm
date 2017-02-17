@@ -277,6 +277,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
       cat(" :(profit_hd1D_diff_vc_minus_wght)",profit_hd1D_diff_vc_minus_wght,
           " :(prfit_hd1Day_diffAbs_vc_minus_wght)",profit_hd1D_AbsDiff_vc_minus_wght," 1Day profit>>")
     }
+    #profit_sd=profit_sd+Setting$Coef1DayDist*abs(prfit_hd1Day_diff_wght)
     # if(isDetail){
     #   cat(" :profit_sd += Setting$Coef1DayDist",Setting$Coef1DayDist,
     #       #" x :(profit_hd1D_diff_wght)",profit_hd1D_diff_wght,
