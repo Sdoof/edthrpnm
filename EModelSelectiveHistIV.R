@@ -341,7 +341,7 @@ cat("c(");cat(est_density,sep="$");cat(")")
 moment_trnsfm=moment_org
 
 #drift transformed (annualized)
-dfift_trnsfm_ration=0.8
+dfift_trnsfm_ration=1
 moment_trnsfm["mean"]=moment_org["mean"]*(-1)*dfift_trnsfm_ration
 (moment_org)
 (moment_trnsfm)
@@ -477,7 +477,7 @@ cat("c(");cat(est_density,sep="$");cat(")")
 moment_trnsfm=moment_org
 
 #drift transformed (annualized)
-dfift_trnsfm_ration=0.8
+dfift_trnsfm_ration=1
 moment_trnsfm["mean"]=moment_org["mean"]*(-1)*dfift_trnsfm_ration
 (moment_org)
 (moment_trnsfm)
