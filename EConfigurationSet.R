@@ -7,6 +7,14 @@ if(length(grep("3",currentdir))>=1)
   dirInstance=3
 if(length(grep("4",currentdir))>=1)
   dirInstance=4
+if(length(grep("5",currentdir))>=1)
+  dirInstance=5
+if(length(grep("6",currentdir))>=1)
+  dirInstance=6
+if(length(grep("7",currentdir))>=1)
+  dirInstance=7
+if(length(grep("8",currentdir))>=1)
+  dirInstance=8
 
 #Config File
 ConfigFileName_G=paste("ConfigParameters",dirInstance,".csv",sep="")
