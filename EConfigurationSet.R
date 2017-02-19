@@ -69,8 +69,11 @@ EvFNames <- c("holdDays","UdlStepNum","UdlStepPct","Posnum","CombineTargetGenera
               "Delta_Thresh_Minus","Delta_Thresh_Plus","Vega_Thresh_Minus","Vega_Thresh_Plus",
               "Delta_Direct_Prf","Vega_Direct_Prf","Delta_Neutral_Offset","Vega_Neutral_Offset",
               "Profit_Coef","AdvEffect_Coef","AllEffect_Coef","DrctlEffect_Coef","MaxLoss_Coef",
-              "SigmoidA_Numerator","SigmoidA_Denominator","ExpIVChange_Multiple","ThetaEffectPositive",
-              "EvalConvex","ConvexEvalInCoef","UseSortinoRatio","Eval1DayDist","Coef1DayDist",
+              "SigmoidA_Numerator","SigmoidA_Denominator",
+              "ExpIVChange_Multiple","ThetaEffectPositive",
+              "EvalConvex","ConvexEvalInCoef",
+              "UseSortinoRatio",
+              "Eval1DayDist","Eval1DayDistWeightROnHoldDay","Coef1DayDist",
               "DeltaHedge","GreekEfctOnHldD")
 
 EvalFuncSetting<-vector("list",length(EvFNames))
@@ -113,9 +116,10 @@ EvalFuncSetting[[35]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_EvalConvex",1
 EvalFuncSetting[[36]]<-eval(parse(text=gsub("\\$",",",ConfigParameters["EvalFnc_ConvexEvalInCoef",1])))
 EvalFuncSetting[[37]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_UseSortinoRatio",1])==1,TRUE,FALSE)
 EvalFuncSetting[[38]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_Eval1DayDist",1])==1,TRUE,FALSE)
-EvalFuncSetting[[39]]<-as.numeric(ConfigParameters["EvalFnc_Coef1DayDist",1])
-EvalFuncSetting[[40]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_DeltaHedgeToEvalProfit",1])==1,TRUE,FALSE)
-EvalFuncSetting[[41]]<-as.numeric(ConfigParameters["EvalFnc_GreekEffectEvalOnHoldDay",1])
+EvalFuncSetting[[39]]<-as.numeric(ConfigParameters["EvalFnc_Eval1DayDistWeightROnHoldDay",1])
+EvalFuncSetting[[40]]<-as.numeric(ConfigParameters["EvalFnc_Coef1DayDist",1])
+EvalFuncSetting[[41]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_DeltaHedgeToEvalProfit",1])==1,TRUE,FALSE)
+EvalFuncSetting[[42]]<-as.numeric(ConfigParameters["EvalFnc_GreekEffectEvalOnHoldDay",1])
 
 names(EvalFuncSetting)<-EvFNames
 names(EvalFuncSetting$DrctlEffect_Coef) <- c("DeltaECoef","VegaECoef") 

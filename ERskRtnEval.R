@@ -226,13 +226,17 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   # Day 1 profit profile
   VegaEffect_Comp1D=0
   if(Setting$Eval1DayDist){
+    #weight for 1DayDist
+    ratOnHldD_tmp=Setting$Eval1DayDistWeightROnHoldDay
+    weight_1D=Setting$Weight_Explicit_1D*(1-ratOnHldD_tmp)+Setting$Weight_Explicit*ratOnHldD_tmp
+    weight_1D=weight_1D/sum(weight_1D)
     #1D Table
     posEvalTbl1D=posStepDays$scene[[1]]
     profit_1D_vector=(posEvalTbl1D$Price-posStepDays$scene[[1]]$Price[udlStepNum + 1])
-    #distance from 1D and hdDay profit curv assuming the same holding days weight
+    #distance from 1D and hdDay profit curv assuming the weight_1D holding days weight
     tmp_1D=profit_vector-profit_1D_vector
-    profit_hd1D_diff_wght=sum(tmp_1D*weight)
-    profit_hd1D_AbsDiff_wght=sum(abs(tmp_1D)*weight)
+    profit_hd1D_diff_wght=sum(tmp_1D*weight_1D)
+    profit_hd1D_AbsDiff_wght=sum(abs(tmp_1D)*weight_1D)
     
     #1D volUp/Downs scenario
     posEvalTbl1D_vc_plus=posStepDays_vc_plus$scene[[1]]
@@ -241,39 +245,41 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
     profit_1D_vector_vc_plus=(posEvalTbl1D_vc_plus$Price-posStepDays_vc_plus$scene[[1]]$Price[udlStepNum + 1])
     profit_1D_vector_vc_minus=(posEvalTbl1D_vc_minus$Price-posStepDays_vc_minus$scene[[1]]$Price[udlStepNum + 1])
     #VegaEffect 1st Day
-    VegaEffectWithSign1D= (sum(profit_1D_vector_vc_plus*weight)-sum(profit_1D_vector_vc_minus*weight))/2
-    VegaEffect_Comp1D = (-1)*sum(abs((profit_1D_vector_vc_plus-profit_1D_vector_vc_minus)/2)*weight)
+    VegaEffectWithSign1D= (sum(profit_1D_vector_vc_plus*weight_1D)-sum(profit_1D_vector_vc_minus*weight_1D))/2
+    VegaEffect_Comp1D = (-1)*sum(abs((profit_1D_vector_vc_plus-profit_1D_vector_vc_minus)/2)*weight_1D)
     #Vomma Effect
-    VommaEffect1D=((sum(profit_1D_vector_vc_plus*weight) + sum(profit_1D_vector_vc_minus*weight))/2)-sum(profit_1D_vector*weight)
+    VommaEffect1D=((sum(profit_1D_vector_vc_plus*weight_1D) + sum(profit_1D_vector_vc_minus*weight_1D))/2)-sum(profit_1D_vector*weight_1D)
     Vega_True1D=VegaEffectWithSign1D/(expIVChange*100)
-    #distance from 1D and hdDay profit curv assuming the same hdDay weight for volUp/Down scenario
+    #distance from 1D and hdDay profit curv assuming the weight_1D for volUp/Down scenario
     #volUp
     tmp_1D= profit_vector_vc_plus-profit_1D_vector_vc_plus
-    profit_hd1D_diff_vc_plus_wght=sum(tmp_1D*weight)
-    profit_hd1D_AbsDiff_vc_plus_wght=sum(abs(tmp_1D)*weight)
+    profit_hd1D_diff_vc_plus_wght=sum(tmp_1D*weight_1D)
+    profit_hd1D_AbsDiff_vc_plus_wght=sum(abs(tmp_1D)*weight_1D)
     #volDown
     tmp_1D= profit_vector_vc_minus-profit_1D_vector_vc_minus
-    profit_hd1D_diff_vc_minus_wght=sum(tmp_1D*weight)
-    profit_hd1D_AbsDiff_vc_minus_wght=sum(abs(tmp_1D)*weight)
+    profit_hd1D_diff_vc_minus_wght=sum(tmp_1D*weight_1D)
+    profit_hd1D_AbsDiff_vc_minus_wght=sum(abs(tmp_1D)*weight_1D)
     if(isDetail){cat(" :(Vega1D)",Vega_True1D," :(VegaEffectWithSign1D)",VegaEffectWithSign1D,
                      " :(VegaEffect1D)",VegaEffect_Comp1D," :(VommaEffect1D)",VommaEffect1D)}
     if(isDetail){
       #cat("\n:(1st day evalTble)\n");print(posEvalTbl1D)
+      cat(" :(Eval1DayDistWeightROnHoldDay)",ratOnHldD_tmp,
+          " :(weight_1D)",weight_1D)
       cat(" <<1Day profit :(prft_vec_1D)",profit_1D_vector,
-          " :(prft_vec_1D_hdd_weight)",mean(profit_1D_vector*weight),
-          " :(prft_vec_1D_hdd_sd)",sd(rep(profit_1D_vector,times=round(weight*1000))))
+          " :(prft_vec_1D_hdd_weight)",mean(profit_1D_vector*weight_1D),
+          " :(prft_vec_1D_hdd_sd)",sd(rep(profit_1D_vector,times=round(weight_1D*1000))))
       cat(" :(profit_hd1D_diff_wght)",profit_hd1D_diff_wght,
           " :(prfit_hd1Day_diffAbs_wght)",profit_hd1D_AbsDiff_wght," 1Day profit>>")
-      #up
+      #IV Up
       cat(" <<1Day profit :(prft_vec_1D_vc_plus)",profit_1D_vector_vc_plus,
-          " :(prft_vec_1D_hdd_vc_plus_weight)",mean(profit_1D_vector_vc_plus*weight),
-          " :(prft_vec_1D_hdd__vc_plus_sd)",sd(rep(profit_1D_vector_vc_plus,times=round(weight*1000))))
+          " :(prft_vec_1D_hdd_vc_plus_weight)",mean(profit_1D_vector_vc_plus*weight_1D),
+          " :(prft_vec_1D_hdd__vc_plus_sd)",sd(rep(profit_1D_vector_vc_plus,times=round(weight_1D*1000))))
       cat(" :(profit_hd1D_diff_vc_plus_wght)",profit_hd1D_diff_vc_plus_wght,
           " :(prfit_hd1Day_diffAbs_vc_plus_wght)",profit_hd1D_AbsDiff_vc_plus_wght," 1Day profit>>")
-      #down
+      #IV Down
       cat(" <<1Day profit :(prft_vec_1D_vc_minus)",profit_1D_vector_vc_minus,
-          " :(prft_vec_1D_hdd_vc_minus_weight)",mean(profit_1D_vector_vc_minus*weight),
-          " :(prft_vec_1D_hdd__vc_minus_sd)",sd(rep(profit_1D_vector_vc_minus,times=round(weight*1000))))
+          " :(prft_vec_1D_hdd_vc_minus_weight)",mean(profit_1D_vector_vc_minus*weight_1D),
+          " :(prft_vec_1D_hdd__vc_minus_sd)",sd(rep(profit_1D_vector_vc_minus,times=round(weight_1D*1000))))
       cat(" :(profit_hd1D_diff_vc_minus_wght)",profit_hd1D_diff_vc_minus_wght,
           " :(prfit_hd1Day_diffAbs_vc_minus_wght)",profit_hd1D_AbsDiff_vc_minus_wght," 1Day profit>>")
     }
