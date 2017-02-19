@@ -246,7 +246,7 @@ if(Combined_Spread){
                                        EvalFuncSetting,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE,
                                        udlStepNum=EvalFuncSetting$UdlStepNum,udlStepPct=EvalFuncSetting$UdlStepPct,
                                        PosMultip=PosMultip,
-                                       tail_rate=EvalFuncSetting$Tail_rate,lossLimitPrice=EvalFuncSetting$LossLimitPrice,
+                                       lossLimitPrice=EvalFuncSetting$LossLimitPrice,
                                        Delta_Direct_Prf=EvalFuncSetting$Delta_Direct_Prf[sum(as.numeric((unlist(.)[1:length(opchain$Position)])!=0))],
                                        Vega_Direct_Prf=EvalFuncSetting$Vega_Direct_Prf[sum(as.numeric((unlist(.)[1:length(opchain$Position)])!=0))],
                                        Delta_Neutral_Offset=EvalFuncSetting$Delta_Neutral_Offset[sum(as.numeric((unlist(.)[1:length(opchain$Position)])!=0))],

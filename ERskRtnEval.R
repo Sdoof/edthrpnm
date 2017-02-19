@@ -3,7 +3,7 @@
 
 obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
                             udlStepNum,udlStepPct,PosMultip,
-                            tail_rate,lossLimitPrice,
+                            lossLimitPrice,
                             Delta_Direct_Prf,Vega_Direct_Prf,
                             Delta_Neutral_Offset,Vega_Neutral_Offset){
   #returned when the spread is not appropriate
@@ -47,25 +47,9 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   
   ##
   #  weighting calculate
-  if(sum(EvalFuncSetting$Weight_Explicit)<0.2){
-    sd_multp<-Setting$holdDays
-    anlzd_sd<-histIV$IVIDX[1]*Setting$HV_IV_Adjust_Ratio
-    sd_hd<-(anlzd_sd/sqrt(252/sd_multp))
-    sd_hd_1d<-(anlzd_sd/sqrt(252/1))
-    #f.y.i sd_hd<-exp(anlzd_sd*sqrt(sd_multp/252))-1 #exponential expressionsum()
-    weight<-dsn(udlChgPct,xi=sd_multp/252*Setting$Weight_Drift,alpha=Setting$Weight_Skew*sd_hd,omega=sd_hd) /
-      sum(dsn(udlChgPct,xi=sd_multp/252*Setting$Weight_Drift,alpha=Setting$Weight_Skew*sd_hd,omega=sd_hd))
-    weight_Effect_hd<-dsn(udlChgPct,xi=sd_multp/252*Setting$Weight_Drift_GreekEffect,alpha=Setting$Weight_Skew_GreekEffect*sd_hd,omega=sd_hd) /
-      sum(dsn(udlChgPct,xi=sd_multp/252*Setting$Weight_Drift_GreekEffect,alpha=Setting$Weight_Skew_GreekEffect*sd_hd,omega=sd_hd))
-    weight_Effect_1d<-dsn(udlChgPct,xi=1/252*Setting$Weight_Drift_GreekEffect,alpha=Setting$Weight_Skew_GreekEffect*sd_hd_1d,omega=sd_hd_1d) /
-      sum(dsn(udlChgPct,xi=1/252*Setting$Weight_Drift_GreekEffect,alpha=Setting$Weight_Skew_GreekEffect*sd_hd_1d,omega=sd_hd_1d))
-    #average weighted weight_Effect
-    weight_Effect=weight_Effect_1d*Setting$GreekEfctOnHldD+weight_Effect_hd*(1-Setting$GreekEfctOnHldD)
-  }else{
-    weight<-Setting$Weight_Explicit
-    weight_Effect<-Setting$Weight_Explicit_1D*Setting$GreekEfctOnHldD+Setting$Weight_Explicit*(1-Setting$GreekEfctOnHldD)
-    #weight_Effect=weight_Effect/sum(weight_Effect)
-  }
+  weight<-Setting$Weight_Explicit
+  weight_Effect<-Setting$Weight_Explicit_1D*Setting$GreekEfctOnHldD+Setting$Weight_Explicit*(1-Setting$GreekEfctOnHldD)
+  #weight_Effect=weight_Effect/sum(weight_Effect)
   
   if(isDetail){
     cat(" :(weight hdday)",weight)#;cat(" :(weightEffect hdday)",weight_Effect_hd);cat(" :(weightEffect 1ay)",weight_Effect_1d)
@@ -121,22 +105,25 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   ##
   # Estimated Profit
   posEvalTbl<-posStepDays$scene[[length(posStepDays)]]
-  profit_vector<-(posEvalTbl$Price-posStepDays$scene[[1]]$Price[udlStepNum + 1])
+  Price_initial<-posStepDays$scene[[1]]$Price[udlStepNum + 1]
+  profit_vector<-(posEvalTbl$Price-Price_initial)
   profit_hdays<-sum(profit_vector*weight)
-  if(isDetail){cat(" :(1stD price)",posStepDays$scene[[1]]$Price[udlStepNum + 1],
+  if(isDetail){cat(" :(1stD price)",Price_initial,
                    " :(prft_vec)",profit_vector," :(prft_wght)",profit_hdays)}
   
   ##
-  # Profit Scenario When IV goes Up
+  # Profit Scenario When IVprice_N goes Up
   posEvalTbl<-posStepDays_vc_plus$scene[[length(posStepDays)]]
-  profit_vector_vc_plus<-(posEvalTbl$Price-posStepDays$scene[[1]]$Price[udlStepNum + 1])
+  #profit_vector_vc_plus<-(posEvalTbl$Price-posStepDays$scene[[1]]$Price[udlStepNum + 1])
+  profit_vector_vc_plus<-(posEvalTbl$Price-Price_initial)
   profit_hdays_vc_plus<-sum(profit_vector_vc_plus*weight)
   if(isDetail){cat(" :(prft_vec_vc+)",profit_vector_vc_plus," :(prft_wght_vc+)",profit_hdays_vc_plus)}
   
   ##
   # Profit Scenario When IV goes Down
   posEvalTbl<-posStepDays_vc_minus$scene[[length(posStepDays)]]
-  profit_vector_vc_minus<-(posEvalTbl$Price-posStepDays$scene[[1]]$Price[udlStepNum + 1])
+  #profit_vector_vc_minus<-(posEvalTbl$Price-posStepDays$scene[[1]]$Price[udlStepNum + 1])
+  profit_vector_vc_minus<-(posEvalTbl$Price-Price_initial)
   profit_hdays_vc_minus<-sum(profit_vector_vc_minus*weight)
   
   #Initial Delta
@@ -232,7 +219,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
     weight_1D=weight_1D/sum(weight_1D)
     #1D Table
     posEvalTbl1D=posStepDays$scene[[1]]
-    profit_1D_vector=(posEvalTbl1D$Price-posStepDays$scene[[1]]$Price[udlStepNum + 1])
+    profit_1D_vector=(posEvalTbl1D$Price-Price_initial)
     #distance from 1D and hdDay profit curv assuming the weight_1D holding days weight
     tmp_1D=profit_vector-profit_1D_vector
     profit_hd1D_diff_wght=sum(tmp_1D*weight_1D)
@@ -242,8 +229,8 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
     posEvalTbl1D_vc_plus=posStepDays_vc_plus$scene[[1]]
     posEvalTbl1D_vc_minus=posStepDays_vc_minus$scene[[1]]
     
-    profit_1D_vector_vc_plus=(posEvalTbl1D_vc_plus$Price-posStepDays_vc_plus$scene[[1]]$Price[udlStepNum + 1])
-    profit_1D_vector_vc_minus=(posEvalTbl1D_vc_minus$Price-posStepDays_vc_minus$scene[[1]]$Price[udlStepNum + 1])
+    profit_1D_vector_vc_plus=(posEvalTbl1D_vc_plus$Price-Price_initial)
+    profit_1D_vector_vc_minus=(posEvalTbl1D_vc_minus$Price-Price_initial)
     #VegaEffect 1st Day
     VegaEffectWithSign1D= (sum(profit_1D_vector_vc_plus*weight_1D)-sum(profit_1D_vector_vc_minus*weight_1D))/2
     VegaEffect_Comp1D = (-1)*sum(abs((profit_1D_vector_vc_plus-profit_1D_vector_vc_minus)/2)*weight_1D)
@@ -372,16 +359,6 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
     posEvalTbl$VegaEffect=posEvalTbl_1$VegaEffect*Setting$GreekEfctOnHldD+posEvalTbl_hd$VegaEffect*(1-Setting$GreekEfctOnHldD)
     posEvalTbl$ThetaEffect=posEvalTbl_1$ThetaEffect*Setting$GreekEfctOnHldD+posEvalTbl_hd$ThetaEffect*(1-Setting$GreekEfctOnHldD)
     posEvalTbl$IVIDX=posEvalTbl_1$IVIDX*Setting$GreekEfctOnHldD+posEvalTbl_hd$IVIDX*(1-Setting$GreekEfctOnHldD)
-  }
-  
-  ##
-  # Constraint 4. ThetaEffect. This should be soft constraint
-  if(Setting$ThetaEffectPositive){
-    theta_ttl<-sum(posEvalTbl$Theta*weight_Effect)
-    if(isDetail){cat(" :(thta_ttl)",theta_ttl)}
-    if(isDetail){cat(" :(thta_ini)",thePositionGrk$ThetaEffect);cat(" :(thta_wt)",sum(posEvalTbl$ThetaEffect*weight_Effect))}
-    if(theta_ttl<0)
-      return(unacceptableVal)
   }
   
   ##
@@ -1299,7 +1276,7 @@ sampleMain<-function(sampleSpreadType,totalPopNum,targetExpDate,targetExpDate_f,
         val<-obj_Income_sgmd(x,EvalFuncSetting,isDebug=isDebug,isDetail=isDetail,
                              udlStepNum=EvalFuncSetting$UdlStepNum,udlStepPct=EvalFuncSetting$UdlStepPct,
                              PosMultip=PosMultip,
-                             tail_rate=EvalFuncSetting$Tail_rate,lossLimitPrice=EvalFuncSetting$LossLimitPrice,
+                             lossLimitPrice=EvalFuncSetting$LossLimitPrice,
                              Delta_Direct_Prf=EvalFuncSetting$Delta_Direct_Prf[posnum],Vega_Direct_Prf=EvalFuncSetting$Vega_Direct_Prf[posnum],
                              Delta_Neutral_Offset=EvalFuncSetting$Delta_Neutral_Offset[posnum],Vega_Neutral_Offset=EvalFuncSetting$Vega_Neutral_Offset[posnum]),
         error=function(e){
@@ -1436,10 +1413,9 @@ createInitialExactPutCallPopulation<-function(popnum,type,EvalFuncSetting,thresh
     if(has.key(md5sumOfPos, POSITION_OPTIM_HASH)==FALSE){
       tryCatch(
         val<-obj_Income_sgmd(x,EvalFuncSetting,isDebug=isDebug,isDetail=isDetail,
-                             #val<-obj_fixedpt_sgmd(x,EvalFuncSetting,isDebug=isDebug,isDetail=isDetail,
                              udlStepNum=EvalFuncSetting$UdlStepNum,udlStepPct=EvalFuncSetting$UdlStepPct,
                              PosMultip=PosMultip,
-                             tail_rate=EvalFuncSetting$Tail_rate,lossLimitPrice=EvalFuncSetting$LossLimitPrice,
+                             lossLimitPrice=EvalFuncSetting$LossLimitPrice,
                              Delta_Direct_Prf=EvalFuncSetting$Delta_Direct_Prf[posnum],Vega_Direct_Prf=EvalFuncSetting$Vega_Direct_Prf[posnum],
                              Delta_Neutral_Offset=EvalFuncSetting$Delta_Neutral_Offset[posnum],Vega_Neutral_Offset=EvalFuncSetting$Vega_Neutral_Offset[posnum]),
         error=function(e){
@@ -1544,7 +1520,7 @@ createCombinedPopulation<-function(popnum,EvalFuncSetting,thresh,plelem,ml,fname
         val<-obj_Income_sgmd(x_new,EvalFuncSetting,isDebug=isDebug,isDetail=isDetail,
                              udlStepNum=EvalFuncSetting$UdlStepNum,udlStepPct=EvalFuncSetting$UdlStepPct,
                              PosMultip=PosMultip,
-                             tail_rate=EvalFuncSetting$Tail_rate,lossLimitPrice=EvalFuncSetting$LossLimitPrice,
+                             lossLimitPrice=EvalFuncSetting$LossLimitPrice,
                              Delta_Direct_Prf=EvalFuncSetting$Delta_Direct_Prf[posnum],Vega_Direct_Prf=EvalFuncSetting$Vega_Direct_Prf[posnum],
                              Delta_Neutral_Offset=EvalFuncSetting$Delta_Neutral_Offset[posnum],Vega_Neutral_Offset=EvalFuncSetting$Vega_Neutral_Offset[posnum]),
         error=function(e){
