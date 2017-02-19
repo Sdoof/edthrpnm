@@ -215,10 +215,13 @@ LocalcreateSampleConditionStr<-function(EvalFuncSetting){
   
   ConvexEvalInCoef_chunk=ifelse(EvalFuncSetting$EvalConvex,
                                 paste(EvalFuncSetting$ConvexEvalInCoef["InCoefSD"]*100,"_",
-                                      EvalFuncSetting$ConvexEvalInCoef["InCoefMaxLoss"]*100,sep=""),"")
+                                      EvalFuncSetting$ConvexEvalInCoef["InCoefMaxLoss"]*100,
+                                      sep=""),"")
   
   Eval1DayDist_chunk=ifelse(EvalFuncSetting$Eval1DayDist,
-                            paste(EvalFuncSetting$Coef1DayDist,sep=""),"")
+                            paste(EvalFuncSetting$Eval1DayDistWeightROnHoldDay,"_",
+                                  EvalFuncSetting$Coef1DayDist,
+                                  sep=""),"")
   
   outStr=paste(EvalFuncSetting$UdlStepPct*1000,"x",EvalFuncSetting$UdlStepNum,"-",EvalFuncSetting$holdDays,"d-",
                EvalFuncSetting$Profit_Coef,"_",EvalFuncSetting$AdvEffect_Coef,"-",
