@@ -266,19 +266,19 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
       cat(" :(Eval1DayDistWeightROnHoldDay)",ratOnHldD_tmp,
           " :(weight_1D)",weight_1D)
       cat(" <<1Day profit :(prft_vec_1D)",profit_1D_vector,
-          " :(prft_vec_1D_hdd_weight)",mean(profit_1D_vector*weight_1D),
+          " :(prft_vec_1D_hdd_weight)",sum(profit_1D_vector*weight_1D),
           " :(prft_vec_1D_hdd_sd)",sd(rep(profit_1D_vector,times=round(weight_1D*1000))))
       cat(" :(profit_hd1D_diff_wght)",profit_hd1D_diff_wght,
           " :(prfit_hd1Day_diffAbs_wght)",profit_hd1D_AbsDiff_wght," 1Day profit>>")
       #IV Up
       cat(" <<1Day profit :(prft_vec_1D_vc_plus)",profit_1D_vector_vc_plus,
-          " :(prft_vec_1D_hdd_vc_plus_weight)",mean(profit_1D_vector_vc_plus*weight_1D),
+          " :(prft_vec_1D_hdd_vc_plus_weight)",sum(profit_1D_vector_vc_plus*weight_1D),
           " :(prft_vec_1D_hdd__vc_plus_sd)",sd(rep(profit_1D_vector_vc_plus,times=round(weight_1D*1000))))
       cat(" :(profit_hd1D_diff_vc_plus_wght)",profit_hd1D_diff_vc_plus_wght,
           " :(prfit_hd1Day_diffAbs_vc_plus_wght)",profit_hd1D_AbsDiff_vc_plus_wght," 1Day profit>>")
       #IV Down
       cat(" <<1Day profit :(prft_vec_1D_vc_minus)",profit_1D_vector_vc_minus,
-          " :(prft_vec_1D_hdd_vc_minus_weight)",mean(profit_1D_vector_vc_minus*weight_1D),
+          " :(prft_vec_1D_hdd_vc_minus_weight)",sum(profit_1D_vector_vc_minus*weight_1D),
           " :(prft_vec_1D_hdd__vc_minus_sd)",sd(rep(profit_1D_vector_vc_minus,times=round(weight_1D*1000))))
       cat(" :(profit_hd1D_diff_vc_minus_wght)",profit_hd1D_diff_vc_minus_wght,
           " :(prfit_hd1Day_diffAbs_vc_minus_wght)",profit_hd1D_AbsDiff_vc_minus_wght," 1Day profit>>")
