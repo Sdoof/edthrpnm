@@ -38,7 +38,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
                                             multi=PosMultip,hdd=.$days,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)) -> posStepDays
   
   #Use for checking volatility sensitivity later
-  posStepDays_vc<-posStepDays
+  #posStepDays_vc<-posStepDays
   
   if(isDebug){cat("\n:(1st day evalTble)\n");print(posStepDays$scene[[1]])}
   if(isDebug){print(posStepDays$scene[[1]]$pos)}
@@ -74,7 +74,6 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   IVChgPct<-seq(histIV$IVIDX[1]-sd_iv,histIV$IVIDX[1]+sd_iv,length=3)
   #weigting
   weight_IV=dnorm(IVChgPct,mean=histIV$IVIDX[1],sd=sd_iv)/sum(dnorm(IVChgPct,mean=histIV$IVIDX[1],sd=sd_iv))
-  
   if(isDetail){cat(" :(weight_IV)",weight_IV)}
   
   #Implied Volatility Change percent
@@ -86,14 +85,14 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   if(isDetail){cat(" :(IV change%)",vol_chg)}
   
   #PositionStepDays data frame of Volatility UP scenario
-  posStepDays_vc_plus<-posStepDays_vc
+  posStepDays_vc_plus<-posStepDays
   posStepDays_vc_plus %>% dplyr::group_by(days) %>% dplyr::rowwise() %>% 
     dplyr::do(days=.$days,scene2=adjustPosChg(.$scene,base_vol_chg=vol_chg,
                                               multi=PosMultip,hdd=Setting$holdDays,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)) -> tmp
   unlist(tmp$days) -> posStepDays_vc_plus$days ; tmp$scene2 -> posStepDays_vc_plus$scene ;rm(tmp)
   
   #PositionStepDays data frame of Volatility Down scenario
-  posStepDays_vc_minus<-posStepDays_vc
+  posStepDays_vc_minus<-posStepDays
   posStepDays_vc_minus %>% dplyr::group_by(days) %>% dplyr::rowwise() %>% 
     dplyr::do(days=.$days,scene2=adjustPosChg(.$scene,base_vol_chg=(-1)*vol_chg,
                                               multi=PosMultip,hdd=Setting$holdDays,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)) -> tmp
@@ -104,45 +103,55 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   
   ##
   # Estimated Profit
-  posEvalTbl<-posStepDays$scene[[length(posStepDays)]]
+  
+  #initial Price
   Price_initial<-posStepDays$scene[[1]]$Price[udlStepNum + 1]
+  
+  # Profit Scenario IV as regressed
+  posEvalTbl<-posStepDays$scene[[length(posStepDays)]]
   profit_vector<-(posEvalTbl$Price-Price_initial)
   profit_hdays<-sum(profit_vector*weight)
-  if(isDetail){cat(" :(1stD price)",Price_initial,
-                   " :(prft_vec)",profit_vector," :(prft_wght)",profit_hdays)}
-  
-  ##
-  # Profit Scenario When IVprice_N goes Up
-  posEvalTbl<-posStepDays_vc_plus$scene[[length(posStepDays)]]
-  #profit_vector_vc_plus<-(posEvalTbl$Price-posStepDays$scene[[1]]$Price[udlStepNum + 1])
-  profit_vector_vc_plus<-(posEvalTbl$Price-Price_initial)
+ 
+  # Profit Scenario When IV goes Up
+  posEvalTbl_vc_plus<-posStepDays_vc_plus$scene[[length(posStepDays)]]
+  profit_vector_vc_plus<-(posEvalTbl_vc_plus$Price-Price_initial)
   profit_hdays_vc_plus<-sum(profit_vector_vc_plus*weight)
-  if(isDetail){cat(" :(prft_vec_vc+)",profit_vector_vc_plus," :(prft_wght_vc+)",profit_hdays_vc_plus)}
+  if(isDetail){}
   
-  ##
   # Profit Scenario When IV goes Down
-  posEvalTbl<-posStepDays_vc_minus$scene[[length(posStepDays)]]
-  #profit_vector_vc_minus<-(posEvalTbl$Price-posStepDays$scene[[1]]$Price[udlStepNum + 1])
-  profit_vector_vc_minus<-(posEvalTbl$Price-Price_initial)
+  posEvalTbl_vc_minus<-posStepDays_vc_minus$scene[[length(posStepDays)]]
+  profit_vector_vc_minus<-(posEvalTbl_vc_minus$Price-Price_initial)
   profit_hdays_vc_minus<-sum(profit_vector_vc_minus*weight)
+  if(isDetail){}
   
   #Initial Delta
   iniDelta <- posStepDays$scene[[1]]$Delta[udlStepNum + 1]
-  if(isDetail){cat(" :(iniDelta)",iniDelta);cat(" :(prft_vec_vc-)",profit_vector_vc_minus);cat(" :(prft_wght_vc-)",profit_hdays_vc_minus)}
+  
+  if(isDetail){
+    cat(" :(1stD price)",Price_initial,
+                   " :(prft_vec)",profit_vector," :(prft_wght)",profit_hdays)
+    cat(" :(prft_vec_vc+)",profit_vector_vc_plus," :(prft_wght_vc+)",profit_hdays_vc_plus)
+    cat(" :(prft_vec_vc-)",profit_vector_vc_minus);cat(" :(prft_wght_vc-)",profit_hdays_vc_minus)
+    cat(" :(iniDelta)",iniDelta)
+  }
   
   ## Delta Hedge
   if(Setting$DeltaHedge){
+    #IV as regressed
     profit_vector<-profit_vector-as.numeric(iniDelta)*(posEvalTbl$UDLY-mean(thePositionGrk$UDLY))
     profit_hdays<-sum(profit_vector*weight)
-    if(isDetail){cat(" :(iniDelta)",iniDelta);cat(" :(prft_vec_dh)",profit_vector);cat(" :(prft_wght_dh)",profit_hdays)}
-    
+    #IV as goes up
     profit_vector_vc_plus<-profit_vector_vc_plus-as.numeric(iniDelta)*(posEvalTbl$UDLY-mean(thePositionGrk$UDLY))
     profit_hdays_vc_plus<-sum(profit_vector_vc_plus*weight)
-    if(isDetail){cat(" :(prft_vec_dh_vc+)",profit_vector_vc_plus);cat(" :(prft_wght_dh_vc+)",profit_hdays_vc_plus)}
-    
+    #IV as goes down
     profit_vector_vc_minus<-profit_vector_vc_minus-as.numeric(iniDelta)*(posEvalTbl$UDLY-mean(thePositionGrk$UDLY))
     profit_hdays_vc_minus<-sum(profit_vector_vc_minus*weight)
-    if(isDetail){cat(" :(prft_vec_dh_vc-)",profit_vector_vc_minus);cat(" :(prft_wght_dh_vc-)",profit_hdays_vc_minus)}
+    if(isDetail){
+      cat(" :(iniDelta)",iniDelta)
+      cat(" :(prft_vec_dh)",profit_vector);cat(" :(prft_wght_dh)",profit_hdays)
+      cat(" :(prft_vec_dh_vc+)",profit_vector_vc_plus);cat(" :(prft_wght_dh_vc+)",profit_hdays_vc_plus)
+      cat(" :(prft_vec_dh_vc-)",profit_vector_vc_minus);cat(" :(prft_wght_dh_vc-)",profit_hdays_vc_minus)
+    }
   }
   
   ##
@@ -165,13 +174,6 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
            rep(rep(profit_vector_vc_minus,times=round(weight*5000)),times=round(weight_IV*100)[1]))
   
   if(Setting$UseSortinoRatio){
-    #other cost candidates
-    #profit_sd=(-1)*mean((pdist<0)*pdist)
-    #profit_sd=(-1)*mean(pdist[pdist<0])
-    #profit_sd=sd((pdist<0)*pdist)
-    #profit_sd=sd(pdist[pdist<0])
-    ## select one of them below
-    #profit_sd=sd((pdist<0)*pdist)+(-1)*mean((pdist<0)*pdist)
     {
       if(sum(pdist<0)>=2)
         profit_sd=sd(pdist[pdist<0])+(-1)*mean(pdist[pdist<0])
@@ -217,35 +219,37 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
     ratOnHldD_tmp=Setting$Eval1DayDistWeightROnHoldDay
     weight_1D=Setting$Weight_Explicit_1D*(1-ratOnHldD_tmp)+Setting$Weight_Explicit*ratOnHldD_tmp
     weight_1D=weight_1D/sum(weight_1D)
-    #1D Table
+    
+    #1D scenario
     posEvalTbl1D=posStepDays$scene[[1]]
     profit_1D_vector=(posEvalTbl1D$Price-Price_initial)
     #distance from 1D and hdDay profit curv assuming the weight_1D holding days weight
-    tmp_1D=profit_vector-profit_1D_vector
-    profit_hd1D_diff_wght=sum(tmp_1D*weight_1D)
-    profit_hd1D_AbsDiff_wght=sum(abs(tmp_1D)*weight_1D)
+    #tmp_1D=profit_vector-profit_1D_vector
+    #profit_hd1D_diff_wght=sum(tmp_1D*weight_1D)
+    #profit_hd1D_AbsDiff_wght=sum(abs(tmp_1D)*weight_1D)
     
-    #1D volUp/Downs scenario
+    #1D IV Up/Down scenario
     posEvalTbl1D_vc_plus=posStepDays_vc_plus$scene[[1]]
     posEvalTbl1D_vc_minus=posStepDays_vc_minus$scene[[1]]
-    
     profit_1D_vector_vc_plus=(posEvalTbl1D_vc_plus$Price-Price_initial)
     profit_1D_vector_vc_minus=(posEvalTbl1D_vc_minus$Price-Price_initial)
-    #VegaEffect 1st Day
+    
+    ## VegaEffect 1st Day
     VegaEffectWithSign1D= (sum(profit_1D_vector_vc_plus*weight_1D)-sum(profit_1D_vector_vc_minus*weight_1D))/2
     VegaEffect_Comp1D = (-1)*sum(abs((profit_1D_vector_vc_plus-profit_1D_vector_vc_minus)/2)*weight_1D)
-    #Vomma Effect
+    #Vomma Effect 1st Day
     VommaEffect1D=((sum(profit_1D_vector_vc_plus*weight_1D) + sum(profit_1D_vector_vc_minus*weight_1D))/2)-sum(profit_1D_vector*weight_1D)
     Vega_True1D=VegaEffectWithSign1D/(expIVChange*100)
+  
     #distance from 1D and hdDay profit curv assuming the weight_1D for volUp/Down scenario
-    #volUp
-    tmp_1D= profit_vector_vc_plus-profit_1D_vector_vc_plus
-    profit_hd1D_diff_vc_plus_wght=sum(tmp_1D*weight_1D)
-    profit_hd1D_AbsDiff_vc_plus_wght=sum(abs(tmp_1D)*weight_1D)
-    #volDown
-    tmp_1D= profit_vector_vc_minus-profit_1D_vector_vc_minus
-    profit_hd1D_diff_vc_minus_wght=sum(tmp_1D*weight_1D)
-    profit_hd1D_AbsDiff_vc_minus_wght=sum(abs(tmp_1D)*weight_1D)
+    #IV Up
+    #tmp_1D= profit_vector_vc_plus-profit_1D_vector_vc_plus
+    #profit_hd1D_diff_vc_plus_wght=sum(tmp_1D*weight_1D)
+    #profit_hd1D_AbsDiff_vc_plus_wght=sum(abs(tmp_1D)*weight_1D)
+    #IV Down
+    #tmp_1D= profit_vector_vc_minus-profit_1D_vector_vc_minus
+    #profit_hd1D_diff_vc_minus_wght=sum(tmp_1D*weight_1D)
+    #profit_hd1D_AbsDiff_vc_minus_wght=sum(abs(tmp_1D)*weight_1D)
     if(isDetail){cat(" :(Vega1D)",Vega_True1D," :(VegaEffectWithSign1D)",VegaEffectWithSign1D,
                      " :(VegaEffect1D)",VegaEffect_Comp1D," :(VommaEffect1D)",VommaEffect1D)}
     if(isDetail){
@@ -255,20 +259,21 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
       cat(" <<1Day profit :(prft_vec_1D)",profit_1D_vector,
           " :(prft_vec_1D_hdd_weight)",sum(profit_1D_vector*weight_1D),
           " :(prft_vec_1D_hdd_sd)",sd(rep(profit_1D_vector,times=round(weight_1D*1000))))
-      cat(" :(profit_hd1D_diff_wght)",profit_hd1D_diff_wght,
-          " :(prfit_hd1Day_diffAbs_wght)",profit_hd1D_AbsDiff_wght," 1Day profit>>")
+      #cat(" :(profit_hd1D_diff_wght)",profit_hd1D_diff_wght,
+      #    " :(prfit_hd1Day_diffAbs_wght)",profit_hd1D_AbsDiff_wght)
       #IV Up
       cat(" <<1Day profit :(prft_vec_1D_vc_plus)",profit_1D_vector_vc_plus,
           " :(prft_vec_1D_hdd_vc_plus_weight)",sum(profit_1D_vector_vc_plus*weight_1D),
           " :(prft_vec_1D_hdd__vc_plus_sd)",sd(rep(profit_1D_vector_vc_plus,times=round(weight_1D*1000))))
-      cat(" :(profit_hd1D_diff_vc_plus_wght)",profit_hd1D_diff_vc_plus_wght,
-          " :(prfit_hd1Day_diffAbs_vc_plus_wght)",profit_hd1D_AbsDiff_vc_plus_wght," 1Day profit>>")
+      #cat(" :(profit_hd1D_diff_vc_plus_wght)",profit_hd1D_diff_vc_plus_wght,
+      #    " :(prfit_hd1Day_diffAbs_vc_plus_wght)",profit_hd1D_AbsDiff_vc_plus_wght," 1Day profit>>")
       #IV Down
       cat(" <<1Day profit :(prft_vec_1D_vc_minus)",profit_1D_vector_vc_minus,
           " :(prft_vec_1D_hdd_vc_minus_weight)",sum(profit_1D_vector_vc_minus*weight_1D),
           " :(prft_vec_1D_hdd__vc_minus_sd)",sd(rep(profit_1D_vector_vc_minus,times=round(weight_1D*1000))))
-      cat(" :(profit_hd1D_diff_vc_minus_wght)",profit_hd1D_diff_vc_minus_wght,
-          " :(prfit_hd1Day_diffAbs_vc_minus_wght)",profit_hd1D_AbsDiff_vc_minus_wght," 1Day profit>>")
+      #cat(" :(profit_hd1D_diff_vc_minus_wght)",profit_hd1D_diff_vc_minus_wght,
+      #    " :(prfit_hd1Day_diffAbs_vc_minus_wght)",profit_hd1D_AbsDiff_vc_minus_wght," 1Day profit>>")
+      cat(" 1Day profit>>")
     }
     #profit_sd=profit_sd+Setting$Coef1DayDist*abs(prfit_hd1Day_diff_wght)
     # if(isDetail){
@@ -347,20 +352,26 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   #not default, averaging 1st Day and holdDay
   if(isDetail){cat(" :(GreekEfctOnHldD)",Setting$GreekEfctOnHldD)}
   if(Setting$GreekEfctOnHldD<1){
-    posEvalTbl_1<-posStepDays$scene[[1]]
-    posEvalTbl_hd<-posStepDays$scene[[length(posStepDays)]]
     #weighting
-    posEvalTbl$Delta=posEvalTbl_1$Delta*Setting$GreekEfctOnHldD+posEvalTbl_hd$Delta*(1-Setting$GreekEfctOnHldD)
-    posEvalTbl$Gamma=posEvalTbl_1$Gamma*Setting$GreekEfctOnHldD+posEvalTbl_hd$Gamma*(1-Setting$GreekEfctOnHldD)
-    posEvalTbl$Vega=posEvalTbl_1$Vega*Setting$GreekEfctOnHldD+posEvalTbl_hd$Vega*(1-Setting$GreekEfctOnHldD)
-    posEvalTbl$Theta=posEvalTbl_1$Theta*Setting$GreekEfctOnHldD+posEvalTbl_hd$Theta*(1-Setting$GreekEfctOnHldD)
-    posEvalTbl$DeltaEffect=posEvalTbl_1$DeltaEffect*Setting$GreekEfctOnHldD+posEvalTbl_hd$DeltaEffect*(1-Setting$GreekEfctOnHldD)
-    posEvalTbl$GammaEffect=posEvalTbl_1$GammaEffect*Setting$GreekEfctOnHldD+posEvalTbl_hd$GammaEffect*(1-Setting$GreekEfctOnHldD)
-    posEvalTbl$VegaEffect=posEvalTbl_1$VegaEffect*Setting$GreekEfctOnHldD+posEvalTbl_hd$VegaEffect*(1-Setting$GreekEfctOnHldD)
-    posEvalTbl$ThetaEffect=posEvalTbl_1$ThetaEffect*Setting$GreekEfctOnHldD+posEvalTbl_hd$ThetaEffect*(1-Setting$GreekEfctOnHldD)
-    posEvalTbl$IVIDX=posEvalTbl_1$IVIDX*Setting$GreekEfctOnHldD+posEvalTbl_hd$IVIDX*(1-Setting$GreekEfctOnHldD)
+    posEvalTbl$Delta=posStepDays$scene[[1]]$Delta*Setting$GreekEfctOnHldD+
+      posStepDays$scene[[length(posStepDays)]]$Delta*(1-Setting$GreekEfctOnHldD)
+    posEvalTbl$Gamma=posStepDays$scene[[1]]$Gamma*Setting$GreekEfctOnHldD+
+      posStepDays$scene[[length(posStepDays)]]$Gamma*(1-Setting$GreekEfctOnHldD)
+    posEvalTbl$Vega=posStepDays$scene[[1]]$Vega*Setting$GreekEfctOnHldD+
+      posStepDays$scene[[length(posStepDays)]]$Vega*(1-Setting$GreekEfctOnHldD)
+    posEvalTbl$Theta=posStepDays$scene[[1]]$Theta*Setting$GreekEfctOnHldD+
+      posStepDays$scene[[length(posStepDays)]]$Theta*(1-Setting$GreekEfctOnHldD)
+    posEvalTbl$DeltaEffect=posStepDays$scene[[1]]$DeltaEffect*Setting$GreekEfctOnHldD+
+      posStepDays$scene[[length(posStepDays)]]$DeltaEffect*(1-Setting$GreekEfctOnHldD)
+    posEvalTbl$GammaEffect=posStepDays$scene[[1]]$GammaEffect*Setting$GreekEfctOnHldD+
+      posStepDays$scene[[length(posStepDays)]]$GammaEffect*(1-Setting$GreekEfctOnHldD)
+    posEvalTbl$VegaEffect=posStepDays$scene[[1]]$VegaEffect*Setting$GreekEfctOnHldD+
+      posStepDays$scene[[length(posStepDays)]]$VegaEffect*(1-Setting$GreekEfctOnHldD)
+    posEvalTbl$ThetaEffect=posStepDays$scene[[1]]$ThetaEffect*Setting$GreekEfctOnHldD+
+      posStepDays$scene[[length(posStepDays)]]$ThetaEffect*(1-Setting$GreekEfctOnHldD)
+    posEvalTbl$IVIDX=posStepDays$scene[[1]]$IVIDX*Setting$GreekEfctOnHldD+
+      posStepDays$scene[[length(posStepDays)]]$IVIDX*(1-Setting$GreekEfctOnHldD)
   }
-  
   ##
   # Advantageous Effects.
   c5<- sum((posEvalTbl$GammaEffect+posEvalTbl$ThetaEffect)*weight_Effect)+VommaEffect
@@ -378,19 +389,20 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   expPriceChange <- getExpectedValueChange(base=posEvalTbl$UDLY,sd=posEvalTbl$IVIDX*Setting$HV_IV_Adjust_Ratio, dtime=Setting$holdDays/252)
   Delta_revised_offset<-posEvalTbl$Delta-Delta_Neutral_Offset
   Delta_Effect_revised_offset<- (-abs(Delta_revised_offset))*expPriceChange
-  if(isDetail){cat(" :(expPriceChange)",expPriceChange," :(Delta Offset)",Delta_revised_offset," :(DeltaE offset)",Delta_Effect_revised_offset)}
-  
+  #weighting
   Delta_revised_offset<-sum(Delta_revised_offset*weight_Effect)
   Delta_Effect_revised_offset<-sum(Delta_Effect_revised_offset*weight_Effect)
-  if(isDetail){cat(" :(DeltaE_wght)",Delta_Effect_revised_offset," :(Delta_wght)",Delta_revised_offset)}
-  
   ###Delta_Thresh_Minus,Delta_Thresh_Plus
   DeltaEffect_Comp<-(Delta_revised_offset<0)*(Delta_revised_offset<Setting$Delta_Thresh_Minus[length(position$TYPE)])*Delta_Effect_revised_offset+
     (Delta_revised_offset>0)*(Delta_revised_offset>Setting$Delta_Thresh_Plus[length(position$TYPE)])*Delta_Effect_revised_offset
   
   if(isDetail){
-    cat(" :betwn (Delta_Thresh_Minus)",Setting$Delta_Thresh_Minus[length(position$TYPE)],
-        " and (Delta_Thresh_Plus)",Setting$Delta_Thresh_Plus[length(position$TYPE)])
+    cat(" :(Delta Ofst)",posEvalTbl$Delta-Delta_Neutral_Offset,
+        " :(DeltaE Ofst)",(-abs(Delta_revised_offset))*expPriceChange)
+    cat(" :(expPriceChange)",expPriceChange," :(Delta_W)",
+        Delta_revised_offset," :(DeltaE_Wght)",Delta_Effect_revised_offset)
+    cat(" :(Delta_W betwn (Delta_Thresh_Minus)",Setting$Delta_Thresh_Minus[length(position$TYPE)],
+        " and (Delta_Thresh_Plus))",Setting$Delta_Thresh_Plus[length(position$TYPE)])
     cat(" :(new DeltaE_wght)",DeltaEffect_Comp)
   }
   
@@ -415,9 +427,9 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   
   c6=(dlta_pref_coef*DeltaEffect_Comp)
   if(Setting$Eval1DayDist){
-    VegaEffect_Comp=VegaEffect_Comp+VegaEffect_Comp1D
+    VegaEffect_Comp=VegaEffect_Comp+Setting$Coef1DayDist*VegaEffect_Comp1D
     if(isDetail){
-      cat(" (:VegaE+= VegaEffect_Comp1D",VegaEffect_Comp1D,")")
+      cat(" (:VegaE+= Coef1DayDist",Setting$Coef1DayDist," x VegaEffect_Comp1D",VegaEffect_Comp1D,")")
     }
   }
   c7=(vega_pref_coef*VegaEffect_Comp)
