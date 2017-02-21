@@ -37,10 +37,14 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
     dplyr::do(scene=createPositionEvalTable(position=position,udlStepNum=udlStepNum,udlStepPct=udlStepPct,
                                             multi=PosMultip,hdd=.$days,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)) -> posStepDays
   
-  if(isDebug){cat("\n:(1st day evalTble)\n");print(posStepDays$scene[[1]])}
-  if(isDebug){print(posStepDays$scene[[1]]$pos)}
-  if(isDebug){cat(":(On holdDay evalTble)\n");print(posStepDays$scene[[length(posStepDays)]])}
-  if(isDebug){print(posStepDays$scene[[length(posStepDays)]]$pos)}
+  if(isDebug){
+    cat("\n:(1st day evalTble)\n")
+    print(posStepDays$scene[[1]])
+    print(posStepDays$scene[[1]]$pos)
+    cat(":(On holdDay evalTble)\n")
+    print(posStepDays$scene[[length(posStepDays)]])
+    print(posStepDays$scene[[length(posStepDays)]]$pos)
+  }
   
   ##
   #  weighting calculate
@@ -108,7 +112,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   posEvalTbl<-posStepDays$scene[[length(posStepDays)]]
   profit_vector<-(posEvalTbl$Price-Price_initial)
   profit_hdays<-sum(profit_vector*weight)
- 
+  
   # Profit Scenario When IV goes Up
   posEvalTbl_vc_plus<-posStepDays_vc_plus$scene[[length(posStepDays)]]
   profit_vector_vc_plus<-(posEvalTbl_vc_plus$Price-Price_initial)
@@ -123,8 +127,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   iniDelta <- posStepDays$scene[[1]]$Delta[udlStepNum + 1]
   
   if(isDetail){
-    cat(" :(1stD price)",Price_initial,
-                   " :(prft_vec)",profit_vector," :(prft_wght)",profit_hdays)
+    cat(" :(1stD price)",Price_initial," :(prft_vec)",profit_vector," :(prft_wght)",profit_hdays)
     cat(" :(prft_vec_vc+)",profit_vector_vc_plus," :(prft_wght_vc+)",profit_hdays_vc_plus)
     cat(" :(prft_vec_vc-)",profit_vector_vc_minus);cat(" :(prft_wght_vc-)",profit_hdays_vc_minus)
     cat(" :(iniDelta)",iniDelta)
@@ -143,7 +146,8 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
     profit_hdays_vc_minus<-sum(profit_vector_vc_minus*weight)
     if(isDetail){
       cat(" :(iniDelta)",iniDelta)
-      cat(" :(prft_vec_dh)",profit_vector);cat(" :(prft_wght_dh)",profit_hdays)
+      cat(" :(prft_vec_dh)",profit_vector)
+      cat(" :(prft_wght_dh)",profit_hdays)
       cat(" :(prft_vec_dh_vc+)",profit_vector_vc_plus);cat(" :(prft_wght_dh_vc+)",profit_hdays_vc_plus)
       cat(" :(prft_vec_dh_vc-)",profit_vector_vc_minus);cat(" :(prft_wght_dh_vc-)",profit_hdays_vc_minus)
     }
@@ -235,7 +239,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
     #Vomma Effect 1st Day
     VommaEffect1D=((sum(profit_1D_vector_vc_plus*weight_1D) + sum(profit_1D_vector_vc_minus*weight_1D))/2)-sum(profit_1D_vector*weight_1D)
     Vega_True1D=VegaEffectWithSign1D/(expIVChange*100)
-  
+    
     #distance from 1D and hdDay profit curv assuming the weight_1D for volUp/Down scenario
     #IV Up
     #tmp_1D= profit_vector_vc_plus-profit_1D_vector_vc_plus
@@ -346,27 +350,26 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   #posEvalTbl<-posStepDays$scene[[length(posStepDays)]]
   #not default, averaging 1st Day and holdDay
   if(isDetail){cat(" :(GreekEfctOnHldD)",Setting$GreekEfctOnHldD)}
-  if(Setting$GreekEfctOnHldD<1){
-    #weighting
-    posEvalTbl$Delta=posStepDays$scene[[1]]$Delta*Setting$GreekEfctOnHldD+
-      posStepDays$scene[[length(posStepDays)]]$Delta*(1-Setting$GreekEfctOnHldD)
-    posEvalTbl$Gamma=posStepDays$scene[[1]]$Gamma*Setting$GreekEfctOnHldD+
-      posStepDays$scene[[length(posStepDays)]]$Gamma*(1-Setting$GreekEfctOnHldD)
-    posEvalTbl$Vega=posStepDays$scene[[1]]$Vega*Setting$GreekEfctOnHldD+
-      posStepDays$scene[[length(posStepDays)]]$Vega*(1-Setting$GreekEfctOnHldD)
-    posEvalTbl$Theta=posStepDays$scene[[1]]$Theta*Setting$GreekEfctOnHldD+
-      posStepDays$scene[[length(posStepDays)]]$Theta*(1-Setting$GreekEfctOnHldD)
-    posEvalTbl$DeltaEffect=posStepDays$scene[[1]]$DeltaEffect*Setting$GreekEfctOnHldD+
-      posStepDays$scene[[length(posStepDays)]]$DeltaEffect*(1-Setting$GreekEfctOnHldD)
-    posEvalTbl$GammaEffect=posStepDays$scene[[1]]$GammaEffect*Setting$GreekEfctOnHldD+
-      posStepDays$scene[[length(posStepDays)]]$GammaEffect*(1-Setting$GreekEfctOnHldD)
-    posEvalTbl$VegaEffect=posStepDays$scene[[1]]$VegaEffect*Setting$GreekEfctOnHldD+
-      posStepDays$scene[[length(posStepDays)]]$VegaEffect*(1-Setting$GreekEfctOnHldD)
-    posEvalTbl$ThetaEffect=posStepDays$scene[[1]]$ThetaEffect*Setting$GreekEfctOnHldD+
-      posStepDays$scene[[length(posStepDays)]]$ThetaEffect*(1-Setting$GreekEfctOnHldD)
-    posEvalTbl$IVIDX=posStepDays$scene[[1]]$IVIDX*Setting$GreekEfctOnHldD+
-      posStepDays$scene[[length(posStepDays)]]$IVIDX*(1-Setting$GreekEfctOnHldD)
-  }
+  # if(Setting$GreekEfctOnHldD<1){
+  #   posEvalTbl$Delta=posStepDays$scene[[1]]$Delta*Setting$GreekEfctOnHldD+
+  #     posStepDays$scene[[length(posStepDays)]]$Delta*(1-Setting$GreekEfctOnHldD)
+  #   posEvalTbl$Gamma=posStepDays$scene[[1]]$Gamma*Setting$GreekEfctOnHldD+
+  #     posStepDays$scene[[length(posStepDays)]]$Gamma*(1-Setting$GreekEfctOnHldD)
+  #   posEvalTbl$Vega=posStepDays$scene[[1]]$Vega*Setting$GreekEfctOnHldD+
+  #     posStepDays$scene[[length(posStepDays)]]$Vega*(1-Setting$GreekEfctOnHldD)
+  #   posEvalTbl$Theta=posStepDays$scene[[1]]$Theta*Setting$GreekEfctOnHldD+
+  #     posStepDays$scene[[length(posStepDays)]]$Theta*(1-Setting$GreekEfctOnHldD)
+  #   posEvalTbl$DeltaEffect=posStepDays$scene[[1]]$DeltaEffect*Setting$GreekEfctOnHldD+
+  #     posStepDays$scene[[length(posStepDays)]]$DeltaEffect*(1-Setting$GreekEfctOnHldD)
+  #   posEvalTbl$GammaEffect=posStepDays$scene[[1]]$GammaEffect*Setting$GreekEfctOnHldD+
+  #     posStepDays$scene[[length(posStepDays)]]$GammaEffect*(1-Setting$GreekEfctOnHldD)
+  #   posEvalTbl$VegaEffect=posStepDays$scene[[1]]$VegaEffect*Setting$GreekEfctOnHldD+
+  #     posStepDays$scene[[length(posStepDays)]]$VegaEffect*(1-Setting$GreekEfctOnHldD)
+  #   posEvalTbl$ThetaEffect=posStepDays$scene[[1]]$ThetaEffect*Setting$GreekEfctOnHldD+
+  #     posStepDays$scene[[length(posStepDays)]]$ThetaEffect*(1-Setting$GreekEfctOnHldD)
+  #   posEvalTbl$IVIDX=posStepDays$scene[[1]]$IVIDX*Setting$GreekEfctOnHldD+
+  #     posStepDays$scene[[length(posStepDays)]]$IVIDX*(1-Setting$GreekEfctOnHldD)
+  # }
   ##
   # Advantageous Effects.
   c5<- sum((posEvalTbl$GammaEffect+posEvalTbl$ThetaEffect)*weight_Effect)+VommaEffect
