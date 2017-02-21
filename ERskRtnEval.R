@@ -53,7 +53,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   #weight_Effect=weight_Effect/sum(weight_Effect)
   
   if(isDetail){
-    cat(" :(weight hdday)",weight)#;cat(" :(weightEffect hdday)",weight_Effect_hd);cat(" :(weightEffect 1ay)",weight_Effect_1d)
+    cat(" :(weight hdday)",weight)
     cat(" :(weightEffect)",weight_Effect)
   }
   
