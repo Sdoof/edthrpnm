@@ -37,9 +37,6 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
     dplyr::do(scene=createPositionEvalTable(position=position,udlStepNum=udlStepNum,udlStepPct=udlStepPct,
                                             multi=PosMultip,hdd=.$days,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)) -> posStepDays
   
-  #Use for checking volatility sensitivity later
-  #posStepDays_vc<-posStepDays
-  
   if(isDebug){cat("\n:(1st day evalTble)\n");print(posStepDays$scene[[1]])}
   if(isDebug){print(posStepDays$scene[[1]]$pos)}
   if(isDebug){cat(":(On holdDay evalTble)\n");print(posStepDays$scene[[length(posStepDays)]])}
@@ -116,13 +113,11 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   posEvalTbl_vc_plus<-posStepDays_vc_plus$scene[[length(posStepDays)]]
   profit_vector_vc_plus<-(posEvalTbl_vc_plus$Price-Price_initial)
   profit_hdays_vc_plus<-sum(profit_vector_vc_plus*weight)
-  if(isDetail){}
   
   # Profit Scenario When IV goes Down
   posEvalTbl_vc_minus<-posStepDays_vc_minus$scene[[length(posStepDays)]]
   profit_vector_vc_minus<-(posEvalTbl_vc_minus$Price-Price_initial)
   profit_hdays_vc_minus<-sum(profit_vector_vc_minus*weight)
-  if(isDetail){}
   
   #Initial Delta
   iniDelta <- posStepDays$scene[[1]]$Delta[udlStepNum + 1]
@@ -400,10 +395,10 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
     cat(" :(Delta Ofst)",posEvalTbl$Delta-Delta_Neutral_Offset,
         " :(DeltaE Ofst)",(-abs(Delta_revised_offset))*expPriceChange)
     cat(" :(expPriceChange)",expPriceChange," :(Delta_W)",
-        Delta_revised_offset," :(DeltaE_Wght)",Delta_Effect_revised_offset)
+        Delta_revised_offset," :(DeltaE_W)",Delta_Effect_revised_offset)
     cat(" :(Delta_W betwn (Delta_Thresh_Minus)",Setting$Delta_Thresh_Minus[length(position$TYPE)],
         " and (Delta_Thresh_Plus))",Setting$Delta_Thresh_Plus[length(position$TYPE)])
-    cat(" :(new DeltaE_wght)",DeltaEffect_Comp)
+    cat(" :(new DeltaE_W)",DeltaEffect_Comp)
   }
   
   ##
