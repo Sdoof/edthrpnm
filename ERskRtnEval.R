@@ -303,15 +303,16 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
     #                  " = :c8(profit_sd_maxloss)",c8)}
     pdist_moment=empMoments(pdist)
     c8=profit_sd+
-      #((-1)*sd(pdist)*
+      ((-1)*sd(pdist)*
       ####  (profit_expctd<0) should not be T here, but just in case ...
       #((1)*(profit_expctd<0)+(-1)*(profit_expctd>=0))*profit_expctd*
-      ((-1)*profit_expctd*
+      #((-1)*profit_expctd*
          (EvalFuncSetting$ConvexEvalInCoef[1]*pdist_moment["skewness"]+
             EvalFuncSetting$ConvexEvalInCoef[2]*(pdist_moment["kurtosis"]-3) ))
     
     if(isDetail){
-      cat(" :(-1)*(profit_expctd:",profit_expctd,
+      cat(" :(-1)*sd(pdist:",sd(pdist),
+      #cat(" :(-1)*(profit_expctd:",profit_expctd,
           ")x(:skew_coef",EvalFuncSetting$ConvexEvalInCoef[1],"x :skewness",pdist_moment["skewness"],
           "+ :kurtosis",EvalFuncSetting$ConvexEvalInCoef[2],"x (:kurtois-3)",pdist_moment["kurtosis"]-3,
           ") + profit_sd",profit_sd,

@@ -59,7 +59,7 @@ vol_chg=vol_chg*EvalFuncSetting$ExpIVChange_Multiple
 VolatilitySensitivityChange=vol_chg
 
 #DrawLineSizeMax
-DrawLineSizeMax=2.4
+DrawLineSizeMax=1.8
 
 #First day line mede Blank
 FirstDayLineMadeBlank=F
