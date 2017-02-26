@@ -214,7 +214,8 @@ LocalflipScoreWriteToFile<-function(ResultFileName,maxNum){
 LocalcreateSampleConditionStr<-function(EvalFuncSetting){
   
   ConvexEvalInCoef_chunk=ifelse(EvalFuncSetting$EvalConvex,
-                                paste(EvalFuncSetting$ConvexEvalInCoef["InCoefSD"]*100,"_",
+                                paste(ifelse(EvalFuncSetting$ConvexNormalizeByProfit,"UseP","UseSd"),"_",
+                                      EvalFuncSetting$ConvexEvalInCoef["InCoefSD"]*100,"_",
                                       EvalFuncSetting$ConvexEvalInCoef["InCoefMaxLoss"]*100,
                                       sep=""),"")
   

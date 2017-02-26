@@ -302,23 +302,28 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
     #                  "+ :InCoefMaxLoss",InCoefMaxLoss,"x :maxLoss",(-1)*maxLoss,
     #                  " = :c8(profit_sd_maxloss)",c8)}
     pdist_moment=empMoments(pdist)
+    ####  (profit_expctd<0) should not be T here, but just in case ...
+    #((-1)*(profit_expctd<0)+(1)*(profit_expctd>=0))*profit_expctd*
+    skew_normal_coef_tmp=profit_expctd
+    if(Setting$ConvexNormalizeByProfit==FALSE){
+      skew_normal_coef_tmp=sd(pdist)
+    }
+    
     c8=profit_sd+
-      ((-1)*sd(pdist)*
-      ####  (profit_expctd<0) should not be T here, but just in case ...
-      #((1)*(profit_expctd<0)+(-1)*(profit_expctd>=0))*profit_expctd*
-      #((-1)*profit_expctd*
+      ((-1)*skew_normal_coef_tmp*
          (EvalFuncSetting$ConvexEvalInCoef[1]*pdist_moment["skewness"]+
             EvalFuncSetting$ConvexEvalInCoef[2]*(pdist_moment["kurtosis"]-3) ))
-    
     if(isDetail){
-      cat(" :(-1)*sd(pdist:",sd(pdist),
-      #cat(" :(-1)*(profit_expctd:",profit_expctd,
-          ")x(:skew_coef",EvalFuncSetting$ConvexEvalInCoef[1],"x :skewness",pdist_moment["skewness"],
+      if(Setting$ConvexNormalizeByProfit==TRUE)
+        cat(" :(-1)*(profit_expctd:",profit_expctd)
+      if(Setting$ConvexNormalizeByProfit==FALSE)
+        cat(" :(-1)*sd(pdist:",sd(pdist))
+      cat(")x(:skew_coef",EvalFuncSetting$ConvexEvalInCoef[1],"x :skewness",pdist_moment["skewness"],
           "+ :kurtosis",EvalFuncSetting$ConvexEvalInCoef[2],"x (:kurtois-3)",pdist_moment["kurtosis"]-3,
           ") + profit_sd",profit_sd,
           " = :c8(profit_sd_maxloss)",c8 #,
           #" f.y.i :mean",pdist_moment["mean"],
-          #" :sd",sqrt(pdist_moment["variance"]) 
+          #" :sd",sqrt(pdist_moment["variance"])
       )}
   }else{
     c8<- profit_sd

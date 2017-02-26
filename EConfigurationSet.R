@@ -70,7 +70,7 @@ EvFNames <- c("holdDays","UdlStepNum","UdlStepPct","Posnum","CombineTargetGenera
               "Profit_Coef","AdvEffect_Coef","AllEffect_Coef","DrctlEffect_Coef","MaxLoss_Coef",
               "SigmoidA_Numerator","SigmoidA_Denominator",
               "ExpIVChange_Multiple",
-              "EvalConvex","ConvexEvalInCoef",
+              "EvalConvex","ConvexNormalizeByProfit","ConvexEvalInCoef",
               "UseSortinoRatio",
               "Eval1DayDist","Eval1DayDistWeightROnHoldDay","Coef1DayDist",
               "DeltaHedge","GreekEfctOnHldD")
@@ -106,13 +106,14 @@ EvalFuncSetting[[26]]<-as.numeric(ConfigParameters["EvalFnc_SigmoidA_Numerator",
 EvalFuncSetting[[27]]<-as.numeric(ConfigParameters["EvalFnc_SigmoidA_Denominator",1])
 EvalFuncSetting[[28]]<-as.numeric(ConfigParameters["EvalFnc_ExpIVChange_Multiple",1])
 EvalFuncSetting[[29]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_EvalConvex",1])==1,TRUE,FALSE)
-EvalFuncSetting[[30]]<-eval(parse(text=gsub("\\$",",",ConfigParameters["EvalFnc_ConvexEvalInCoef",1])))
-EvalFuncSetting[[31]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_UseSortinoRatio",1])==1,TRUE,FALSE)
-EvalFuncSetting[[32]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_Eval1DayDist",1])==1,TRUE,FALSE)
-EvalFuncSetting[[33]]<-as.numeric(ConfigParameters["EvalFnc_Eval1DayDistWeightROnHoldDay",1])
-EvalFuncSetting[[34]]<-as.numeric(ConfigParameters["EvalFnc_Coef1DayDist",1])
-EvalFuncSetting[[35]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_DeltaHedgeToEvalProfit",1])==1,TRUE,FALSE)
-EvalFuncSetting[[36]]<-as.numeric(ConfigParameters["EvalFnc_GreekEffectEvalOnHoldDay",1])
+EvalFuncSetting[[30]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_ConvexNormalizeByProfit",1])==1,TRUE,FALSE)
+EvalFuncSetting[[31]]<-eval(parse(text=gsub("\\$",",",ConfigParameters["EvalFnc_ConvexEvalInCoef",1])))
+EvalFuncSetting[[32]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_UseSortinoRatio",1])==1,TRUE,FALSE)
+EvalFuncSetting[[33]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_Eval1DayDist",1])==1,TRUE,FALSE)
+EvalFuncSetting[[34]]<-as.numeric(ConfigParameters["EvalFnc_Eval1DayDistWeightROnHoldDay",1])
+EvalFuncSetting[[35]]<-as.numeric(ConfigParameters["EvalFnc_Coef1DayDist",1])
+EvalFuncSetting[[36]]<-ifelse(as.numeric(ConfigParameters["EvalFnc_DeltaHedgeToEvalProfit",1])==1,TRUE,FALSE)
+EvalFuncSetting[[37]]<-as.numeric(ConfigParameters["EvalFnc_GreekEffectEvalOnHoldDay",1])
 
 names(EvalFuncSetting)<-EvFNames
 names(EvalFuncSetting$DrctlEffect_Coef) <- c("DeltaECoef","VegaECoef") 
