@@ -15,8 +15,8 @@ contractRestoreList = None
 orderIdMktReqContractDict = None
 priceInfoDict = {}
 
-SPX_Strike_Max=2550
-SPX_Strike_Min=1600
+SPX_Strike_Max=2650
+SPX_Strike_Min=1700
 RUT_Strike_Max=1800
 RUT_Strike_Min=800
 
