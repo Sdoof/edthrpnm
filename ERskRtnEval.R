@@ -127,11 +127,18 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   iniDelta <- posStepDays$scene[[1]]$Delta[udlStepNum + 1]
   
   if(isDetail){
-    cat(" :(1stD price)",Price_initial," :(prft_vec)",profit_vector," :(prft_wght)",profit_hdays)
-    cat(" :(prft_vec_vc+)",profit_vector_vc_plus," :(prft_wght_vc+)",profit_hdays_vc_plus)
-    cat(" :(prft_vec_vc-)",profit_vector_vc_minus);cat(" :(prft_wght_vc-)",profit_hdays_vc_minus)
-    cat(" :(iniDelta)",iniDelta)
+    tmp=data.frame(posStepDays$scene[[1]]$UDLY,profit_vector,profit_vector_vc_plus,profit_vector_vc_minus)
+    colnames(tmp)<-c("UDLY","prft","vc+","vc-")
+    row.names(tmp)<-c(1:length(profit_vector))
+    tmp=t(tmp)
+    cat("\n");print(tmp)
+    cat(" :(1stD price)",Price_initial," :(prft_wght)",profit_hdays,
+        " :(prft_wght_vc+)",profit_hdays_vc_plus,
+        " :(prft_wght_vc-)",profit_hdays_vc_minus,
+        " :(iniDelta)",iniDelta)
   }
+  
+  posStepDays$scene[[length(posStepDays)]]$UDLY
   
   ## Delta Hedge
   if(Setting$DeltaHedge){
@@ -306,7 +313,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
     #((-1)*(profit_expctd<0)+(1)*(profit_expctd>=0))*profit_expctd*
     skew_normal_coef_tmp=profit_expctd
     if(Setting$ConvexNormalizeByProfit==FALSE){
-      skew_normal_coef_tmp=sd(pdist)
+      skew_normal_coef_tmp=sd(pdist)+profit_expctd
     }
     
     c8=profit_sd+
@@ -317,7 +324,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
       if(Setting$ConvexNormalizeByProfit==TRUE)
         cat(" :(-1)*(profit_expctd:",profit_expctd)
       if(Setting$ConvexNormalizeByProfit==FALSE)
-        cat(" :(-1)*sd(pdist:",sd(pdist))
+        cat(" :(-1)*(sd(pdist)+profit_expctd:",sd(pdist)+profit_expctd)
       cat(")x(:skew_coef",EvalFuncSetting$ConvexEvalInCoef[1],"x :skewness",pdist_moment["skewness"],
           "+ :kurtosis",EvalFuncSetting$ConvexEvalInCoef[2],"x (:kurtois-3)",pdist_moment["kurtosis"]-3,
           ") + profit_sd",profit_sd,
