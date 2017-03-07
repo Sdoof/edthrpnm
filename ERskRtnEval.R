@@ -1670,6 +1670,15 @@ createAgrregatedGreekTbl<-function(posStepDays,thePosition,udlStepNum=udlStepNum
   greek_tbl %>% dplyr::rename(UDLY=x,Theta=greek) -> greek_tbl
   agr_tbl  %>% dplyr::left_join(greek_tbl)  -> agr_tbl
   
+  #IVIDX
+  posStepDays %>% dplyr::group_by(days) %>% dplyr::rowwise() %>% dplyr::do(ptbl=createGreekTbl(.$days,.$scene$UDLY,.$scene$IVIDX)) -> tmp
+  greek_tbl<-dplyr::full_join(tmp$ptbl[[1]],tmp$ptbl[[2]])
+  for(i in 2:length(tmp$ptbl)){
+    greek_tbl<-dplyr::full_join(greek_tbl,tmp$ptbl[[i]])
+  }
+  greek_tbl %>% dplyr::rename(UDLY=x,IVIDX=greek) -> greek_tbl
+  agr_tbl  %>% dplyr::left_join(greek_tbl)  -> agr_tbl
+  
   #ThetaEffect
   posStepDays %>% dplyr::group_by(days) %>% dplyr::rowwise() %>% dplyr::do(ptbl=createGreekTbl(.$days,.$scene$UDLY,.$scene$ThetaEffect)) -> tmp
   greek_tbl<-dplyr::full_join(tmp$ptbl[[1]],tmp$ptbl[[2]])
