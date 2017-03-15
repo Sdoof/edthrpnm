@@ -17,6 +17,8 @@ priceInfoDict = {}
 
 SPX_Strike_Max=2650
 SPX_Strike_Min=1700
+SPX_Strike_Max_P=SPX_Strike_Max-200
+SPX_Strike_Min_C=SPX_Strike_Min+300
 RUT_Strike_Max=1800
 RUT_Strike_Min=800
 
@@ -158,7 +160,7 @@ def subscribeContractList(opCont,con):
     theOrderId = nextOrderId
     con.reqContractDetails(theOrderId, opCont)
     #raw_input('wait for contractDetail press to continue')
-    sleep(7)
+    sleep(5)
     contractRemoveList = []
     for con_item in range(len(contractRestoreList)):
         con_each = contractRestoreList[con_item]
@@ -172,13 +174,17 @@ def subscribeContractList(opCont,con):
                 contractRemoveList.append(con_each)
             elif not((con_each.m_strike % 10)==0 or (con_each.m_strike % 25)==0):
                 contractRemoveList.append(con_each)
+            elif con_each.m_right == 'C' and con_each.m_strike < SPX_Strike_Min_C:
+                contractRemoveList.append(con_each)
+            elif con_each.m_right == 'P' and con_each.m_strike > SPX_Strike_Max_P:
+                contractRemoveList.append(con_each)
         elif con_each.m_secType == 'OPT' and con_each.m_symbol == 'RUT':
-            contractRemoveList.append(con_each)
             if con_each.m_strike < RUT_Strike_Min:
+                contractRemoveList.append(con_each)
+            elif not ((con_each.m_strike % 10) == 0 or (con_each.m_strike % 25) == 0):
                 contractRemoveList.append(con_each)
             elif con_each.m_strike > RUT_Strike_Max:
                 contractRemoveList.append(con_each)
-    # Remove
     for con_rmv_item in range(len(contractRemoveList)):
         con_rmv = contractRemoveList[con_rmv_item]
         contractRestoreList.remove(con_rmv)
