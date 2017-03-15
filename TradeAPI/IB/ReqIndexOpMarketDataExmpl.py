@@ -158,24 +158,26 @@ def subscribeContractList(opCont,con):
     theOrderId = nextOrderId
     con.reqContractDetails(theOrderId, opCont)
     #raw_input('wait for contractDetail press to continue')
-    sleep(5)
+    sleep(7)
     contractRemoveList = []
     for con_item in range(len(contractRestoreList)):
         con_each = contractRestoreList[con_item]
         #print('retrieved conid %s \"%s\" %s %s %s %s %s x %s on %s' %
         #      (con_each.m_conId, con_each.m_localSymbol, con_each.m_secType, con_each.m_right, con_each.m_strike,
         #       con_each.m_expiry, con_each.m_symbol, con_each.m_multiplier, con_each.m_exchange))
-        ### exclude condition
-        #if (con_each.m_strike % 10) != 0:
-        #    contractRemoveList.append(con_each)
-        if con_each.m_secType == 'OPT' and con_each.m_symbol == 'SPX' and con_each.m_strike < SPX_Strike_Min:
+        if con_each.m_secType == 'OPT' and con_each.m_symbol == 'SPX':
+            if con_each.m_strike < SPX_Strike_Min:
+                contractRemoveList.append(con_each)
+            elif con_each.m_strike > SPX_Strike_Max:
+                contractRemoveList.append(con_each)
+            elif not((con_each.m_strike % 10)==0 or (con_each.m_strike % 25)==0):
+                contractRemoveList.append(con_each)
+        elif con_each.m_secType == 'OPT' and con_each.m_symbol == 'RUT':
             contractRemoveList.append(con_each)
-        elif con_each.m_secType == 'OPT' and con_each.m_symbol == 'SPX' and con_each.m_strike > SPX_Strike_Max:
-            contractRemoveList.append(con_each)
-        elif con_each.m_secType == 'OPT' and con_each.m_symbol == 'RUT' and con_each.m_strike < RUT_Strike_Min:
-            contractRemoveList.append(con_each)
-        elif con_each.m_secType == 'OPT' and con_each.m_symbol == 'RUT' and con_each.m_strike > RUT_Strike_Max:
-            contractRemoveList.append(con_each)
+            if con_each.m_strike < RUT_Strike_Min:
+                contractRemoveList.append(con_each)
+            elif con_each.m_strike > RUT_Strike_Max:
+                contractRemoveList.append(con_each)
     # Remove
     for con_rmv_item in range(len(contractRemoveList)):
         con_rmv = contractRemoveList[con_rmv_item]
