@@ -17,10 +17,10 @@ priceInfoDict = {}
 
 SPX_Strike_Max=2650
 SPX_Strike_Min=1700
-SPX_Strike_Max_P=SPX_Strike_Max-200
-SPX_Strike_Min_C=SPX_Strike_Min+300
-RUT_Strike_Max=1800
-RUT_Strike_Min=800
+SPX_Strike_Max_P=SPX_Strike_Max-150
+SPX_Strike_Min_C=SPX_Strike_Min+250
+RUT_Strike_Max=1700
+RUT_Strike_Min=900
 
 class ContractPrice:
     def __init__(self):
@@ -181,9 +181,9 @@ def subscribeContractList(opCont,con):
         elif con_each.m_secType == 'OPT' and con_each.m_symbol == 'RUT':
             if con_each.m_strike < RUT_Strike_Min:
                 contractRemoveList.append(con_each)
-            elif not ((con_each.m_strike % 10) == 0 or (con_each.m_strike % 25) == 0):
-                contractRemoveList.append(con_each)
             elif con_each.m_strike > RUT_Strike_Max:
+                contractRemoveList.append(con_each)
+            elif not ((con_each.m_strike % 10) == 0 ):
                 contractRemoveList.append(con_each)
     for con_rmv_item in range(len(contractRemoveList)):
         con_rmv = contractRemoveList[con_rmv_item]
