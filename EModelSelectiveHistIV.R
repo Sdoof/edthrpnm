@@ -29,13 +29,23 @@ cat("Realized Vol(60d anlzd)",annuual.daily.volatility(histPrc[1:60])$anlzd*100,
 cat("Realized Vol(120d anlzd)",annuual.daily.volatility(histPrc[1:120])$anlzd*100,"IV",histIV[1])
 cat("Realized Vol(200d anlzd)",annuual.daily.volatility(histPrc[1:200])$anlzd*100,"IV",histIV[1])
 
-#selective parmeters
+#selective parmeters For SPX
 IS_SELECTIVE_HISTIV_REGR=T
 IS_SELECTIVE_WEIGHT_ESTM=T
 a_low=0.9
 d_low=2
 a_high=1.1
 d_high=2
+
+#selective parmeters For RUT
+if(Underying_Symbol_G=="RUT"){
+  IS_SELECTIVE_HISTIV_REGR=T
+  IS_SELECTIVE_WEIGHT_ESTM=T
+  a_low=0.7
+  d_low=3
+  a_high=1.34
+  d_high=3
+}
 
 ##
 # select Suffix to icnlude the valid IV data and make the selected suffix suitable to 
@@ -512,9 +522,9 @@ if(IS_SELECTIVE_HISTIV_REGR){
   tmp=saveP2IVReg(histPrc,histIV,DATA_NUM,xDayInt,effectiv_suffix=suffix_slctd)
 }
 (gg<-ggplot(tmp$P2IVxd,aes(x=PCxdCtC,y=IVCFxdCtC))+geom_point(alpha=0.08)+
-  geom_abline(intercept=tmp$lm$coefficient[1],slope=tmp$lm$coefficient[2],color="orange")+
-  xlim(min(tmp$P2IVxd$PCxdCtC)*1.2,max(tmp$P2IVxd$PCxdCtC)*1.2)+
-  ylim(min(tmp$P2IVxd$IVCFxdCtC)*1.2,max(tmp$P2IVxd$IVCFxdCtC)*1.2)
+    geom_abline(intercept=tmp$lm$coefficient[1],slope=tmp$lm$coefficient[2],color="orange")+
+    xlim(min(tmp$P2IVxd$PCxdCtC)*1.2,max(tmp$P2IVxd$PCxdCtC)*1.2)+
+    ylim(min(tmp$P2IVxd$IVCFxdCtC)*1.2,max(tmp$P2IVxd$IVCFxdCtC)*1.2)
 )
 #Load test
 load.PC2IV(PC=paste("PC",xDayInt,"dCtC",sep=""),IVC=paste("IVCF",xDayInt,"dCtC",sep=""))
@@ -701,7 +711,6 @@ if(IS_SELECTIVE_HISTIV_REGR){
     xlim(min(tmp$P2IVxd$PCxdCtC)*1.2,max(tmp$P2IVxd$PCxdCtC)*1.2)+
     ylim(min(tmp$P2IVxd$IVCFxdCtC)*1.2,max(tmp$P2IVxd$IVCFxdCtC)*1.2)
 )
-
 #Load test
 load.PC2IV(PC=paste("PC",xDayInt,"dCtC",sep=""),IVC=paste("IVCF",xDayInt,"dCtC",sep=""))
 PC1dCtC_IVCF1dCtC
