@@ -18,9 +18,9 @@ OpchainOutFileName=paste("_OPChain_Skew_",Sys.Date(),".csv",sep="")
 
 #read data file
 rf_<-paste(DataFiles_Path_G,Underying_Symbol_G,"_OPChain_Pos.csv",sep="")
-opch<-read.table(rf_,header=T,sep=",",nrows=50000)
+opch<-read.table(rf_,header=T,skipNul=T,stringsAsFactors=F,sep=",")
 rf_<-paste(DataFiles_Path_G,Underying_Symbol_G,"_IV.csv",sep="")
-histIV<-read.table(rf_,header=T,sep=",",nrows=1000)
+histIV<-read.table(rf_,header=T,stringsAsFactors=F,sep=",")
 rm(rf_)
 
 ##START Create complete opch
@@ -193,7 +193,7 @@ rm(models,vplot,predict.c)
 
 #atmiv filtering
 atmiv->atmiv.org #atmiv.org used later for IV Change to IVIDX Up and Down # atmiv=atmiv.org
-atmiv %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")>=as.Date("2017/2/10",format="%Y/%m/%d")) -> atmiv
+atmiv %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")>=as.Date("2017/3/17",format="%Y/%m/%d")) -> atmiv
 #create another column
 atmiv$ATMIDXIV.f=atmiv$ATMIV/atmiv$IVIDX
 #Minimus TimeToExpDate filtering
