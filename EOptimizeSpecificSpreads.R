@@ -139,6 +139,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   #file handling
   tmp<-read.table(outFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
   tmp %>% dplyr::arrange(.[,length(opchain$Position)+1])  %>%
+    dplyr::filter(.[,length(opchain$Position)+1]<UNACCEPTABLEVAL) %>%
     dplyr::distinct() -> tmp
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
   
@@ -146,6 +147,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   tmp %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% head(min(TopN[1],max(4,nrow(.)/2))) -> tmp
   pools<<-list(list(c(1,0,0),tmp))
 }
+
 ### DIAGONAL Candiates for Combination
 sampleSpreadType=DIAGONAL_SMPLING
 if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
@@ -171,6 +173,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   #file handling
   tmp<-read.table(outFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
   tmp %>% dplyr::arrange(.[,length(opchain$Position)+1])  %>%
+    dplyr::filter(.[,length(opchain$Position)+1]<UNACCEPTABLEVAL) %>%
     dplyr::distinct() -> tmp
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
   
@@ -204,6 +207,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   #file handling
   tmp<-read.table(outFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
   tmp %>% dplyr::arrange(.[,length(opchain$Position)+1])  %>%
+    dplyr::filter(.[,length(opchain$Position)+1]<UNACCEPTABLEVAL) %>%
     dplyr::distinct() -> tmp
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
   #pool setting
@@ -239,7 +243,8 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   #file handling
   tmp<-read.table(outFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
   tmp %>% dplyr::arrange(.[,length(opchain$Position)+1])  %>%
-    distinct() -> tmp
+    dplyr::filter(.[,length(opchain$Position)+1]<UNACCEPTABLEVAL) %>%
+    dplyr::distinct() -> tmp
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
   #pool setting
   tmp %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% head(min(TopN[1],max(4,nrow(.)/2))) -> tmp
@@ -274,6 +279,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   #file handling
   tmp<-read.table(outFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
   tmp %>% dplyr::arrange(.[,length(opchain$Position)+1])  %>%
+    dplyr::filter(.[,length(opchain$Position)+1]<UNACCEPTABLEVAL) %>%
     dplyr::distinct() -> tmp
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
   #pool setting
@@ -309,7 +315,8 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   #file handling
   tmp<-read.table(outFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
   tmp %>% dplyr::arrange(.[,length(opchain$Position)+1])  %>%
-    distinct() -> tmp
+    dplyr::filter(.[,length(opchain$Position)+1]<UNACCEPTABLEVAL) %>%
+    dplyr::distinct() -> tmp
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
   #pool setting
   tmp %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% head(min(TopN[1],max(4,nrow(.)/2))) -> tmp
@@ -350,9 +357,9 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   #file handling
   tmp<-read.table(outFname,header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
   tmp %>% dplyr::arrange(.[,length(opchain$Position)+1])  %>%
+    dplyr::filter(.[,length(opchain$Position)+1]<UNACCEPTABLEVAL) %>%
     dplyr::distinct() -> tmp
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
-  
   #pool setting
   tmp %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% head(min(TopN[1],max(4,nrow(.)))) -> tmp
   pools<<-list(list(c(1,0,0),tmp))
@@ -387,6 +394,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   #file handling
   tmp<-read.table(outFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
   tmp %>% dplyr::arrange(.[,length(opchain$Position)+1])  %>% 
+    dplyr::filter(.[,length(opchain$Position)+1]<UNACCEPTABLEVAL) %>%
     dplyr::distinct() -> tmp
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
   
@@ -435,6 +443,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   #file handling
   tmp<-read.table(outFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
   tmp %>% dplyr::arrange(.[,length(opchain$Position)+1])  %>%
+    dplyr::filter(.[,length(opchain$Position)+1]<UNACCEPTABLEVAL) %>%
     dplyr::distinct() -> tmp
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
   #pool setting
@@ -471,6 +480,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   #file handling
   tmp<-read.table(outFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
   tmp %>% dplyr::arrange(.[,length(opchain$Position)+1])  %>%
+    dplyr::filter(.[,length(opchain$Position)+1]<UNACCEPTABLEVAL) %>%
     dplyr::distinct() -> tmp
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
 }
@@ -501,6 +511,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   #file handling
   tmp<-read.table(outFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
   tmp %>% dplyr::arrange(.[,length(opchain$Position)+1])  %>% 
+    dplyr::filter(.[,length(opchain$Position)+1]<UNACCEPTABLEVAL) %>%
     dplyr::distinct() -> tmp
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
   
@@ -536,6 +547,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   #file handling
   tmp<-read.table(outFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
   tmp %>% dplyr::arrange(.[,length(opchain$Position)+1])  %>%
+    dplyr::filter(.[,length(opchain$Position)+1]<UNACCEPTABLEVAL) %>%
     dplyr::distinct() -> tmp
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
   
@@ -572,6 +584,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   #file handling
   tmp<-read.table(outFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
   tmp %>% dplyr::arrange(.[,length(opchain$Position)+1])  %>%
+    dplyr::filter(.[,length(opchain$Position)+1]<UNACCEPTABLEVAL) %>%
     dplyr::distinct() -> tmp
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
   
@@ -606,6 +619,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   #file handling
   tmp<-read.table(outFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
   tmp %>% dplyr::arrange(.[,length(opchain$Position)+1])  %>%
+    dplyr::filter(.[,length(opchain$Position)+1]<UNACCEPTABLEVAL) %>%
     dplyr::distinct() -> tmp
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
   
@@ -659,6 +673,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   #file handling
   tmp<-read.table(outFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
   tmp %>% dplyr::arrange(.[,length(opchain$Position)+1])  %>% 
+    dplyr::filter(.[,length(opchain$Position)+1]<UNACCEPTABLEVAL) %>%
     dplyr::distinct() -> tmp
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
   
@@ -712,6 +727,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   #file handling
   tmp<-read.table(outFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
   tmp %>% dplyr::arrange(.[,length(opchain$Position)+1])  %>% 
+    dplyr::filter(.[,length(opchain$Position)+1]<UNACCEPTABLEVAL) %>%
     dplyr::distinct() -> tmp
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
   
@@ -765,6 +781,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   #file handling
   tmp<-read.table(outFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
   tmp %>% dplyr::arrange(.[,length(opchain$Position)+1])  %>%
+    dplyr::filter(.[,length(opchain$Position)+1]<UNACCEPTABLEVAL) %>%
     dplyr::distinct() -> tmp
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
   
@@ -818,6 +835,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   #file handling
   tmp<-read.table(outFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
   tmp %>% dplyr::arrange(.[,length(opchain$Position)+1])  %>% 
+    dplyr::filter(.[,length(opchain$Position)+1]<UNACCEPTABLEVAL) %>%
     dplyr::distinct() -> tmp
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
   
@@ -871,6 +889,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   #file handling
   tmp<-read.table(outFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
   tmp %>% dplyr::arrange(.[,length(opchain$Position)+1])  %>%
+    dplyr::filter(.[,length(opchain$Position)+1]<UNACCEPTABLEVAL) %>%
     dplyr::distinct() -> tmp
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
   
@@ -926,7 +945,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
              POSITION_HASH=POSITION_OPTIM_HASH)
   
   EvalFuncSetting$LossLimitPrice=originalLossLimitPrice
-
+  
   #Merge file
   if( file.exists(outFname) && FILEPLUS_HOT_START){
     LocalMergeWriteFiles(outFname)
@@ -935,6 +954,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   #file handling
   tmp<-read.table(outFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
   tmp %>% dplyr::arrange(.[,length(opchain$Position)+1])  %>%
+    dplyr::filter(.[,length(opchain$Position)+1]<UNACCEPTABLEVAL) %>%
     dplyr::distinct() -> tmp
   write.table(tmp,outFname,row.names = F,col.names=F,sep=",",append=F)
   
