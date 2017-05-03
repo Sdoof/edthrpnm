@@ -495,10 +495,10 @@ if(Combined_Spread){
 
 # Writing to files based on option legs total number
 total_res %>% dplyr::mutate(posn=(putn+calln)) -> total_res
-total_res %>%  dplyr::filter(posn==11 | posn==12) -> tmp_fil 
-total_res %>%  dplyr::filter(posn==9 | posn==10) -> tmp_fil2
-total_res %>%  dplyr::filter(posn==7 | posn==8) -> tmp_fil3
-total_res %>%  dplyr::filter(posn<=6) -> tmp_fil4
+total_res %>%  dplyr::filter(posn>=9) -> tmp_fil 
+total_res %>%  dplyr::filter(posn==7 | posn==8) -> tmp_fil2
+total_res %>%  dplyr::filter(posn==5 | posn==6) -> tmp_fil3
+total_res %>%  dplyr::filter(posn<=4) -> tmp_fil4
 
 #position wiht Greeks
 getPositionWithGreeks<-function(tmp_fil){
