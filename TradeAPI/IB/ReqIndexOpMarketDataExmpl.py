@@ -15,8 +15,8 @@ contractRestoreList = None
 orderIdMktReqContractDict = None
 priceInfoDict = {}
 
-SPX_Strike_Max=2650
-SPX_Strike_Min=1700
+SPX_Strike_Max=2700
+SPX_Strike_Min=1800
 SPX_Strike_Max_P=SPX_Strike_Max-150
 SPX_Strike_Min_C=SPX_Strike_Min+250
 RUT_Strike_Max=1700
@@ -265,6 +265,8 @@ opContractList = [
     makeOptContract(sym='SPX', exp='20170831', strike='', right='C'),
     makeOptContract(sym='SPX', exp='20170914', strike='', right='P'),
     makeOptContract(sym='SPX', exp='20170914', strike='', right='C'),
+    makeOptContract(sym='SPX', exp='20170929', strike='', right='P'),
+    makeOptContract(sym='SPX', exp='20170929', strike='', right='C'),
     makeOptContract(sym='RUT', exp='20170720', strike='', right='P'),
     makeOptContract(sym='RUT', exp='20170720', strike='', right='C'),
     makeOptContract(sym='RUT', exp='20170731', strike='', right='P'),
@@ -274,7 +276,9 @@ opContractList = [
     makeOptContract(sym='RUT', exp='20170831', strike='', right='P'),
     makeOptContract(sym='RUT', exp='20170831', strike='', right='C'),
     makeOptContract(sym='RUT', exp='20170914', strike='', right='P'),
-    makeOptContract(sym='RUT', exp='20170914', strike='', right='C')
+    makeOptContract(sym='RUT', exp='20170914', strike='', right='C'),
+    makeOptContract(sym='RUT', exp='20170929', strike='', right='P'),
+    makeOptContract(sym='RUT', exp='20170929', strike='', right='C')
 ]
 
 idxContractList = [
