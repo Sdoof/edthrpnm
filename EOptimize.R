@@ -498,7 +498,8 @@ total_res %>% dplyr::mutate(posn=(putn+calln)) -> total_res
 total_res %>%  dplyr::filter(posn>=9) -> tmp_fil 
 total_res %>%  dplyr::filter(posn==7 | posn==8) -> tmp_fil2
 total_res %>%  dplyr::filter(posn==5 | posn==6) -> tmp_fil3
-total_res %>%  dplyr::filter(posn<=4) -> tmp_fil4
+total_res %>%  dplyr::filter(posn==3 | posn==4) -> tmp_fil4
+total_res %>%  dplyr::filter(posn<=2) -> tmp_fil5
 
 #position wiht Greeks
 getPositionWithGreeks<-function(tmp_fil){
@@ -540,6 +541,10 @@ tmp_fil4 %>%
   dplyr::arrange(tmp_fil4[,(length(opchain$Position)+1)]) %>%
   dplyr::distinct(eval,.keep_all=TRUE) -> tmp_fil_w4
 
+tmp_fil5 %>% 
+  dplyr::arrange(tmp_fil4[,(length(opchain$Position)+1)]) %>%
+  dplyr::distinct(eval,.keep_all=TRUE) -> tmp_fil_w5
+
 #MERGE
 if(COMBINATION_HOT_START==T){
   rf_=paste(ResultFiles_Path_G,"2Cb.csv",sep="")
@@ -574,10 +579,13 @@ resultSaveFileRf[[3]]=paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition
                             format(Sys.time(),"%Y%b%d_%H%M%S"),".csv",sep="")
 resultSaveFileRf[[4]]=paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition4_"
                             ,format(Sys.time(),"%Y%b%d_%H%M%S"),".csv",sep="")
+resultSaveFileRf[[5]]=paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition5_"
+                            ,format(Sys.time(),"%Y%b%d_%H%M%S"),".csv",sep="")
 
 write.table(tmp_fil_w,resultSaveFileRf[[1]],row.names = F,col.names=F,sep=",",append=F)
 write.table(tmp_fil_w2,resultSaveFileRf[[2]],row.names = F,col.names=F,sep=",",append=F)
 write.table(tmp_fil_w3,resultSaveFileRf[[3]],row.names = F,col.names=F,sep=",",append=F)
 write.table(tmp_fil_w4,resultSaveFileRf[[4]],row.names = F,col.names=F,sep=",",append=F)
+write.table(tmp_fil_w5,resultSaveFileRf[[5]],row.names = F,col.names=F,sep=",",append=F)
 
 #LocalflipScoreWriteToFile(resultSaveFileRf[[3]],50)
