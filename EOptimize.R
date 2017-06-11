@@ -13,7 +13,7 @@ source('./ESourceRCode.R',encoding = 'UTF-8')
 COMBINATION_HOT_START=F
 
 #speceif configuration is to be applied to first generation
-SPECIFIC_FIRSTG_SETTING=T
+SPECIFIC_FIRSTG_SETTING=F
 
 #COMBINATION LossLimit Multipe
 COMBINATION_LOSSLIMIT_MULTIPLE=2
@@ -216,6 +216,55 @@ if(COMBINATION_HOT_START==F){
   system(st) ;rm(st)
 }
 
+## read 1Cb.csv created above
+tmp<-read.table(paste(ResultFiles_Path_G,"1Cb.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
+tmp=tmp[,1:(length(opchain$Position)+1)]
+colnames(tmp)=c(rep(1:length(opchain$Position)),"eval")
+tmp %>% dplyr::arrange(tmp[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> tmp
+#posnum put call
+tmp[,1:length(opchain$Position)] %>% dplyr::rowwise() %>% dplyr::do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp2
+tmp2  %>% dplyr::rowwise() %>% dplyr::do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp3
+tmp$putn<-unlist(tmp3$putn);tmp$calln<-unlist(tmp3$calln);rm(tmp2);rm(tmp3)
+#write to a file
+write.table(tmp,paste(ResultFiles_Path_G,"1Cb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
+# TopN_1 selection
+tmp %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% head(TopN[1]) -> tmp
+
+## clear hash to improve performance
+hash::clear(POSITION_OPTIM_HASH)
+
+## revalue the position for the value to be compatilbe with following process
+if(SPECIFIC_FIRSTG_SETTING==T){
+  file.copy(from=paste(ResultFiles_Path_G,"1Cb.csv",sep=""),to=paste(ResultFiles_Path_G,"1Cb_org.csv",sep=""),overwrite=T)
+  tmp %>% dplyr::rowwise() %>%
+    # x = unlist(.)[1:length(opchain$Position)]
+    dplyr::do(revVal=obj_Income_sgmd(unlist(.)[1:length(opchain$Position)],
+                                     EvalFuncSetting,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE,
+                                     udlStepNum=EvalFuncSetting$UdlStepNum,udlStepPct=EvalFuncSetting$UdlStepPct,
+                                     PosMultip=PosMultip,
+                                     lossLimitPrice=EvalFuncSetting$LossLimitPrice,
+                                     Delta_Direct_Prf=EvalFuncSetting$Delta_Direct_Prf[sum(as.numeric((unlist(.)[1:length(opchain$Position)])!=0))],
+                                     Vega_Direct_Prf=EvalFuncSetting$Vega_Direct_Prf[sum(as.numeric((unlist(.)[1:length(opchain$Position)])!=0))],
+                                     Delta_Neutral_Offset=EvalFuncSetting$Delta_Neutral_Offset[sum(as.numeric((unlist(.)[1:length(opchain$Position)])!=0))],
+                                     Vega_Neutral_Offset=EvalFuncSetting$Vega_Neutral_Offset[sum(as.numeric((unlist(.)[1:length(opchain$Position)])!=0))])
+    ) -> tmp2
+  tmp[,length(opchain$Position)+1]=unlist(tmp2)
+  #posnum put call
+  tmp[,1:length(opchain$Position)] %>% dplyr::rowwise() %>% dplyr::do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp2
+  tmp2  %>% dplyr::rowwise() %>% dplyr::do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp3
+  tmp$putn<-unlist(tmp3$putn);tmp$calln<-unlist(tmp3$calln);rm(tmp2);rm(tmp3)
+  #write to a file
+  write.table(tmp,paste(ResultFiles_Path_G,"1Cb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
+}
+
+#recreate POSITION_OPTIM_HASH
+tmp %>% dplyr::rowwise() %>%
+  # x = unlist(.)[1:length(opchain$Position)]
+  # revVal = unlist(.)[length(opchain$Position)+1]
+  dplyr::do(md5sum=digest(paste(unlist(.)[1:length(opchain$Position)],collapse = "")),revVal=unlist(.)[length(opchain$Position)+1]
+  ) -> tmp2
+POSITION_OPTIM_HASH[ unlist(tmp2$md5sum) ]<-unlist(tmp2$revVal)
+
 #combined population search
 if(Combined_Spread){
   ##
@@ -226,55 +275,7 @@ if(Combined_Spread){
   ###
   ##   2(exact x exact) Combinations (2Cb)
   
-  ##read 1Cb.csv, then making pools for combinational search
-  tmp<-read.table(paste(ResultFiles_Path_G,"1Cb.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
-  tmp=tmp[,1:(length(opchain$Position)+1)]
-  colnames(tmp)=c(rep(1:length(opchain$Position)),"eval")
-  tmp %>% dplyr::arrange(tmp[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> tmp
-  #posnum put call
-  tmp[,1:length(opchain$Position)] %>% dplyr::rowwise() %>% dplyr::do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp2
-  tmp2  %>% dplyr::rowwise() %>% dplyr::do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp3
-  tmp$putn<-unlist(tmp3$putn);tmp$calln<-unlist(tmp3$calln);rm(tmp2);rm(tmp3)
-  #write to a file
-  write.table(tmp,paste(ResultFiles_Path_G,"1Cb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
-  # TopN_1 selection
-  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% head(TopN[1]) -> tmp
-  
-  # clear hash to improve performance
-  hash::clear(POSITION_OPTIM_HASH)
-  
-  ## revalue the position for the value to be compatilbe with following process
-  if(SPECIFIC_FIRSTG_SETTING==T){
-    file.copy(from=paste(ResultFiles_Path_G,"1Cb.csv",sep=""),to=paste(ResultFiles_Path_G,"1Cb_org.csv",sep=""),overwrite=T)
-    tmp %>% dplyr::rowwise() %>%
-      # x = unlist(.)[1:length(opchain$Position)]
-      dplyr::do(revVal=obj_Income_sgmd(unlist(.)[1:length(opchain$Position)],
-                                       EvalFuncSetting,isDebug=IS_DEBUG_MODE,isDetail=IS_DETAIL_MODE,
-                                       udlStepNum=EvalFuncSetting$UdlStepNum,udlStepPct=EvalFuncSetting$UdlStepPct,
-                                       PosMultip=PosMultip,
-                                       lossLimitPrice=EvalFuncSetting$LossLimitPrice,
-                                       Delta_Direct_Prf=EvalFuncSetting$Delta_Direct_Prf[sum(as.numeric((unlist(.)[1:length(opchain$Position)])!=0))],
-                                       Vega_Direct_Prf=EvalFuncSetting$Vega_Direct_Prf[sum(as.numeric((unlist(.)[1:length(opchain$Position)])!=0))],
-                                       Delta_Neutral_Offset=EvalFuncSetting$Delta_Neutral_Offset[sum(as.numeric((unlist(.)[1:length(opchain$Position)])!=0))],
-                                       Vega_Neutral_Offset=EvalFuncSetting$Vega_Neutral_Offset[sum(as.numeric((unlist(.)[1:length(opchain$Position)])!=0))])
-      ) ->tmp2
-    tmp[,length(opchain$Position)+1]=unlist(tmp2)
-    #posnum put call
-    tmp[,1:length(opchain$Position)] %>% dplyr::rowwise() %>% dplyr::do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp2
-    tmp2  %>% dplyr::rowwise() %>% dplyr::do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp3
-    tmp$putn<-unlist(tmp3$putn);tmp$calln<-unlist(tmp3$calln);rm(tmp2);rm(tmp3)
-    #write to a file
-    write.table(tmp,paste(ResultFiles_Path_G,"1Cb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
-    tmp %>% dplyr::rowwise() %>%
-      # x = unlist(.)[1:length(opchain$Position)]
-      # revVal = unlist(.)[length(opchain$Position)+1]
-      dplyr::do(md5sum=digest(paste(unlist(.)[1:length(opchain$Position)],collapse = "")),revVal=unlist(.)[length(opchain$Position)+1]
-      ) -> tmp2
-    #not necessary. just in case.
-    POSITION_OPTIM_HASH[ unlist(tmp2$md5sum) ]<-unlist(tmp2$revVal)
-  }
-  
-  ## Making pools 
+  ## Making pools for combinational search
   #   when all results are mixed together regardress of the number of Putn and Calln, pools[[1]] should be set as
   #   c(1,0,0) <- c(1Cb{=exact}, Putn not spicified, Calln not spicified)
   pools<-list(list(c(1,0,0),tmp)) #No.[[1]]
@@ -542,7 +543,7 @@ tmp_fil4 %>%
   dplyr::distinct(eval,.keep_all=TRUE) -> tmp_fil_w4
 
 tmp_fil5 %>% 
-  dplyr::arrange(tmp_fil4[,(length(opchain$Position)+1)]) %>%
+  dplyr::arrange(tmp_fil5[,(length(opchain$Position)+1)]) %>%
   dplyr::distinct(eval,.keep_all=TRUE) -> tmp_fil_w5
 
 #MERGE
