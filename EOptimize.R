@@ -589,4 +589,9 @@ write.table(tmp_fil_w3,resultSaveFileRf[[3]],row.names = F,col.names=F,sep=",",a
 write.table(tmp_fil_w4,resultSaveFileRf[[4]],row.names = F,col.names=F,sep=",",append=F)
 write.table(tmp_fil_w5,resultSaveFileRf[[5]],row.names = F,col.names=F,sep=",",append=F)
 
-#LocalflipScoreWriteToFile(resultSaveFileRf[[3]],50)
+
+## Copy to UDLY_EValPosition.csv and Evaluate Economic Value
+file.copy(from=resultSaveFileRf[[4]], 
+          to=paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition.csv",sep=""),
+          overwrite=T)
+LocalflipScoreWriteToFile(resultSaveFileRf[[4]],50)
