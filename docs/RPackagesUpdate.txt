@@ -1,3 +1,5 @@
+#run R and RStudio as administrator
+
 install.packages("ggplot2")
 install.packages("dplyr")
 install.packages("pracma")
