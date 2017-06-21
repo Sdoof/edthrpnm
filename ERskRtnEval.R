@@ -31,11 +31,15 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   udlStepPct<-Setting$UdlStepPct
   udlChgPct<-seq(-udlStepPct*udlStepNum,udlStepPct*udlStepNum,length=(2*udlStepNum)+1)
   
+  #Whether or not to Calculate AdvEffect: Bool
+  useAdvEffect=(isDebug|isDetail|(EvalFuncSetting$AdvEffect_Coef>0))
+  
   #dATMIV/dIVIDX 1 day regression result
   posStepDays<-data.frame(days=c(1,Setting$holdDays))
   posStepDays %>% dplyr::group_by(days) %>%
     dplyr::do(scene=createPositionEvalTable(position=position,udlStepNum=udlStepNum,udlStepPct=udlStepPct,
-                                            multi=PosMultip,hdd=.$days,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)) -> posStepDays
+                                            multi=PosMultip,hdd=.$days,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio,
+                                            useAdvEffect=useAdvEffect)) -> posStepDays
   
   if(isDebug){
     cat("\n:(1st day evalTble)\n")
@@ -89,15 +93,18 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   posStepDays_vc_plus<-posStepDays
   posStepDays_vc_plus %>% dplyr::group_by(days) %>% dplyr::rowwise() %>% 
     dplyr::do(days=.$days,scene2=adjustPosChg(.$scene,base_vol_chg=vol_chg,
-                                              multi=PosMultip,hdd=Setting$holdDays,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)) -> tmp
+                                              multi=PosMultip,hdd=Setting$holdDays,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio,
+                                              useAdvEffect=useAdvEffect)) -> tmp
   unlist(tmp$days) -> posStepDays_vc_plus$days ; tmp$scene2 -> posStepDays_vc_plus$scene ;rm(tmp)
   
   #PositionStepDays data frame of Volatility Down scenario
   posStepDays_vc_minus<-posStepDays
   posStepDays_vc_minus %>% dplyr::group_by(days) %>% dplyr::rowwise() %>% 
     dplyr::do(days=.$days,scene2=adjustPosChg(.$scene,base_vol_chg=(-1)*vol_chg,
-                                              multi=PosMultip,hdd=Setting$holdDays,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio)) -> tmp
+                                              multi=PosMultip,hdd=Setting$holdDays,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio,
+                                              useAdvEffect=useAdvEffect)) -> tmp
   unlist(tmp$days) -> posStepDays_vc_minus$days ; tmp$scene2 -> posStepDays_vc_minus$scene ;rm(tmp)
+  
   
   ##
   # Profit
@@ -874,62 +881,73 @@ reflectPosChg<- function(process_df,days,IV_DEVIATION=0,MIN_IVIDX_CHG=(-0.5)){
   pos
 }
 
-createPositionEvalTable<-function(position,udlStepNum,udlStepPct,multi,hdd,HV_IV_Adjust_Ratio){
+createPositionEvalTable<-function(position,udlStepNum,udlStepPct,multi,hdd,HV_IV_Adjust_Ratio,useAdvEffect=F){
   udlChgPct<-seq(-udlStepPct*udlStepNum,udlStepPct*udlStepNum,length=(2*udlStepNum)+1)
   posEvalTbl<-data.frame(udlChgPct=udlChgPct) ;rm(udlStepNum,udlStepPct)
   #Set data frames as a row value of another data frame.
-  posEvalTbl %>% group_by(udlChgPct) %>% do(pos=position) -> posEvalTbl
+  posEvalTbl %>% dplyr::group_by(udlChgPct) %>% dplyr::do(pos=position) -> posEvalTbl
   #Modify pos based on scenario
-  posEvalTbl %>% group_by(udlChgPct) %>% do(pos=reflectPosChg(process_df=.,days=hdd)) -> posEvalTbl
+  posEvalTbl %>% dplyr::group_by(udlChgPct) %>% dplyr::do(pos=reflectPosChg(process_df=.,days=hdd)) -> posEvalTbl
+  
   
   ##
   #  Greek Effects
   
-  #  ThetaEffect
-  posEvalTbl %>% dplyr::rowwise() %>% 
-    dplyr::do(ThetaEffect=getThetaEffect(pos=.$pos$Position,greek=.$pos$Theta,multi=multi,hdd=hdd)) -> tmp
-  unlist(tmp$ThetaEffect)->tmp ; posEvalTbl$ThetaEffect <- tmp ;rm(tmp)
   #  DeltaEffect
   posEvalTbl %>% rowwise() %>% dplyr::do(DeltaEffect=getDeltaEffect(pos=.$pos$Position,greek=.$pos$Delta,
                                                                     UDLY=.$pos$UDLY,multi=multi,hdd=hdd,
                                                                     rlzdvol_td=.$pos$IVIDX*HV_IV_Adjust_Ratio)) -> tmp
-  unlist(tmp$DeltaEffect)->tmp ; posEvalTbl$DeltaEffect <- tmp ;rm(tmp)
-  #  GammaEffect
-  posEvalTbl %>% rowwise() %>% dplyr::do(GammaEffect=getGammaEffect(pos=.$pos$Position,greek=.$pos$Gamma,
-                                                                    UDLY=.$pos$UDLY,multi=multi,hdd=hdd,
-                                                                    rlzdvol_td=.$pos$IVIDX*HV_IV_Adjust_Ratio)) -> tmp
-  unlist(tmp$GammaEffect)->tmp ; posEvalTbl$GammaEffect <- tmp ;rm(tmp) 
-  #  VegaEffect
-  posEvalTbl %>% rowwise() %>% dplyr::do(VegaEffect=getVegaEffect(pos=.$pos$Position,greek=.$pos$Vega,
-                                                                  ividx=.$pos$IVIDX,multi=multi,hdd=hdd,
-                                                                  #dviv should be precalulated when optimized
-                                                                  dviv=annuual.daily.volatility(histIV$IVIDX)$daily)) -> tmp
-  unlist(tmp$VegaEffect)->tmp ; posEvalTbl$VegaEffect <- tmp ;rm(tmp)
+  unlist(tmp$DeltaEffect,use.names=FALSE)->tmp ; posEvalTbl$DeltaEffect <- tmp #;rm(tmp)
+  #posEvalTbl$DeltaEffect=unlist(tmp$DeltaEffect,use.names=FALSE)
   
+  if(useAdvEffect){
+    #  ThetaEffect
+    posEvalTbl %>% dplyr::rowwise() %>% 
+      dplyr::do(ThetaEffect=getThetaEffect(pos=.$pos$Position,greek=.$pos$Theta,multi=multi,hdd=hdd)) -> tmp
+    unlist(tmp$ThetaEffect,use.names=FALSE)->tmp ; posEvalTbl$ThetaEffect <- tmp #;rm(tmp)
+    #posEvalTbl$ThetaEffect=unlist(tmp$ThetaEffect,use.names=FALSE)
+    
+    #  GammaEffect
+    posEvalTbl %>% rowwise() %>% dplyr::do(GammaEffect=getGammaEffect(pos=.$pos$Position,greek=.$pos$Gamma,
+                                                                      UDLY=.$pos$UDLY,multi=multi,hdd=hdd,
+                                                                      rlzdvol_td=.$pos$IVIDX*HV_IV_Adjust_Ratio)) -> tmp
+    unlist(tmp$GammaEffect,use.names=FALSE)->tmp ; posEvalTbl$GammaEffect <- tmp #;rm(tmp) 
+    #posEvalTbl$GammaEffect=unlist(tmp$GammaEffect,use.names=FALSE)
+    
+    #  VegaEffect
+    #posEvalTbl %>% rowwise() %>% dplyr::do(VegaEffect=getVegaEffect(pos=.$pos$Position,greek=.$pos$Vega,
+    #                                                                ividx=.$pos$IVIDX,multi=multi,hdd=hdd,
+    #dviv should be precalulated when optimized
+    #                                                                dviv=annuual.daily.volatility(histIV$IVIDX)$daily)) -> tmp
+    #unlist(tmp$VegaEffect)->tmp ; posEvalTbl$VegaEffect <- tmp ;rm(tmp)
+  }
   ##
   #  Greeks
   #
   #  UDLY
   posEvalTbl %>% dplyr::rowwise() %>% dplyr::do(UDLY=mean(.$pos$UDLY)) ->tmp
-  unlist(tmp$UDLY)->tmp ; posEvalTbl$UDLY <- tmp ;rm(tmp)
+  unlist(tmp$UDLY,use.names=FALSE)->tmp ; posEvalTbl$UDLY <- tmp #;rm(tmp)
+  #posEvalTbl$UDLY=unlist(tmp$UDLY,use.names=FALSE)
   #  Price
   posEvalTbl %>% dplyr::rowwise() %>% dplyr::do(Price=getPosGreeks(pos=.$pos$Position,greek=.$pos$Price,multi=multi)) ->tmp
-  unlist(tmp$Price)->tmp ; posEvalTbl$Price <- tmp ;rm(tmp)
+  unlist(tmp$Price,use.names=FALSE)->tmp ; posEvalTbl$Price <- tmp #;rm(tmp)
+  #posEvalTbl$Price=unlist(tmp$Price,use.names=FALSE)
   #  Delta
   posEvalTbl %>% dplyr::rowwise() %>% dplyr::do(Delta=getPosGreeks(pos=.$pos$Position,greek=.$pos$Delta,multi=multi))->tmp
-  unlist(tmp$Delta)->tmp ; posEvalTbl$Delta <- tmp ;rm(tmp)
+  unlist(tmp$Delta,use.names=FALSE)->tmp ; posEvalTbl$Delta <- tmp #;rm(tmp)
+  #posEvalTbl$Delta=unlist(tmp$Delta,use.names=FALSE)
   #  Gamma
-  posEvalTbl %>% dplyr::rowwise() %>% dplyr::do(Gamma=getPosGreeks(pos=.$pos$Position,greek=.$pos$Gamma,multi=multi))->tmp
-  unlist(tmp$Gamma)->tmp ; posEvalTbl$Gamma <- tmp ;rm(tmp)
+  #posEvalTbl %>% dplyr::rowwise() %>% dplyr::do(Gamma=getPosGreeks(pos=.$pos$Position,greek=.$pos$Gamma,multi=multi))->tmp
+  #unlist(tmp$Gamma)->tmp ; posEvalTbl$Gamma <- tmp ;rm(tmp)
   #  Vega
-  posEvalTbl %>% dplyr::rowwise() %>% dplyr::do(Vega=getPosGreeks(pos=.$pos$Position,greek=.$pos$Vega,multi=multi))->tmp
-  unlist(tmp$Vega)->tmp ; posEvalTbl$Vega <- tmp ;rm(tmp)
+  #posEvalTbl %>% dplyr::rowwise() %>% dplyr::do(Vega=getPosGreeks(pos=.$pos$Position,greek=.$pos$Vega,multi=multi))->tmp
+  #unlist(tmp$Vega)->tmp ; posEvalTbl$Vega <- tmp ;rm(tmp)
   #  Theta
-  posEvalTbl %>% dplyr::rowwise() %>% dplyr::do(Theta=getPosGreeks(pos=.$pos$Position,greek=.$pos$Theta,multi=multi)) ->tmp
-  unlist(tmp$Theta)->tmp ; posEvalTbl$Theta <- tmp ;rm(tmp)
+  #posEvalTbl %>% dplyr::rowwise() %>% dplyr::do(Theta=getPosGreeks(pos=.$pos$Position,greek=.$pos$Theta,multi=multi)) ->tmp
+  #unlist(tmp$Theta)->tmp ; posEvalTbl$Theta <- tmp ;rm(tmp)
   # IVIDX
   posEvalTbl %>% dplyr::rowwise() %>% dplyr::do(IVIDX=mean(.$pos$IVIDX)) ->tmp
-  unlist(tmp$IVIDX)->tmp ; posEvalTbl$IVIDX <- tmp ;rm(tmp)
+  unlist(tmp$IVIDX,use.names=FALSE)->tmp ; posEvalTbl$IVIDX <- tmp #;rm(tmp)
   
   posEvalTbl
   
@@ -1632,7 +1650,7 @@ createCombineCandidatePool<-function(fname,pnum=1000,nrows=-1,skip=0,method=1){
 # Functions to be loaded from EPosAanalysis.R
 
 #create Aggregated Price Table for Drawing
-createAgrregatedGreekTbl<-function(posStepDays,thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,multi=PosMultip,iniCredit=iniCredit){
+createAgrregatedGreekTbl<-function(posStepDays,thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,multi=PosMultip,iniCredit=iniCredit,useAdvEffect=F){
   
   #Delta
   posStepDays %>% dplyr::group_by(days) %>% dplyr::rowwise() %>% dplyr::do(ptbl=createGreekTbl(.$days,.$scene$UDLY,.$scene$Delta)) -> tmp
@@ -1644,31 +1662,31 @@ createAgrregatedGreekTbl<-function(posStepDays,thePosition,udlStepNum=udlStepNum
   agr_tbl <- greek_tbl
   
   #Gamma
-  posStepDays %>% dplyr::group_by(days) %>% dplyr::rowwise() %>% dplyr::do(ptbl=createGreekTbl(.$days,.$scene$UDLY,.$scene$Gamma)) -> tmp
-  greek_tbl<-dplyr::full_join(tmp$ptbl[[1]],tmp$ptbl[[2]])
-  for(i in 2:length(tmp$ptbl)){
-    greek_tbl<-dplyr::full_join(greek_tbl,tmp$ptbl[[i]])
-  }
-  greek_tbl %>% dplyr::rename(UDLY=x,Gamma=greek) -> greek_tbl
-  agr_tbl  %>% dplyr::left_join(greek_tbl)  -> agr_tbl
+  #posStepDays %>% dplyr::group_by(days) %>% dplyr::rowwise() %>% dplyr::do(ptbl=createGreekTbl(.$days,.$scene$UDLY,.$scene$Gamma)) -> tmp
+  #greek_tbl<-dplyr::full_join(tmp$ptbl[[1]],tmp$ptbl[[2]])
+  #for(i in 2:length(tmp$ptbl)){
+  #  greek_tbl<-dplyr::full_join(greek_tbl,tmp$ptbl[[i]])
+  #}
+  #greek_tbl %>% dplyr::rename(UDLY=x,Gamma=greek) -> greek_tbl
+  #agr_tbl  %>% dplyr::left_join(greek_tbl)  -> agr_tbl
   
   #Vega
-  posStepDays %>% dplyr::group_by(days) %>% dplyr::rowwise() %>% dplyr::do(ptbl=createGreekTbl(.$days,.$scene$UDLY,.$scene$Vega)) -> tmp
-  greek_tbl<-dplyr::full_join(tmp$ptbl[[1]],tmp$ptbl[[2]])
-  for(i in 2:length(tmp$ptbl)){
-    greek_tbl<-dplyr::full_join(greek_tbl,tmp$ptbl[[i]])
-  }
-  greek_tbl %>% dplyr::rename(UDLY=x,Vega=greek) -> greek_tbl
-  agr_tbl  %>% dplyr::left_join(greek_tbl)  -> agr_tbl
+  #posStepDays %>% dplyr::group_by(days) %>% dplyr::rowwise() %>% dplyr::do(ptbl=createGreekTbl(.$days,.$scene$UDLY,.$scene$Vega)) -> tmp
+  #greek_tbl<-dplyr::full_join(tmp$ptbl[[1]],tmp$ptbl[[2]])
+  #for(i in 2:length(tmp$ptbl)){
+  #  greek_tbl<-dplyr::full_join(greek_tbl,tmp$ptbl[[i]])
+  #}
+  #greek_tbl %>% dplyr::rename(UDLY=x,Vega=greek) -> greek_tbl
+  #agr_tbl  %>% dplyr::left_join(greek_tbl)  -> agr_tbl
   
   #Theta
-  posStepDays %>% dplyr::group_by(days) %>% dplyr::rowwise() %>% dplyr::do(ptbl=createGreekTbl(.$days,.$scene$UDLY,.$scene$Theta)) -> tmp
-  greek_tbl<-dplyr::full_join(tmp$ptbl[[1]],tmp$ptbl[[2]])
-  for(i in 2:length(tmp$ptbl)){
-    greek_tbl<-dplyr::full_join(greek_tbl,tmp$ptbl[[i]])
-  }
-  greek_tbl %>% dplyr::rename(UDLY=x,Theta=greek) -> greek_tbl
-  agr_tbl  %>% dplyr::left_join(greek_tbl)  -> agr_tbl
+  #posStepDays %>% dplyr::group_by(days) %>% dplyr::rowwise() %>% dplyr::do(ptbl=createGreekTbl(.$days,.$scene$UDLY,.$scene$Theta)) -> tmp
+  #greek_tbl<-dplyr::full_join(tmp$ptbl[[1]],tmp$ptbl[[2]])
+  #for(i in 2:length(tmp$ptbl)){
+  #  greek_tbl<-dplyr::full_join(greek_tbl,tmp$ptbl[[i]])
+  #}
+  #greek_tbl %>% dplyr::rename(UDLY=x,Theta=greek) -> greek_tbl
+  #agr_tbl  %>% dplyr::left_join(greek_tbl)  -> agr_tbl
   
   #IVIDX
   posStepDays %>% dplyr::group_by(days) %>% dplyr::rowwise() %>% dplyr::do(ptbl=createGreekTbl(.$days,.$scene$UDLY,.$scene$IVIDX)) -> tmp
@@ -1679,23 +1697,34 @@ createAgrregatedGreekTbl<-function(posStepDays,thePosition,udlStepNum=udlStepNum
   greek_tbl %>% dplyr::rename(UDLY=x,IVIDX=greek) -> greek_tbl
   agr_tbl  %>% dplyr::left_join(greek_tbl)  -> agr_tbl
   
-  #ThetaEffect
-  posStepDays %>% dplyr::group_by(days) %>% dplyr::rowwise() %>% dplyr::do(ptbl=createGreekTbl(.$days,.$scene$UDLY,.$scene$ThetaEffect)) -> tmp
-  greek_tbl<-dplyr::full_join(tmp$ptbl[[1]],tmp$ptbl[[2]])
-  for(i in 2:length(tmp$ptbl)){
-    greek_tbl<-dplyr::full_join(greek_tbl,tmp$ptbl[[i]])
+  if(useAdvEffect){
+    #ThetaEffect
+    posStepDays %>% dplyr::group_by(days) %>% dplyr::rowwise() %>% dplyr::do(ptbl=createGreekTbl(.$days,.$scene$UDLY,.$scene$ThetaEffect)) -> tmp
+    greek_tbl<-dplyr::full_join(tmp$ptbl[[1]],tmp$ptbl[[2]])
+    for(i in 2:length(tmp$ptbl)){
+      greek_tbl<-dplyr::full_join(greek_tbl,tmp$ptbl[[i]])
+    }
+    greek_tbl %>% dplyr::rename(UDLY=x,ThetaEffect=greek) -> greek_tbl
+    agr_tbl  %>% dplyr::left_join(greek_tbl)  -> agr_tbl
+    
+    #GammaEffect
+    posStepDays %>% dplyr::group_by(days) %>% dplyr::rowwise() %>% dplyr::do(ptbl=createGreekTbl(.$days,.$scene$UDLY,.$scene$GammaEffect)) -> tmp
+    greek_tbl<-dplyr::full_join(tmp$ptbl[[1]],tmp$ptbl[[2]])
+    for(i in 2:length(tmp$ptbl)){
+      greek_tbl<-dplyr::full_join(greek_tbl,tmp$ptbl[[i]])
+    }
+    greek_tbl %>% dplyr::rename(UDLY=x,GammaEffect=greek) -> greek_tbl
+    agr_tbl  %>% dplyr::left_join(greek_tbl)  -> agr_tbl
+    
+    #VegaEffect
+    #posStepDays %>% dplyr::group_by(days) %>% dplyr::rowwise() %>% dplyr::do(ptbl=createGreekTbl(.$days,.$scene$UDLY,.$scene$VegaEffect)) -> tmp
+    #greek_tbl<-dplyr::full_join(tmp$ptbl[[1]],tmp$ptbl[[2]])
+    #for(i in 2:length(tmp$ptbl)){
+    #  greek_tbl<-dplyr::full_join(greek_tbl,tmp$ptbl[[i]])
+    #}
+    #greek_tbl %>% dplyr::rename(UDLY=x,VegaEffect=greek) -> greek_tbl
+    #agr_tbl  %>% dplyr::left_join(greek_tbl)  -> agr_tbl
   }
-  greek_tbl %>% dplyr::rename(UDLY=x,ThetaEffect=greek) -> greek_tbl
-  agr_tbl  %>% dplyr::left_join(greek_tbl)  -> agr_tbl
-  
-  #GammaEffect
-  posStepDays %>% dplyr::group_by(days) %>% dplyr::rowwise() %>% dplyr::do(ptbl=createGreekTbl(.$days,.$scene$UDLY,.$scene$GammaEffect)) -> tmp
-  greek_tbl<-dplyr::full_join(tmp$ptbl[[1]],tmp$ptbl[[2]])
-  for(i in 2:length(tmp$ptbl)){
-    greek_tbl<-dplyr::full_join(greek_tbl,tmp$ptbl[[i]])
-  }
-  greek_tbl %>% dplyr::rename(UDLY=x,GammaEffect=greek) -> greek_tbl
-  agr_tbl  %>% dplyr::left_join(greek_tbl)  -> agr_tbl
   
   #DeltaEffect
   posStepDays %>% dplyr::group_by(days) %>% dplyr::rowwise() %>% dplyr::do(ptbl=createGreekTbl(.$days,.$scene$UDLY,.$scene$DeltaEffect)) -> tmp
@@ -1704,15 +1733,6 @@ createAgrregatedGreekTbl<-function(posStepDays,thePosition,udlStepNum=udlStepNum
     greek_tbl<-dplyr::full_join(greek_tbl,tmp$ptbl[[i]])
   }
   greek_tbl %>% dplyr::rename(UDLY=x,DeltaEffect=greek) -> greek_tbl
-  agr_tbl  %>% dplyr::left_join(greek_tbl)  -> agr_tbl
-  
-  #VegaEffect
-  posStepDays %>% dplyr::group_by(days) %>% dplyr::rowwise() %>% dplyr::do(ptbl=createGreekTbl(.$days,.$scene$UDLY,.$scene$VegaEffect)) -> tmp
-  greek_tbl<-dplyr::full_join(tmp$ptbl[[1]],tmp$ptbl[[2]])
-  for(i in 2:length(tmp$ptbl)){
-    greek_tbl<-dplyr::full_join(greek_tbl,tmp$ptbl[[i]])
-  }
-  greek_tbl %>% dplyr::rename(UDLY=x,VegaEffect=greek) -> greek_tbl
   agr_tbl  %>% dplyr::left_join(greek_tbl)  -> agr_tbl
   
   #profit
@@ -1783,7 +1803,7 @@ adjustPosChgInner<-function(process_df,base_vol_chg=0){
 
 # Now this function change only Base Volatility Level.
 # so arguments other than base_vol_chg does not affect anything.
-adjustPosChg<-function(process_df,base_vol_chg=0,multi,hdd,HV_IV_Adjust_Ratio,isDebug=FALSE){
+adjustPosChg<-function(process_df,base_vol_chg=0,multi,hdd,HV_IV_Adjust_Ratio,isDebug=FALSE,useAdvEffect=F){
   
   if(isDebug){
     print(process_df)
@@ -1798,49 +1818,58 @@ adjustPosChg<-function(process_df,base_vol_chg=0,multi,hdd,HV_IV_Adjust_Ratio,is
   #
   #  UDLY
   process_df %>% dplyr::rowwise() %>% dplyr::do(UDLY=mean(.$pos$UDLY)) ->tmp
-  unlist(tmp$UDLY)->tmp ; process_df$UDLY <- tmp ;rm(tmp)
+  unlist(tmp$UDLY,use.names = F)->tmp ; process_df$UDLY <- tmp #;rm(tmp)
+  #unlist(tmp$UDLY,use.names = F)->process_df$UDLY 
   #  Price
   process_df %>% dplyr::rowwise() %>% dplyr::do(Price=getPosGreeks(pos=.$pos$Position,greek=.$pos$Price,multi=multi)) ->tmp
-  unlist(tmp$Price)->tmp ; process_df$Price <- tmp ;rm(tmp)
+  unlist(tmp$Price,use.names = F)->tmp ; process_df$Price <- tmp #;rm(tmp)
+  #unlist(tmp$Price,use.names = F)->process_df$Price
   #  Delta
   process_df %>% dplyr::rowwise() %>% dplyr::do(Delta=getPosGreeks(pos=.$pos$Position,greek=.$pos$Delta,multi=multi))->tmp
-  unlist(tmp$Delta)->tmp ; process_df$Delta <- tmp ;rm(tmp)
+  unlist(tmp$Delta,use.names = F)->tmp ; process_df$Delta <- tmp #;rm(tmp)
+  #unlist(tmp$Delta,use.names = F)->process_df$Delta
   #  Gamma
-  process_df %>% dplyr::rowwise() %>% dplyr::do(Gamma=getPosGreeks(pos=.$pos$Position,greek=.$pos$Gamma,multi=multi))->tmp
-  unlist(tmp$Gamma)->tmp ; process_df$Gamma <- tmp ;rm(tmp)
+  #process_df %>% dplyr::rowwise() %>% dplyr::do(Gamma=getPosGreeks(pos=.$pos$Position,greek=.$pos$Gamma,multi=multi))->tmp
+  #unlist(tmp$Gamma)->tmp ; process_df$Gamma <- tmp ;rm(tmp)
   #  Vega
-  process_df %>% dplyr::rowwise() %>% dplyr::do(Vega=getPosGreeks(pos=.$pos$Position,greek=.$pos$Vega,multi=multi))->tmp
-  unlist(tmp$Vega)->tmp ; process_df$Vega <- tmp ;rm(tmp)
+  #process_df %>% dplyr::rowwise() %>% dplyr::do(Vega=getPosGreeks(pos=.$pos$Position,greek=.$pos$Vega,multi=multi))->tmp
+  #unlist(tmp$Vega)->tmp ; process_df$Vega <- tmp ;rm(tmp)
   #  Theta
-  process_df %>% dplyr::rowwise() %>% dplyr::do(Theta=getPosGreeks(pos=.$pos$Position,greek=.$pos$Theta,multi=multi)) ->tmp
-  unlist(tmp$Theta)->tmp ; process_df$Theta <- tmp ;rm(tmp)
+  #process_df %>% dplyr::rowwise() %>% dplyr::do(Theta=getPosGreeks(pos=.$pos$Position,greek=.$pos$Theta,multi=multi)) ->tmp
+  #unlist(tmp$Theta)->tmp ; process_df$Theta <- tmp ;rm(tmp)
   #  IVIDX
   process_df %>% dplyr::rowwise() %>% dplyr::do(IVIDX=mean(.$pos$IVIDX)) ->tmp
-  unlist(tmp$IVIDX)->tmp ; process_df$IVIDX <- tmp ;rm(tmp)
+  unlist(tmp$IVIDX,use.names = F)->tmp ; process_df$IVIDX <- tmp #;rm(tmp)
   
   ##
   # Greek Effects
   
-  # ThetaEffect
-  process_df %>% dplyr::rowwise() %>% dplyr::do(ThetaEffect=getThetaEffect(pos=.$pos$Position,greek=.$pos$Theta,multi=multi,hdd=hdd)) -> tmp
-  unlist(tmp$ThetaEffect)->tmp ; process_df$ThetaEffect <- tmp ;rm(tmp)
   # DeltaEffect
   process_df %>% dplyr::rowwise() %>% dplyr::do(DeltaEffect=getDeltaEffect(pos=.$pos$Position,greek=.$pos$Delta,
                                                                            UDLY=.$pos$UDLY,multi=multi,hdd=hdd,
                                                                            rlzdvol_td=.$pos$IVIDX*HV_IV_Adjust_Ratio)) -> tmp
-  unlist(tmp$DeltaEffect)->tmp ; process_df$DeltaEffect <- tmp ;rm(tmp)
-  # GammaEffect
-  process_df %>% dplyr::rowwise() %>% dplyr::do(GammaEffect=getGammaEffect(pos=.$pos$Position,greek=.$pos$Gamma,
-                                                                           UDLY=.$pos$UDLY,multi=multi,hdd=hdd,
-                                                                           rlzdvol_td=.$pos$IVIDX*HV_IV_Adjust_Ratio)) -> tmp
-  unlist(tmp$GammaEffect)->tmp ; process_df$GammaEffect <- tmp ;rm(tmp)
-  # VegaEffect
-  process_df %>% dplyr::rowwise() %>% dplyr::do(VegaEffect=getVegaEffect(pos=.$pos$Position,greek=.$pos$Vega,
-                                                                         ividx=.$pos$IVIDX,multi=multi,hdd=hdd,
-                                                                         #dviv should be precalulated when optimized
-                                                                         dviv=annuual.daily.volatility(histIV$IVIDX)$daily)) -> tmp
-  unlist(tmp$VegaEffect)->tmp ; process_df$VegaEffect <- tmp ;rm(tmp)
+  unlist(tmp$DeltaEffect,use.names = F)->tmp ; process_df$DeltaEffect <- tmp #;rm(tmp)
+  #unlist(tmp$DeltaEffect,use.names = F)->process_df$DeltaEffect
   
+  if(useAdvEffect){
+    # ThetaEffect
+    process_df %>% dplyr::rowwise() %>% dplyr::do(ThetaEffect=getThetaEffect(pos=.$pos$Position,greek=.$pos$Theta,multi=multi,hdd=hdd)) -> tmp
+    unlist(tmp$ThetaEffect,use.names = F)->tmp ; process_df$ThetaEffect <- tmp #;rm(tmp)
+    #unlist(tmp$ThetaEffect,use.names = F)->process_df$ThetaEffect
+    
+    # GammaEffect
+    process_df %>% dplyr::rowwise() %>% dplyr::do(GammaEffect=getGammaEffect(pos=.$pos$Position,greek=.$pos$Gamma,
+                                                                             UDLY=.$pos$UDLY,multi=multi,hdd=hdd,
+                                                                             rlzdvol_td=.$pos$IVIDX*HV_IV_Adjust_Ratio)) -> tmp
+    unlist(tmp$GammaEffect,use.names = F)->tmp ; process_df$GammaEffect <- tmp #;rm(tmp)
+    #unlist(tmp$GammaEffect,use.names = F)->process_df$GammaEffect
+    # VegaEffect
+    #process_df %>% dplyr::rowwise() %>% dplyr::do(VegaEffect=getVegaEffect(pos=.$pos$Position,greek=.$pos$Vega,
+    #                                                                       ividx=.$pos$IVIDX,multi=multi,hdd=hdd,
+    #dviv should be precalulated when optimized
+    #                                                                       dviv=annuual.daily.volatility(histIV$IVIDX)$daily)) -> tmp
+    #unlist(tmp$VegaEffect)->tmp ; process_df$VegaEffect <- tmp ;rm(tmp)
+  }
   return(process_df)
 }
 
@@ -1856,16 +1885,17 @@ getPositionGreeks<-function(position,multi,hdd,HV_IV_Adjust_Ratio){
   #cat("HV_IV_Adjust_Ratio (getPositionGreeks):",HV_IV_Adjust_Ratio)
   
   thetaEffect<-getThetaEffect(pos=position$Position,greek=position$Theta,multi=multi,hdd=hdd)
-  vegaEffect<-getVegaEffect(pos=position$Position,greek=position$Vega,multi=multi,hdd=hdd,
-                            ividx=position$IVIDX,dviv=annuual.daily.volatility(histIV$IVIDX)$daily)
+  #vegaEffect<-getVegaEffect(pos=position$Position,greek=position$Vega,multi=multi,hdd=hdd,
+  #                          ividx=position$IVIDX,dviv=annuual.daily.volatility(histIV$IVIDX)$daily)
   deltaEffect<-getDeltaEffect(pos=position$Position,greek=position$Delta,multi=multi,hdd=hdd,
                               UDLY=position$UDLY,rlzdvol_td=position$IVIDX*HV_IV_Adjust_Ratio)
   
   gammaEffect<-getGammaEffect(pos=position$Position,greek=position$Gamma,multi=multi,hdd=hdd,
                               UDLY=position$UDLY,rlzdvol_td=position$IVIDX*HV_IV_Adjust_Ratio)
   
+  #data.frame(Price=price,Delta=delta,Gamma=gamma,Theta=theta,Vega=vega,UDLY=udly,
+  #           ThetaEffect=thetaEffect,GammaEffect=gammaEffect,DeltaEffect=deltaEffect,VegaEffect=vegaEffect)
   data.frame(Price=price,Delta=delta,Gamma=gamma,Theta=theta,Vega=vega,UDLY=udly,
-             ThetaEffect=thetaEffect,GammaEffect=gammaEffect,DeltaEffect=deltaEffect,VegaEffect=vegaEffect)
-  
+             ThetaEffect=thetaEffect,GammaEffect=gammaEffect,DeltaEffect=deltaEffect)
 }
 

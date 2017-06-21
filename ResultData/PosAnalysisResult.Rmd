@@ -151,7 +151,8 @@ for(eval_pos_idx in DrawSpreads){
   
   posStepDays %>% dplyr::group_by(days) %>%
     dplyr::do(scene=createPositionEvalTable(position=thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,
-                                     multi=PosMultip,hdd=.$days,HV_IV_Adjust_Ratio=EvalFuncSetting$HV_IV_Adjust_Ratio)) -> posStepDays
+                                            multi=PosMultip,hdd=.$days,HV_IV_Adjust_Ratio=EvalFuncSetting$HV_IV_Adjust_Ratio,
+                                            useAdvEffect=T)) -> posStepDays
   
   iniCredit <- -1*posStepDays$scene[[1]]$Price[udlStepNum+1]
   
@@ -161,12 +162,9 @@ for(eval_pos_idx in DrawSpreads){
   #We must adjust each position values
   
   #Now drawing
-  drawGrktbl<-createAgrregatedGreekTbl(posStepDays,thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,multi=PosMultip,iniCredit=iniCredit)
-  
-  #Effect Aggregation
-  #drawGrktbl %>% dplyr::mutate(TotalEffect=ThetaEffect+DeltaEffect+GammaEffect+VegaEffect) -> drawGrktbl
-  #drawGrktbl %>% dplyr::mutate(NdEffect=ThetaEffect+GammaEffect) -> drawGrktbl
-  #drawGrktbl %>% dplyr::mutate(DEffect=DeltaEffect+VegaEffect) -> drawGrktbl
+  drawGrktbl<-createAgrregatedGreekTbl(posStepDays,thePosition,
+                                       udlStepNum=udlStepNum,udlStepPct=udlStepPct,multi=PosMultip,
+                                       iniCredit=iniCredit,useAdvEffect=T)
   
   #limit the UDLY range.
   drawGrktbl %>% dplyr::filter(UDLY>mean(thePosition$UDLY)*(1-UDLY_DrawRange)) %>% 
@@ -246,21 +244,25 @@ for(eval_pos_idx in DrawSpreads){
     posStepDays_vc %>% dplyr::group_by(days) %>% dplyr::rowwise() %>%
       dplyr::do(days=.$days,scene2=adjustPosChg(.$scene,base_vol_chg=vol_chg,
                                                 multi=PosMultip,hdd=holdDays,
-                                                HV_IV_Adjust_Ratio=EvalFuncSetting$HV_IV_Adjust_Ratio,isDebug=FALSE)) -> tmp
+                                                HV_IV_Adjust_Ratio=EvalFuncSetting$HV_IV_Adjust_Ratio,
+                                                isDebug=FALSE,useAdvEffect=T)) -> tmp
                                                                                            
                                                 
     unlist(tmp$days) -> posStepDays_vc$days ; tmp$scene2 -> posStepDays_vc$scene ;rm(tmp)
-    drawGrktbl_vc_plus<-createAgrregatedGreekTbl(posStepDays_vc,thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,multi=PosMultip,iniCredit=iniCredit)
+    drawGrktbl_vc_plus<-createAgrregatedGreekTbl(posStepDays_vc,thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,
+                                                 multi=PosMultip,iniCredit=iniCredit,useAdvEffect=T)
     
     #volatility Minus
     posStepDays_vc<-posStepDays_vc_orig
     posStepDays_vc %>% dplyr::group_by(days) %>% dplyr::rowwise() %>%
       dplyr::do(days=.$days,scene2=adjustPosChg(.$scene,base_vol_chg=(-1)*vol_chg,
                                                 multi=PosMultip,hdd=holdDays,
-                                                HV_IV_Adjust_Ratio=EvalFuncSetting$HV_IV_Adjust_Ratio,isDebug=FALSE)) -> tmp
+                                                HV_IV_Adjust_Ratio=EvalFuncSetting$HV_IV_Adjust_Ratio,
+                                                isDebug=FALSE,useAdvEffect=T)) -> tmp
     
     unlist(tmp$days) -> posStepDays_vc$days ; tmp$scene2 -> posStepDays_vc$scene ;rm(tmp)
-    drawGrktbl_vc_mnus<-createAgrregatedGreekTbl(posStepDays_vc,thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,multi=PosMultip,iniCredit=iniCredit)
+    drawGrktbl_vc_mnus<-createAgrregatedGreekTbl(posStepDays_vc,thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,
+                                                 multi=PosMultip,iniCredit=iniCredit,useAdvEffect=T)
     
     #Draw ranging
     drawGrktbl_vc_plus %>% dplyr::filter(UDLY>mean(thePosition$UDLY)*(1-UDLY_DrawRange)) %>% 
