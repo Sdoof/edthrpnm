@@ -255,8 +255,6 @@ def writeToFile(sectype,symbol):
 # -- main  ---------------------------------------------------------------------
 #18 elements finish in 4min15s
 opContractList = [
-    makeOptContract(sym='SPX', exp='20170720', strike='', right='P'),
-    makeOptContract(sym='SPX', exp='20170720', strike='', right='C'),
     makeOptContract(sym='SPX', exp='20170731', strike='', right='P'),
     makeOptContract(sym='SPX', exp='20170731', strike='', right='C'),
     makeOptContract(sym='SPX', exp='20170817', strike='', right='P'),
@@ -269,8 +267,8 @@ opContractList = [
     makeOptContract(sym='SPX', exp='20170929', strike='', right='C'),
     makeOptContract(sym='SPX', exp='20171019', strike='', right='P'),
     makeOptContract(sym='SPX', exp='20171019', strike='', right='C'),
-    makeOptContract(sym='RUT', exp='20170720', strike='', right='P'),
-    makeOptContract(sym='RUT', exp='20170720', strike='', right='C'),
+    makeOptContract(sym='SPX', exp='20171031', strike='', right='P'),
+    makeOptContract(sym='SPX', exp='20171031', strike='', right='C'),
     makeOptContract(sym='RUT', exp='20170731', strike='', right='P'),
     makeOptContract(sym='RUT', exp='20170731', strike='', right='C'),
     makeOptContract(sym='RUT', exp='20170817', strike='', right='P'),
