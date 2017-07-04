@@ -14,14 +14,15 @@ isDebug=F
 isDetail=F
 
 #iteration and eliete pop
-ELITE_POP_NUM=100
-GENERATION_ITR=10
+ELITE_POP_NUM=120
+GENERATION_ITR=20
 
 #cache for the position
 HASH_HIT_NUM=0
 
 #read file and pool setting
-readFname=paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition.csv",sep='')
+#readFname=paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition.csv",sep='')
+readFname=paste(ResultFiles_Path_G,"1Cb.csv",sep='')
 tmp<-read.table(readFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
 tmp=tmp[,1:(length(opchain$Position)+1)]
 colnames(tmp)=c(rep(1:length(opchain$Position)),"eval")
@@ -155,9 +156,9 @@ tmp$putn<-unlist(tmp3$putn);tmp$calln<-unlist(tmp3$calln);rm(tmp2);rm(tmp3)
 tmp %>% dplyr::mutate(posn=(putn+calln)) -> tmp
 
 #write table and file copy
-fname=paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition_Greedy",format(Sys.time(),"%Y%b%d_%H%M%S"),".csv",sep="")
+fname=paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition_Grdy",format(Sys.time(),"%Y%b%d_%H%M%S"),".csv",sep="")
 write.table(tmp,fname,row.names = F,col.names=F,sep=",",append=F)
 #file.copy(from=fname, 
 #          to=paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition.csv",sep=""),
 #          overwrite=T)
-#LocalflipScoreWriteToFile(fname,50)
+LocalflipScoreWriteToFile(fname,50)
