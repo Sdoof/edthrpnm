@@ -242,5 +242,54 @@ LocalcreateSampleConditionStr<-function(EvalFuncSetting){
 }
 
 
+##LOCAL UTILITY: evaluate each position
+
+LocalapplyEvalufunction <- function(evalx, thresh, EvalFuncSetting, 
+                               isDebug, isDetail,isFileout) {
+  posnum=sum(as.numeric((evalx)!=0))
+  if(posnum==0)
+    next
+  #cache check and evaluate
+  val<-(thresh+1.0)
+  md5sumOfPos=digest(paste(evalx,collapse = ""))
+  if(has.key(md5sumOfPos, POSITION_OPTIM_HASH)==FALSE){
+    tryCatch(
+      val<-obj_Income_sgmd(evalx,EvalFuncSetting,isDebug=isDebug,isDetail=isDetail,
+                           udlStepNum=EvalFuncSetting$UdlStepNum,udlStepPct=EvalFuncSetting$UdlStepPct,
+                           PosMultip=PosMultip,
+                           lossLimitPrice=EvalFuncSetting$LossLimitPrice,
+                           Delta_Direct_Prf=EvalFuncSetting$Delta_Direct_Prf[posnum],Vega_Direct_Prf=EvalFuncSetting$Vega_Direct_Prf[posnum],
+                           Delta_Neutral_Offset=EvalFuncSetting$Delta_Neutral_Offset[posnum],Vega_Neutral_Offset=EvalFuncSetting$Vega_Neutral_Offset[posnum]),
+      error=function(e){
+        message(e)
+        cat("val:",val,"thresh",thresh,"\n")
+      })
+    POSITION_OPTIM_HASH[md5sumOfPos]<<-val
+  }else{
+    val<-POSITION_OPTIM_HASH[[md5sumOfPos]]
+    HASH_HIT_NUM<<-HASH_HIT_NUM+1
+  }
+  
+  #value check
+  tryCatch(
+    if(val<thresh){
+      # write to the file
+      if(isFileout){
+        fname=paste(".\\ResultData\\greedy-",format(Sys.time(),"%Y-%b-%d"),".csv",sep="")
+        cat(evalx,
+            file=fname,
+            sep=",",append=TRUE);cat(",",file=fname,append=TRUE)
+        cat(val,file=fname,"\n",append=TRUE)
+      }
+    },
+    error=function(e){
+      message(e)
+      cat("val:",val,"thresh:",thresh,"evalx",evalx,"\n")
+      val=ifelse(is.na(val),thresh,val)
+      cat("val:",val,"thresh:",thresh,"evalx",evalx,"\n")
+      POSITION_OPTIM_HASH[md5sumOfPos]<<-val
+    })
+}
+
 
 
