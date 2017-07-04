@@ -10,11 +10,11 @@ rm(list=ls())
 source('./ESourceRCode.R',encoding = 'UTF-8')
 
 #Debug, Detail Mode
-IS_DEBUG_MODE=F
-IS_DETAIL_MODE=F
+isDebug=F
+isDetail=F
 
 #iteration and eliete pop
-ELITE_POP_NUM=50
+ELITE_POP_NUM=75
 GENERATION_ITR=20
 
 #cache for the position
@@ -24,12 +24,26 @@ HASH_HIT_NUM=0
 readFname=paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition.csv",sep='')
 tmp<-read.table(readFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
 colnames(tmp)<-c(1:ncol(tmp))
-tmp %>% arrange(.[,length(opchain$Position)+1]) %>% head(min(TopN[2]/4,max(4,nrow(.)/2))) -> pos_populations
-pools<<-list(list(c(1,0,0),tmp))
+tmp %>% arrange(.[,length(opchain$Position)+1]) %>%
+  filter(.[,length(opchain$Position)+1]<UNACCEPTABLEVAL) ->tmp
+ELITE_POP_NUM=min(ELITE_POP_NUM,nrow(tmp))
+tmp %>% head(ELITE_POP_NUM) -> pos_populations
+
+## clear hash to improve performance
+hash::clear(POSITION_OPTIM_HASH)
+##create initail POSITION_OPTIM_HASH
+pos_populations %>% dplyr::rowwise() %>%
+  # x = unlist(.)[1:length(opchain$Position)]
+  # revVal = unlist(.)[length(opchain$Position)+1]
+  dplyr::do(md5sum=digest(paste(unlist(.)[1:length(opchain$Position)],collapse = "")),revVal=unlist(.)[length(opchain$Position)+1]
+  ) -> tmp2
+POSITION_OPTIM_HASH[ unlist(tmp2$md5sum) ]<-unlist(tmp2$revVal)
+cat("hash hit:",HASH_HIT_NUM,"hash num:",length(POSITION_OPTIM_HASH),"\n")
 
 start_t<-proc.time()
 for(itr in 1:GENERATION_ITR){
   print(pos_populations)
+  start_t<-proc.time()
   for(eval_pos_idx in 1:ELITE_POP_NUM){
     evaPos<-unlist(pos_populations[eval_pos_idx,])[1:length(opchain$Position)]
     theScore=unlist(pos_populations[eval_pos_idx,][length(opchain$Position)+1])
@@ -37,12 +51,12 @@ for(itr in 1:GENERATION_ITR){
     #Put Position
     idxyPut<-as.numeric(opchain$TYPE==OpType_Put_G)*rep(1:length(opchain$Position),length=length(opchain$Position))
     putOnPos=(idxyPut!=0)*evaPos
-    if(IS_DEBUG_MODE){cat("put pos\n",idxyPut,"\n");print(putOnPos) }
+    if(isDebug){cat("put pos\n",idxyPut,"\n");print(putOnPos) }
     
     #Call Position
     idxyCall<-as.numeric(opchain$TYPE==OpType_Call_G)*rep(1:length(opchain$Position),length=length(opchain$Position))
     callOnPos=(idxyCall!=0)*evaPos
-    if(IS_DEBUG_MODE){cat("call pos\n",idxyCall,"\n");print(callOnPos) }
+    if(isDebug){cat("call pos\n",idxyCall,"\n");print(callOnPos) }
     
     #get Neiigbour
     #Put
@@ -61,11 +75,11 @@ for(itr in 1:GENERATION_ITR){
             typeOnPosNeighbor[elemType[elems]]=typeOnPos[elemType[elems]]-typeOnPos[elemType[elems]]
             typeOnPosNeighbor[neighborElem]=typeOnPos[neighborElem]+typeOnPos[elemType[elems]]
             evalx=evaPos-typeOnPos+typeOnPosNeighbor
-            if(IS_DEBUG_MODE){print(typeOnPos);print(typeOnPosNeighbor);print(evalx) }
+            if(isDebug){print(typeOnPos);print(typeOnPosNeighbor);print(evalx) }
             #Evaluations
             LocalapplyEvalufunction(evalx=evalx,
                                thresh=UNACCEPTABLEVAL, EvalFuncSetting=EvalFuncSetting,
-                               isDebug=IS_DEBUG_MODE, isDetail=IS_DETAIL_MODE,isFileout=T)
+                               isDebug=isDebug, isDetail=isDetail,isFileout=T)
             
           }
         }
@@ -88,11 +102,11 @@ for(itr in 1:GENERATION_ITR){
             typeOnPosNeighbor[elemType[elems]]=typeOnPos[elemType[elems]]-typeOnPos[elemType[elems]]
             typeOnPosNeighbor[neighborElem]=typeOnPos[neighborElem]+typeOnPos[elemType[elems]]
             evalx=evaPos-typeOnPos+typeOnPosNeighbor
-            if(IS_DEBUG_MODE){print(typeOnPos);print(typeOnPosNeighbor);print(evalx) }
+            if(isDebug){print(typeOnPos);print(typeOnPosNeighbor);print(evalx) }
             #Evaluations
             LocalapplyEvalufunction(evalx=evalx,
                                thresh=UNACCEPTABLEVAL, EvalFuncSetting=EvalFuncSetting,
-                               isDebug=IS_DEBUG_MODE, isDetail=IS_DETAIL_MODE,isFileout=T)
+                               isDebug=isDebug, isDetail=isDetail,isFileout=T)
           }
         }
       }
@@ -100,7 +114,6 @@ for(itr in 1:GENERATION_ITR){
   }
   #Hash
   cat("hash hit:",HASH_HIT_NUM,"hash num:",length(POSITION_OPTIM_HASH),"itr:",itr,"time:",(proc.time()-start_t)[3],"\n")
-  start_t<-proc.time()
   
   #Greedy.csv
   st <- "powershell.exe .\\shell\\cmd11.ps1"
