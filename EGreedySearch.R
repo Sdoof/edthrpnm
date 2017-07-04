@@ -14,8 +14,8 @@ isDebug=F
 isDetail=F
 
 #iteration and eliete pop
-ELITE_POP_NUM=75
-GENERATION_ITR=20
+ELITE_POP_NUM=100
+GENERATION_ITR=10
 
 #cache for the position
 HASH_HIT_NUM=0
@@ -23,11 +23,11 @@ HASH_HIT_NUM=0
 #read file and pool setting
 readFname=paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition.csv",sep='')
 tmp<-read.table(readFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
-colnames(tmp)<-c(1:ncol(tmp))
+tmp=tmp[,1:(length(opchain$Position)+1)]
+colnames(tmp)=c(rep(1:length(opchain$Position)),"eval")
 tmp %>% arrange(.[,length(opchain$Position)+1]) %>%
-  filter(.[,length(opchain$Position)+1]<UNACCEPTABLEVAL) ->tmp
-ELITE_POP_NUM=min(ELITE_POP_NUM,nrow(tmp))
-tmp %>% head(ELITE_POP_NUM) -> pos_populations
+  #filter(.[,length(opchain$Position)+1]<UNACCEPTABLEVAL) ->pos_populations
+  dplyr::distinct(eval,.keep_all=TRUE) -> pos_populations
 
 ## clear hash to improve performance
 hash::clear(POSITION_OPTIM_HASH)
@@ -39,6 +39,8 @@ pos_populations %>% dplyr::rowwise() %>%
   ) -> tmp2
 POSITION_OPTIM_HASH[ unlist(tmp2$md5sum) ]<-unlist(tmp2$revVal)
 cat("hash hit:",HASH_HIT_NUM,"hash num:",length(POSITION_OPTIM_HASH),"\n")
+#ELITE_POP_NUM must be equal or below nrow(pos_populations)
+ELITE_POP_NUM=min(ELITE_POP_NUM,nrow(pos_populations))
 
 start_t<-proc.time()
 for(itr in 1:GENERATION_ITR){
@@ -85,7 +87,6 @@ for(itr in 1:GENERATION_ITR){
         }
       }
     }
-    
     #Call
     (elemType=which(callOnPos!=0))
     typeOnPos=callOnPos
@@ -127,13 +128,18 @@ for(itr in 1:GENERATION_ITR){
   tmp=tmp[,1:(length(opchain$Position)+1)]
   colnames(tmp)=c(rep(1:length(opchain$Position)),"eval")
   tmp %>% dplyr::arrange(tmp[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> pos_populations
+  #write to the inigreedy file
+  write.table(pos_populations,paste(".\\ResultData\\inigreedy.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
+  #remove Greedy.csv
+  st <- "powershell.exe -Command \" del .\\ResultData\\Greedy.csv \" "
+  system(st) ;rm(st)
 }
 
 #Writing to a result file
-tmp_greedy<-read.table(paste(ResultFiles_Path_G,"Greedy.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
+tmp_greedy<-read.table(paste(".\\ResultData\\inigreedy.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
 tmp_greedy=tmp_greedy[,1:(length(opchain$Position)+1)]
 colnames(tmp_greedy)=c(rep(1:length(opchain$Position)),"eval")
-#tmp %>% dplyr::arrange(tmp[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> tmp_greedy
+tmp_greedy=tmp_greedy[,1:(length(opchain$Position)+1)]
 
 readFname=paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition.csv",sep='')
 tmp_orig<-read.table(readFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
@@ -148,8 +154,10 @@ tmp2  %>% dplyr::rowwise() %>% dplyr::do(putn=(unlist(.)[1]),calln=(unlist(.)[2]
 tmp$putn<-unlist(tmp3$putn);tmp$calln<-unlist(tmp3$calln);rm(tmp2);rm(tmp3)
 tmp %>% dplyr::mutate(posn=(putn+calln)) -> tmp
 
-write.table(tmp,
-            paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition_Greedy",
-                            format(Sys.time(),"%Y%b%d_%H%M%S"),".csv",sep=""),
-            row.names = F,col.names=F,sep=",",append=F)
-
+#write table and file copy
+fname=paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition_Greedy",format(Sys.time(),"%Y%b%d_%H%M%S"),".csv",sep="")
+write.table(tmp,fname,row.names = F,col.names=F,sep=",",append=F)
+#file.copy(from=fname, 
+#          to=paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition.csv",sep=""),
+#          overwrite=T)
+#LocalflipScoreWriteToFile(fname,50)
