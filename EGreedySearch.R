@@ -14,8 +14,8 @@ IS_DEBUG_MODE=F
 IS_DETAIL_MODE=F
 
 #iteration and eliete pop
-ELITE_POP_NUM=30
-GENERATION_ITR=1
+ELITE_POP_NUM=50
+GENERATION_ITR=20
 
 #cache for the position
 HASH_HIT_NUM=0
