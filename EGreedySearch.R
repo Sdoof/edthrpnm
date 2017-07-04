@@ -14,7 +14,7 @@ isDebug=F
 isDetail=F
 
 #iteration and eliete pop
-ELITE_POP_NUM=120
+ELITE_POP_NUM=200
 GENERATION_ITR=20
 
 #cache for the position
@@ -44,6 +44,7 @@ cat("hash hit:",HASH_HIT_NUM,"hash num:",length(POSITION_OPTIM_HASH),"\n")
 ELITE_POP_NUM=min(ELITE_POP_NUM,nrow(pos_populations))
 
 start_t<-proc.time()
+cacheN_pre=length(POSITION_OPTIM_HASH)
 for(itr in 1:GENERATION_ITR){
   print(pos_populations)
   start_t<-proc.time()
@@ -79,10 +80,10 @@ for(itr in 1:GENERATION_ITR){
             typeOnPosNeighbor[neighborElem]=typeOnPos[neighborElem]+typeOnPos[elemType[elems]]
             evalx=evaPos-typeOnPos+typeOnPosNeighbor
             if(isDebug){print(typeOnPos);print(typeOnPosNeighbor);print(evalx) }
-            #Evaluations
+            #Evaluate
             LocalapplyEvalufunction(evalx=evalx,
-                               thresh=UNACCEPTABLEVAL, EvalFuncSetting=EvalFuncSetting,
-                               isDebug=isDebug, isDetail=isDetail,isFileout=T)
+                                    thresh=UNACCEPTABLEVAL, EvalFuncSetting=EvalFuncSetting,
+                                    isDebug=isDebug, isDetail=isDetail,isFileout=T)
             
           }
         }
@@ -105,17 +106,18 @@ for(itr in 1:GENERATION_ITR){
             typeOnPosNeighbor[neighborElem]=typeOnPos[neighborElem]+typeOnPos[elemType[elems]]
             evalx=evaPos-typeOnPos+typeOnPosNeighbor
             if(isDebug){print(typeOnPos);print(typeOnPosNeighbor);print(evalx) }
-            #Evaluations
+            #Evaluate
             LocalapplyEvalufunction(evalx=evalx,
-                               thresh=UNACCEPTABLEVAL, EvalFuncSetting=EvalFuncSetting,
-                               isDebug=isDebug, isDetail=isDetail,isFileout=T)
+                                    thresh=UNACCEPTABLEVAL, EvalFuncSetting=EvalFuncSetting,
+                                    isDebug=isDebug, isDetail=isDetail,isFileout=T)
           }
         }
       }
     }
   }
   #Hash
-  cat("hash hit:",HASH_HIT_NUM,"hash num:",length(POSITION_OPTIM_HASH),"itr:",itr,"time:",(proc.time()-start_t)[3],"\n")
+  cacheN_pos=length(POSITION_OPTIM_HASH)
+  cat("hash hit:",HASH_HIT_NUM,"hash num:",cacheN_pos,"itr:",itr,"time:",(proc.time()-start_t)[3],"\n")
   
   #Greedy.csv
   st <- "powershell.exe .\\shell\\cmd11.ps1"
@@ -134,6 +136,10 @@ for(itr in 1:GENERATION_ITR){
   #remove Greedy.csv
   st <- "powershell.exe -Command \" del .\\ResultData\\Greedy.csv \" "
   system(st) ;rm(st)
+  #cache num difference
+  if((cacheN_pos-1)<=cacheN_pre)
+    break
+  cacheN_pre=cacheN_pos
 }
 
 #Writing to a result file

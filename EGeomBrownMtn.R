@@ -245,12 +245,13 @@ LocalcreateSampleConditionStr<-function(EvalFuncSetting){
 ##LOCAL UTILITY: evaluate each position
 
 LocalapplyEvalufunction <- function(evalx, thresh, EvalFuncSetting, 
-                               isDebug, isDetail,isFileout) {
+                                    isDebug, isDetail,isFileout) {
   posnum=sum(as.numeric((evalx)!=0))
   if(posnum==0)
     next
+  fname=paste(".\\ResultData\\inigreedy.csv",sep="")
   #cache check and evaluate
-  val<-(thresh+1.0)
+  val<-thresh
   md5sumOfPos=digest(paste(evalx,collapse = ""))
   if(has.key(md5sumOfPos, POSITION_OPTIM_HASH)==FALSE){
     tryCatch(
@@ -275,7 +276,6 @@ LocalapplyEvalufunction <- function(evalx, thresh, EvalFuncSetting,
     if(val<thresh){
       # write to the file
       if(isFileout){
-        fname=paste(".\\ResultData\\inigreedy.csv",sep="")
         cat(evalx,
             file=fname,
             sep=",",append=TRUE);cat(",",file=fname,append=TRUE)
