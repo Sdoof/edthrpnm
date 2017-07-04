@@ -158,7 +158,12 @@ tmp %>% dplyr::mutate(posn=(putn+calln)) -> tmp
 #write table and file copy
 fname=paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition_Grdy",format(Sys.time(),"%Y%b%d_%H%M%S"),".csv",sep="")
 write.table(tmp,fname,row.names = F,col.names=F,sep=",",append=F)
-#file.copy(from=fname, 
-#          to=paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition.csv",sep=""),
-#          overwrite=T)
+file.copy(from=fname, 
+          to=paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition.csv",sep=""),
+          overwrite=T)
 LocalflipScoreWriteToFile(fname,50)
+
+#remove inigreedy.csv file
+st <- "powershell.exe -Command \" del .\\ResultData\\inigreedy.csv \" "
+system(st) ;rm(st)
+
