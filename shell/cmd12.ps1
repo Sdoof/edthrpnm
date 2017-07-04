@@ -1,0 +1,1 @@
+Get-Content .\ResultData\greedy-.csv | Out-File -Filepath .\ResultData\Greedy.csv -Encoding default 

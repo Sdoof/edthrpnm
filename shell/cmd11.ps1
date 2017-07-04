@@ -1,0 +1,1 @@
+Get-ChildItem .\ResultData\  | Where-Object {$_.Name  -match "^*greedy*"} | cat >> .\ResultData\greedy-.csv
