@@ -21,8 +21,8 @@ GENERATION_ITR=20
 HASH_HIT_NUM=0
 
 #read file and pool setting
-#readFname=paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition.csv",sep='')
-readFname=paste(ResultFiles_Path_G,"1Cb.csv",sep='')
+readFname=paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition.csv",sep='')
+#readFname=paste(ResultFiles_Path_G,"1Cb.csv",sep='')
 tmp<-read.table(readFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
 tmp=tmp[,1:(length(opchain$Position)+1)]
 colnames(tmp)=c(rep(1:length(opchain$Position)),"eval")
