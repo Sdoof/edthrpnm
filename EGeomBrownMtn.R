@@ -275,7 +275,7 @@ LocalapplyEvalufunction <- function(evalx, thresh, EvalFuncSetting,
     if(val<thresh){
       # write to the file
       if(isFileout){
-        fname=paste(".\\ResultData\\greedy-",format(Sys.time(),"%Y-%b-%d"),".csv",sep="")
+        fname=paste(".\\ResultData\\inigreedy.csv",sep="")
         cat(evalx,
             file=fname,
             sep=",",append=TRUE);cat(",",file=fname,append=TRUE)
