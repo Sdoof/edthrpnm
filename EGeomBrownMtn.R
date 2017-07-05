@@ -206,6 +206,12 @@ LocalflipScoreWriteToFile<-function(ResultFileName,maxNum){
   tmp=tmp[,1:(length(opchain$Position)+2)]
   colnames(tmp)=c(rep(1:length(opchain$Position)),"eval","eval_org")
   tmp %>% dplyr::arrange(tmp[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> tmp
+  #posnum
+  tmp[,1:length(opchain$Position)] %>% dplyr::rowwise() %>% dplyr::do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp2
+  tmp2  %>% dplyr::rowwise() %>% dplyr::do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp3
+  tmp$putn<-unlist(tmp3$putn);tmp$calln<-unlist(tmp3$calln);rm(tmp2);rm(tmp3)
+  tmp %>% dplyr::mutate(posn=(putn+calln)) -> tmp
+  #write to a file
   write.table(tmp,flipFname,row.names = F,col.names=F,sep=",",append=F)
 }
 
