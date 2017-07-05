@@ -1442,12 +1442,14 @@ createInitialExactPutCallPopulation<-function(popnum,type,EvalFuncSetting,thresh
     
     #value check
     tryCatch(
-      if(val<thresh){
-        added_num<-added_num+1
-        # write to the file
+      {
         if(isFileout){
           cat(x,file=fname,sep=",",append=TRUE);cat(",",file=fname,append=TRUE)
           cat(val,file=fname,"\n",append=TRUE)
+        }
+        if(val<thresh){
+          added_num<-added_num+1
+          # write to the file
         }
       },
       error=function(e){
