@@ -595,3 +595,8 @@ file.copy(from=resultSaveFileRf[[4]],
           to=paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition.csv",sep=""),
           overwrite=T)
 LocalflipScoreWriteToFile(resultSaveFileRf[[4]],50)
+
+#Run greedy search
+source('./EGreedySearch.R',encoding = 'UTF-8')
+
+
