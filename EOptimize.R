@@ -22,6 +22,9 @@ COMBINATION_LOSSLIMIT_MULTIPLE=2
 IS_DEBUG_MODE=F
 IS_DETAIL_MODE=F
 
+#CACHE PRELOAD
+IS_CACHE_PRELOAD=T
+
 #cache for the position
 HASH_HIT_NUM=0
 
@@ -133,6 +136,44 @@ if(COMBINATION_HOT_START==T){
 }
 
 if(COMBINATION_HOT_START==F){
+  if(IS_CACHE_PRELOAD){
+    #create 1Cb.csv
+    st <- "powershell.exe .\\shell\\cmd1.ps1"
+    system(st)
+    st <- "powershell.exe .\\shell\\cmd2.ps1"
+    system(st)
+    st <- "powershell.exe -Command \" del .\\ResultData\\1Cb-.csv \" "
+    system(st) ;rm(st)
+    #cache pre-load
+    readFname=paste(ResultFiles_Path_G,"1Cb.csv",sep='')
+    if(file.exists(readFname)){
+      tryCatch(
+        {
+          tmp<-read.table(readFname,header=F,skipNul=T,stringsAsFactors=F,sep=",")
+          tmp=tmp[,1:(length(opchain$Position)+1)]
+          colnames(tmp)=c(rep(1:length(opchain$Position)),"eval")
+          tmp %>% arrange(.[,length(opchain$Position)+1]) %>%
+            dplyr::distinct(eval,.keep_all=TRUE) -> tmp
+          # clear hash
+          hash::clear(POSITION_OPTIM_HASH)
+          # create initail POSITION_OPTIM_HASH
+          tmp %>% dplyr::rowwise() %>%
+            # x = unlist(.)[1:length(opchain$Position)]
+            # revVal = unlist(.)[length(opchain$Position)+1]
+            dplyr::do(md5sum=digest(paste(unlist(.)[1:length(opchain$Position)],collapse = "")),revVal=unlist(.)[length(opchain$Position)+1]
+            ) -> tmp2
+          POSITION_OPTIM_HASH[ unlist(tmp2$md5sum) ]<-unlist(tmp2$revVal)
+        },
+        error=function(e){
+          cat("no cache preloaded: ")
+          #message(e)
+          st <- "powershell.exe -Command \" del .\\ResultData\\1Cb.csv \" "
+          system(st) ;rm(st)
+        }
+      )
+      cat("preloaded cache: hash hit:",HASH_HIT_NUM,"hash num:",length(POSITION_OPTIM_HASH),"\n")
+    }
+  }
   #First Generation
   for(itr in 1:InitialPopCreateLoopNum){
     cat("itr:",itr,"\n")
