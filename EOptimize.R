@@ -153,7 +153,7 @@ if(COMBINATION_HOT_START==F){
           tmp=tmp[,1:(length(opchain$Position)+1)]
           colnames(tmp)=c(rep(1:length(opchain$Position)),"eval")
           tmp %>% arrange(.[,length(opchain$Position)+1]) %>%
-            dplyr::distinct(eval,.keep_all=TRUE) -> tmp
+            dplyr::distinct(.keep_all=TRUE) -> tmp
           # clear hash
           hash::clear(POSITION_OPTIM_HASH)
           # create initail POSITION_OPTIM_HASH
