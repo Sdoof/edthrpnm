@@ -1,0 +1,1 @@
+Get-Content .\ResultData\Grdy-.csv | Out-File -Filepath .\ResultData\Grdy.csv -Encoding default 
