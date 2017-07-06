@@ -205,9 +205,9 @@ def subscribeDataRequest(con):
         # sleep(1)
         con.reqMktData(tickerId=theOrderId, contract=con_each, genericTickList='', snapshot=False)
         # print('request market data [%s] for conId %s' % (theOrderId, orderIdMktReqContractDict[theOrderId].m_conId))
-    #print('examing orderIdMktReqContractDict press any to continue')
-    #for req_order_id in orderIdMktReqContractDict.iterkeys():
-    #    print('req_order_id ', req_order_id)
+        #print('examing orderIdMktReqContractDict press any to continue')
+        #for req_order_id in orderIdMktReqContractDict.iterkeys():
+        #    print('req_order_id ', req_order_id)
 
 def writeToFile(sectype,symbol):
     global priceInfoDict
@@ -220,7 +220,7 @@ def writeToFile(sectype,symbol):
     file = open(fname, mode='a')
     writer_csv = csv.writer(file, lineterminator="\n",quoting=csv.QUOTE_NONNUMERIC)
     if sectype == 'OPT':
-        writer_csv.writerow(["Strike","ContactName","Last","Bid","Ask","ExpDate","TYPE"])
+        writer_csv.writerow(["Strike","ContactName","Last","Bid","Ask","Date","ExpDate","TYPE"])
     for priceInfo_key in priceInfoDict.iterkeys():
         print('priceInfoKey %s' % (priceInfo_key))
         contract_price = priceInfoDict[priceInfo_key]
@@ -235,13 +235,14 @@ def writeToFile(sectype,symbol):
         if sectype == 'OPT' and contract.m_right == 'P':
             contract.m_right = '1'
         elif sectype == 'OPT' and contract.m_right == 'C':
-             contract.m_right = '-1'
+            contract.m_right = '-1'
         #contract.m_expiry = datetime.datetime.strptime(contract.m_expiry,'%Y%m%d').strftime('%Y/%m/%d')
         if sectype == 'OPT' and symbol == contract.m_symbol:
             try:
                 writer_csv.writerow(
                     [str(contract.m_strike), contract.m_localSymbol, str(format(contract_price.last,'.10f')), str(format(contract_price.bid,'.10f')),
-                     str(format(contract_price.ask,'.10f')), datetime.strptime(contract.m_expiry,'%Y%m%d').strftime('%Y/%m/%d'), contract.m_right])
+                     str(format(contract_price.ask,'.10f')), (datetime.now()-timedelta(days=1)).strftime("%Y/%m/%d"),
+                     datetime.strptime(contract.m_expiry,'%Y%m%d').strftime('%Y/%m/%d'), contract.m_right])
             except:
                 continue
         elif sectype == 'IND' and symbol == contract.m_symbol:
@@ -282,11 +283,11 @@ opContractList = [
 ]
 
 idxContractList = [
-                   makeIndexContract(sym='SPX',exchange='CBOE'),
-                   #makeIndexContract(sym='RUT',exchange='RUSSELL'),
-                   makeIndexContract(sym='VIX',exchange='CBOE')
-                   #makeIndexContract(sym='RVX',exchange='CBOE')
-                   ]
+    makeIndexContract(sym='SPX',exchange='CBOE'),
+    #makeIndexContract(sym='RUT',exchange='RUSSELL'),
+    makeIndexContract(sym='VIX',exchange='CBOE')
+    #makeIndexContract(sym='RVX',exchange='CBOE')
+]
 
 if __name__ == '__main__':
     # Server Access
