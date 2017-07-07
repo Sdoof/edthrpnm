@@ -261,15 +261,15 @@ if(COMBINATION_HOT_START==F){
 tmp<-read.table(paste(ResultFiles_Path_G,"1Cb.csv",sep=""),header=F,skipNul=TRUE,stringsAsFactors=F,sep=",")
 tmp=tmp[,1:(length(opchain$Position)+1)]
 colnames(tmp)=c(rep(1:length(opchain$Position)),"eval")
-tmp %>% dplyr::arrange(tmp[,(length(opchain$Position)+1)]) %>% dplyr::distinct(eval,.keep_all=TRUE) -> tmp
+tmp %>% dplyr::arrange(tmp[,(length(opchain$Position)+1)]) %>% 
+  dplyr::filter(eval<UNACCEPTABLEVAL) %>%
+  dplyr::distinct(eval,.keep_all=TRUE) -> tmp
 #posnum put call
 tmp[,1:length(opchain$Position)] %>% dplyr::rowwise() %>% dplyr::do(putcalln=getPutCallnOfthePosition(unlist(.))) -> tmp2
 tmp2  %>% dplyr::rowwise() %>% dplyr::do(putn=(unlist(.)[1]),calln=(unlist(.)[2]))->tmp3
 tmp$putn<-unlist(tmp3$putn);tmp$calln<-unlist(tmp3$calln);rm(tmp2);rm(tmp3)
 #write to a file
 write.table(tmp,paste(ResultFiles_Path_G,"1Cb.csv",sep=""),row.names = F,col.names=F,sep=",",append=F)
-# TopN_1 selection
-tmp %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% head(TopN[1]) -> tmp
 
 ## clear hash to improve performance
 hash::clear(POSITION_OPTIM_HASH)
@@ -312,6 +312,9 @@ if(Combined_Spread){
   #  LossLimitPrice adjust
   originalLossLimitPrice=EvalFuncSetting$LossLimitPrice
   EvalFuncSetting$LossLimitPrice=EvalFuncSetting$LossLimitPrice*COMBINATION_LOSSLIMIT_MULTIPLE
+  
+  # TopN_1 selection
+  tmp %>% dplyr::arrange(.[,length(opchain$Position)+1]) %>% head(TopN[1]) -> tmp
   
   ###
   ##   2(exact x exact) Combinations (2Cb)
@@ -623,12 +626,16 @@ resultSaveFileRf[[4]]=paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition
                             ,format(Sys.time(),"%Y%b%d_%H%M%S"),".csv",sep="")
 resultSaveFileRf[[5]]=paste(ResultFiles_Path_G,Underying_Symbol_G,"-EvalPosition5_"
                             ,format(Sys.time(),"%Y%b%d_%H%M%S"),".csv",sep="")
-
-write.table(tmp_fil_w,resultSaveFileRf[[1]],row.names = F,col.names=F,sep=",",append=F)
-write.table(tmp_fil_w2,resultSaveFileRf[[2]],row.names = F,col.names=F,sep=",",append=F)
-write.table(tmp_fil_w3,resultSaveFileRf[[3]],row.names = F,col.names=F,sep=",",append=F)
-write.table(tmp_fil_w4,resultSaveFileRf[[4]],row.names = F,col.names=F,sep=",",append=F)
-write.table(tmp_fil_w5,resultSaveFileRf[[5]],row.names = F,col.names=F,sep=",",append=F)
+if(nrow(tmp_fil_w)!=0)
+  write.table(tmp_fil_w,resultSaveFileRf[[1]],row.names = F,col.names=F,sep=",",append=F)
+if(nrow(tmp_fil_w2)!=0)
+  write.table(tmp_fil_w2,resultSaveFileRf[[2]],row.names = F,col.names=F,sep=",",append=F)
+if(nrow(tmp_fil_w3)!=0)
+  write.table(tmp_fil_w3,resultSaveFileRf[[3]],row.names = F,col.names=F,sep=",",append=F)
+if(nrow(tmp_fil_w4)!=0)
+  write.table(tmp_fil_w4,resultSaveFileRf[[4]],row.names = F,col.names=F,sep=",",append=F)
+if(nrow(tmp_fil_w5)!=0)
+  write.table(tmp_fil_w5,resultSaveFileRf[[5]],row.names = F,col.names=F,sep=",",append=F)
 
 
 ## Copy to UDLY_EValPosition.csv and Evaluate Economic Value
