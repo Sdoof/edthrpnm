@@ -1449,7 +1449,6 @@ createInitialExactPutCallPopulation<-function(popnum,type,EvalFuncSetting,thresh
         }
         if(val<thresh){
           added_num<-added_num+1
-          # write to the file
         }
       },
       error=function(e){
