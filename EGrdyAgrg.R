@@ -19,7 +19,7 @@ fnames
 
 total_table=NULL
 for(i in 1:length(fnames)){
-  tmp<-read.table(fnames[i],header=T,skipNul=TRUE,stringsAsFactors=F,sep=",")
+  tmp<-read.table(fnames[i],header=T,skipNul=T,stringsAsFactors=F,sep=",")
   print(tmp)
   total_table %>% dplyr::bind_rows(tmp) -> total_table
 }
@@ -29,6 +29,14 @@ total_table %>%
   dplyr::arrange(desc(as.Date(Date,format="%Y/%m/%d")),as.Date(ExpDate,format="%Y/%m/%d"),TYPE,Strike) %>%
   dplyr::distinct() %>%
   dplyr::filter(Strike != "Strike") -> preForSkew
+preForSkew$Strike=as.integer(preForSkew$Strike)
+preForSkew$Date=format(as.Date(preForSkew$Date,format="%Y/%m/%d"),"%Y/%b/%d")
+preForSkew$ExpDate=format(as.Date(preForSkew$ExpDate,format="%Y/%m/%d"),"%Y/%b/%d")
+na.omit(preForSkew)->preForSkew
+preForSkew$Bid=as.numeric(preForSkew$Bid)
+preForSkew$Ask=as.numeric(preForSkew$Ask)
+preForSkew$Last=as.numeric(preForSkew$Last)
+
 head(preForSkew,n=50)
 tail(preForSkew,n=50)
 #write to a file
@@ -62,12 +70,6 @@ dplyr::inner_join(histPrc, histIV, by = "Date")->injoinPrcIV
 histPrc=injoinPrcIV$Close.x
 histIV=injoinPrcIV$Close.y
 Date=injoinPrcIV$Date
-
-#show Realized and Impled Volatility
-cat("Realized Vol(30d anlzd)",annuual.daily.volatility(histPrc[1:30])$anlzd*100,"IV",histIV[1])
-cat("Realized Vol(60d anlzd)",annuual.daily.volatility(histPrc[1:60])$anlzd*100,"IV",histIV[1])
-cat("Realized Vol(120d anlzd)",annuual.daily.volatility(histPrc[1:120])$anlzd*100,"IV",histIV[1])
-cat("Realized Vol(200d anlzd)",annuual.daily.volatility(histPrc[1:200])$anlzd*100,"IV",histIV[1])
 
 #selective parmeters For SPX
 IS_SELECTIVE_HISTIV_REGR=T
