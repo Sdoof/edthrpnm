@@ -23,15 +23,14 @@ for(i in 1:length(fnames)){
   print(tmp)
   total_table %>% dplyr::bind_rows(tmp) -> total_table
 }
-
-#Pre for Skew
 total_table %>% 
   dplyr::arrange(desc(as.Date(Date,format="%Y/%m/%d")),as.Date(ExpDate,format="%Y/%m/%d"),TYPE,Strike) %>%
   dplyr::distinct() %>%
   dplyr::filter(Strike != "Strike") -> preForSkew
+(preForSkew)
 preForSkew$Strike=as.integer(preForSkew$Strike)
-preForSkew$Date=format(as.Date(preForSkew$Date,format="%Y/%m/%d"),"%Y/%b/%d")
-preForSkew$ExpDate=format(as.Date(preForSkew$ExpDate,format="%Y/%m/%d"),"%Y/%b/%d")
+preForSkew$Date=format(as.Date(preForSkew$Date,format="%Y/%m/%d"),"%Y/%m/%d")
+preForSkew$ExpDate=format(as.Date(preForSkew$ExpDate,format="%Y/%m/%d"),"%Y/%m/%d")
 na.omit(preForSkew)->preForSkew
 preForSkew$Bid=as.numeric(preForSkew$Bid)
 preForSkew$Ask=as.numeric(preForSkew$Ask)
@@ -51,7 +50,6 @@ head(preForPos,n=50)
 tail(preForPos,n=50)
 #write to a file
 write.table(preForPos,paste(DataFiles_Path_G,Underying_Symbol_G,"_OPChain_PreForPos.csv",sep=""),row.names = F,col.names=T,sep=",",append=F)
-
 
 #####
 ## Return Distribution Estimates
