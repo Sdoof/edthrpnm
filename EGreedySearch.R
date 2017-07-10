@@ -14,7 +14,7 @@ isDebug=F
 isDetail=F
 
 #iteration and eliete pop
-ELITE_POP_NUM=200
+ELITE_POP_NUM=300
 GENERATION_ITR=20
 
 #cache for the position
