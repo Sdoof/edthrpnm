@@ -240,8 +240,8 @@ def writeToFile(sectype,symbol):
         if sectype == 'OPT' and symbol == contract.m_symbol:
             try:
                 writer_csv.writerow(
-                    [str(contract.m_strike), contract.m_localSymbol, str(format(contract_price.last,'.10f')), str(format(contract_price.bid,'.10f')),
-                     str(format(contract_price.ask,'.10f')), (datetime.now()-timedelta(days=1)).strftime("%Y/%m/%d"),
+                    [str(int(contract.m_strike)), contract.m_localSymbol, str(format(contract_price.last,'.4f')), str(format(contract_price.bid,'.4f')),
+                     str(format(contract_price.ask,'.4f')), (datetime.now()-timedelta(days=1)).strftime("%Y/%m/%d"),
                      datetime.strptime(contract.m_expiry,'%Y%m%d').strftime('%Y/%m/%d'), contract.m_right])
             except:
                 continue
