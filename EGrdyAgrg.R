@@ -28,7 +28,7 @@ total_table %>%
   dplyr::distinct() %>%
   dplyr::filter(Strike != "Strike") -> preForSkew
 (preForSkew)
-preForSkew$Strike=as.integer(preForSkew$Strike)
+#preForSkew$Strike=as.integer(preForSkew$Strike)
 preForSkew$Date=format(as.Date(preForSkew$Date,format="%Y/%m/%d"),"%Y/%m/%d")
 preForSkew$ExpDate=format(as.Date(preForSkew$ExpDate,format="%Y/%m/%d"),"%Y/%m/%d")
 na.omit(preForSkew)->preForSkew
@@ -50,6 +50,11 @@ head(preForPos,n=50)
 tail(preForPos,n=50)
 #write to a file
 write.table(preForPos,paste(DataFiles_Path_G,Underying_Symbol_G,"_OPChain_PreForPos.csv",sep=""),row.names = F,col.names=T,sep=",",append=F)
+
+# copy _OPChain_PreForSkew.csv _OPChain_Pre.csv
+file.copy(from=paste(DataFiles_Path_G,Underying_Symbol_G,"_OPChain_PreForSkew.csv",sep=""), 
+          to=paste(DataFiles_Path_G,Underying_Symbol_G,"_OPChain_Pre.csv",sep=""),
+          overwrite=T)
 
 #####
 ## Return Distribution Estimates
