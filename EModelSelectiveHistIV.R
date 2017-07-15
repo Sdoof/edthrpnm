@@ -74,6 +74,8 @@ sd(HVIVR[1:100])
 cat("HV_IV_Adjust_Ratio mean",mean(HVIVR[1:100]),"\n")
 HV_IV_Adjust_Ratio=mean(HVIVR[1:100])+sd(HVIVR[1:100])
 cat("HV_IV_Adjust_Ratio mean+1sd",HV_IV_Adjust_Ratio,"\n")
+HV_IV_Adjust_Ratio=(mean(HVIVR[1:100])+mean(HVIVR[1:100])+sd(HVIVR[1:100]))/2
+cat("HV_IV_Adjust_Ratio mean+1sd",HV_IV_Adjust_Ratio,"\n")
 
 DVIV=getDVIVStat(histIV,xDayVol=dviv_caldays,effectiv_suffix,isDebug=F)
 AVIV=DVIV*sqrt(252)
@@ -316,7 +318,6 @@ if(IS_SELECTIVE_HISTIV_REGR){
 #Load test
 load.NLPC2IV(PC=paste("PC",xDayInt,"dCtC",sep=""),IVC=paste("IVCF",xDayInt,"dCtC",sep=""))
 PC1dCtC_NL_IVCF1dCtC
-
 
 #####
 ## Return Distribution Estimates
