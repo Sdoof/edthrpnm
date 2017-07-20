@@ -175,6 +175,9 @@ LocalflipScoreWriteToFile<-function(ResultFileName,maxNum){
   evaTable=evaTable[,1:(length(opchain$Position)+1)]
   colnames(evaTable)=c(rep(1:length(opchain$Position)),"eval")
   flipFname=paste(ResultFileName,"_EcVFlp.csv",sep="")
+  if( file.exists(flipFname)){
+    file.create(flipFname)
+  }
   
   for(tmp_pos_idx in 1:min(nrow(evaTable),maxNum)){
     evaPos<-unlist(evaTable[tmp_pos_idx,])[1:length(opchain$Position)]
@@ -254,7 +257,8 @@ LocalapplyEvalufunction <- function(evalx, thresh, EvalFuncSetting,
                                     isDebug, isDetail,isFileout) {
   posnum=sum(as.numeric((evalx)!=0))
   if(posnum==0)
-    next
+    return()
+  
   fname=paste(".\\ResultData\\inigreedy.csv",sep="")
   #cache check and evaluate
   val<-thresh
