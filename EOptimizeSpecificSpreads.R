@@ -125,6 +125,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   
   #output file name
   outFname=createOutFname(targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,spreadRatio=spreadRatio,EvalFuncSetting=EvalFuncSetting)
+  file.create(outFname)
   
   #sampling
   originalLossLimitPrice=EvalFuncSetting$LossLimitPrice
@@ -159,6 +160,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   
   #output file name
   outFname=createOutFname(targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,spreadRatio=spreadRatio,EvalFuncSetting=EvalFuncSetting)
+  file.create(outFname)
   
   #sampling
   originalLossLimitPrice=EvalFuncSetting$LossLimitPrice
@@ -193,6 +195,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   
   #output file name
   outFname=createOutFname(targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,spreadRatio=spreadRatio,EvalFuncSetting=EvalFuncSetting)
+  file.create(outFname)
   
   #sampling
   originalLossLimitPrice=EvalFuncSetting$LossLimitPrice
@@ -229,6 +232,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   
   #output file name
   outFname=createOutFname(targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,spreadRatio=spreadRatio,EvalFuncSetting=EvalFuncSetting)
+  file.create(outFname)
   
   #sampling
   originalLossLimitPrice=EvalFuncSetting$LossLimitPrice
@@ -265,6 +269,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   
   #output file name
   outFname=createOutFname(targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,spreadRatio=spreadRatio,EvalFuncSetting=EvalFuncSetting)
+  file.create(outFname)
   
   #sampling
   originalLossLimitPrice=EvalFuncSetting$LossLimitPrice
@@ -343,6 +348,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   
   #output file name
   outFname=createOutFname(targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,spreadRatio=spreadRatio,EvalFuncSetting=EvalFuncSetting)
+  file.create(outFname)
   
   #sampling
   originalLossLimitPrice=EvalFuncSetting$LossLimitPrice
@@ -429,6 +435,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   #  First PUT_BULL_SPREAD_SMPLING sampling
   sampleSpreadType=PUT_BULL_SPREAD_SMPLING
   outFname=createOutFname(targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,spreadRatio=spreadRatio,EvalFuncSetting=EvalFuncSetting)
+  file.create(outFname)
   
   #sampling
   originalLossLimitPrice=EvalFuncSetting$LossLimitPrice
@@ -497,6 +504,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   spreadRatio=c(1,1,1)
   
   outFname=createOutFname(targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,spreadRatio=spreadRatio,EvalFuncSetting=EvalFuncSetting)
+  file.create(outFname)
   
   #sampling
   originalLossLimitPrice=EvalFuncSetting$LossLimitPrice
@@ -533,6 +541,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   spreadRatio=c(1,1,1)
   
   outFname=createOutFname(targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,spreadRatio=spreadRatio,EvalFuncSetting=EvalFuncSetting)
+  file.create(outFname)
   
   #sampling
   originalLossLimitPrice=EvalFuncSetting$LossLimitPrice
@@ -570,6 +579,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   
   #output file name
   outFname=createOutFname(targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,spreadRatio=spreadRatio,EvalFuncSetting=EvalFuncSetting)
+  file.create(outFname)
   
   #sampling
   originalLossLimitPrice=EvalFuncSetting$LossLimitPrice
@@ -605,6 +615,7 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
   
   #output file name
   outFname=createOutFname(targetExpDate=targetExpDate,targetExpDate_f=targetExpDate_f,targetExpDate_b=targetExpDate_b,spreadRatio=spreadRatio,EvalFuncSetting=EvalFuncSetting)
+  file.create(outFname)
   
   #sampling
   originalLossLimitPrice=EvalFuncSetting$LossLimitPrice
@@ -645,6 +656,8 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
     hash::clear(POSITION_OPTIM_HASH)
     loadToPositionHash(fname=outFname)
     file.copy(from=outFname,to=paste(outFname,"_load.csv",sep=""),overwrite=T)
+  }else{
+    file.create(outFname)
   }
   
   #read file and pool setting
@@ -699,6 +712,8 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
     hash::clear(POSITION_OPTIM_HASH)
     loadToPositionHash(fname=outFname)
     file.copy(from=outFname,to=paste(outFname,"_load.csv",sep=""),overwrite=T)
+  }else{
+    file.create(outFname)
   }
   
   #read file and pool setting
@@ -753,6 +768,8 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
     hash::clear(POSITION_OPTIM_HASH)
     loadToPositionHash(fname=outFname)
     file.copy(from=outFname,to=paste(outFname,"_load.csv",sep=""),overwrite=T)
+  }else{
+    file.create(outFname)
   }
   
   #read file and pool setting
@@ -807,6 +824,8 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
     hash::clear(POSITION_OPTIM_HASH)
     loadToPositionHash(fname=outFname)
     file.copy(from=outFname,to=paste(outFname,"_load.csv",sep=""),overwrite=T)
+  }else{
+    file.create(outFname)
   }
   
   #read file and pool setting
@@ -861,6 +880,8 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
     hash::clear(POSITION_OPTIM_HASH)
     loadToPositionHash(fname=outFname)
     file.copy(from=outFname,to=paste(outFname,"_load.csv",sep=""),overwrite=T)
+  }else{
+    file.create(outFname)
   }
   
   #read file and pool setting
@@ -918,6 +939,8 @@ if(max(SpreadTypeToDir[[sampleSpreadType]]==SpreadTypeSpecified)){
     hash::clear(POSITION_OPTIM_HASH)
     loadToPositionHash(fname=outFname)
     file.copy(from=outFname,to=paste(outFname,"_load.csv",sep=""),overwrite=T)
+  }else{
+    file.create(outFname)
   }
   
   #read first file and pool setting
