@@ -45,6 +45,7 @@ for(tmp in 2:length(CombinedMaxPosnum)){
 #touch the file whose name shows the configuration of this search
 tmp_touchfile=paste(ResultFiles_Path_G,LocalcreateSampleConditionStr(EvalFuncSetting),".csv",sep="")
 file.create(tmp_touchfile)
+cat("PriceRangeDist",EvalFuncSetting$PriceRangeDist,"\n",file=tmp_touchfile,sep=",",append=TRUE)
 cat("Weight_Explicit",EvalFuncSetting$Weight_Explicit,"\n",file=tmp_touchfile,sep=",",append=TRUE)
 cat("Weight_Explicit_1D",EvalFuncSetting$Weight_Explicit_1D,"\n",file=tmp_touchfile,sep=",",append=TRUE)
 cat("UnitMinProfit",EvalFuncSetting$UnitMinProfit,"\n",file=tmp_touchfile,sep=",",append=TRUE)
