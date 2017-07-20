@@ -150,7 +150,7 @@ for(eval_pos_idx in DrawSpreads){
   posStepDays<-data.frame(days=evaldays)
   
   posStepDays %>% dplyr::group_by(days) %>%
-    dplyr::do(scene=createPositionEvalTable(position=thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,
+    dplyr::do(scene=createPositionEvalTable(position=thePosition,udlChgPct=seq(-udlStepPct*udlStepNum,udlStepPct*udlStepNum,length=(2*udlStepNum)+1),
                                             multi=PosMultip,hdd=.$days,HV_IV_Adjust_Ratio=EvalFuncSetting$HV_IV_Adjust_Ratio,
                                             useAdvEffect=T)) -> posStepDays
   
@@ -163,7 +163,7 @@ for(eval_pos_idx in DrawSpreads){
   
   #Now drawing
   drawGrktbl<-createAgrregatedGreekTbl(posStepDays,thePosition,
-                                       udlStepNum=udlStepNum,udlStepPct=udlStepPct,multi=PosMultip,
+                                       multi=PosMultip,
                                        iniCredit=iniCredit,useAdvEffect=T)
   
   #limit the UDLY range.
@@ -211,7 +211,7 @@ for(eval_pos_idx in DrawSpreads){
     drawGrktbl_DltHgd<-drawGrktbl
     #initial Delta
     #iniDelta<-getPosGreeks(pos=thePosition$Position,greek=thePosition$Delta,multi=PosMultip)
-    iniDelta<-posStepDays$scene[[1]]$Delta[udlStepNum+1]
+    iniDelta<-posStepDays$scene[[1]]$Delta[chgzero_idx]
     #adjustment to initial delta
     Delta_Adjust = 0
     headgedDelta = iniDelta + Delta_Adjust
@@ -246,10 +246,10 @@ for(eval_pos_idx in DrawSpreads){
                                                 multi=PosMultip,hdd=holdDays,
                                                 HV_IV_Adjust_Ratio=EvalFuncSetting$HV_IV_Adjust_Ratio,
                                                 isDebug=FALSE,useAdvEffect=T)) -> tmp
-                                                                                           
-                                                
+    
+    
     unlist(tmp$days) -> posStepDays_vc$days ; tmp$scene2 -> posStepDays_vc$scene ;rm(tmp)
-    drawGrktbl_vc_plus<-createAgrregatedGreekTbl(posStepDays_vc,thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,
+    drawGrktbl_vc_plus<-createAgrregatedGreekTbl(posStepDays_vc,thePosition,
                                                  multi=PosMultip,iniCredit=iniCredit,useAdvEffect=T)
     
     #volatility Minus
@@ -261,7 +261,7 @@ for(eval_pos_idx in DrawSpreads){
                                                 isDebug=FALSE,useAdvEffect=T)) -> tmp
     
     unlist(tmp$days) -> posStepDays_vc$days ; tmp$scene2 -> posStepDays_vc$scene ;rm(tmp)
-    drawGrktbl_vc_mnus<-createAgrregatedGreekTbl(posStepDays_vc,thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,
+    drawGrktbl_vc_mnus<-createAgrregatedGreekTbl(posStepDays_vc,thePosition,
                                                  multi=PosMultip,iniCredit=iniCredit,useAdvEffect=T)
     
     #Draw ranging
@@ -304,7 +304,6 @@ for(eval_pos_idx in DrawSpreads){
     print(gg)
   }
 }
-  
-  ```
-  
-  
+
+```
+

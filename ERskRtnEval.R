@@ -27,9 +27,12 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   if(isDebug){cat("initail position\n");print(thePositionGrk)}
   
   #posEvalTble after 1 day and holdDay
-  udlStepNum<-Setting$UdlStepNum
-  udlStepPct<-Setting$UdlStepPct
-  udlChgPct<-seq(-udlStepPct*udlStepNum,udlStepPct*udlStepNum,length=(2*udlStepNum)+1)
+  udlChgPct<-Setting$PriceRangeDist
+  if(length(udlChgPct)==0){
+    udlStepNum<-Setting$UdlStepNum
+    udlStepPct<-Setting$UdlStepPct
+    udlChgPct<-seq(-udlStepPct*udlStepNum,udlStepPct*udlStepNum,length=(2*udlStepNum)+1)
+  }
   
   #Whether or not to Calculate AdvEffect: Bool
   useAdvEffect=(isDebug|isDetail|(EvalFuncSetting$AdvEffect_Coef>0))
@@ -37,7 +40,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   #dATMIV/dIVIDX 1 day regression result
   posStepDays<-data.frame(days=c(1,Setting$holdDays))
   posStepDays %>% dplyr::group_by(days) %>%
-    dplyr::do(scene=createPositionEvalTable(position=position,udlStepNum=udlStepNum,udlStepPct=udlStepPct,
+    dplyr::do(scene=createPositionEvalTable(position=position,udlChgPct=udlChgPct,
                                             multi=PosMultip,hdd=.$days,HV_IV_Adjust_Ratio=Setting$HV_IV_Adjust_Ratio,
                                             useAdvEffect=useAdvEffect)) -> posStepDays
   
@@ -113,7 +116,12 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   # Estimated Profit
   
   #initial Price
-  Price_initial<-posStepDays$scene[[1]]$Price[udlStepNum + 1]
+  chgzero_idx=which(udlChgPct==0) 
+  if(length(chgzero_idx)==0){
+    cat("which(udlChgPct==0) returns no value\n")
+    return(unacceptableVal)
+  }
+  Price_initial<-posStepDays$scene[[1]]$Price[chgzero_idx]
   
   # Profit Scenario IV as regressed
   posEvalTbl<-posStepDays$scene[[length(posStepDays)]]
@@ -131,11 +139,11 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   profit_hdays_vc_minus<-sum(profit_vector_vc_minus*weight)
   
   #Initial Delta
-  iniDelta <- posStepDays$scene[[1]]$Delta[udlStepNum + 1]
+  iniDelta <- posStepDays$scene[[1]]$Delta[chgzero_idx]
   
   if(isDetail){
-    tmp=data.frame(posStepDays$scene[[1]]$UDLY,profit_vector,profit_vector_vc_plus,profit_vector_vc_minus)
-    colnames(tmp)<-c("UDLY","prft","vc+","vc-")
+    tmp=data.frame(posStepDays$scene[[1]]$udlChgPct,posStepDays$scene[[1]]$UDLY,profit_vector,profit_vector_vc_plus,profit_vector_vc_minus)
+    colnames(tmp)<-c("ChgPct","UDLY","prft","vc+","vc-")
     row.names(tmp)<-c(1:length(profit_vector))
     tmp=t(tmp)
     cat("\n");print(tmp)
@@ -881,9 +889,8 @@ reflectPosChg<- function(process_df,days,IV_DEVIATION=0,MIN_IVIDX_CHG=(-0.5)){
   pos
 }
 
-createPositionEvalTable<-function(position,udlStepNum,udlStepPct,multi,hdd,HV_IV_Adjust_Ratio,useAdvEffect=F){
-  udlChgPct<-seq(-udlStepPct*udlStepNum,udlStepPct*udlStepNum,length=(2*udlStepNum)+1)
-  posEvalTbl<-data.frame(udlChgPct=udlChgPct) ;rm(udlStepNum,udlStepPct)
+createPositionEvalTable<-function(position,udlChgPct,multi,hdd,HV_IV_Adjust_Ratio,useAdvEffect=F){
+  posEvalTbl<-data.frame(udlChgPct=udlChgPct)
   #Set data frames as a row value of another data frame.
   posEvalTbl %>% dplyr::group_by(udlChgPct) %>% dplyr::do(pos=position) -> posEvalTbl
   #Modify pos based on scenario
@@ -1614,7 +1621,7 @@ createCombineCandidatePool<-function(fname,pnum=1000,nrows=-1,skip=0,method=1){
 # Functions to be loaded from EPosAanalysis.R
 
 #create Aggregated Price Table for Drawing
-createAgrregatedGreekTbl<-function(posStepDays,thePosition,udlStepNum=udlStepNum,udlStepPct=udlStepPct,multi=PosMultip,iniCredit=iniCredit,useAdvEffect=F){
+createAgrregatedGreekTbl<-function(posStepDays,thePosition,multi=PosMultip,iniCredit=iniCredit,useAdvEffect=F){
   
   #Profit
   posStepDays %>% dplyr::group_by(days) %>% dplyr::rowwise() %>% dplyr::do(ptbl=createPriceTbl(.$days,.$scene,iniCredit)) -> tmp
