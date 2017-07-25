@@ -168,6 +168,11 @@ get.predicted.skew(models,regtype=5,xmin=-1,x_by=0)
 (predict.c<-get.predicted.skew(models,regtype=5,xmin=-2.0,xmax=1.5))
 (ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV)))+geom_point(alpha=0.2)+
     geom_line(data=data.frame(Moneyness.Nm=predict.c$x,IV2ATMIV=predict.c$y),aes(Moneyness.Nm,IV2ATMIV),color="red"))
+#save and load model
+save.Skew(models,"_Combined")
+#load test
+load.Skew(pattern="_Combined")
+SkewModel_Combined
 
 #using SkewModel, adjust ATMIV to reflect the differnce between Strike and UDLY
 adjustATMIV <- function(atmiv){
