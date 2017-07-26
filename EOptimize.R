@@ -49,6 +49,7 @@ cat("PriceRangeDist",EvalFuncSetting$PriceRangeDist,"\n",file=tmp_touchfile,sep=
 cat("Weight_Explicit",EvalFuncSetting$Weight_Explicit,"\n",file=tmp_touchfile,sep=",",append=TRUE)
 cat("Weight_Explicit_1D",EvalFuncSetting$Weight_Explicit_1D,"\n",file=tmp_touchfile,sep=",",append=TRUE)
 cat("UnitMinProfit",EvalFuncSetting$UnitMinProfit,"\n",file=tmp_touchfile,sep=",",append=TRUE)
+cat("ConditonalProfitEval",EvalFuncSetting$ConditonalProfitEval,"\n",file=tmp_touchfile,sep=",",append=TRUE)
 cat("Posnum",EvalFuncSetting$Posnum,"\n",file=tmp_touchfile,sep=",",append=TRUE)
 cat("CombineTargetGeneration",EvalFuncSetting$CombineTargetGeneration,"\n",file=tmp_touchfile,sep=",",append=TRUE)
 cat("CombinedMaxPosnum",CombinedMaxPosnum,"\n",file=tmp_touchfile,sep=",",append=TRUE)

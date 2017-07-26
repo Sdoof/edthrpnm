@@ -10,13 +10,10 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   unacceptableVal=UNACCEPTABLEVAL
   
   if(isDebug){
-    cat("\n###################### eval func start\n")
-    cat(":(Delta_Direct_Prf)",Delta_Direct_Prf)
-    cat(" :(Vega_Direct_Prf)",Vega_Direct_Prf)
-    cat(" :(Delta_Neutral_Offset)",Delta_Neutral_Offset," :(Vega_Neutral_Offset)",Vega_Neutral_Offset)
+    cat(":(ConditionalProfitEval)",Setting$ConditonalProfitEval)
     if(isDetail==F){cat(" :(holdDays)",Setting$holdDays,"\n")}
   }
-  if(isDetail){cat(" :(holdDays)",Setting$holdDays,"\n")}
+  if(isDetail){cat("\n :(holdDays)",Setting$holdDays,"\n")}
   
   #position where pos$Position != 0
   position<-hollowNonZeroPosition(pos=x)
@@ -150,7 +147,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
     cat(" :(1stD price)",Price_initial," :(prft_wght)",profit_hdays,
         " :(prft_wght_vc+)",profit_hdays_vc_plus,
         " :(prft_wght_vc-)",profit_hdays_vc_minus,
-        " :(iniDelta)",iniDelta)
+        " :(iniDelta)",iniDelta);cat("\n")
   }
   
   posStepDays$scene[[length(posStepDays)]]$UDLY
@@ -189,6 +186,71 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
     return(unacceptableVal)
   }
   
+  #Non conditional Expected Profit
+  profit_expctd_noncdnl=sum(c(profit_hdays_vc_minus,profit_hdays,profit_hdays_vc_plus)*weight_IV)
+  ## Unit MinProfit Constraint
+  total_unit=sum(abs(x))
+  if(total_unit!=0){
+    unitPorfit=profit_expctd_noncdnl/total_unit
+    if(isDetail){
+      cat(" :(exp prft NCDNL)",profit_expctd_noncdnl,"(:ttlUnit)",total_unit," :(unitProfit NCDNL)",unitPorfit,
+          " :(unitMinProfit)",Setting$UnitMinProfit[total_unit])
+    }
+    if(unitPorfit<Setting$UnitMinProfit[total_unit]){
+      return(unacceptableVal)
+    }
+  }else{
+    return(unacceptableVal)
+  }
+  
+  ##
+  # Conditional profit evaluation
+  # Not evaluate profits and only penalize losses when udlChgPct>0
+  if(Setting$ConditonalProfitEval==T){
+    profit_vector[which(udlChgPct>0)]<-(profit_vector[which(udlChgPct>0)]>=0)*0+
+      (profit_vector[which(udlChgPct>0)]<0)*profit_vector[which(udlChgPct>0)]
+    profit_hdays<-sum(profit_vector*weight)
+    
+    profit_vector_vc_plus[which(udlChgPct>0)]<-(profit_vector_vc_plus[which(udlChgPct>0)]>=0)*0+
+      (profit_vector_vc_plus[which(udlChgPct>0)]<0)*profit_vector_vc_plus[which(udlChgPct>0)]
+    profit_hdays_vc_plus<-sum(profit_vector_vc_plus*weight)
+    
+    profit_vector_vc_minus[which(udlChgPct>0)]<-(profit_vector_vc_minus[which(udlChgPct>0)]>=0)*0+
+      (profit_vector_vc_minus[which(udlChgPct>0)]<0)*profit_vector_vc_minus[which(udlChgPct>0)]
+    profit_hdays_vc_minus<-sum(profit_vector_vc_minus*weight)
+    
+    if(isDetail){
+      tmp=data.frame(posStepDays$scene[[1]]$udlChgPct,posStepDays$scene[[1]]$UDLY,profit_vector,profit_vector_vc_plus,profit_vector_vc_minus)
+      colnames(tmp)<-c("ChgPct","UDLY","prft","vc+","vc-")
+      row.names(tmp)<-c(1:length(profit_vector))
+      tmp=t(tmp)
+      cat("\n");print(tmp)
+      cat(" :(1stD price)",Price_initial," :(prft_wght)",profit_hdays,
+          " :(prft_wght_vc+)",profit_hdays_vc_plus,
+          " :(prft_wght_vc-)",profit_hdays_vc_minus,
+          " :(iniDelta)",iniDelta)
+    }
+  }
+  
+  ## c3 profit
+  c3<- sum(c(profit_hdays_vc_minus,profit_hdays,profit_hdays_vc_plus)*weight_IV)
+  profit_expctd=c3
+  
+  ## Unit MinProfit Constraint
+  total_unit=sum(abs(x))
+  if(total_unit!=0){
+    unitPorfit=profit_expctd/total_unit
+    if(isDetail){
+      cat(" :(exp prft)",profit_expctd,"(:ttlUnit)",total_unit," :(unitProfit)",unitPorfit,
+          " :(unitMinProfit)",Setting$UnitMinProfit[total_unit])
+    }
+    if(unitPorfit<Setting$UnitMinProfit[total_unit]){
+      return(unacceptableVal)
+    }
+  }else{
+    return(unacceptableVal)
+  }
+  
   # profit/loss distribution
   pdist<-c(rep(rep(profit_vector,times=round(weight*5000)),times=round(weight_IV*100)[2]),
            rep(rep(profit_vector_vc_plus,times=round(weight*5000)),times=round(weight_IV*100)[3]),
@@ -213,24 +275,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
     cat(" :(max_loss)",maxLoss," :(loss_limit_price)",Setting$LossLimitPrice)
   }
   
-  ## c3 profit
-  c3<- sum(c(profit_hdays_vc_minus,profit_hdays,profit_hdays_vc_plus)*weight_IV)
-  profit_expctd=c3
   
-  ## Unit MinProfit Constraint
-  total_unit=sum(abs(x))
-  if(total_unit!=0){
-    unitPorfit=profit_expctd/total_unit
-    if(isDetail){
-      cat(" :(exp prft)",profit_expctd,"(:ttlUnit)",total_unit," :(unitProfit)",unitPorfit,
-          " :(unitMinProfit)",Setting$UnitMinProfit[total_unit])
-    }
-    if(unitPorfit<Setting$UnitMinProfit[total_unit]){
-      return(unacceptableVal)
-    }
-  }else{
-    return(unacceptableVal)
-  }
   
   ##
   # Day 1 profit profile
@@ -255,10 +300,64 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
     profit_1D_vector_vc_plus=(posEvalTbl1D_vc_plus$Price-Price_initial)
     profit_1D_vector_vc_minus=(posEvalTbl1D_vc_minus$Price-Price_initial)
     
+    if(isDetail){
+      #cat("\n:(1st day evalTble)\n");print(posEvalTbl1D)
+      cat(" :(Eval1DayDistWeightROnHoldDay)",ratOnHldD_tmp,
+          " :(weight_1D)",weight_1D)
+    }
+    
+    ##VegaEffect 1st Day should be based on NON-CONDITION Profit?
+    ## VegaEffect 1st Day
+    #VegaEffectWithSign1D= (sum(profit_1D_vector_vc_plus*weight_1D)-sum(profit_1D_vector_vc_minus*weight_1D))/2
+    #VegaEffect_Comp1D = (-1)*sum(abs((profit_1D_vector_vc_plus-profit_1D_vector_vc_minus)/2)*weight_1D)
+    ## Vomma Effect 1st Day
+    #VommaEffect1D=((sum(profit_1D_vector_vc_plus*weight_1D) + sum(profit_1D_vector_vc_minus*weight_1D))/2)-sum(profit_1D_vector*weight_1D)
+    #Vega_True1D=VegaEffectWithSign1D/(expIVChange*100)
+    
+    ##
+    # Conditional profit evaluation for Day 1
+    if(Setting$ConditonalProfitEval==T){
+      
+      #Log Non Condition Proft Result
+      if(isDetail){
+        #cat("\n:(1st day evalTble)\n");print(posEvalTbl1D)
+        cat("\n<<1Day profit NCDNL:(prft_vec_1D)",profit_1D_vector,
+            " :(prft_vec_1D_hdd_weight)",sum(profit_1D_vector*weight_1D),
+            " :(prft_vec_1D_hdd_sd)",sd(rep(profit_1D_vector,times=round(weight_1D*1000))))
+        #cat(" :(profit_hd1D_diff_wght)",profit_hd1D_diff_wght,
+        #    " :(prfit_hd1Day_diffAbs_wght)",profit_hd1D_AbsDiff_wght)
+        #IV Up
+        cat(" <<1Day profit NCDNL:(prft_vec_1D_vc_plus)",profit_1D_vector_vc_plus,
+            " :(prft_vec_1D_hdd_vc_plus_weight)",sum(profit_1D_vector_vc_plus*weight_1D),
+            " :(prft_vec_1D_hdd__vc_plus_sd)",sd(rep(profit_1D_vector_vc_plus,times=round(weight_1D*1000))))
+        #cat(" :(profit_hd1D_diff_vc_plus_wght)",profit_hd1D_diff_vc_plus_wght,
+        #    " :(prfit_hd1Day_diffAbs_vc_plus_wght)",profit_hd1D_AbsDiff_vc_plus_wght," 1Day profit>>")
+        #IV Down
+        cat(" <<1Day profit NCDNL:(prft_vec_1D_vc_minus)",profit_1D_vector_vc_minus,
+            " :(prft_vec_1D_hdd_vc_minus_weight)",sum(profit_1D_vector_vc_minus*weight_1D),
+            " :(prft_vec_1D_hdd__vc_minus_sd)",sd(rep(profit_1D_vector_vc_minus,times=round(weight_1D*1000))))
+        #cat(" :(profit_hd1D_diff_vc_minus_wght)",profit_hd1D_diff_vc_minus_wght,
+        #    " :(prfit_hd1Day_diffAbs_vc_minus_wght)",profit_hd1D_AbsDiff_vc_minus_wght," 1Day profit>>")
+        cat(" 1Day profit NCDNL>>\n")
+      }
+      
+      #Conditional Profit Calculation
+      profit_1D_vector[which(udlChgPct>0)]<-(profit_1D_vector[which(udlChgPct>0)]>=0)*0+
+        (profit_1D_vector[which(udlChgPct>0)]<0)*profit_1D_vector[which(udlChgPct>0)]
+      
+      profit_1D_vector_vc_plus[which(udlChgPct>0)]<-(profit_1D_vector_vc_plus[which(udlChgPct>0)]>=0)*0+
+        (profit_1D_vector_vc_plus[which(udlChgPct>0)]<0)*profit_1D_vector_vc_plus[which(udlChgPct>0)]
+      
+      profit_1D_vector_vc_minus[which(udlChgPct>0)]<-(profit_1D_vector_vc_minus[which(udlChgPct>0)]>=0)*0+
+        (profit_1D_vector_vc_minus[which(udlChgPct>0)]<0)*profit_1D_vector_vc_minus[which(udlChgPct>0)]
+      
+    }
+    
+    ##VegaEffect 1st Day should be based on CONDITIONAL Profit?
     ## VegaEffect 1st Day
     VegaEffectWithSign1D= (sum(profit_1D_vector_vc_plus*weight_1D)-sum(profit_1D_vector_vc_minus*weight_1D))/2
     VegaEffect_Comp1D = (-1)*sum(abs((profit_1D_vector_vc_plus-profit_1D_vector_vc_minus)/2)*weight_1D)
-    #Vomma Effect 1st Day
+    ## Vomma Effect 1st Day
     VommaEffect1D=((sum(profit_1D_vector_vc_plus*weight_1D) + sum(profit_1D_vector_vc_minus*weight_1D))/2)-sum(profit_1D_vector*weight_1D)
     Vega_True1D=VegaEffectWithSign1D/(expIVChange*100)
     
@@ -275,9 +374,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
                      " :(VegaEffect1D)",VegaEffect_Comp1D," :(VommaEffect1D)",VommaEffect1D)}
     if(isDetail){
       #cat("\n:(1st day evalTble)\n");print(posEvalTbl1D)
-      cat(" :(Eval1DayDistWeightROnHoldDay)",ratOnHldD_tmp,
-          " :(weight_1D)",weight_1D)
-      cat(" <<1Day profit :(prft_vec_1D)",profit_1D_vector,
+      cat("\n<<1Day profit :(prft_vec_1D)",profit_1D_vector,
           " :(prft_vec_1D_hdd_weight)",sum(profit_1D_vector*weight_1D),
           " :(prft_vec_1D_hdd_sd)",sd(rep(profit_1D_vector,times=round(weight_1D*1000))))
       #cat(" :(profit_hd1D_diff_wght)",profit_hd1D_diff_wght,
@@ -294,8 +391,9 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
           " :(prft_vec_1D_hdd__vc_minus_sd)",sd(rep(profit_1D_vector_vc_minus,times=round(weight_1D*1000))))
       #cat(" :(profit_hd1D_diff_vc_minus_wght)",profit_hd1D_diff_vc_minus_wght,
       #    " :(prfit_hd1Day_diffAbs_vc_minus_wght)",profit_hd1D_AbsDiff_vc_minus_wght," 1Day profit>>")
-      cat(" 1Day profit>>")
+      cat(" 1Day profit>>\n")
     }
+    
     #profit_sd=profit_sd+Setting$Coef1DayDist*abs(prfit_hd1Day_diff_wght)
     # if(isDetail){
     #   cat(" :profit_sd += Setting$Coef1DayDist",Setting$Coef1DayDist,
@@ -462,12 +560,12 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   if(Setting$Eval1DayDist){
     VegaEffect_Comp=VegaEffect_Comp+Setting$Coef1DayDist*VegaEffect_Comp1D
     if(isDetail){
-      cat(" (:VegaE+= Coef1DayDist",Setting$Coef1DayDist," x VegaEffect_Comp1D",VegaEffect_Comp1D,")")
+      cat("(:VegaE+= Coef1DayDist",Setting$Coef1DayDist," x VegaEffect_Comp1D",VegaEffect_Comp1D,")")
     }
   }
   c7=(vega_pref_coef*VegaEffect_Comp)
   if(isDetail){
-    cat(" :vega_pref_coef",vega_pref_coef,"x :VegaE_new",VegaEffect_Comp,
+    cat(":vega_pref_coef",vega_pref_coef,"x :VegaE_new",VegaEffect_Comp,
         "+ :dlta_pref_coef",dlta_pref_coef,"x :DeltaE_new",DeltaEffect_Comp)
   }
   
@@ -501,7 +599,7 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
   
   ##
   # total cost and penalty
-  val<-cost 
+  val<-cost
   
   if(isDetail){
     if(B>0){
@@ -510,6 +608,12 @@ obj_Income_sgmd <- function(x,Setting,isDebug=FALSE,isDetail=FALSE,
       }else{
         cat(" :(EcnVal)",(A-B),"\n")
       }
+    }
+    
+    if(Setting$ConditonalProfitEval==T){
+      ROIC_noncdl=profit_expctd_noncdnl/(-maxLoss)
+      ROIC_anlzd_noncdl=ROIC_noncdl*252/Setting$holdDays
+      cat(" :(exp prft NCDNL)",profit_expctd_noncdnl," :(ROIC NCDNL)",ROIC_noncdl," :(ROIC anlzd NCDNL)",ROIC_anlzd_noncdl)
     }
     ROIC_anlzd=ROIC*252/Setting$holdDays
     cat(" :(exp prft)",profit_expctd," :(maxloss):",maxLoss," :(ROIC)",ROIC," :(ROIC anlzd)",ROIC_anlzd,"\n")
