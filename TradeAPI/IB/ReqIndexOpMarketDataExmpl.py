@@ -15,12 +15,12 @@ contractRestoreList = None
 orderIdMktReqContractDict = None
 priceInfoDict = {}
 
-SPX_Strike_Max=2650
-SPX_Strike_Min=1900
+SPX_Strike_Max=2700
+SPX_Strike_Min=1950
 SPX_Strike_Max_P=SPX_Strike_Max-100
 SPX_Strike_Min_C=SPX_Strike_Min+250
-RUT_Strike_Max=1750
-RUT_Strike_Min=850
+RUT_Strike_Max=1700
+RUT_Strike_Min=900
 
 class ContractPrice:
     def __init__(self):
