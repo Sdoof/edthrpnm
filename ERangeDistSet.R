@@ -101,7 +101,7 @@ cat(file=fname,"\n\n",append=T)
 #calclate total_range
 total_range=seq(-1,1.2,by=0.001)
 total_range=total_range[-which(ppearson(total_range,moments=moment_trnsfm)>=1.0)]
-total_range=total_range[-which(ppearson(total_range,moments=moment_trnsfm)<=0.0)]
+total_range=total_range[-which(ppearson(total_range,moments=moment_trnsfm)<=0.00000001)]
 length(total_range)
 total_range
 
@@ -121,7 +121,7 @@ regular_interval_range
 regular_cum_table=ppearson(regular_interval_range,moments=moment_trnsfm)
 #regular_dn_table=regular_cum_table-LocalVectorShiftRight(regular_cum_table)
 regular_dn_table=dpearson(regular_interval_range,moments=moment_trnsfm)
-regular_dn_table=regular_dn_table_2/sum(regular_dn_table_2)
+regular_dn_table=regular_dn_table/sum(regular_dn_table)
 regular_cum_table
 #regular_dn_table
 #sum(regular_dn_table)
