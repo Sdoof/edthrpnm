@@ -40,15 +40,14 @@ pos_populations %>% dplyr::rowwise() %>%
   ) -> tmp2
 POSITION_OPTIM_HASH[ unlist(tmp2$md5sum) ]<-unlist(tmp2$revVal)
 cat("hash hit:",HASH_HIT_NUM,"hash num:",length(POSITION_OPTIM_HASH),"\n")
-#ELITE_POP_NUM must be equal or below nrow(pos_populations)
-ELITE_POP_NUM=min(ELITE_POP_NUM,nrow(pos_populations))
 
 start_t<-proc.time()
 cacheN_pre=length(POSITION_OPTIM_HASH)
 for(itr in 1:GENERATION_ITR){
   print(pos_populations)
   start_t<-proc.time()
-  for(eval_pos_idx in 1:ELITE_POP_NUM){
+  ELITE_EVAL_NUM=min(ELITE_POP_NUM,nrow(pos_populations))
+  for(eval_pos_idx in 1:ELITE_EVAL_NUM){
     evaPos<-unlist(pos_populations[eval_pos_idx,])[1:length(opchain$Position)]
     theScore=unlist(pos_populations[eval_pos_idx,][length(opchain$Position)+1])
     
