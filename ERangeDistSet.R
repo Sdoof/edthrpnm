@@ -100,14 +100,18 @@ cat(file=fname,"\n\n",append=T)
 
 #calclate total_range
 total_range=seq(-1,1.2,by=0.001)
-total_range=total_range[-which(ppearson(total_range,moments=moment_trnsfm)>=1.0)]
-total_range=total_range[-which(ppearson(total_range,moments=moment_trnsfm)<=0)]
+#total_range=total_range[-which(ppearson(total_range,moments=moment_trnsfm)>=1.0)]
+#total_range=total_range[-which(ppearson(total_range,moments=moment_trnsfm)<=0)]
 length(total_range)
 total_range
 
 #LowerLimit,UpperLimit
-LowerLimit=max(-0.2,min(total_range))
-UpperLimit=min(0.1,max(total_range))
+LowerLimit=max(-0.2,ifelse(length(total_range[-which(ppearson(total_range,moments=moment_trnsfm)<=0)])==0,
+                           min(total_range),
+                           min(total_range[-which(ppearson(total_range,moments=moment_trnsfm)<=0)]) ))
+UpperLimit=min(0.1,ifelse(length( total_range[-which(ppearson(total_range,moments=moment_trnsfm)>=1.0)] )==0,
+                          max(total_range),
+                          max(total_range[-which(ppearson(total_range,moments=moment_trnsfm)>=1.0)]) ))
 
 ##
 # regular intervals
