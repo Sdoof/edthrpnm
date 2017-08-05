@@ -101,7 +101,7 @@ cat(file=fname,"\n\n",append=T)
 #calclate total_range
 total_range=seq(-1,1.2,by=0.001)
 total_range=total_range[-which(ppearson(total_range,moments=moment_trnsfm)>=1.0)]
-total_range=total_range[-which(ppearson(total_range,moments=moment_trnsfm)<=0.00000001)]
+total_range=total_range[-which(ppearson(total_range,moments=moment_trnsfm)<=0)]
 length(total_range)
 total_range
 
