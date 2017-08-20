@@ -143,17 +143,16 @@ SkewModel_Combined
 
 #used for later for Put Skew
 predict_combined=predict.c
+vplot %>% dplyr::filter(!(TYPE==OpType_Call_G&Moneyness.Nm<0)) -> vplot_combined_putout
 
 #Only Put
 vplot<-getNmlzdSkewTypEVplot(op_right=OpType_Put_G)
 (ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV),size=TimeToExpDate/2,colour=Date))+geom_point(alpha=0.2))
 (ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV)))+geom_point(alpha=0.2))
 models <- (get.skew.regression.Models(vplot,regtype=5,df=7))
-
 #smooth spline
 get.predicted.skew(models,regtype=5,xmin=-1,x_by=0)
 (predict.c<-get.predicted.skew(models,regtype=5,xmin=-3.0,xmax=1.5))
-
 if(min(predict.c$y)<=0){
   #Deep In the Money 
   #minimum value continues
@@ -162,10 +161,18 @@ if(min(predict.c$y)<=0){
   #predict.c$y[which(predict.c$y<=min(tmp))]=min(tmp)
   
   #In the Money, predict_combined model is selected
-  predict.c$y=
-    (predict_combined$x>0)*predict_combined$y+
-    (predict.c$x<=0)*predict.c$y
+  #predict.c$y=
+  #  (predict_combined$x>0)*predict_combined$y+
+  #  (predict.c$x<=0)*predict.c$y
+  vplot=vplot_combined_putout
 }
+# once again
+(ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV),size=TimeToExpDate/2,colour=Date))+geom_point(alpha=0.2))
+(ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV)))+geom_point(alpha=0.2))
+models <- (get.skew.regression.Models(vplot,regtype=5,df=7))
+#smooth spline
+get.predicted.skew(models,regtype=5,xmin=-1,x_by=0)
+(predict.c<-get.predicted.skew(models,regtype=5,xmin=-3.0,xmax=1.5))
 (ggplot(vplot,aes(x=Moneyness.Nm,y=(OrigIV/ATMIV),colour=TimeToExpDate))+geom_point(alpha=0.2)+
     geom_line(data=data.frame(Moneyness.Nm=predict.c$x,IV2ATMIV=predict.c$y),aes(Moneyness.Nm,IV2ATMIV),color="red"))
 #save and load model
