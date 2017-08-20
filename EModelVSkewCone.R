@@ -197,6 +197,9 @@ save.Skew(models,"_Call")
 load.Skew(pattern="_Call")
 SkewModel_Call
 
+#rm(SkewModel)
+rm(models,vplot,predict.c)
+
 #using SkewModel, adjust ATMIV to reflect the differnce between Strike and UDLY
 adjustATMIV <- function(atmiv){
   displacement<-log(atmiv$Moneyness.Frac)/atmiv$ATMIV/sqrt(atmiv$TimeToExpDate)
@@ -209,9 +212,6 @@ adjustATMIV <- function(atmiv){
 #    ATMIV adjusted to continue following regressions.
 ATMIV_adj<-adjustATMIV(atmiv)
 atmiv$ATMIV<-ATMIV_adj
-
-#rm(SkewModel)
-rm(models,vplot,predict.c)
 
 ##
 #  Regression of ATM behavior
