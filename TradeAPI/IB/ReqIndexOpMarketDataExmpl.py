@@ -15,13 +15,13 @@ contractDetail = None
 contractRestoreList = None
 orderIdMktReqContractDict = None
 priceInfoDict = {}
-
-SPX_Strike_Max = 2750
-SPX_Strike_Min = 1850
+# SPX 2510, RUT 1440
+SPX_Strike_Max = 2800
+SPX_Strike_Min = 1900
 SPX_Strike_Max_P = SPX_Strike_Max - 150
 SPX_Strike_Min_C = SPX_Strike_Min + 300
-RUT_Strike_Max = 1600
-RUT_Strike_Min = 900
+RUT_Strike_Max = 1650
+RUT_Strike_Min = 1000
 RUT_Strike_Max_P = RUT_Strike_Max - 150
 RUT_Strike_Min_C = RUT_Strike_Min + 150
 
@@ -229,8 +229,8 @@ def writeToFile(sectype, symbol):
         fname = "C:/Users/kuby/edthrpnm/MarketData/" + symbol + sectype + ".csv"
     else:
         fname = "C:/Users/kuby/edthrpnm/MarketData/" + symbol + sectype + ".csv"
-    file = open(fname, mode='a')
-    writer_csv = csv.writer(file, lineterminator="\n", quoting=csv.QUOTE_NONNUMERIC)
+    fd_write = open(fname, mode='a')
+    writer_csv = csv.writer(fd_write, lineterminator="\n", quoting=csv.QUOTE_NONNUMERIC)
     if sectype == 'OPT':
         writer_csv.writerow(["Strike", "ContactName", "Last", "Bid", "Ask", "Date", "ExpDate", "TYPE"])
     for priceInfo_key in priceInfoDict.iterkeys():
@@ -264,7 +264,7 @@ def writeToFile(sectype, symbol):
                     [str(contract_price.last), str(contract_price.close), datetime.now().strftime('%Y/%m/%d %H:%M:%S')])
             except:
                 continue
-    file.close()
+    fd_write.close()
 
 
 # -- main  ---------------------------------------------------------------------
@@ -282,6 +282,8 @@ opContractList = [
     makeOptContract(sym='SPX', exp='20171215', strike='', right='C'),
     makeOptContract(sym='SPX', exp='20171229', strike='', right='P'),
     makeOptContract(sym='SPX', exp='20171229', strike='', right='C'),
+    makeOptContract(sym='SPX', exp='20180119', strike='', right='P'),
+    makeOptContract(sym='SPX', exp='20180119', strike='', right='C'),
     makeOptContract(sym='RUT', exp='20171019', strike='', right='P'),
     makeOptContract(sym='RUT', exp='20171019', strike='', right='C'),
     makeOptContract(sym='RUT', exp='20171031', strike='', right='P'),
@@ -293,7 +295,9 @@ opContractList = [
     makeOptContract(sym='RUT', exp='20171214', strike='', right='P'),
     makeOptContract(sym='RUT', exp='20171214', strike='', right='C'),
     makeOptContract(sym='RUT', exp='20171229', strike='', right='P'),
-    makeOptContract(sym='RUT', exp='20171229', strike='', right='C')
+    makeOptContract(sym='RUT', exp='20171229', strike='', right='C'),
+    makeOptContract(sym='RUT', exp='20180118', strike='', right='P'),
+    makeOptContract(sym='RUT', exp='20180118', strike='', right='C')
 ]
 
 idxContractList = [
