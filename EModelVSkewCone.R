@@ -7,7 +7,7 @@ source('./ESourceRCode.R',encoding = 'UTF-8')
 
 #MAX ExpToDate for Skew Regression
 SkewRegressionTimeToExpDateMin<-1.6
-SkewRegressionTimeToExpDateMax<-3.5
+SkewRegressionTimeToExpDateMax<-3.6
 
 #We get regression only past this day. Currently reflected on Skew only.
 #should apply Vcone, etc.
