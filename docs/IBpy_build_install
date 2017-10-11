@@ -1,3 +1,7 @@
+## pip install is now available.
+## Just use pip.
+
+## Obsolete
 #### ibapi by interactive brokers: almost the same procedure as IbPy
 C:\TWS API\source\pythonclient> python.exe .\setup.py sdist
 C:\TWS API\source\pythonclient> python.exe .\setup.py build
