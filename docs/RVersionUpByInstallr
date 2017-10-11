@@ -1,0 +1,16 @@
+#On RStudio
+#First update all packages.
+
+#Next
+install.packages("installr")
+
+#On RGui Window
+library(installr)
+#updateR(browse_news=T, install_R=T, copy_packages=T, keep_old_packages=T, update_packages=T, start_new_R=T, quit_R=T)
+updateR(browse_news=T, install_R=T, copy_packages=T, keep_old_packages=F, update_packages=T, start_new_R=T, quit_R=T)
+
+#Finally
+#Check new version R works correctly.
+#uninstall older version R
+#If older packages still exists on lib, rm them if you like
+
