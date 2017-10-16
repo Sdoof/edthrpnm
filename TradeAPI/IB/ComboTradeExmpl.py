@@ -9,8 +9,11 @@ import sys
 
 
 # -- message handlers  ---------------------------------------------------------
+
+
 def MessageHandler(msg):
     print msg
+
 
 def ErrorHandler(msg):
     print(str(msg))
@@ -29,16 +32,13 @@ def ContractDetailsHandler(msg):
 
 
 def MultiContractDetailsHandler(msg):
-    global contractRestoreList
+    contractRestoreList = None
     theContractdetail = msg.contractDetails
     theContract = theContractdetail.m_summary
     print('<MultiContracts reqid %s conId %s: %s: %s: %s: %s: %s: %s>' % (
         msg.reqId, theContract.m_conId, theContract.m_localSymbol, theContract.m_right,
         theContract.m_strike, theContract.m_expiry, theContract.m_exchange, theContract.m_symbol))
-    if contractRestoreList:
-        contractRestoreList.append(theContract)
-    else:
-        contractRestoreList = [theContract]
+    contractRestoreList.append(theContract)
 
 
 def OrderStatusHandler(msg):
@@ -53,6 +53,7 @@ def TickPriceHandler(msg):
 
 
 # -- functions  -----------------------------------------------------------------
+
 
 def makeOptContract(sym, exp, strike, right):
     newOptContract = Contract()
@@ -240,8 +241,9 @@ def createTicketPackage(SymbolTicket, ExpiryTicket, StrikeTicket, RightTicket, B
     theTicketPackage.qTY_G = QTY_G
     return theTicketPackage
 
-
 # -- globals  ------------------------------------------------------------------
+
+
 port_G = 7496
 clientId_G = 679
 
@@ -278,6 +280,7 @@ queTickets.append(theTicketPkg)
 
 # -- main  ------------------------------------------------------------------
 
+
 def main():
     # look into queTickets
     while True:
@@ -298,7 +301,7 @@ def main():
 
             # Make leg Lists from APT Ticket
             leg = processAPITicket(symbol_ticket, expiry_ticket, strike_ticket, right_ticket)
-            # Make sure each Sperad is correct
+            # Make sure each spread is correct
             print('------------- Spread')
             for legitem in range(len(leg)):
                 print("=> %s %s x [%s] %s Call/Put: %s Strike: %s Expiration: %s" %
@@ -330,67 +333,11 @@ def main():
             # disconnect
             con.disconnect()
         except IndexError:
-            print("IndexError")
+            print("finished sending spread orders")
             break
     sleep(3)
     sys.exit(0)
 
+
 if __name__ == '__main__':
     main()
-
-# if __name__ == '__main__':
-#     # look into queTickets
-#     while True:
-#         try:
-#             tkpkg = queTickets.popleft()
-#             print(tkpkg.symbolTicket, tkpkg.expiryTicket, tkpkg.strikeTicket, tkpkg.rightTicket,
-#                   tkpkg.buySell, tkpkg.comboRatio, tkpkg.limitPrice_G, tkpkg.qTY_G)
-#
-#             # this Ticket info
-#             SymbolTicket = tkpkg.symbolTicket
-#             ExpiryTicket = tkpkg.expiryTicket
-#             StrikeTicket = tkpkg.strikeTicket
-#             RightTicket = tkpkg.rightTicket
-#             BuySell = tkpkg.buySell
-#             ComboRatio = tkpkg.comboRatio
-#             LimitPrice_G = tkpkg.limitPrice_G
-#             QTY_G = tkpkg.qTY_G
-#
-#             # Make Leg Lists from APT Ticket
-#             Leg = processAPITicket(SymbolTicket, ExpiryTicket, StrikeTicket, RightTicket)
-#             # Make sure each Sperad is correct
-#             print('------------- Spread')
-#             for legitem in range(len(Leg)):
-#                 print("=> %s %s x [%s] %s Call/Put: %s Strike: %s Expiration: %s" %
-#                       (BuySell[legitem], ComboRatio[legitem], Leg[legitem].m_secType, Leg[legitem].m_symbol,
-#                        Leg[legitem].m_right, Leg[legitem].m_strike, Leg[legitem].m_expiry))
-#             raw_input('Spread leg info correct?')
-#
-#             # Server Access
-#             con = Connection.create(port=port_G, clientId=clientId_G)
-#             con.register(ErrorHandler, 'Error')
-#             con.register(NextValidIdHandler, 'NextValidId')
-#             con.register(ContractDetailsHandler, 'ContractDetails')
-#             con.register(OrderStatusHandler, 'OrderStatus')
-#             con.connect()
-#             con.setServerLogLevel(5)
-#             # get next Order Id
-#             raw_input('wait for nextOrderId')
-#             con.reqIds(1)
-#
-#             # place Spread Order
-#             placeSpreadOrder(Leg, BuySell, ComboRatio, LimitPrice_G, QTY_G)
-#             con.reqOpenOrders()
-#             raw_input('PLACING INDIVIDUAL LEG ORDER (yes or no)?')
-#             placeEachLegOrder(Leg, BuySell, ComboRatio,makeLmtPrice(BuySell, bid=optionOrderBid, ask=optionOrderAsk))
-#             con.reqOpenOrders()
-#             # Receive the new OrderId sequence from the IB Server
-#             con.reqIds(1)
-#             sleep(3)
-#             # disconnect
-#             con.disconnect()
-#         except IndexError:
-#             print("IndexError")
-#             break
-#     sleep(3)
-#     sys.exit(0)
