@@ -106,10 +106,10 @@ length(total_range)
 total_range
 
 #LowerLimit,UpperLimit
-LowerLimit=max(-0.2,ifelse(length(total_range[-which(ppearson(total_range,moments=moment_trnsfm)<=0)])==0,
+LowerLimit=min(-0.2,ifelse(length(total_range[-which(ppearson(total_range,moments=moment_trnsfm)<=0)])==0,
                            min(total_range),
                            min(total_range[-which(ppearson(total_range,moments=moment_trnsfm)<=0)]) ))
-UpperLimit=min(0.1,ifelse(length( total_range[-which(ppearson(total_range,moments=moment_trnsfm)>=1.0)] )==0,
+UpperLimit=min(0.08,ifelse(length( total_range[-which(ppearson(total_range,moments=moment_trnsfm)>=1.0)] )==0,
                           max(total_range),
                           max(total_range[-which(ppearson(total_range,moments=moment_trnsfm)>=1.0)]) ))
 
@@ -182,6 +182,10 @@ limit_range[equal_percent_idx]
 est_density=dpearson(limit_range[equal_percent_idx],moments=moment_trnsfm)
 est_density=est_density/sum(est_density)
 est_density
+#if min(est_density)==0 then set them small enough values.
+est_density[which(est_density==0)]=1.0e-30
+est_density=est_density/sum(est_density)
+est_density
 sum(est_density)
 cumsum(est_density)
 #writ to the file
@@ -235,6 +239,10 @@ limit_range[adj_percent_idx]
 est_density=dpearson(limit_range[adj_percent_idx],moments=moment_trnsfm)
 est_density=est_density/sum(est_density)
 est_density
+#if min(est_density)==0 then set them small enough values.
+est_density[which(est_density==0)]=1.0e-30
+est_density=est_density/sum(est_density)
+est_density
 sum(est_density)
 cumsum(est_density)
 #write to the file
@@ -271,6 +279,10 @@ cat(file=fname,"\n\n",append=T)
 est_density=dpearson(regular_interval_range,moments=moment_trnsfm)
 est_density=est_density/sum(est_density)
 est_density
+#if min(est_density)==0 then set them small enough values.
+est_density[which(est_density==0)]=1.0e-30
+est_density=est_density/sum(est_density)
+est_density
 #writ to the file
 cat(file=fname,"####### regular interval ",fname,"xDayInt: 1 \n\n",append=T)
 cat(file=fname,"c(",append=T);cat(file=fname,regular_interval_range,sep="$",append=T);cat(file=fname,")","\n\n",append=T)
@@ -280,6 +292,10 @@ cat(file=fname,"c(",append=T);cat(file=fname,cumsum(est_density),sep="$",append=
 ##
 # equal % of cumulitive probablity
 est_density=dpearson(limit_range[equal_percent_idx],moments=moment_trnsfm)
+est_density=est_density/sum(est_density)
+est_density
+#if min(est_density)==0 then set them small enough values.
+est_density[which(est_density==0)]=1.0e-30
 est_density=est_density/sum(est_density)
 est_density
 #writ to the file
@@ -293,6 +309,12 @@ cat(file=fname,"c(",append=T);cat(file=fname,cumsum(est_density),sep="$",append=
 est_density=dpearson(limit_range[adj_percent_idx],moments=moment_trnsfm)
 est_density=est_density/sum(est_density)
 est_density
+#if min(est_density)==0 then set them small enough values.
+est_density[which(est_density==0)]=1.0e-30
+est_density=est_density/sum(est_density)
+est_density
+sum(est_density)
+cumsum(est_density)
 #writ to the file
 cat(file=fname,"####### adjusted weight ",fname,"xDayInt: 1 \n\n",append=T)
 cat(file=fname,"c(",append=T);cat(file=fname,limit_range[adj_percent_idx],sep="$",append=T);cat(file=fname,")","\n\n",append=T)
