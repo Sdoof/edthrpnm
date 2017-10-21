@@ -7,45 +7,53 @@ from time import sleep
 from collections import deque
 import sys
 
+
 # -- message handlers  ---------------------------------------------------------
+
+
 def MessageHandler(msg):
     print(msg)
 
+
 def ErrorHandler(msg):
     print((str(msg)))
+
 
 def NextValidIdHandler(msg):
     global nextOrderId
     print((str(msg)))
     nextOrderId = msg.orderId
 
+
 def ContractDetailsHandler(msg):
     global contractDetail
     print((str(msg)))
     contractDetail = msg.contractDetails
 
+
 def MultiContractDetailsHandler(msg):
-    global contractRestoreList
+    contractRestoreList = None
     theContractdetail = msg.contractDetails
     theContract = theContractdetail.m_summary
     print(('<MultiContracts reqid %s conId %s: %s: %s: %s: %s: %s: %s>' % (
         msg.reqId, theContract.m_conId, theContract.m_localSymbol, theContract.m_right,
         theContract.m_strike, theContract.m_expiry, theContract.m_exchange, theContract.m_symbol)))
-    if contractRestoreList:
-        contractRestoreList.append(theContract)
-    else:
-        contractRestoreList = [theContract]
+    contractRestoreList.append(theContract)
+
 
 def OrderStatusHandler(msg):
     print((str(msg)))
     print(('<%s:%s:%s:%s:%s:%s:%s>' % (
         msg.orderId, msg.typeName, msg.status, msg.whyHeld, msg.avgFillPrice, msg.filled, msg.remaining)))
 
+
 def TickPriceHandler(msg):
     # field: 1 = bid 2 = ask 4 = last 6 = high 7 = low 9 = close
     print((str(msg)))
 
+
 # -- functions  -----------------------------------------------------------------
+
 
 def makeOptContract(sym, exp, strike, right):
     newOptContract = Contract()
@@ -59,6 +67,7 @@ def makeOptContract(sym, exp, strike, right):
     newOptContract.m_currency = "USD"
     return newOptContract
 
+
 def makeFxFutContract(sym, exp, multip):
     newFutContract = Contract()
     newFutContract.m_symbol = sym
@@ -68,6 +77,7 @@ def makeFxFutContract(sym, exp, multip):
     newFutContract.m_exchange = "GLOBEX"
     newFutContract.m_currency = "USD"
     return newFutContract
+
 
 def makeFxFutOptContract(sym, exp, strike, right, multip):
     newOptContract = Contract()
@@ -81,6 +91,7 @@ def makeFxFutOptContract(sym, exp, strike, right, multip):
     newOptContract.m_currency = "USD"
     return newOptContract
 
+
 def makeComboLeg(conId, action, ratio):
     newComboLeg = ComboLeg()
     newComboLeg.m_conId = conId
@@ -92,6 +103,7 @@ def makeComboLeg(conId, action, ratio):
     newComboLeg.m_designatedLocation = ""
     return newComboLeg
 
+
 def makeBagContract(legs):
     newBagContract = Contract()
     newBagContract.m_symbol = "USD"
@@ -100,6 +112,7 @@ def makeBagContract(legs):
     newBagContract.m_currency = "USD"
     newBagContract.m_comboLegs = legs
     return newBagContract
+
 
 def makeOrder(action, qty, price):
     newOrder = Order()
@@ -113,8 +126,9 @@ def makeOrder(action, qty, price):
     newOrder.m_transmit = False
     return newOrder
 
-def placeSpreadOrder(Leg, BuySell, ComboRatio, LimitPrice, QTY):
-    global contractDetail, con, nextOrderId
+
+def placeSpreadOrder(con, Leg, BuySell, ComboRatio, LimitPrice, QTY):
+    global contractDetail, nextOrderId
     LegContract = None
     for legitem in range(len(Leg)):
         nextOrderId = nextOrderId + 1
@@ -152,8 +166,9 @@ def placeSpreadOrder(Leg, BuySell, ComboRatio, LimitPrice, QTY):
     sleep(3)
     print(('bag contract order placed (orderId: ' + str(theOrderId)))
 
-def placeEachLegOrder(Leg, BuySell, ComboRatio,lmtPrc):
-    global contractDetail, con, nextOrderId
+
+def placeEachLegOrder(con, Leg, BuySell, ComboRatio, lmtPrc):
+    global contractDetail, nextOrderId
     for legitem in range(len(Leg)):
         nextOrderId = nextOrderId + 1
         theOrderId = nextOrderId
@@ -167,7 +182,7 @@ def placeEachLegOrder(Leg, BuySell, ComboRatio,lmtPrc):
             theContract.m_right, theContract.m_strike, theContract.m_expiry)))
         input('press any to continue (conid: ' + str(theContract.m_conId))
         Leg[legitem].m_conId = theContract.m_conId
-        theOrder =  makeOrder(action=BuySell[legitem], qty=ComboRatio[legitem], price=lmtPrc[legitem])
+        theOrder = makeOrder(action=BuySell[legitem], qty=ComboRatio[legitem], price=lmtPrc[legitem])
         # place order
         nextOrderId = nextOrderId + 1
         theOrderId = nextOrderId
@@ -175,6 +190,7 @@ def placeEachLegOrder(Leg, BuySell, ComboRatio,lmtPrc):
         print('sending order ... wait for a moment')
         sleep(3)
         print(('option order placed (orderId: ' + str(theOrderId)))
+
 
 def processAPITicket(Symbol, Expiry, Strike, Right):
     Leg_new = None
@@ -185,7 +201,8 @@ def processAPITicket(Symbol, Expiry, Strike, Right):
             Leg_new = [makeOptContract(Symbol[legid], Expiry[legid], Strike[legid], Right[legid])]
     return Leg_new
 
-def makeLmtPrice(BuySell,bid,ask):
+
+def makeLmtPrice(BuySell, bid, ask):
     lmtPrc = None
     for legitem in range(len(BuySell)):
         if BuySell[legitem] == "BUY":
@@ -198,6 +215,7 @@ def makeLmtPrice(BuySell,bid,ask):
             lmtPrc = [value]
     return lmtPrc
 
+
 class TicketPackage:
     def __init__(self):
         self.symbolTicket = ""
@@ -209,87 +227,89 @@ class TicketPackage:
         self.limitPrice_G = -9000
         self.qTY_G = 1
 
-def createTicketPackage(SymbolTicket, ExpiryTicket, StrikeTicket, RightTicket, BuySell, ComboRatio,LimitPrice_G, QTY_G ):
-    theTicketPackage=TicketPackage()
-    theTicketPackage.symbolTicket=SymbolTicket
-    theTicketPackage.expiryTicket=ExpiryTicket
-    theTicketPackage.strikeTicket=StrikeTicket
-    theTicketPackage.rightTicket=RightTicket
-    theTicketPackage.buySell=BuySell
-    theTicketPackage.comboRatio=ComboRatio
-    theTicketPackage.limitPrice_G=LimitPrice_G
-    theTicketPackage.qTY_G=QTY_G
+
+def createTicketPackage(SymbolTicket, ExpiryTicket, StrikeTicket, RightTicket, BuySell, ComboRatio, LimitPrice_G,
+                        QTY_G):
+    theTicketPackage = TicketPackage()
+    theTicketPackage.symbolTicket = SymbolTicket
+    theTicketPackage.expiryTicket = ExpiryTicket
+    theTicketPackage.strikeTicket = StrikeTicket
+    theTicketPackage.rightTicket = RightTicket
+    theTicketPackage.buySell = BuySell
+    theTicketPackage.comboRatio = ComboRatio
+    theTicketPackage.limitPrice_G = LimitPrice_G
+    theTicketPackage.qTY_G = QTY_G
     return theTicketPackage
 
 # -- globals  ------------------------------------------------------------------
+
+
 port_G = 7496
 clientId_G = 679
 
 nextOrderId = -1
 contractDetail = None
 
-optionOrderBid=0.1
-optionOrderAsk=600
+optionOrderBid = 0.1
+optionOrderAsk = 600
 
-# API Ticket generated by the edthrpnm MC Simulator
+# API Tickets generated
 TicketPackages = []
-#First Ticket
-SymbolTicket = ['SPX', 'SPX']; ExpiryTicket = ['20170518', '20170615']; StrikeTicket = [2175, 2100]; RightTicket = ['P', 'P']; BuySell = ['SELL', 'BUY']; ComboRatio = [1, 1]; LimitPrice_G = -9000; QTY_G =1
-theTicketPkg=createTicketPackage(SymbolTicket,ExpiryTicket,StrikeTicket,RightTicket,BuySell,ComboRatio,LimitPrice_G,QTY_G)
+# First Ticket
+SymbolTicket = ['SPX', 'SPX']; ExpiryTicket = ['20171130', '20171229']; StrikeTicket = [2420, 2375]; RightTicket = ['P', 'P']; BuySell = ['SELL', 'BUY']; ComboRatio = [1, 1]; LimitPrice_G = -9000; QTY_G = 1
+theTicketPkg = createTicketPackage(SymbolTicket, ExpiryTicket, StrikeTicket, RightTicket, BuySell, ComboRatio,
+                                   LimitPrice_G, QTY_G)
 TicketPackages.append(theTicketPkg)
-queTickets=deque(TicketPackages)
+queTickets = deque(TicketPackages)
 
-SymbolTicket = ['SPX', 'SPX']; ExpiryTicket = ['20170518', '20170615']; StrikeTicket = [2250, 2225]; RightTicket = ['P', 'P']; BuySell = ['SELL', 'BUY']; ComboRatio = [1, 1]; LimitPrice_G = -9000; QTY_G =1
-theTicketPkg=createTicketPackage(SymbolTicket,ExpiryTicket,StrikeTicket,RightTicket,BuySell,ComboRatio,LimitPrice_G,QTY_G)
+SymbolTicket = ['SPX', 'SPX']; ExpiryTicket = ['20171130', '20171229']; StrikeTicket = [2570, 2575] ; RightTicket = ['C', 'C']; BuySell = ['BUY', 'SELL']; ComboRatio = [1, 1]; LimitPrice_G = -9000; QTY_G = 1
+theTicketPkg = createTicketPackage(SymbolTicket, ExpiryTicket, StrikeTicket, RightTicket, BuySell, ComboRatio,
+                                   LimitPrice_G, QTY_G)
 queTickets.append(theTicketPkg)
 
-SymbolTicket = ['SPX', 'SPX']; ExpiryTicket = ['20170518', '20170615']; StrikeTicket = [2400, 2410]; RightTicket = ['C', 'C']; BuySell = ['BUY', 'SELL']; ComboRatio = [1, 1]; LimitPrice_G = -9000; QTY_G =1
-theTicketPkg=createTicketPackage(SymbolTicket,ExpiryTicket,StrikeTicket,RightTicket,BuySell,ComboRatio,LimitPrice_G,QTY_G)
+SymbolTicket = ['SPX', 'SPX']; ExpiryTicket = ['20171215', '20180119']; StrikeTicket = [2430, 2390]; RightTicket = ['P', 'P']; BuySell = ['SELL', 'BUY']; ComboRatio = [1, 1]; LimitPrice_G = -9000; QTY_G = 1
+theTicketPkg = createTicketPackage(SymbolTicket, ExpiryTicket, StrikeTicket, RightTicket, BuySell, ComboRatio,
+                                   LimitPrice_G, QTY_G)
 queTickets.append(theTicketPkg)
 
-#Second Ticket
-SymbolTicket = ['SPX', 'SPX']; ExpiryTicket = ['20170518', '20170615']; StrikeTicket = [2440, 2450]; RightTicket = ['C', 'C']; BuySell = ['BUY', 'SELL']; ComboRatio = [1, 1]; LimitPrice_G = -9000; QTY_G =1
-theTicketPkg=createTicketPackage(SymbolTicket,ExpiryTicket,StrikeTicket,RightTicket,BuySell,ComboRatio,LimitPrice_G,QTY_G)
+# Second Ticket
+SymbolTicket = ['SPX', 'SPX']; ExpiryTicket = ['20171215', '20180119']; StrikeTicket = [2580, 2590]; RightTicket = ['C', 'C']; BuySell = ['BUY', 'SELL']; ComboRatio = [1, 1]; LimitPrice_G = -9000; QTY_G = 1
+theTicketPkg = createTicketPackage(SymbolTicket, ExpiryTicket, StrikeTicket, RightTicket, BuySell, ComboRatio,
+                                   LimitPrice_G, QTY_G)
 queTickets.append(theTicketPkg)
-
-#SymbolTicket = [ 'RUT','RUT' ]; ExpiryTicket = [ '20151217','20151217' ]; StrikeTicket = [ 1190,1210 ] ; RightTicket = [ 'C','C' ]; BuySell = [ 'BUY','BUY' ]; ComboRatio = [ 1,1 ] ;LimitPrice_G =  -9000  ;QTY_G =  1
-#theTicketPkg=createTicketPackage(SymbolTicket,ExpiryTicket,StrikeTicket,RightTicket,BuySell,ComboRatio,LimitPrice_G,QTY_G)
-#queTickets.append(theTicketPkg)
-
-#SymbolTicket = [ 'RUT','RUT' ]; ExpiryTicket = [ '20160114','20160114' ]; StrikeTicket = [ 1170,1220 ] ; RightTicket = [ 'C','C' ]; BuySell = [ 'SELL','SELL' ]; ComboRatio = [ 1,1 ] ;LimitPrice_G =  -9000  ;QTY_G =  1
-#theTicketPkg=createTicketPackage(SymbolTicket,ExpiryTicket,StrikeTicket,RightTicket,BuySell,ComboRatio,LimitPrice_G,QTY_G)
-#queTickets.append(theTicketPkg)
 
 # -- main  ------------------------------------------------------------------
-if __name__ == '__main__':
-    #look into queTickets
+
+
+def main():
+    # look into queTickets
     while True:
         try:
-            tkpkg=queTickets.popleft()
-            print((tkpkg.symbolTicket,tkpkg.expiryTicket,tkpkg.strikeTicket,tkpkg.rightTicket,
-                  tkpkg.buySell,tkpkg.comboRatio,tkpkg.limitPrice_G,tkpkg.qTY_G))
+            tkpkg = queTickets.popleft()
+            print((tkpkg.symbolTicket, tkpkg.expiryTicket, tkpkg.strikeTicket, tkpkg.rightTicket,
+                  tkpkg.buySell, tkpkg.comboRatio, tkpkg.limitPrice_G, tkpkg.qTY_G))
 
-            #this Ticket info
-            SymbolTicket=tkpkg.symbolTicket
-            ExpiryTicket=tkpkg.expiryTicket
-            StrikeTicket=tkpkg.strikeTicket
-            RightTicket=tkpkg.rightTicket
-            BuySell=tkpkg.buySell
-            ComboRatio=tkpkg.comboRatio
-            LimitPrice_G=tkpkg.limitPrice_G
-            QTY_G=tkpkg.qTY_G
+            # this Ticket info
+            symbol_ticket = tkpkg.symbolTicket
+            expiry_ticket = tkpkg.expiryTicket
+            strike_ticket = tkpkg.strikeTicket
+            right_ticket = tkpkg.rightTicket
+            buy_sell = tkpkg.buySell
+            combo_ratio = tkpkg.comboRatio
+            limit_price_g = tkpkg.limitPrice_G
+            qty_g = tkpkg.qTY_G
 
-            ## Makeing Leg Lists from APT Ticket
-            Leg = processAPITicket(SymbolTicket, ExpiryTicket, StrikeTicket, RightTicket)
-            ## Make sure each Sperad is correct
+            # Make leg Lists from APT Ticket
+            leg = processAPITicket(symbol_ticket, expiry_ticket, strike_ticket, right_ticket)
+            # Make sure each spread is correct
             print('------------- Spread')
-            for legitem in range(len(Leg)):
+            for legitem in range(len(leg)):
                 print(("=> %s %s x [%s] %s Call/Put: %s Strike: %s Expiration: %s" %
-                      (BuySell[legitem], ComboRatio[legitem], Leg[legitem].m_secType, Leg[legitem].m_symbol,
-                       Leg[legitem].m_right, Leg[legitem].m_strike, Leg[legitem].m_expiry)))
+                      (buy_sell[legitem], combo_ratio[legitem], leg[legitem].m_secType, leg[legitem].m_symbol,
+                       leg[legitem].m_right, leg[legitem].m_strike, leg[legitem].m_expiry)))
             input('Spread leg info correct?')
 
-            ## Server Access
+            # Server Access
             con = Connection.create(port=port_G, clientId=clientId_G)
             con.register(ErrorHandler, 'Error')
             con.register(NextValidIdHandler, 'NextValidId')
@@ -297,27 +317,27 @@ if __name__ == '__main__':
             con.register(OrderStatusHandler, 'OrderStatus')
             con.connect()
             con.setServerLogLevel(5)
-            ## get mext Order Id
+            # get next Order Id
             input('wait for nextOrderId')
             con.reqIds(1)
 
-            ## place Spread Order
-            placeSpreadOrder(Leg, BuySell, ComboRatio, LimitPrice_G, QTY_G)
+            # place Spread Order
+            placeSpreadOrder(con, leg, buy_sell, combo_ratio, limit_price_g, qty_g)
             con.reqOpenOrders()
-            ans = input('PLACING INDIVIDUAL LEG ORDER (yes or no)?')
-            if ans == "yes":
-                placeEachLegOrder(Leg, BuySell, ComboRatio, makeLmtPrice(BuySell,bid=optionOrderBid,ask=optionOrderAsk))
-                con.reqOpenOrders()
-            ## Receive the new OrderId sequence from the IB Server
+            input('PLACING INDIVIDUAL LEG ORDER ')
+            placeEachLegOrder(con, leg, buy_sell, combo_ratio,makeLmtPrice(buy_sell, bid=optionOrderBid, ask=optionOrderAsk))
+            con.reqOpenOrders()
+            # Receive the new OrderId sequence from the IB Server
             con.reqIds(1)
             sleep(3)
-            ## disconnect
+            # disconnect
             con.disconnect()
         except IndexError:
-            print("IndexError")
+            print("finished sending spread orders")
             break
     sleep(3)
     sys.exit(0)
 
 
-
+if __name__ == '__main__':
+    main()
