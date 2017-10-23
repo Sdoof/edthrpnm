@@ -15,9 +15,9 @@ contractDetail = None
 contractRestoreList = None
 orderIdMktReqContractDict = None
 priceInfoDict = {}
-# SPX 2545, RUT 1510
-SPX_Strike_Max = 2850
-SPX_Strike_Min = 1950
+# SPX 2570, RUT 1510
+SPX_Strike_Max = 2875
+SPX_Strike_Min = 1975
 SPX_Strike_Max_P = SPX_Strike_Max - 150
 SPX_Strike_Min_C = SPX_Strike_Min + 300
 RUT_Strike_Max = 1700
@@ -216,7 +216,7 @@ def subscribeDataRequest(con):
         # sleep(1)
         con.reqMktData(tickerId=theOrderId, contract=con_each, genericTickList='', snapshot=False)
         # print('request market data [%s] for conId %s' % (theOrderId, orderIdMktReqContractDict[theOrderId].m_conId))
-        # print('examing orderIdMktReqContractDict press any to continue')
+        # print('examining orderIdMktReqContractDict press any to continue')
         # for req_order_id in orderIdMktReqContractDict.iterkeys():
         #    print('req_order_id ', req_order_id)
 
@@ -270,8 +270,6 @@ def writeToFile(sectype, symbol):
 # -- main  ---------------------------------------------------------------------
 # 18 elements finish in 4min15s
 opContractList = [
-    makeOptContract(sym='SPX', exp='20171117', strike='', right='P'),
-    makeOptContract(sym='SPX', exp='20171117', strike='', right='C'),
     makeOptContract(sym='SPX', exp='20171130', strike='', right='P'),
     makeOptContract(sym='SPX', exp='20171130', strike='', right='C'),
     makeOptContract(sym='SPX', exp='20171215', strike='', right='P'),
@@ -282,6 +280,10 @@ opContractList = [
     makeOptContract(sym='SPX', exp='20180119', strike='', right='C'),
     makeOptContract(sym='SPX', exp='20180131', strike='', right='P'),
     makeOptContract(sym='SPX', exp='20180131', strike='', right='C'),
+    makeOptContract(sym='SPX', exp='20180216', strike='', right='P'),
+    makeOptContract(sym='SPX', exp='20180216', strike='', right='C'),
+    makeOptContract(sym='SPX', exp='20180228', strike='', right='P'),
+    makeOptContract(sym='SPX', exp='20180228', strike='', right='C'),
     makeOptContract(sym='RUT', exp='20171116', strike='', right='P'),
     makeOptContract(sym='RUT', exp='20171116', strike='', right='C'),
     makeOptContract(sym='RUT', exp='20171130', strike='', right='P'),
@@ -324,7 +326,7 @@ if __name__ == '__main__':
         priceInfoDict = {}
         OpContract = opContractList[opContract_item]
         subscribeContractList(OpContract, con)
-        # raw_input('requesting Fx Futre Option length press any to continue ')
+        # raw_input('requesting Fx Future Option length press any to continue ')
         subscribeDataRequest(con)
         # raw_input('cancel mktData %s press any to continue' % (orderIdMktReqContractDict.keys()))
         sleep(13)
@@ -356,7 +358,7 @@ if __name__ == '__main__':
         priceInfoDict = {}
         idxContract = idxContractList[idxContractList_item]
         subscribeContractList(idxContract, con)
-        # raw_input('requesting Fx Futre Option length press any to continue ')
+        # raw_input('requesting Fx Future Option length press any to continue ')
         subscribeDataRequest(con)
         sleep(2)
         # raw_input('cancel mktData %s press any to continue' % (orderIdMktReqContractDict.keys()))
