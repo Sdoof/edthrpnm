@@ -84,7 +84,20 @@ if(IS_SELECTIVE_WEIGHT_ESTM){
   tmp=saveP2IVReg(histPrc,histIV,DATA_NUM,xDayInt,effectiv_suffix=suffix_slctd)
 }
 
+### check the shape of the histgram
+#h <- dpih(tmp$P2IVxd$PCxdCtC)
+#bins <- seq(min(tmp$P2IVxd$PCxdCtC)-3*h/2, max(tmp$P2IVxd$PCxdCtC)+3*h/2, by=h)
+#hist(tmp$P2IVxd$PCxdCtC, breaks=bins)
+#rm(h)
+
 moment_org=empMoments(tmp$P2IVxd$PCxdCtC)
+(moment_org)
+
+### check the shape of the histgram
+#tmp_data=rpearson(20000,moments=moment_org)
+#h <- dpih(tmp_data)
+#bins <- seq(min(tmp_data)-3*h/2, max(tmp_data)+3*h/2, by=h)
+#hist(tmp_data, breaks=bins)
 
 #moment transformation
 moment_trnsfm=moment_org
@@ -93,6 +106,12 @@ dfift_trnsfm=0
 moment_trnsfm["mean"]=dfift_trnsfm/(252/EvalFuncSetting$holdDays)
 (moment_org)
 (moment_trnsfm)
+
+### check the shape of the histgram 
+#tmp_data=rpearson(20000,moments=moment_trnsfm)
+#h <- dpih(tmp_data)
+#bins <- seq(min(tmp_data)-3*h/2, max(tmp_data)+3*h/2, by=h)
+#hist(tmp_data, breaks=bins)
 
 cat(file=fname,"##  moment ",append=T)
 cat(file=fname,c(moment_trnsfm["mean"],moment_trnsfm["variance"],moment_trnsfm["skewness"],moment_trnsfm["kurtosis"]),"\n",sep=",",append=T)
