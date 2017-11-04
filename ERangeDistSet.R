@@ -39,7 +39,7 @@ LocalNearValueToExactValue <- function(x_vec,exct_value){
 
 
 #Data Num.
-DATA_NUM=252*15 # about x years equivalent 
+DATA_NUM=252*18 # about x years equivalent 
 
 #read data file
 histPrc<-read.table(paste(DataFiles_Path_G,Underying_Symbol_G,"_Hist.csv",sep=""),header=T,stringsAsFactors=F,sep=",")
