@@ -245,18 +245,10 @@ CallIVDown_ATMIV.f.IVIDX.f_1D$model
 
 #Saved File Name
 
-opch<-read.table(paste(DataFiles_Path_G,Underying_Symbol_G,paste("_Positions_Pre.csv",sep=""),sep=""),
-                 header=T,skipNul=T,stringsAsFactors=F,sep=",")
-
-atmiv_calib %>% dplyr::select(Date,ExpDate,ATMIV)
-
-opch$ATMIV=NULL
-opch %>%
-  dplyr::inner_join(atmiv_calib %>% dplyr::select(Date,ExpDate,ATMIV,TYPE)) %>%
-  dplyr::select(Date,ExpDate,TYPE,Strike,ContactName,Position,UDLY,ATMIV,IVIDX,TimeToExpDate,Moneyness.Nm) -> opch
-
-(opch)
-
+fnames=list.files(path = DataFiles_Path_G
+           ,pattern=paste(Underying_Symbol_G,paste("_Positions_Pre*",sep=""),sep="")
+           #,pattern="SPX_Positions_Pre*"
+           )
 #load skew
 load.Skew(pattern="_Put")
 SkewModel_Put
@@ -264,33 +256,41 @@ SkewModel_Put
 load.Skew(pattern="_Call")
 SkewModel_Call
 
-#calculate IV_pos(OrigIV) using SkewModel based on model definition formula.
-spskew<-(opch$TYPE==OpType_Put_G)*get.predicted.spline.skew(SkewModel_Put,opch$Moneyness.Nm)+
-  (opch$TYPE==OpType_Call_G)*get.predicted.spline.skew(SkewModel_Call,opch$Moneyness.Nm)
-opch$ATMIV*spskew
-opch$OrigIV<-opch$ATMIV*spskew
-
-(opch)
-
-#calculate Price and Grrks
-vgreeks<-set.EuropeanOptionValueGreeks(opch)
-opch$Price<-vgreeks$Price
-opch$Delta<-vgreeks$Delta
-opch$Gamma<-vgreeks$Gamma
-opch$Vega<-vgreeks$Vega
-opch$Theta<-vgreeks$Theta
-opch$Rho<-vgreeks$Rho
-
-opch %>%
-  dplyr::select(Date,ExpDate,TYPE,Strike,ContactName,Position,UDLY,
-                Price,Delta,Gamma,Vega,Theta,Rho,OrigIV,
-                ATMIV,IVIDX,TimeToExpDate,Moneyness.Nm) -> opch
-
-(opch)
-
-paste("_Positions_Pre_Calib",format(Sys.time(),"%Y%b%d_%H%M%S"),".csv",sep="")
-
-write.table(opch,
-            paste(DataFiles_Path_G,Underying_Symbol_G,paste("_Positions_Pre_Calib",format(Sys.time(),"%Y%b%d_%H%M%S"),".csv",sep=""),sep=""),
-            row.names = F,col.names=T,sep=",",append=F)
-
+for(i in 1:length(fnames)){
+  opch<-read.table(paste(DataFiles_Path_G,fnames[i],sep=""),
+                   header=T,skipNul=T,stringsAsFactors=F,sep=",")
+  
+  opch$ATMIV=NULL
+  opch %>%
+    dplyr::inner_join(atmiv_calib %>% dplyr::select(Date,ExpDate,ATMIV,TYPE)) %>%
+    dplyr::select(Date,ExpDate,TYPE,Strike,ContactName,Position,UDLY,ATMIV,IVIDX,TimeToExpDate,Moneyness.Nm) -> opch
+  
+  (opch)
+  
+  #calculate IV_pos(OrigIV) using SkewModel based on model definition formula.
+  spskew<-(opch$TYPE==OpType_Put_G)*get.predicted.spline.skew(SkewModel_Put,opch$Moneyness.Nm)+
+    (opch$TYPE==OpType_Call_G)*get.predicted.spline.skew(SkewModel_Call,opch$Moneyness.Nm)
+  opch$ATMIV*spskew
+  opch$OrigIV<-opch$ATMIV*spskew
+  
+  #calculate Price and Grrks
+  vgreeks<-set.EuropeanOptionValueGreeks(opch)
+  opch$Price<-vgreeks$Price
+  opch$Delta<-vgreeks$Delta
+  opch$Gamma<-vgreeks$Gamma
+  opch$Vega<-vgreeks$Vega
+  opch$Theta<-vgreeks$Theta
+  opch$Rho<-vgreeks$Rho
+  
+  #select again
+  opch %>%
+    dplyr::select(Date,ExpDate,TYPE,Strike,ContactName,Position,UDLY,
+                  Price,Delta,Gamma,Vega,Theta,Rho,OrigIV,
+                  ATMIV,IVIDX,TimeToExpDate,Moneyness.Nm) -> opch
+  
+  #writing to a file
+  write.table(opch,
+              paste(DataFiles_Path_G,fnames[i],"_Calib",format(Sys.time(),"%Y%b%d_%H%M%S"),".csv",sep=""),
+              row.names = F,col.names=T,sep=",",append=F)
+  
+}
