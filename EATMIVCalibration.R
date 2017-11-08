@@ -5,7 +5,7 @@ library(dplyr)
 rm(list=ls())
 source('./ESourceRCode.R',encoding = 'UTF-8')
 
-#Load Original ATM ist
+#Load Original ATM History file
 atmiv_hist<-read.table(paste(DataFiles_Path_G,Underying_Symbol_G,"-ATMIV-VCONE-ANAL_Hist.csv",sep=""),
                        header=T,skipNul=T,stringsAsFactors=F,sep=",")
 atmiv_hist %>%
@@ -22,6 +22,8 @@ atmiv_hist %>%
 head(atmiv_hist,n=100)
 tail(atmiv_hist,n=100)
 
+#Create atmiv_calib which then become a new calibrated ATM History file
+
 atmiv_hist %>% dplyr::group_by(Date,ExpDate)  %>% 
   dplyr::summarise(TYPE=dplyr::first(TYPE),ATMIV=mean(ATMIV),UDLY=mean(UDLY),IVIDX=mean(IVIDX),TimeToExpDate=mean(TimeToExpDate)) %>%
   as.data.frame() -> atmiv_calib
@@ -29,7 +31,7 @@ atmiv_hist %>% dplyr::group_by(Date,ExpDate)  %>%
 atmiv_calib %>% 
   dplyr::arrange(as.Date(ExpDate,format="%Y/%m/%d"),as.Date(Date,format="%Y/%m/%d"),UDLY,desc(TYPE)) %>%
   dplyr::distinct() -> atmiv_calib
-  
+
 tail(atmiv_calib,n=100)
 
 atmiv_calib %>% dplyr::bind_rows(atmiv_calib %>% dplyr::mutate(TYPE=TYPE*(-1))) %>% 
@@ -42,60 +44,68 @@ tail(atmiv_calib,n=100)
 write.table(atmiv_calib,paste(DataFiles_Path_G,Underying_Symbol_G,"-ATMIV-VCONE-ANAL_Hist_Calib.csv",sep=""),
             row.names = F,col.names=T,sep=",",append=F)
 
-###
+##
+# Term Structure regression
 
-#Saved File Name
+atmiv=atmiv_calib
+tmp=format(as.Date(Sys.time())-1,"%Y/%b/%d");tmp
+atmiv %>% dplyr::filter(as.Date(Date,format="%Y/%m/%d")>=as.Date(tmp,format="%Y/%m/%d")) -> atmiv
+#create another column
+atmiv$ATMIDXIV.f=atmiv$ATMIV/atmiv$IVIDX
+#Minimus TimeToExpDate filtering
+atmiv %>% dplyr::filter(TimeToExpDate>=1.0) -> atmiv
+#separate to PUT and CALL atmiv
+atmiv %>% dplyr::filter(TYPE==OpType_Put_G) -> atmiv.put
+atmiv %>% dplyr::filter(TYPE==OpType_Call_G) -> atmiv.call
+#show each
+(ggplot(atmiv,aes(x=TimeToExpDate,y=ATMIDXIV.f,colour=TYPE))+geom_point(size=3))
+(ggplot(atmiv.put,aes(x=TimeToExpDate,y=ATMIDXIV.f,colour=Date))+geom_point(size=3))
+(ggplot(atmiv.call,aes(x=TimeToExpDate,y=ATMIDXIV.f,colour=Date))+geom_point(size=3))
 
-opch<-read.table(paste(DataFiles_Path_G,Underying_Symbol_G,paste("_Positions_Pre.csv",sep=""),sep=""),
-                 header=T,skipNul=T,stringsAsFactors=F,sep=",")
+# PUT regression
+#smooth spline
+model.ss<-smooth.spline(atmiv.put$TimeToExpDate,atmiv.put$ATMIDXIV.f,df=3)
+(predict.c <- predict(model.ss,x=seq(0,max(atmiv.put$TimeToExpDate),by=0.1)))
+(ggplot(atmiv.put,aes(x=TimeToExpDate,y=ATMIDXIV.f,colour=TYPE))+geom_point(size=3)+
+    geom_line(data=data.frame(TimeToExpDate=predict.c$x,ATMIDXIV.f=predict.c$y,TYPE=1),aes(TimeToExpDate,ATMIDXIV.f)))
 
-atmiv_calib %>% dplyr::select(Date,ExpDate,ATMIV)
+#linear regression
+model.lm<-lm(ATMIDXIV.f~TimeToExpDate, data=atmiv.put)
+(model.lm)
+(ggplot(atmiv.put,aes(x=TimeToExpDate,y=ATMIDXIV.f,colour=TYPE))+geom_point(size=3)+
+    geom_line(data=data.frame(TimeToExpDate=predict.c$x,ATMIDXIV.f=predict.c$y,TYPE=1),aes(TimeToExpDate,ATMIDXIV.f))+
+    geom_abline(intercept=model.lm$coefficients[1],slope=model.lm$coefficient[2],color="orange")+
+    aes(xmin=TimeToExp_Limit_Closeness_G,ymin=min(model.lm$coefficients[1],min(predict.c$y)))
+)
 
-opch$ATMIV=NULL
-opch %>%
-  dplyr::inner_join(atmiv_calib %>% dplyr::select(Date,ExpDate,ATMIV,TYPE)) %>%
-  dplyr::select(Date,ExpDate,TYPE,Strike,ContactName,Position,UDLY,ATMIV,IVIDX,TimeToExpDate,Moneyness.Nm) -> opch
+#save model
+save.ATMIDXIV.f(model.ss,OpType_Put_G)
+load.ATMIDXIV.f(OpType_Put_G)
 
-(opch)
+# CALL regression
+#smooth spline
+model.ss<-smooth.spline(atmiv.call$TimeToExpDate,atmiv.call$ATMIDXIV.f,df=3)
+(predict.c <- predict(model.ss,x=seq(0,max(atmiv.call$TimeToExpDate),by=0.1)))
+(ggplot(atmiv.call,aes(x=TimeToExpDate,y=ATMIDXIV.f,colour=TYPE))+geom_point(size=3)+
+    geom_line(data=data.frame(TimeToExpDate=predict.c$x,ATMIDXIV.f=predict.c$y,TYPE=-1),aes(TimeToExpDate,ATMIDXIV.f)))
 
-#load skew
-load.Skew(pattern="_Put")
-SkewModel_Put
+#linear regression
+model.lm<-lm(ATMIDXIV.f~TimeToExpDate, data=atmiv.call)
+(model.lm)
+(ggplot(atmiv.call,aes(x=TimeToExpDate,y=ATMIDXIV.f,colour=TYPE))+geom_point(size=3)+
+    geom_line(data=data.frame(TimeToExpDate=predict.c$x,ATMIDXIV.f=predict.c$y,TYPE=1),aes(TimeToExpDate,ATMIDXIV.f))+
+    geom_abline(intercept=model.lm$coefficients[1],slope=model.lm$coefficient[2],color="orange")+
+    aes(xmin=TimeToExp_Limit_Closeness_G,ymin=min(model.lm$coefficients[1],min(predict.c$y)))
+)
 
-load.Skew(pattern="_Call")
-SkewModel_Call
+#save regressed data
+save.ATMIDXIV.f(model.ss,OpType_Call_G)
+load.ATMIDXIV.f(OpType_Call_G)
 
-#calculate IV_pos(OrigIV) using SkewModel based on model definition formula.
-spskew<-(opch$TYPE==OpType_Put_G)*get.predicted.spline.skew(SkewModel_Put,opch$Moneyness.Nm)+
-  (opch$TYPE==OpType_Call_G)*get.predicted.spline.skew(SkewModel_Call,opch$Moneyness.Nm)
-opch$ATMIV*spskew
-opch$OrigIV<-opch$ATMIV*spskew
 
-(opch)
+##
+# ATMIV.f.IVIDX.f regression
 
-#calculate Price and Grrks
-vgreeks<-set.EuropeanOptionValueGreeks(opch)
-opch$Price<-vgreeks$Price
-opch$Delta<-vgreeks$Delta
-opch$Gamma<-vgreeks$Gamma
-opch$Vega<-vgreeks$Vega
-opch$Theta<-vgreeks$Theta
-opch$Rho<-vgreeks$Rho
-
-opch %>%
-  dplyr::select(Date,ExpDate,TYPE,Strike,ContactName,Position,UDLY,
-                Price,Delta,Gamma,Vega,Theta,Rho,OrigIV,
-                ATMIV,IVIDX,TimeToExpDate,Moneyness.Nm) -> opch
-
-(opch)
-
-paste("_Positions_Pre_Calib",format(Sys.time(),"%Y%b%d_%H%M%S"),".csv",sep="")
-
-write.table(opch,
-            paste(DataFiles_Path_G,Underying_Symbol_G,paste("_Positions_Pre_Calib",format(Sys.time(),"%Y%b%d_%H%M%S"),".csv",sep=""),sep=""),
-            row.names = F,col.names=T,sep=",",append=F)
-
-####
 atmiv=atmiv_calib
 
 makeVconAnalDF<- function(atmiv){
@@ -229,3 +239,58 @@ model.ss<-smooth.spline(ATMIV_GmChg_Regressed$TimeToExpDate,
 save.ATMIV.f.IVIDX.f(model.ss,optype=OpType_Call_G,up_dn=(-10),day=1,x_idx=x_idx,y_idx=y_idx)
 load.ATMIV.f.IVIDX.f(optype=OpType_Call_G,up_dn=(-10),days=1)
 CallIVDown_ATMIV.f.IVIDX.f_1D$model
+
+###
+# Positions calibration
+
+#Saved File Name
+
+opch<-read.table(paste(DataFiles_Path_G,Underying_Symbol_G,paste("_Positions_Pre.csv",sep=""),sep=""),
+                 header=T,skipNul=T,stringsAsFactors=F,sep=",")
+
+atmiv_calib %>% dplyr::select(Date,ExpDate,ATMIV)
+
+opch$ATMIV=NULL
+opch %>%
+  dplyr::inner_join(atmiv_calib %>% dplyr::select(Date,ExpDate,ATMIV,TYPE)) %>%
+  dplyr::select(Date,ExpDate,TYPE,Strike,ContactName,Position,UDLY,ATMIV,IVIDX,TimeToExpDate,Moneyness.Nm) -> opch
+
+(opch)
+
+#load skew
+load.Skew(pattern="_Put")
+SkewModel_Put
+
+load.Skew(pattern="_Call")
+SkewModel_Call
+
+#calculate IV_pos(OrigIV) using SkewModel based on model definition formula.
+spskew<-(opch$TYPE==OpType_Put_G)*get.predicted.spline.skew(SkewModel_Put,opch$Moneyness.Nm)+
+  (opch$TYPE==OpType_Call_G)*get.predicted.spline.skew(SkewModel_Call,opch$Moneyness.Nm)
+opch$ATMIV*spskew
+opch$OrigIV<-opch$ATMIV*spskew
+
+(opch)
+
+#calculate Price and Grrks
+vgreeks<-set.EuropeanOptionValueGreeks(opch)
+opch$Price<-vgreeks$Price
+opch$Delta<-vgreeks$Delta
+opch$Gamma<-vgreeks$Gamma
+opch$Vega<-vgreeks$Vega
+opch$Theta<-vgreeks$Theta
+opch$Rho<-vgreeks$Rho
+
+opch %>%
+  dplyr::select(Date,ExpDate,TYPE,Strike,ContactName,Position,UDLY,
+                Price,Delta,Gamma,Vega,Theta,Rho,OrigIV,
+                ATMIV,IVIDX,TimeToExpDate,Moneyness.Nm) -> opch
+
+(opch)
+
+paste("_Positions_Pre_Calib",format(Sys.time(),"%Y%b%d_%H%M%S"),".csv",sep="")
+
+write.table(opch,
+            paste(DataFiles_Path_G,Underying_Symbol_G,paste("_Positions_Pre_Calib",format(Sys.time(),"%Y%b%d_%H%M%S"),".csv",sep=""),sep=""),
+            row.names = F,col.names=T,sep=",",append=F)
+

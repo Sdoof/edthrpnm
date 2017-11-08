@@ -216,6 +216,29 @@ atmiv$ATMIV<-ATMIV_adj
 ##
 #  Regression of ATM behavior
 
+#read, join atmiv and re-write ATMIV-VCONE-ANAL_Hist
+atmiv_hist<-read.table(paste(DataFiles_Path_G,Underying_Symbol_G,"-ATMIV-VCONE-ANAL_Hist.csv",sep=""),
+                       header=T,skipNul=T,stringsAsFactors=F,sep=",")
+atmiv_hist %>%
+  dplyr::arrange(desc(TYPE),as.Date(ExpDate,format="%Y/%m/%d"),as.Date(Date,format="%Y/%m/%d")) %>%
+  dplyr::distinct() -> atmiv_hist
+
+atmiv_hist %>% dplyr::full_join(atmiv) %>% 
+  dplyr::arrange(desc(TYPE),as.Date(ExpDate,format="%Y/%m/%d"),as.Date(Date,format="%Y/%m/%d")) %>%
+  dplyr::group_by(Date,ExpDate,TYPE,Strike,UDLY) %>% 
+  dplyr::summarise(ATMIV=mean(ATMIV),TimeToExpDate=mean(TimeToExpDate),IVIDX=mean(IVIDX),Moneyness.Frac=mean(Moneyness.Frac),displace=mean(displace)) %>% 
+  as.data.frame() %>% 
+  dplyr::arrange(desc(TYPE),as.Date(ExpDate,format="%Y/%m/%d"),as.Date(Date,format="%Y/%m/%d")) %>% 
+  dplyr::select(Date,ExpDate,TYPE,ATMIV,Strike,UDLY,IVIDX,TimeToExpDate,Moneyness.Frac,displace) -> atmiv_hist
+
+tail(atmiv_hist,n=100)
+
+write.table(atmiv_hist,paste(DataFiles_Path_G,Underying_Symbol_G,"-ATMIV-VCONE-ANAL_Hist.csv",sep=""),row.names = F,col.names=T,sep=",",append=F)
+
+###
+##### If we perform ATMIV Calibration, Here can be the end of file.
+
+#####
 ##
 # creating ATMIDXIV.f
 
@@ -281,24 +304,6 @@ load.ATMIDXIV.f(OpType_Call_G)
 #save atmiv.org for another analysis
 write.table(atmiv.org,paste(DataFiles_Path_G,Underying_Symbol_G,"-ATMIV-VCONE-ANAL.csv",sep=""),row.names = F,col.names=T,sep=",",append=T)
 
-#read, join atmiv and re-write ATMIV-VCONE-ANAL_Hist
-atmiv_hist<-read.table(paste(DataFiles_Path_G,Underying_Symbol_G,"-ATMIV-VCONE-ANAL_Hist.csv",sep=""),header=T,sep=",")
-atmiv_hist %>%
-  dplyr::arrange(desc(TYPE),as.Date(ExpDate,format="%Y/%m/%d"),as.Date(Date,format="%Y/%m/%d")) %>%
-  dplyr::distinct() -> atmiv_hist
-
-atmiv_hist %>% dplyr::full_join(atmiv.org) %>% 
-  dplyr::arrange(desc(TYPE),as.Date(ExpDate,format="%Y/%m/%d"),as.Date(Date,format="%Y/%m/%d")) %>%
-  dplyr::group_by(Date,ExpDate,TYPE,Strike,UDLY) %>% 
-  dplyr::summarise(ATMIV=mean(ATMIV),TimeToExpDate=mean(TimeToExpDate),IVIDX=mean(IVIDX),Moneyness.Frac=mean(Moneyness.Frac),displace=mean(displace)) %>% 
-  as.data.frame() %>% 
-  dplyr::arrange(desc(TYPE),as.Date(ExpDate,format="%Y/%m/%d"),as.Date(Date,format="%Y/%m/%d")) %>% 
-  dplyr::select(Date,ExpDate,TYPE,ATMIV,Strike,UDLY,IVIDX,TimeToExpDate,Moneyness.Frac,displace) -> atmiv_hist
-
-tail(atmiv_hist,n=100)
-
-write.table(atmiv_hist,paste(DataFiles_Path_G,Underying_Symbol_G,"-ATMIV-VCONE-ANAL_Hist.csv",sep=""),row.names = F,col.names=T,sep=",",append=F)
-
 ##
 # Vcone Regression
 
@@ -338,7 +343,6 @@ CallVCone
 
 rm(PutVCone,CallVCone)
 rm(vcone,predict.c,model.ss)
-
 
 ##
 # IV Change to IVIDX Up and Down
