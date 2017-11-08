@@ -236,7 +236,7 @@ tail(atmiv_hist,n=100)
 write.table(atmiv_hist,paste(DataFiles_Path_G,Underying_Symbol_G,"-ATMIV-VCONE-ANAL_Hist.csv",sep=""),row.names = F,col.names=T,sep=",",append=F)
 
 ###
-##### If we perform ATMIV Calibration, Here can be the end of file.
+##### If we perform ATMIV Calibration, here can be the end of file.
 
 #####
 ##
@@ -431,43 +431,43 @@ ATMIV_GmChg_Call %>% dplyr::filter(IVIDX.f<1.0) -> ATMIV_GmChg_Call_Down
 (ggplot(ATMIV_GmChg_Call_Down,aes(x=TimeToExpDate,y=VC.f.r,colour=DaysToMaxDate))+geom_point())
 
 ##
-# VC.f.r Regression
+# Obsolete. VC.f.r Regression
 
 # Put
-model.ss<-smooth.spline(ATMIV_GmChg_Put_Up$TimeToExpDate,ATMIV_GmChg_Put_Up$VC.f.r,df=3)
-(predict.c <- predict(model.ss,x=seq(0,max(ATMIV_GmChg_Put_Up$TimeToExpDate),by=0.1)))
-(ggplot(ATMIV_GmChg_Put_Up,aes(x=TimeToExpDate,y=VC.f.r,colour=TYPE))+geom_point()+
-    geom_line(data=data.frame(TimeToExpDate=predict.c$x,VC.f.r=predict.c$y,TYPE=1),aes(TimeToExpDate,VC.f.r)))
-save.IVChg(model.ss,OpType_Put_G,10)
+#model.ss<-smooth.spline(ATMIV_GmChg_Put_Up$TimeToExpDate,ATMIV_GmChg_Put_Up$VC.f.r,df=3)
+#(predict.c <- predict(model.ss,x=seq(0,max(ATMIV_GmChg_Put_Up$TimeToExpDate),by=0.1)))
+#(ggplot(ATMIV_GmChg_Put_Up,aes(x=TimeToExpDate,y=VC.f.r,colour=TYPE))+geom_point()+
+#    geom_line(data=data.frame(TimeToExpDate=predict.c$x,VC.f.r=predict.c$y,TYPE=1),aes(TimeToExpDate,VC.f.r)))
+#save.IVChg(model.ss,OpType_Put_G,10)
 
-model.ss<-smooth.spline(ATMIV_GmChg_Put_Down$TimeToExpDate,ATMIV_GmChg_Put_Down$VC.f.r,df=3)
-(predict.c <- predict(model.ss,x=seq(0,max(ATMIV_GmChg_Put_Down$TimeToExpDate),by=0.1)))
-(ggplot(ATMIV_GmChg_Put_Down,aes(x=TimeToExpDate,y=VC.f.r,colour=TYPE))+geom_point()+
-    geom_line(data=data.frame(TimeToExpDate=predict.c$x,VC.f.r=predict.c$y,TYPE=1),aes(TimeToExpDate,VC.f.r)))
-save.IVChg(model.ss,OpType_Put_G,-10)
+#model.ss<-smooth.spline(ATMIV_GmChg_Put_Down$TimeToExpDate,ATMIV_GmChg_Put_Down$VC.f.r,df=3)
+#(predict.c <- predict(model.ss,x=seq(0,max(ATMIV_GmChg_Put_Down$TimeToExpDate),by=0.1)))
+#(ggplot(ATMIV_GmChg_Put_Down,aes(x=TimeToExpDate,y=VC.f.r,colour=TYPE))+geom_point()+
+#    geom_line(data=data.frame(TimeToExpDate=predict.c$x,VC.f.r=predict.c$y,TYPE=1),aes(TimeToExpDate,VC.f.r)))
+#save.IVChg(model.ss,OpType_Put_G,-10)
 
 # Call
-model.ss<-smooth.spline(ATMIV_GmChg_Call_Up$TimeToExpDate,ATMIV_GmChg_Call_Up$VC.f.r,df=3)
-(predict.c <- predict(model.ss,x=seq(0,max(ATMIV_GmChg_Call_Up$TimeToExpDate),by=0.1)))
-(ggplot(ATMIV_GmChg_Call_Up,aes(x=TimeToExpDate,y=VC.f.r,colour=TYPE))+geom_point()+
-    geom_line(data=data.frame(TimeToExpDate=predict.c$x,VC.f.r=predict.c$y,TYPE=-1),aes(TimeToExpDate,VC.f.r)))
-save.IVChg(model.ss,OpType_Call_G,10)
+#model.ss<-smooth.spline(ATMIV_GmChg_Call_Up$TimeToExpDate,ATMIV_GmChg_Call_Up$VC.f.r,df=3)
+#(predict.c <- predict(model.ss,x=seq(0,max(ATMIV_GmChg_Call_Up$TimeToExpDate),by=0.1)))
+#(ggplot(ATMIV_GmChg_Call_Up,aes(x=TimeToExpDate,y=VC.f.r,colour=TYPE))+geom_point()+
+#    geom_line(data=data.frame(TimeToExpDate=predict.c$x,VC.f.r=predict.c$y,TYPE=-1),aes(TimeToExpDate,VC.f.r)))
+#save.IVChg(model.ss,OpType_Call_G,10)
 
-model.ss<-smooth.spline(ATMIV_GmChg_Call_Down$TimeToExpDate,ATMIV_GmChg_Call_Down$VC.f.r,df=3)
-(predict.c <- predict(model.ss,x=seq(0,max(ATMIV_GmChg_Call_Down$TimeToExpDate),by=0.1)))
-(ggplot(ATMIV_GmChg_Call_Down,aes(x=TimeToExpDate,y=VC.f.r,colour=TYPE))+geom_point()+
-    geom_line(data=data.frame(TimeToExpDate=predict.c$x,VC.f.r=predict.c$y,TYPE=-1),aes(TimeToExpDate,VC.f.r)))
-save.IVChg(model.ss,OpType_Call_G,-10)
+#model.ss<-smooth.spline(ATMIV_GmChg_Call_Down$TimeToExpDate,ATMIV_GmChg_Call_Down$VC.f.r,df=3)
+#(predict.c <- predict(model.ss,x=seq(0,max(ATMIV_GmChg_Call_Down$TimeToExpDate),by=0.1)))
+#(ggplot(ATMIV_GmChg_Call_Down,aes(x=TimeToExpDate,y=VC.f.r,colour=TYPE))+geom_point()+
+#    geom_line(data=data.frame(TimeToExpDate=predict.c$x,VC.f.r=predict.c$y,TYPE=-1),aes(TimeToExpDate,VC.f.r)))
+#save.IVChg(model.ss,OpType_Call_G,-10)
 
 #load test
-load.IVChg(OpType_Put_G,10)
-PutIVChgUp
-load.IVChg(OpType_Put_G,-10)
-PutIVChgDown
-load.IVChg(OpType_Call_G,10)
-CallIVChgUp
-load.IVChg(OpType_Call_G,-10)
-CallIVChgDown
+#load.IVChg(OpType_Put_G,10)
+#PutIVChgUp
+#load.IVChg(OpType_Put_G,-10)
+#PutIVChgDown
+#load.IVChg(OpType_Call_G,10)
+#CallIVChgUp
+#load.IVChg(OpType_Call_G,-10)
+#CallIVChgDown
 
 ##
 # Analysis

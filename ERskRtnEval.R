@@ -734,30 +734,6 @@ get.Volatility.Level.Regression<-function(Days=holdDays,ctoc=TRUE,linearModel=F)
 }
 
 ##
-# ATMIV Volatility Change Regression
-
-#read from get.Volatility.Change.Regression.Result to get specific regression values.
-get.VolChg<-function(model,month){
-  chg<-predict(model,x=month)
-  return(chg)
-}
-
-#get VC.f(=ATMIV.f/IVIDX.f) as a vector for each position element.
-# where ATMIV.f=ATMIV_pos/ATMIV_pre, IVIDX.f= IVIDX_pos/IVIDX_pre. 
-# VC.f also depends on the option's TYPE, whether IVIDX went up or down, and TimeToExpPdate.
-get.Volatility.Change.Regression.Result<-function(pos,up_dn){
-  atmiv_chg<-(pos$TYPE==OpType_Put_G)*(up_dn>=0)*
-    (get.VolChg(model=PutIVChgUp,month=pos$TimeToExpDate))$y
-  atmiv_chg<-atmiv_chg+(pos$TYPE==OpType_Call_G)*(up_dn>=0)*
-    (get.VolChg(model=CallIVChgUp,month=pos$TimeToExpDate))$y
-  atmiv_chg<-atmiv_chg+(pos$TYPE==OpType_Put_G)*(up_dn<0)*
-    (get.VolChg(model=PutIVChgDown,month=pos$TimeToExpDate))$y
-  atmiv_chg<-atmiv_chg+(pos$TYPE==OpType_Call_G)*(up_dn<0)*
-    (get.VolChg(model=CallIVChgDown,month=pos$TimeToExpDate))$y
-  atmiv_chg
-}
-
-##
 # ATMIV Volatility Change Regression Advanced
 
 save.ATMIV.f.IVIDX.f <- function (model,optype,up_dn,days,x_idx,y_idx) {
@@ -928,7 +904,6 @@ reflectPosChg<- function(process_df,days,IV_DEVIATION=0,MIN_IVIDX_CHG=(-0.5)){
   pos$IVIDX<-pos$IVIDX*(1+ividx_chg_pct)
   
   # ATM IV change
-  #pos$ATMIV<-pos$ATMIV*(1+ividx_chg_pct)*get.Volatility.Change.Regression.Result(pos,ividx_chg_pct)
   
   #Volatility Cone の影響。時間変化した分の影響を受ける。その比の分だけ比率変化
   #ATMIV_pos <- ATMIV_pos*(ATMIV_pos/IVIDX_pos)t=TimeToExpDate_pre/(ATMIV_pos/IVIDX_pos)t=TimeToExpDate_pos
@@ -1867,4 +1842,28 @@ getPositionGreeks<-function(position,multi,hdd,HV_IV_Adjust_Ratio){
   data.frame(Price=price,Delta=delta,Gamma=gamma,Theta=theta,Vega=vega,UDLY=udly,
              ThetaEffect=thetaEffect,GammaEffect=gammaEffect,DeltaEffect=deltaEffect)
 }
+
+##
+# Obsolete. ATMIV Volatility Change Regression. 
+
+#read from get.Volatility.Change.Regression.Result to get specific regression values.
+#get.VolChg<-function(model,month){
+#  chg<-predict(model,x=month)
+#  return(chg)
+#}
+
+#get VC.f(=ATMIV.f/IVIDX.f) as a vector for each position element.
+# where ATMIV.f=ATMIV_pos/ATMIV_pre, IVIDX.f= IVIDX_pos/IVIDX_pre. 
+# VC.f also depends on the option's TYPE, whether IVIDX went up or down, and TimeToExpPdate.
+#get.Volatility.Change.Regression.Result<-function(pos,up_dn){
+#  atmiv_chg<-(pos$TYPE==OpType_Put_G)*(up_dn>=0)*
+#    (get.VolChg(model=PutIVChgUp,month=pos$TimeToExpDate))$y
+#  atmiv_chg<-atmiv_chg+(pos$TYPE==OpType_Call_G)*(up_dn>=0)*
+#   (get.VolChg(model=CallIVChgUp,month=pos$TimeToExpDate))$y
+#  atmiv_chg<-atmiv_chg+(pos$TYPE==OpType_Put_G)*(up_dn<0)*
+#    (get.VolChg(model=PutIVChgDown,month=pos$TimeToExpDate))$y
+#  atmiv_chg<-atmiv_chg+(pos$TYPE==OpType_Call_G)*(up_dn<0)*
+#    (get.VolChg(model=CallIVChgDown,month=pos$TimeToExpDate))$y
+#  atmiv_chg
+#}
 
