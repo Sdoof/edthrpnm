@@ -15,9 +15,9 @@ contractDetail = None
 contractRestoreList = None
 orderIdMktReqContractDict = None
 priceInfoDict = {}
-# SPX 2570, RUT 1510
-SPX_Strike_Max = 2875
-SPX_Strike_Min = 1975
+# SPX 2588, RUT 1500
+SPX_Strike_Max = 2890
+SPX_Strike_Min = 1990
 SPX_Strike_Max_P = SPX_Strike_Max - 150
 SPX_Strike_Min_C = SPX_Strike_Min + 300
 RUT_Strike_Max = 1700
@@ -270,8 +270,6 @@ def writeToFile(sectype, symbol):
 # -- main  ---------------------------------------------------------------------
 # 18 elements finish in 4min15s
 opContractList = [
-    makeOptContract(sym='SPX', exp='20171130', strike='', right='P'),
-    makeOptContract(sym='SPX', exp='20171130', strike='', right='C'),
     makeOptContract(sym='SPX', exp='20171215', strike='', right='P'),
     makeOptContract(sym='SPX', exp='20171215', strike='', right='C'),
     makeOptContract(sym='SPX', exp='20171229', strike='', right='P'),
@@ -284,10 +282,8 @@ opContractList = [
     makeOptContract(sym='SPX', exp='20180216', strike='', right='C'),
     makeOptContract(sym='SPX', exp='20180228', strike='', right='P'),
     makeOptContract(sym='SPX', exp='20180228', strike='', right='C'),
-    makeOptContract(sym='RUT', exp='20171116', strike='', right='P'),
-    makeOptContract(sym='RUT', exp='20171116', strike='', right='C'),
-    makeOptContract(sym='RUT', exp='20171130', strike='', right='P'),
-    makeOptContract(sym='RUT', exp='20171130', strike='', right='C'),
+    makeOptContract(sym='SPX', exp='20180316', strike='', right='P'),
+    makeOptContract(sym='SPX', exp='20180316', strike='', right='C'),
     makeOptContract(sym='RUT', exp='20171214', strike='', right='P'),
     makeOptContract(sym='RUT', exp='20171214', strike='', right='C'),
     makeOptContract(sym='RUT', exp='20171229', strike='', right='P'),
@@ -295,7 +291,9 @@ opContractList = [
     makeOptContract(sym='RUT', exp='20180118', strike='', right='P'),
     makeOptContract(sym='RUT', exp='20180118', strike='', right='C'),
     makeOptContract(sym='RUT', exp='20180131', strike='', right='P'),
-    makeOptContract(sym='RUT', exp='20180131', strike='', right='C')
+    makeOptContract(sym='RUT', exp='20180131', strike='', right='C'),
+    makeOptContract(sym='RUT', exp='20180228', strike='', right='P'),
+    makeOptContract(sym='RUT', exp='20180228', strike='', right='C')
 ]
 
 idxContractList = [
