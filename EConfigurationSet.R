@@ -214,11 +214,11 @@ CallIVDown_ATMIV.f.IVIDX.f_1D
 #ATMIDXIV.f
 load.ATMIDXIV.f(OpType_Put_G)
 load.ATMIDXIV.f(OpType_Call_G)
-#VCone
-load.VCone(optype=OpType_Put_G)
-PutVCone
-load.VCone(optype=OpType_Call_G)
-CallVCone
+#Obsolete VCone
+#load.VCone(optype=OpType_Put_G)
+#PutVCone
+#load.VCone(optype=OpType_Call_G)
+#CallVCone
 #Obsolete
 #load.IVChg(OpType_Put_G,10)
 #PutIVChgUp

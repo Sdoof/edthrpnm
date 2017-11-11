@@ -267,87 +267,87 @@ make.vchg.df<-function(vcone,type=0){
   vcone
 }
 
-# regression functions
-
-vcone_regression<-function(vcone,regtype=1,ret=1){
-  if(regtype==1){
-    nls.m<-lm(IV2IDX.nm~Month,data=vcone)
-  }else if(regtype==3){
-    nls.m<-lm(IV2IDX.nm~1+Month+I(Month^2),data=vcone)
-  }
-  if(ret==1){
-    nls.m
-  }else{
-    predict.m <- predict(nls.m)
-    predict.m
-  }
-}
-
-vchg_regression<-function(vchg,regtype=2,start=NULL,ret=1){
-  if(regtype==2){
-    nls.m<-nls(VC.f~a*TimeToExpDate^b+c,data=vchg,start=start)
-  }else if(regtype==1){
-    nls.m<-lm(VC.f~TimeToExpDate,data=vchg)
-  }
-  if(ret==1){
-    nls.m
-  }else{
-    predict.m <- predict(nls.m)
-    predict.m
-  }
-}
-
-save.VCone<- function(model,optype){
-  if(optype==OpType_Put_G){
-    reg_saved_fn<-paste(DataFiles_Path_G,Underying_Symbol_G,"_PutVCone",sep="")
-  }else if(optype==OpType_Call_G){
-    reg_saved_fn<-paste(DataFiles_Path_G,Underying_Symbol_G,"_CallVCone",sep="")
-  }
-  save(model,file=reg_saved_fn)
-}
-
-load.VCone<- function(optype) {
-  if(optype==OpType_Put_G){
-    reg_load_fn<-paste(DataFiles_Path_G,Underying_Symbol_G,"_PutVCone",sep="")
-    load(reg_load_fn)
-    assign("PutVCone",model,env=.GlobalEnv)
-  }else if(optype==OpType_Call_G){
-    reg_load_fn<-paste(DataFiles_Path_G,Underying_Symbol_G,"_CallVCone",sep="")
-    load(reg_load_fn)
-    assign("CallVCone",model,env=.GlobalEnv)
-  }
-}
-
-
 # Linear 3D Fitting **Just a test 
 #Functions
 #モデルオブジェエクとを引数として、xvarとyvarからzvarを予測する
 #デフォルトでは指定されたxとy変数の範囲で、16x16グリッドを計算
-predictgrid<-function(model,xvar,yvar,zvar,res=16,type=NULL){
+#predictgrid<-function(model,xvar,yvar,zvar,res=16,type=NULL){
   #モデルオブジェクトから予測面のxとy変数の範囲を決める
   #lmとglmなどで使用可能だが、他のモデルではカスタマイズが必要
-  xrange<-range(model$model[[xvar]])
-  yrange<-range(model$model[[yvar]])
+#  xrange<-range(model$model[[xvar]])
+#  yrange<-range(model$model[[yvar]])
   
-  newdata<-expand.grid(x=seq(xrange[1],xrange[2],length.out=res),
-                       y=seq(yrange[1],yrange[2],length.out=res))
-  names(newdata)<-c(xvar,yvar)
-  newdata[[zvar]]<-predict(model,newdata,type=type)
-  newdata
-}
+#  newdata<-expand.grid(x=seq(xrange[1],xrange[2],length.out=res),
+#                       y=seq(yrange[1],yrange[2],length.out=res))
+#  names(newdata)<-c(xvar,yvar)
+#  newdata[[zvar]]<-predict(model,newdata,type=type)
+#  newdata
+#}
 
 #x,y,zの値を格納したlong形式のデータフレームを、xとyのベクトル行列zを
 #含むリストに変換する
-df2mat<-function(p,xvar=NULL,yvar=NULL,zvar=NULL){
-  if(is.null(xvar)) xvar <- names(p)[1]
-  if(is.null(yvar)) yvar <- names(p)[2]
-  if(is.null(zvar)) zvar <- names(p)[3]
+#df2mat<-function(p,xvar=NULL,yvar=NULL,zvar=NULL){
+#  if(is.null(xvar)) xvar <- names(p)[1]
+#  if(is.null(yvar)) yvar <- names(p)[2]
+#  if(is.null(zvar)) zvar <- names(p)[3]
   
-  x<-unique(p[[xvar]])
-  y<-unique(p[[yvar]])
-  z<-matrix(p[[zvar]],nrow=length(y),ncol=length(x))
+#  x<-unique(p[[xvar]])
+#  y<-unique(p[[yvar]])
+#  z<-matrix(p[[zvar]],nrow=length(y),ncol=length(x))
   
-  m<-list(x,y,z)
-  names(m)<-c(xvar,yvar,zvar)
-  m
-}
+#  m<-list(x,y,z)
+#  names(m)<-c(xvar,yvar,zvar)
+#  m
+#}
+
+# Obsolete. Vcone regression functions
+
+#vcone_regression<-function(vcone,regtype=1,ret=1){
+#  if(regtype==1){
+#    nls.m<-lm(IV2IDX.nm~Month,data=vcone)
+#  }else if(regtype==3){
+#    nls.m<-lm(IV2IDX.nm~1+Month+I(Month^2),data=vcone)
+#  }
+#  if(ret==1){
+#    nls.m
+#  }else{
+#    predict.m <- predict(nls.m)
+#    predict.m
+#  }
+#}
+
+#vchg_regression<-function(vchg,regtype=2,start=NULL,ret=1){
+#  if(regtype==2){
+#    nls.m<-nls(VC.f~a*TimeToExpDate^b+c,data=vchg,start=start)
+#  }else if(regtype==1){
+#    nls.m<-lm(VC.f~TimeToExpDate,data=vchg)
+#  }
+#  if(ret==1){
+#    nls.m
+#  }else{
+#    predict.m <- predict(nls.m)
+#    predict.m
+#  }
+#}
+
+#save.VCone<- function(model,optype){
+#  if(optype==OpType_Put_G){
+#    reg_saved_fn<-paste(DataFiles_Path_G,Underying_Symbol_G,"_PutVCone",sep="")
+#  }else if(optype==OpType_Call_G){
+#    reg_saved_fn<-paste(DataFiles_Path_G,Underying_Symbol_G,"_CallVCone",sep="")
+#  }
+#  save(model,file=reg_saved_fn)
+#}
+
+#load.VCone<- function(optype) {
+#  if(optype==OpType_Put_G){
+#    reg_load_fn<-paste(DataFiles_Path_G,Underying_Symbol_G,"_PutVCone",sep="")
+#    load(reg_load_fn)
+#    assign("PutVCone",model,env=.GlobalEnv)
+#  }else if(optype==OpType_Call_G){
+#    reg_load_fn<-paste(DataFiles_Path_G,Underying_Symbol_G,"_CallVCone",sep="")
+#    load(reg_load_fn)
+#    assign("CallVCone",model,env=.GlobalEnv)
+#  }
+#}
+

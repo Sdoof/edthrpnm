@@ -236,7 +236,7 @@ tail(atmiv_hist,n=100)
 write.table(atmiv_hist,paste(DataFiles_Path_G,Underying_Symbol_G,"-ATMIV-VCONE-ANAL_Hist.csv",sep=""),row.names = F,col.names=T,sep=",",append=F)
 
 ###
-##### If we perform ATMIV Calibration, here can be the end of file.
+################################## If we perform ATMIV Calibration, here can be the end of file.
 
 #####
 ##
@@ -305,44 +305,45 @@ load.ATMIDXIV.f(OpType_Call_G)
 write.table(atmiv.org,paste(DataFiles_Path_G,Underying_Symbol_G,"-ATMIV-VCONE-ANAL.csv",sep=""),row.names = F,col.names=T,sep=",",append=T)
 
 ##
-# Vcone Regression
+# Obsolete. Vcone Regression
 
 #  Put Vcone IV is normalized 
 #Creating vcone.
-vcone<-make.vcone.df(atmiv=atmiv,type=1)
-vcone %>% dplyr::arrange(Month) -> vcone
-(ggplot(vcone,aes(x=Month,y=IV2IDX.nm,colour=Month))+geom_point())
+#vcone<-make.vcone.df(atmiv=atmiv,type=1)
+#vcone %>% dplyr::arrange(Month) -> vcone
+#(ggplot(vcone,aes(x=Month,y=IV2IDX.nm,colour=Month))+geom_point())
+
 # Regression of PUT vcone
 #   5.smooth spline
 #(predict(smooth.spline(vcone$Month,vcone$IV2IDX.nm,df=3),x=2))
-model.ss<-smooth.spline(vcone$Month,vcone$IV2IDX.nm,df=3)
-(predict.c <- predict(model.ss,x=seq(0,max(vcone$Month),by=0.1)))
-(ggplot(vcone,aes(x=Month,y=IV2IDX.nm,colour=Month))+geom_point()+
-    geom_line(data=data.frame(Month=predict.c$x,IV2IDX.nm=predict.c$y,TYPE=OpType_Put_G),aes(Month,IV2IDX.nm)))
+#model.ss<-smooth.spline(vcone$Month,vcone$IV2IDX.nm,df=3)
+#(predict.c <- predict(model.ss,x=seq(0,max(vcone$Month),by=0.1)))
+#(ggplot(vcone,aes(x=Month,y=IV2IDX.nm,colour=Month))+geom_point()+
+#    geom_line(data=data.frame(Month=predict.c$x,IV2IDX.nm=predict.c$y,TYPE=OpType_Put_G),aes(Month,IV2IDX.nm)))
 
-save.VCone(model=model.ss,optype=OpType_Put_G)
-rm(vcone,predict.c,model.ss)
+#save.VCone(model=model.ss,optype=OpType_Put_G)
+#rm(vcone,predict.c,model.ss)
 #  Call VCone IV is normalized 
 #Creating vcone.
-vcone<-make.vcone.df(atmiv=atmiv,type=-1)
-(ggplot(vcone,aes(x=Month,y=IV2IDX.nm,colour=Month))+geom_point())
+#vcone<-make.vcone.df(atmiv=atmiv,type=-1)
+#(ggplot(vcone,aes(x=Month,y=IV2IDX.nm,colour=Month))+geom_point())
 # Regression of Call vcone
 #   5.smooth spline
 #(predict(smooth.spline(vcone$Month,vcone$IV2IDX.nm,df=3),x=2))
-model.ss<-smooth.spline(vcone$Month,vcone$IV2IDX.nm,df=3)
-(predict.c <- predict(model.ss,x=seq(0,max(vcone$Month),by=0.1)))
-(ggplot(vcone,aes(x=Month,y=IV2IDX.nm,colour=Month))+geom_point()+
-    geom_line(data=data.frame(Month=predict.c$x,IV2IDX.nm=predict.c$y,TYPE=-1),aes(Month,IV2IDX.nm)))
+#model.ss<-smooth.spline(vcone$Month,vcone$IV2IDX.nm,df=3)
+#(predict.c <- predict(model.ss,x=seq(0,max(vcone$Month),by=0.1)))
+#(ggplot(vcone,aes(x=Month,y=IV2IDX.nm,colour=Month))+geom_point()+
+#    geom_line(data=data.frame(Month=predict.c$x,IV2IDX.nm=predict.c$y,TYPE=-1),aes(Month,IV2IDX.nm)))
 
-save.VCone(model=model.ss,optype=OpType_Call_G)
+#save.VCone(model=model.ss,optype=OpType_Call_G)
 #loat test
-load.VCone(optype=OpType_Put_G)
-PutVCone
-load.VCone(optype=OpType_Call_G)
-CallVCone
+#load.VCone(optype=OpType_Put_G)
+#PutVCone
+#load.VCone(optype=OpType_Call_G)
+#CallVCone
 
-rm(PutVCone,CallVCone)
-rm(vcone,predict.c,model.ss)
+#rm(PutVCone,CallVCone)
+#rm(vcone,predict.c,model.ss)
 
 ##
 # IV Change to IVIDX Up and Down
