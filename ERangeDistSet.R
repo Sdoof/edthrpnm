@@ -5,6 +5,7 @@ library(pracma)
 library(digest)
 library(hash)
 library(gsl)
+library(KernSmooth)
 library(PearsonDS)
 rm(list=ls())
 source('./ESourceRCode.R',encoding = 'UTF-8')
@@ -85,19 +86,19 @@ if(IS_SELECTIVE_WEIGHT_ESTM){
 }
 
 ### check the shape of the histgram
-#h <- dpih(tmp$P2IVxd$PCxdCtC)
-#bins <- seq(min(tmp$P2IVxd$PCxdCtC)-3*h/2, max(tmp$P2IVxd$PCxdCtC)+3*h/2, by=h)
-#hist(tmp$P2IVxd$PCxdCtC, breaks=bins)
-#rm(h)
+h <- dpih(tmp$P2IVxd$PCxdCtC)
+bins <- seq(min(tmp$P2IVxd$PCxdCtC)-3*h/2, max(tmp$P2IVxd$PCxdCtC)+3*h/2, by=h)
+hist(tmp$P2IVxd$PCxdCtC, breaks=bins)
+rm(h)
 
 moment_org=empMoments(tmp$P2IVxd$PCxdCtC)
 (moment_org)
 
 ### check the shape of the histgram
-#tmp_data=rpearson(20000,moments=moment_org)
-#h <- dpih(tmp_data)
-#bins <- seq(min(tmp_data)-3*h/2, max(tmp_data)+3*h/2, by=h)
-#hist(tmp_data, breaks=bins)
+tmp_data=rpearson(20000,moments=moment_org)
+h <- dpih(tmp_data)
+bins <- seq(min(tmp_data)-3*h/2, max(tmp_data)+3*h/2, by=h)
+hist(tmp_data, breaks=bins)
 
 #moment transformation
 moment_trnsfm=moment_org
@@ -108,10 +109,10 @@ moment_trnsfm["mean"]=dfift_trnsfm/(252/EvalFuncSetting$holdDays)
 (moment_trnsfm)
 
 ### check the shape of the histgram 
-#tmp_data=rpearson(20000,moments=moment_trnsfm)
-#h <- dpih(tmp_data)
-#bins <- seq(min(tmp_data)-3*h/2, max(tmp_data)+3*h/2, by=h)
-#hist(tmp_data, breaks=bins)
+tmp_data=rpearson(20000,moments=moment_trnsfm)
+h <- dpih(tmp_data)
+bins <- seq(min(tmp_data)-3*h/2, max(tmp_data)+3*h/2, by=h)
+hist(tmp_data, breaks=bins)
 
 cat(file=fname,"##  moment ",append=T)
 cat(file=fname,c(moment_trnsfm["mean"],moment_trnsfm["variance"],moment_trnsfm["skewness"],moment_trnsfm["kurtosis"]),"\n",sep=",",append=T)
@@ -125,12 +126,12 @@ length(total_range)
 total_range
 
 #LowerLimit,UpperLimit
-LowerLimit=min(-0.2,ifelse(length(total_range[-which(ppearson(total_range,moments=moment_trnsfm)<=0)])==0,
+LowerLimit=max(-0.2,ifelse(length(total_range[-which(ppearson(total_range,moments=moment_trnsfm)<=0)])==0,
                            min(total_range),
                            min(total_range[-which(ppearson(total_range,moments=moment_trnsfm)<=0)]) ))
 UpperLimit=min(0.08,ifelse(length( total_range[-which(ppearson(total_range,moments=moment_trnsfm)>=1.0)] )==0,
-                          max(total_range),
-                          max(total_range[-which(ppearson(total_range,moments=moment_trnsfm)>=1.0)]) ))
+                           max(total_range),
+                           max(total_range[-which(ppearson(total_range,moments=moment_trnsfm)>=1.0)]) ))
 
 ##
 # regular intervals
