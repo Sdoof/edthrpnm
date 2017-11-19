@@ -10,7 +10,7 @@ source('./ESourceRCode.R',encoding = 'UTF-8')
 
 ##
 # whole sheet
-readFname=paste(DataFiles_Path_G,"UXXXXX.csv",sep='')
+readFname=paste(DataFiles_Path_G,"UXXXXXX.csv",sep='')
 sheet_colnames=c("Trades","Header","DataDiscriminator","AssetCategory","Currency","Symbol","DateTime","Exchange","Quantity","T.Price","Proceeds","Comm/Fee","Basis","RealizedP/L","Code")
 sheet_whole=read_csv(readFname,col_names = sheet_colnames,
                      col_types = cols(
@@ -173,10 +173,17 @@ sum(sheet_OpPosSmry$Quantity)
 sum(abs(sheet_OpPosSmry$Quantity))
 
 #iterate this 
-SymbolTicket = c( 'SPX','SPX' ); ExpiryTicket = c( '20180131','20180228' ); StrikeTicket = c( 2500,2450 ) ; RightTicket = c( 'P','P' ); BuySell = c( 'SELL','BUY' )
+#S3-C12
+#SymbolTicket = c( 'SPX','SPX' ); ExpiryTicket = c( '20180119','20180119' ); StrikeTicket = c( 2500,2560 ) ; RightTicket = c( 'P','P' ); BuySell = c( 'SELL','BUY' )
+#S5-C1
+#SymbolTicket = c( 'SPX','SPX' ); ExpiryTicket = c( '20180131','20180228' ); StrikeTicket = c( 2470,2425 ) ; RightTicket = c( 'P','P' ); BuySell = c( 'SELL','BUY' ); ComboRatio = c( 1,1 ) ;LimitPrice_G =  -9000  ;QTY_G =  1 
+#S4-C1
+SymbolTicket = c( 'SPX','SPX' ); ExpiryTicket = c( '20180131','20180131' ); StrikeTicket = c( 2480,2570 ) ; RightTicket = c( 'P','P' ); BuySell = c( 'SELL','BUY' ); ComboRatio = c( 1,1 ) ;LimitPrice_G =  -9000  ;QTY_G =  1 
 positions=tibble(SymbolTicket=SymbolTicket, ExpiryTicket=ExpiryTicket, StrikeTicket=StrikeTicket,RightTicket=RightTicket,BuySell=ifelse(BuySell=="BUY",1,-1))
 
-SymbolTicket = c( 'SPX','SPX' ); ExpiryTicket = c( '20180131','20180228' ); StrikeTicket = c( 2610,2600 ) ; RightTicket = c( 'C','C' ); BuySell = c( 'BUY','SELL' )
+#SymbolTicket = c( 'SPX','SPX' ); ExpiryTicket = c( '20180216','20180216' ); StrikeTicket = c( 2425,2525 ) ; RightTicket = c( 'P','P' ); BuySell = c( 'BUY','SELL' )
+#SymbolTicket = c( 'SPX','SPX' ); ExpiryTicket = c( '20180131','20180228' ); StrikeTicket = c( 2600,2600 ) ; RightTicket = c( 'C','C' ); BuySell = c( 'BUY','SELL' ); ComboRatio = c( 1,1 ) ;LimitPrice_G =  -9000  ;QTY_G =  1
+SymbolTicket = c( 'SPX','SPX' ); ExpiryTicket = c( '20180228','20180228' ); StrikeTicket = c( 2425,2550 ) ; RightTicket = c( 'P','P' ); BuySell = c( 'BUY','SELL' ); ComboRatio = c( 1,1 ) ;LimitPrice_G =  -9000  ;QTY_G =  1
 tmp=tibble(SymbolTicket=SymbolTicket, ExpiryTicket=ExpiryTicket, StrikeTicket=StrikeTicket,RightTicket=RightTicket,BuySell=ifelse(BuySell=="BUY",1,-1))
 
 positions %>% 
@@ -194,8 +201,9 @@ positions %>%
   tidyr::unite(symboldate,month,col = "symboldatemonth", sep = "") %>%
   tidyr::unite(symboldatemonth,year,col = "symboldatemonthyear", sep = "") %>%
   tidyr::unite(symboldatemonthyear,StrikeRight,col = "contactName",sep = " ") -> positions
-#join original holdings
+print(positions,n=nrow(positions),width = Inf)
 
+#join original holdings
 sheet_OpPosSmry %>% dplyr::full_join(positions,by="contactName") %>%
   dplyr::arrange(contactName) %>%
   tidyr::replace_na(list(BuySell = 0)) %>%
@@ -216,7 +224,7 @@ sheet_OpPosSmry_pos %>%
 print(sheet_OpPosSmry_pos,n=nrow(sheet_OpPosSmry_pos),width = Inf)
 sum(sheet_OpPosSmry_pos$Quantity)
 sum(abs(sheet_OpPosSmry_pos$Quantity))
-sheet_OpPos<-sheet_OpPosSmry_pos
+sheet_OpPosSmry<-sheet_OpPosSmry_pos
 
 
 
