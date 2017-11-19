@@ -172,22 +172,48 @@ print(sheet_OpPosSmry,n=nrow(sheet_OpPosSmry),width = Inf)
 sum(sheet_OpPosSmry$Quantity)
 sum(abs(sheet_OpPosSmry$Quantity))
 
-#iterate this 
+#iterate this
+
 #S3-C12
-#SymbolTicket = c( 'SPX','SPX' ); ExpiryTicket = c( '20180119','20180119' ); StrikeTicket = c( 2500,2560 ) ; RightTicket = c( 'P','P' ); BuySell = c( 'SELL','BUY' )
-#S5-C1
-#SymbolTicket = c( 'SPX','SPX' ); ExpiryTicket = c( '20180131','20180228' ); StrikeTicket = c( 2470,2425 ) ; RightTicket = c( 'P','P' ); BuySell = c( 'SELL','BUY' ); ComboRatio = c( 1,1 ) ;LimitPrice_G =  -9000  ;QTY_G =  1 
-#S4-C1
-SymbolTicket = c( 'SPX','SPX' ); ExpiryTicket = c( '20180131','20180131' ); StrikeTicket = c( 2480,2570 ) ; RightTicket = c( 'P','P' ); BuySell = c( 'SELL','BUY' ); ComboRatio = c( 1,1 ) ;LimitPrice_G =  -9000  ;QTY_G =  1 
-positions=tibble(SymbolTicket=SymbolTicket, ExpiryTicket=ExpiryTicket, StrikeTicket=StrikeTicket,RightTicket=RightTicket,BuySell=ifelse(BuySell=="BUY",1,-1))
-
-#SymbolTicket = c( 'SPX','SPX' ); ExpiryTicket = c( '20180216','20180216' ); StrikeTicket = c( 2425,2525 ) ; RightTicket = c( 'P','P' ); BuySell = c( 'BUY','SELL' )
-#SymbolTicket = c( 'SPX','SPX' ); ExpiryTicket = c( '20180131','20180228' ); StrikeTicket = c( 2600,2600 ) ; RightTicket = c( 'C','C' ); BuySell = c( 'BUY','SELL' ); ComboRatio = c( 1,1 ) ;LimitPrice_G =  -9000  ;QTY_G =  1
-SymbolTicket = c( 'SPX','SPX' ); ExpiryTicket = c( '20180228','20180228' ); StrikeTicket = c( 2425,2550 ) ; RightTicket = c( 'P','P' ); BuySell = c( 'BUY','SELL' ); ComboRatio = c( 1,1 ) ;LimitPrice_G =  -9000  ;QTY_G =  1
-tmp=tibble(SymbolTicket=SymbolTicket, ExpiryTicket=ExpiryTicket, StrikeTicket=StrikeTicket,RightTicket=RightTicket,BuySell=ifelse(BuySell=="BUY",1,-1))
-
+positions=NULL
+SymbolTicket = c( 'SPX','SPX' ); ExpiryTicket = c( '20180119','20180119' ); StrikeTicket = c( 2500,2560 ) ; RightTicket = c( 'P','P' ); BuySell = c( 'SELL','BUY' )
 positions %>% 
-  dplyr::bind_rows(tmp) -> positions
+  dplyr::bind_rows(tibble(SymbolTicket=SymbolTicket, ExpiryTicket=ExpiryTicket, StrikeTicket=StrikeTicket,RightTicket=RightTicket,BuySell=ifelse(BuySell=="BUY",1,-1))) %>%
+  dplyr::distinct() -> positions
+
+SymbolTicket = c( 'SPX','SPX' ); ExpiryTicket = c( '20180216','20180216' ); StrikeTicket = c( 2425,2525 ) ; RightTicket = c( 'P','P' ); BuySell = c( 'BUY','SELL' )
+positions %>% 
+  dplyr::bind_rows(tibble(SymbolTicket=SymbolTicket, ExpiryTicket=ExpiryTicket, StrikeTicket=StrikeTicket,RightTicket=RightTicket,BuySell=ifelse(BuySell=="BUY",1,-1))) %>%
+  dplyr::distinct() -> positions
+print(positions,n=nrow(positions),width = Inf)
+sum(abs(positions$BuySell))
+
+#S5-C1
+#SymbolTicket = c( 'SPX','SPX' ); ExpiryTicket = c( '20180131','20180228' ); StrikeTicket = c( 2470,2425 ) ; RightTicket = c( 'P','P' ); BuySell = c( 'SELL','BUY' )
+#positions %>% 
+#  dplyr::bind_rows(tibble(SymbolTicket=SymbolTicket, ExpiryTicket=ExpiryTicket, StrikeTicket=StrikeTicket,RightTicket=RightTicket,BuySell=ifelse(BuySell=="BUY",1,-1))) %>%
+#  dplyr::distinct() -> positions
+
+#SymbolTicket = c( 'SPX','SPX' ); ExpiryTicket = c( '20180131','20180228' ); StrikeTicket = c( 2600,2600 ) ; RightTicket = c( 'C','C' ); BuySell = c( 'BUY','SELL' )
+#positions %>% 
+#  dplyr::bind_rows(tibble(SymbolTicket=SymbolTicket, ExpiryTicket=ExpiryTicket, StrikeTicket=StrikeTicket,RightTicket=RightTicket,BuySell=ifelse(BuySell=="BUY",1,-1))) %>%
+#  dplyr::distinct() -> positions
+#print(positions,n=nrow(positions),width = Inf)
+#sum(abs(positions$BuySell))
+
+#c-2
+#SymbolTicket = c( 'SPX','SPX' ); ExpiryTicket = c( '20180216','20180316' ); StrikeTicket = c( 2490,2450 ) ; RightTicket = c( 'P','P' ); BuySell = c( 'SELL','BUY' )
+#positions %>% 
+#  dplyr::bind_rows(tibble(SymbolTicket=SymbolTicket, ExpiryTicket=ExpiryTicket, StrikeTicket=StrikeTicket,RightTicket=RightTicket,BuySell=ifelse(BuySell=="BUY",1,-1))) %>%
+#  dplyr::distinct() -> positions
+
+#SymbolTicket = c( 'SPX','SPX' ); ExpiryTicket = c( '20180216','20180316' ); StrikeTicket = c( 2625,2625 ) ; RightTicket = c( 'C','C' ); BuySell = c( 'BUY','SELL' )
+#positions %>% 
+#  dplyr::bind_rows(tibble(SymbolTicket=SymbolTicket, ExpiryTicket=ExpiryTicket, StrikeTicket=StrikeTicket,RightTicket=RightTicket,BuySell=ifelse(BuySell=="BUY",1,-1))) %>%
+#  dplyr::distinct() -> positions
+#print(positions,n=nrow(positions),width = Inf)
+#sum(abs(positions$BuySell))
+
 positions %>%
   tidyr::separate(ExpiryTicket,into = c("year", "monthdate"),sep = 4) %>%
   tidyr::separate(monthdate,into = c("month", "date"),sep = 2) -> positions
@@ -224,6 +250,7 @@ sheet_OpPosSmry_pos %>%
 print(sheet_OpPosSmry_pos,n=nrow(sheet_OpPosSmry_pos),width = Inf)
 sum(sheet_OpPosSmry_pos$Quantity)
 sum(abs(sheet_OpPosSmry_pos$Quantity))
+#if iterate next legs
 sheet_OpPosSmry<-sheet_OpPosSmry_pos
 
 
