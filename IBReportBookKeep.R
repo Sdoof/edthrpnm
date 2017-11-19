@@ -10,7 +10,7 @@ source('./ESourceRCode.R',encoding = 'UTF-8')
 
 ##
 # whole sheet
-readFname=paste(DataFiles_Path_G,"U1026713_201710_201710.csv",sep='')
+readFname=paste(DataFiles_Path_G,"UXXXXX.csv",sep='')
 sheet_colnames=c("Trades","Header","DataDiscriminator","AssetCategory","Currency","Symbol","DateTime","Exchange","Quantity","T.Price","Proceeds","Comm/Fee","Basis","RealizedP/L","Code")
 sheet_whole=read_csv(readFname,col_names = sheet_colnames,
                      col_types = cols(
@@ -145,15 +145,6 @@ trades_EqIdxOption %>%
 ##
 #  position checking
 
-sheet_OpPos %>% 
-  dplyr::group_by(Symbol)  %>% 
-  dplyr::summarise(Quantity=sum(Quantity),Open=dplyr::first(Open)) %>% 
-  dplyr::arrange(Symbol) %>% 
-  dplyr::rename(contactName=Symbol) %>%
-  dplyr::select(contactName,Open,Quantity) -> sheet_OpPosSmry
-print(sheet_OpPosSmry,n=nrow(sheet_OpPosSmry),width = Inf)
-sum(sheet_OpPosSmry$Quantity)
-sum(abs(sheet_OpPosSmry$Quantity))
 #months list
 months_num<-c("01","02","03","04","05","06","07","08","09","10","11","12")
 months<-vector("list",length(months_num))
@@ -171,6 +162,17 @@ months[[11]]<-"NOV"
 months[[12]]<-"DEC"
 names(months)<-months_num
 
+sheet_OpPos %>% 
+  dplyr::group_by(Symbol)  %>% 
+  dplyr::summarise(Quantity=sum(Quantity),DateTime=dplyr::first(DateTime)) %>% 
+  dplyr::arrange(Symbol) %>% 
+  dplyr::rename(contactName=Symbol) %>%
+  dplyr::select(contactName,DateTime,Quantity) -> sheet_OpPosSmry
+print(sheet_OpPosSmry,n=nrow(sheet_OpPosSmry),width = Inf)
+sum(sheet_OpPosSmry$Quantity)
+sum(abs(sheet_OpPosSmry$Quantity))
+
+#iterate this 
 SymbolTicket = c( 'SPX','SPX' ); ExpiryTicket = c( '20180131','20180228' ); StrikeTicket = c( 2500,2450 ) ; RightTicket = c( 'P','P' ); BuySell = c( 'SELL','BUY' )
 positions=tibble(SymbolTicket=SymbolTicket, ExpiryTicket=ExpiryTicket, StrikeTicket=StrikeTicket,RightTicket=RightTicket,BuySell=ifelse(BuySell=="BUY",1,-1))
 
@@ -198,13 +200,24 @@ sheet_OpPosSmry %>% dplyr::full_join(positions,by="contactName") %>%
   dplyr::arrange(contactName) %>%
   tidyr::replace_na(list(BuySell = 0)) %>%
   tidyr::replace_na(list(Quantity = 0)) %>%
-  tidyr::replace_na(list(Open = "")) %>%
+  tidyr::replace_na(list(DateTime = "")) %>%
   dplyr::mutate(cdn=ifelse(Quantity*BuySell<0,"X","O")) -> sheet_OpPosSmry_pos
 print(sheet_OpPosSmry_pos,n=nrow(sheet_OpPosSmry_pos),width = Inf)
 #prepare for next positions
 sheet_OpPosSmry_pos %>%
-  dplyr:::rename(pos1=BuySell) %>%
+  dplyr::rename(pos1=BuySell) %>%
   dplyr::mutate(TotalPos=Quantity+pos1) %>%
-  dplyr::select("contactName","Open","Quantity","pos1","TotalPos","cdn") -> sheet_OpPosSmry_pos
+  dplyr::select("contactName","DateTime","Quantity","pos1","TotalPos","cdn") -> sheet_OpPosSmry_pos
 print(sheet_OpPosSmry_pos,n=nrow(sheet_OpPosSmry_pos),width = Inf)
+#new sheet
+sheet_OpPosSmry_pos %>%
+  dplyr::mutate(Quantity=TotalPos) %>%
+  dplyr::select("contactName","DateTime","Quantity") -> sheet_OpPosSmry_pos
+print(sheet_OpPosSmry_pos,n=nrow(sheet_OpPosSmry_pos),width = Inf)
+sum(sheet_OpPosSmry_pos$Quantity)
+sum(abs(sheet_OpPosSmry_pos$Quantity))
+sheet_OpPos<-sheet_OpPosSmry_pos
+
+
+
 
