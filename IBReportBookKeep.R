@@ -1,12 +1,11 @@
-library(ggplot2)
 library(dplyr)
-library(digest)
-library(hash)
 library(readr)
 library(tidyr)
 library(stringr)
 rm(list=ls())
-source('./ESourceRCode.R',encoding = 'UTF-8')
+
+#Data File Path
+DataFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\MarketData\\data\\"
 
 ##
 # whole sheet
@@ -50,6 +49,27 @@ tmp %>% tidyr::replace_na(list(DataDiscriminator = "MISC")) %>%
 print(trades_UDLY,n=nrow(trades_UDLY),width = Inf)
 
 ##
+# Option Holding
+sheet_whole %>% 
+  dplyr::filter(stringr::str_detect(Trades,"Open")&stringr::str_detect(Trades,"Positions")&stringr::str_detect(AssetCategory,"Equity")&stringr::str_detect(AssetCategory,"Index")) %>%
+  dplyr::filter(DataDiscriminator!="Summary") %>%
+  dplyr::mutate(Trades=NULL,Header=NULL,DataDiscriminator=NULL,AssetCategory=NULL,Currency=NULL,Exchange=NULL,Quantity=as.integer(Exchange),Code=NULL) %>%
+  dplyr::rename(CostPrice='T.Price',CostBasis=Proceeds,ClosePrice=`Comm/Fee`,Value=Basis,`UnrealizedP/L`=`RealizedP/L`) -> sheet_OpPos
+sum(abs(sheet_OpPos$Quantity))
+print(sheet_OpPos,n=nrow(sheet_OpPos),width = Inf)
+
+##
+# USDJPY
+readFname=paste(DataFiles_Path_G,"USDJPY.csv",sep='')
+sheet_USDJPY_colnames=c("Date","USDJPY")
+sheet_USDJPY=read_csv(readFname,col_names = sheet_USDJPY_colnames,
+                      col_types = cols(
+                        Date = col_character(),
+                        USDJPY = col_double()
+                      ))
+print(sheet_USDJPY,n=nrow(sheet_USDJPY),width = Inf)
+
+##
 # Option Trades
 sheet_whole %>% 
   dplyr::filter(Trades=="Trades"&stringr::str_detect(AssetCategory,"Equity")&stringr::str_detect(AssetCategory,"Index")) %>% 
@@ -72,30 +92,8 @@ print(trades_EqIdxOption,n=nrow(trades_EqIdxOption),width = Inf)
 trades_EqIdxOption %>% dplyr::filter((stringr::str_detect(Symbol,"Total")==T&stringr::str_detect(Symbol,"JPY")==T)!=T) -> trades_EqIdxOption
 print(trades_EqIdxOption,n=nrow(trades_EqIdxOption),width = Inf)
 
-##
-# Option Holding
-sheet_whole %>% 
-  dplyr::filter(stringr::str_detect(Trades,"Open")&stringr::str_detect(Trades,"Positions")&stringr::str_detect(AssetCategory,"Equity")&stringr::str_detect(AssetCategory,"Index")) %>%
-  dplyr::filter(DataDiscriminator!="Summary") %>%
-  dplyr::mutate(Trades=NULL,Header=NULL,DataDiscriminator=NULL,AssetCategory=NULL,Currency=NULL,Exchange=NULL,Quantity=as.integer(Exchange),Code=NULL) %>%
-  dplyr::rename(CostPrice='T.Price',CostBasis=Proceeds,ClosePrice=`Comm/Fee`,Value=Basis,`UnrealizedP/L`=`RealizedP/L`) -> sheet_OpPos
-sum(abs(sheet_OpPos$Quantity))
-print(sheet_OpPos,n=nrow(sheet_OpPos),width = Inf)
+# Option Trades Analysis
 
-
-##
-# USDJPY
-readFname=paste(DataFiles_Path_G,"USDJPY17.csv",sep='')
-sheet_colnames=c("Date","USDJPY")
-sheet_USDJPY=read_csv(readFname,col_names = sheet_colnames,
-                      col_types = cols(
-                        Date = col_character(),
-                        USDJPY = col_character()
-                      ))
-print(sheet_USDJPY,n=nrow(sheet_USDJPY),width = Inf)
-
-##
-# make new columns
 trades_EqIdxOption %>%
   dplyr::left_join(sheet_OpPos %>% select(Symbol,DateTime,Value)) %>%
   dplyr::mutate(NextMonth=ifelse(is.na(Value),NA,
@@ -141,6 +139,19 @@ trades_EqIdxOption %>%
 
 trades_EqIdxOption %>%
   dplyr::left_join(sheet_USDJPY) -> trades_EqIdxOption
+print(trades_EqIdxOption,n=nrow(trades_EqIdxOption),width = Inf)
+
+trades_EqIdxOption %>%
+  dplyr::mutate(NewShortJPY=ifelse(!is.na(NewShortUSD),NewShortUSD*USDJPY,NA)) %>%
+  dplyr::mutate(NewSLongJPY=ifelse(!is.na(NewLongUSD),NewLongUSD*USDJPY,NA)) %>%
+  dplyr::mutate(ProfitJPY=ifelse(!is.na(ProfitUSD),ProfitUSD*USDJPY,NA)) %>%
+  dplyr::mutate(LossJPY=ifelse(!is.na(LossUSD),LossUSD*USDJPY,NA)) %>%
+  dplyr::mutate(ShtBasisJPY=ifelse(!is.na(ShtBasisUSD),ShtBasisUSD*USDJPY,NA)) %>%
+  dplyr::mutate(LngBasisJPY=ifelse(!is.na(LngBasisUSD),LngBasisUSD*USDJPY,NA)) %>%
+  dplyr::mutate(EOTShtPosJPY=ifelse(!is.na(EOTShtPosUSD),EOTShtPosUSD*USDJPY,NA)) %>%
+  dplyr::mutate(EOTLngPosJPY=ifelse(!is.na(EOTLngPosUSD),EOTLngPosUSD*USDJPY,NA)) %>%
+  dplyr::mutate(CommJPY=ifelse(!is.na(CommUSD),CommUSD*USDJPY,NA)) -> trades_EqIdxOption
+print(trades_EqIdxOption,n=nrow(trades_EqIdxOption),width = Inf)
 
 ##
 #  position checking
@@ -173,9 +184,9 @@ sum(sheet_OpPosSmry$Quantity)
 sum(abs(sheet_OpPosSmry$Quantity))
 
 #iterate this
-
-#S3-C12
 positions=NULL
+
+#S3-C21
 SymbolTicket = c( 'SPX','SPX' ); ExpiryTicket = c( '20180119','20180119' ); StrikeTicket = c( 2500,2560 ) ; RightTicket = c( 'P','P' ); BuySell = c( 'SELL','BUY' )
 positions %>% 
   dplyr::bind_rows(tibble(SymbolTicket=SymbolTicket, ExpiryTicket=ExpiryTicket, StrikeTicket=StrikeTicket,RightTicket=RightTicket,BuySell=ifelse(BuySell=="BUY",1,-1))) %>%
