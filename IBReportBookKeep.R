@@ -143,7 +143,7 @@ print(trades_EqIdxOption,n=nrow(trades_EqIdxOption),width = Inf)
 
 trades_EqIdxOption %>%
   dplyr::mutate(NewShortJPY=ifelse(!is.na(NewShortUSD),NewShortUSD*USDJPY,NA)) %>%
-  dplyr::mutate(NewSLongJPY=ifelse(!is.na(NewLongUSD),NewLongUSD*USDJPY,NA)) %>%
+  dplyr::mutate(NewLongJPY=ifelse(!is.na(NewLongUSD),NewLongUSD*USDJPY,NA)) %>%
   dplyr::mutate(ProfitJPY=ifelse(!is.na(ProfitUSD),ProfitUSD*USDJPY,NA)) %>%
   dplyr::mutate(LossJPY=ifelse(!is.na(LossUSD),LossUSD*USDJPY,NA)) %>%
   dplyr::mutate(ShtBasisJPY=ifelse(!is.na(ShtBasisUSD),ShtBasisUSD*USDJPY,NA)) %>%
@@ -152,6 +152,88 @@ trades_EqIdxOption %>%
   dplyr::mutate(EOTLngPosJPY=ifelse(!is.na(EOTLngPosUSD),EOTLngPosUSD*USDJPY,NA)) %>%
   dplyr::mutate(CommJPY=ifelse(!is.na(CommUSD),CommUSD*USDJPY,NA)) -> trades_EqIdxOption
 print(trades_EqIdxOption,n=nrow(trades_EqIdxOption),width = Inf)
+
+#Total 
+trades_EqIdxOption %>%
+  dplyr::summarise(NewShortUSD=sum(NewShortUSD,na.rm = T),
+                   ShtBasisUSD=sum(ShtBasisUSD,na.rm = T),
+                   EOTShtPosUSD=sum(EOTShtPosUSD,na.rm = T),
+                   CommUSD=sum(CommUSD,na.rm = T),
+                   NewShortJPY=sum(NewShortJPY,na.rm = T),
+                   ShtBasisJPY=sum(ShtBasisJPY,na.rm = T),
+                   EOTShtPosJPY=sum(EOTShtPosJPY,na.rm = T),
+                   CommJPY=sum(CommJPY,na.rm = T)
+                   ) -> tmp
+trades_EqIdxOption %>%
+  dplyr::bind_rows(tmp) -> trades_EqIdxOption
+trades_EqIdxOption[nrow(trades_EqIdxOption),"Symbol"]="ShortTotal"
+
+trades_EqIdxOption %>%
+  dplyr::summarise(NewLongUSD=sum(-NewLongUSD,na.rm = T),
+                   LngBasisUSD=sum(-LngBasisUSD,na.rm = T),
+                   EOTLngPosUSD=sum(-EOTLngPosUSD,na.rm = T),
+                   NewLongJPY=sum(-NewLongJPY,na.rm = T),
+                   LngBasisJPY=sum(-LngBasisJPY,na.rm = T),
+                   EOTLngPosJPY=sum(-EOTLngPosJPY,na.rm = T)
+                   ) -> tmp
+trades_EqIdxOption %>%
+  dplyr::bind_rows(tmp) -> trades_EqIdxOption
+trades_EqIdxOption[nrow(trades_EqIdxOption),"Symbol"]="LongTotal"
+
+
+##### BS
+##USD
+BOTShtPosUSD=36758.00
+BOTLngPosUSD=33053.00
+
+NewShortPosUSD=max(trades_EqIdxOption$NewShortUSD,na.rm=T)
+ShtPosBasisUSD=max(trades_EqIdxOption$ShtBasisUSD,na.rm=T)
+EOTShtPosUSD=max(trades_EqIdxOption$EOTShtPosUSD,na.rm=T)
+NewShortPosUSD
+ShtPosBasisUSD
+
+NewLongPosUSD=max(trades_EqIdxOption$NewLongUSD,na.rm=T)
+LngPosBasisUSD=max(trades_EqIdxOption$LngBasisUSD,na.rm=T)
+EOTLngPosUSD=max(trades_EqIdxOption$EOTLngPosUSD,na.rm=T)
+NewLongPosUSD
+LngPosBasisUSD
+
+CommUSD=max(trades_EqIdxOption$CommUSD,na.rm=T)
+CommUSD
+
+BOTShtPosUSD+NewShortPosUSD-ShtPosBasisUSD
+EOTShtPosUSD
+
+BOTLngPosUSD+NewLongPosUSD-LngPosBasisUSD
+EOTLngPosUSD
+
+##JPY 
+BOTShtPosJPY=4068845
+BOTLngPosJPY=3659470
+
+NewShortPosJPY=max(trades_EqIdxOption$NewShortJPY,na.rm=T)
+ShtPosBasisJPY=max(trades_EqIdxOption$ShtBasisJPY,na.rm=T)
+EOTShtPosJPY=max(trades_EqIdxOption$EOTShtPosJPY,na.rm=T)
+NewShortPosJPY
+ShtPosBasisJPY
+
+NewLongPosJPY=max(trades_EqIdxOption$NewLongJPY,na.rm=T)
+LngPosBasisJPY=max(trades_EqIdxOption$LngBasisJPY,na.rm=T)
+EOTLngPosJPY=max(trades_EqIdxOption$EOTLngPosJPY,na.rm=T)
+NewLongPosJPY
+LngPosBasisJPY
+
+CommJPY=max(trades_EqIdxOption$CommJPY,na.rm=T)
+CommJPY
+
+BOTShtPosJPY+NewShortPosJPY-ShtPosBasisJPY
+EOTShtPosJPY
+
+BOTLngPosJPY+NewLongPosJPY-LngPosBasisJPY
+EOTLngPosJPY
+
+#FYI remove last row
+trades_EqIdxOption=trades_EqIdxOption[-nrow(trades_EqIdxOption),]
 
 ##
 #  position checking
