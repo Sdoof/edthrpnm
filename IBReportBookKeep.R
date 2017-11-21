@@ -69,6 +69,7 @@ sheet_USDJPY=read_csv(readFname,col_names = sheet_USDJPY_colnames,
                       ))
 print(sheet_USDJPY,n=nrow(sheet_USDJPY),width = Inf)
 
+
 ##
 # Option Trades
 sheet_whole %>% 
@@ -180,6 +181,25 @@ trades_EqIdxOption %>%
   dplyr::bind_rows(tmp) -> trades_EqIdxOption
 trades_EqIdxOption[nrow(trades_EqIdxOption),"Symbol"]="LongTotal"
 
+##
+# Heder 
+sheet_whole %>% 
+  dplyr::filter((Trades=="Statement"&
+                   (DataDiscriminator=="BrokerName"|DataDiscriminator=="Title")|DataDiscriminator=="Period")) %>%
+  dplyr::bind_rows(tibble(AssetCategory="Interactive Brokers LLC, Two Pickwick Plaza, Greenwich, CT 06830"))-> tmp
+  
+
+sheet_whole %>% 
+  dplyr::filter((stringr::str_detect(Trades,"Account")&stringr::str_detect(Trades,"Information"))&
+                (DataDiscriminator=="Name")) %>%
+  dplyr::mutate(Currency=AssetCategory) %>%
+  dplyr::mutate(AssetCategory=DataDiscriminator) -> tmp2
+
+tmp %>% 
+  dplyr::bind_rows(tmp2) %>%
+  dplyr::mutate(Symbol=AssetCategory,DateTime=Currency) %>%
+  dplyr::select(Symbol,DateTime) %>%
+  dplyr::bind_rows(tibble(Symbol="Trades",DateTime=NA)) -> sheet_header
 
 ##### BS
 ##USD
@@ -233,7 +253,7 @@ BOTLngPosJPY+NewLongPosJPY-LngPosBasisJPY
 EOTLngPosJPY
 
 #FYI remove last row
-trades_EqIdxOption=trades_EqIdxOption[-nrow(trades_EqIdxOption),]
+#trades_EqIdxOption=trades_EqIdxOption[-nrow(trades_EqIdxOption),]
 
 ##
 #  position checking
