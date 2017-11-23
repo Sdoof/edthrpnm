@@ -164,7 +164,7 @@ trades_EqIdxOption %>%
                    ShtBasisJPY=sum(ShtBasisJPY,na.rm = T),
                    EOTShtPosJPY=sum(EOTShtPosJPY,na.rm = T),
                    CommJPY=sum(CommJPY,na.rm = T)
-                   ) -> tmp
+  ) -> tmp
 trades_EqIdxOption %>%
   dplyr::bind_rows(tmp) -> trades_EqIdxOption
 trades_EqIdxOption[nrow(trades_EqIdxOption),"Symbol"]="ShortTotal"
@@ -176,10 +176,21 @@ trades_EqIdxOption %>%
                    NewLongJPY=sum(-NewLongJPY,na.rm = T),
                    LngBasisJPY=sum(-LngBasisJPY,na.rm = T),
                    EOTLngPosJPY=sum(-EOTLngPosJPY,na.rm = T)
-                   ) -> tmp
+  ) -> tmp
 trades_EqIdxOption %>%
   dplyr::bind_rows(tmp) -> trades_EqIdxOption
 trades_EqIdxOption[nrow(trades_EqIdxOption),"Symbol"]="LongTotal"
+
+trades_EqIdxOption %>%
+  dplyr::summarise(ProfitUSD=sum(ProfitUSD,na.rm = T),
+                   LossUSD=sum(LossUSD,na.rm = T),
+                   ProfitJPY=sum(ProfitJPY,na.rm = T),
+                   LossJPY=sum(LossJPY,na.rm = T)) -> tmp
+trades_EqIdxOption %>%
+  dplyr::bind_rows(tmp) -> trades_EqIdxOption
+trades_EqIdxOption[nrow(trades_EqIdxOption),"Symbol"]="Profit/Loss"
+
+
 
 ##
 # Heder 
@@ -187,11 +198,11 @@ sheet_whole %>%
   dplyr::filter((Trades=="Statement"&
                    (DataDiscriminator=="BrokerName"|DataDiscriminator=="Title")|DataDiscriminator=="Period")) %>%
   dplyr::bind_rows(tibble(AssetCategory="Interactive Brokers LLC, Two Pickwick Plaza, Greenwich, CT 06830"))-> tmp
-  
+
 
 sheet_whole %>% 
   dplyr::filter((stringr::str_detect(Trades,"Account")&stringr::str_detect(Trades,"Information"))&
-                (DataDiscriminator=="Name")) %>%
+                  (DataDiscriminator=="Name")) %>%
   dplyr::mutate(Currency=AssetCategory) %>%
   dplyr::mutate(AssetCategory=DataDiscriminator) -> tmp2
 
@@ -201,7 +212,7 @@ tmp %>%
   dplyr::select(Symbol,DateTime) %>%
   dplyr::bind_rows(tibble(Symbol="Trades",DateTime=NA)) -> sheet_header
 
-##### BS
+##### Double Entry BookKeep
 ##USD
 BOTShtPosUSD=36758.00
 BOTLngPosUSD=33053.00
@@ -220,6 +231,11 @@ LngPosBasisUSD
 
 CommUSD=max(trades_EqIdxOption$CommUSD,na.rm=T)
 CommUSD
+
+ProfitUSD=max(trades_EqIdxOption$ProfitUSD,na.rm=T)
+LossUSD=min(trades_EqIdxOption$LossUSD,na.rm=T)
+ProfitUSD
+LossUSD
 
 BOTShtPosUSD+NewShortPosUSD-ShtPosBasisUSD
 EOTShtPosUSD
@@ -246,11 +262,64 @@ LngPosBasisJPY
 CommJPY=max(trades_EqIdxOption$CommJPY,na.rm=T)
 CommJPY
 
+ProfitJPY=max(trades_EqIdxOption$ProfitJPY,na.rm=T)
+LossJPY=min(trades_EqIdxOption$LossJPY,na.rm=T)
+ProfitJPY
+LossJPY
+
 BOTShtPosJPY+NewShortPosJPY-ShtPosBasisJPY
 EOTShtPosJPY
 
 BOTLngPosJPY+NewLongPosJPY-LngPosBasisJPY
 EOTLngPosJPY
+
+sheet_DeBk_USD=tribble( ~Desc, ~DescCredit,~ValCredit, ~DescDebt,~ValDebt,
+                        "ドル建", "",NA,"",NA,
+                        "期初資産","期初",NA,"期初売建オプション",BOTShtPosUSD,
+                        "", "期初買建オプション",BOTLngPosUSD,"",NA,
+                        "仕訳", "現金",NewShortPosUSD,"売建オプション",NewShortPosUSD,
+                        "", "売建オプション",ShtPosBasisUSD,"現金",ShtPosBasisUSD,
+                        "","",NA,"",NA,
+                        "", "買建オプション",NewLongPosUSD,"現金",NewLongPosUSD,
+                        "", "現金",LngPosBasisUSD,"買建オプション",LngPosBasisUSD,
+                        "","",NA,"",NA,
+                        "", "証券売買手数料",CommUSD,"現金",CommUSD,
+                        "","",NA,"",NA,
+                        "", "現金",ProfitUSD,"オプション差益",ProfitUSD,
+                        "","オプション差損",-LossUSD,"現金",-LossUSD,
+                        "期末資産","期末売建オプション",NA,"",EOTShtPosUSD,
+                        "", "期末買建オプション",EOTLngPosUSD,"",NA
+)
+
+sheet_DeBk_JPY=tribble( ~Desc, ~DescCredit,~ValCredit, ~DescDebt,~ValDebt,
+                        "円建", "",NA,"",NA,
+                        "期初資産","期初",NA,"期初売建オプション",BOTShtPosJPY,
+                        "", "期初買建オプション",BOTLngPosJPY,"",NA,
+                        "仕訳", "現金",NewShortPosJPY,"売建オプション",NewShortPosJPY,
+                        "", "売建オプション",ShtPosBasisJPY,"現金",ShtPosBasisJPY,
+                        "","",NA,"",NA,
+                        "", "買建オプション",NewLongPosJPY,"現金",NewLongPosJPY,
+                        "", "現金",LngPosBasisJPY,"買建オプション",LngPosBasisJPY,
+                        "","",NA,"",NA,
+                        "", "証券売買手数料",CommJPY,"現金",CommJPY,
+                        "","",NA,"",NA,
+                        "", "現金",ProfitJPY,"オプション差益",ProfitJPY,
+                        "","オプション差損",-LossJPY,"現金",-LossJPY,
+                        "期末資産","期末売建オプション",NA,"",EOTShtPosJPY,
+                        "", "期末買建オプション",EOTLngPosJPY,"",NA
+)
+
+##
+# Write to a file
+
+writeFname=paste(DataFiles_Path_G,"OptionTradesBookeep.csv",sep='')
+#Header
+write_excel_csv(sheet_header, path=writeFname, na = "", append = F, col_names = F)
+#Trade
+write_excel_csv(trades_EqIdxOption, path=writeFname, na = "", append = T, col_names = T)
+#BookKeep
+write_excel_csv(sheet_DeBk_USD, path=writeFname, na = "", append = T, col_names = F)
+write_excel_csv(sheet_DeBk_JPY, path=writeFname, na = "", append = T, col_names = F)
 
 #FYI remove last row
 #trades_EqIdxOption=trades_EqIdxOption[-nrow(trades_EqIdxOption),]
