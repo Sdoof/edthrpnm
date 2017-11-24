@@ -197,7 +197,8 @@ trades_EqIdxOption[nrow(trades_EqIdxOption),"Symbol"]="Profit/Loss"
 sheet_whole %>% 
   dplyr::filter((Trades=="Statement"&
                    (DataDiscriminator=="BrokerName"|DataDiscriminator=="Title")|DataDiscriminator=="Period")) %>%
-  dplyr::bind_rows(tibble(AssetCategory="Interactive Brokers LLC, Two Pickwick Plaza, Greenwich, CT 06830"))-> tmp
+  dplyr::bind_rows(tibble(AssetCategory="Interactive Brokers LLC, Two Pickwick Plaza, Greenwich, CT 06830")) %>%
+  dplyr::bind_rows(tibble(AssetCategory="Account Information")) -> tmp
 
 
 sheet_whole %>% 
@@ -275,7 +276,7 @@ EOTLngPosJPY
 
 sheet_DeBk_USD=tribble( ~Desc, ~DescCredit,~ValCredit, ~DescDebt,~ValDebt,
                         "ドル建", "",NA,"",NA,
-                        "期初資産","期初",NA,"期初売建オプション",BOTShtPosUSD,
+                        "期初資産","",NA,"期初売建オプション",BOTShtPosUSD,
                         "", "期初買建オプション",BOTLngPosUSD,"",NA,
                         "仕訳", "現金",NewShortPosUSD,"売建オプション",NewShortPosUSD,
                         "", "売建オプション",ShtPosBasisUSD,"現金",ShtPosBasisUSD,
@@ -293,7 +294,7 @@ sheet_DeBk_USD=tribble( ~Desc, ~DescCredit,~ValCredit, ~DescDebt,~ValDebt,
 
 sheet_DeBk_JPY=tribble( ~Desc, ~DescCredit,~ValCredit, ~DescDebt,~ValDebt,
                         "円建", "",NA,"",NA,
-                        "期初資産","期初",NA,"期初売建オプション",BOTShtPosJPY,
+                        "期初資産","",NA,"期初売建オプション",BOTShtPosJPY,
                         "", "期初買建オプション",BOTLngPosJPY,"",NA,
                         "仕訳", "現金",NewShortPosJPY,"売建オプション",NewShortPosJPY,
                         "", "売建オプション",ShtPosBasisJPY,"現金",ShtPosBasisJPY,
