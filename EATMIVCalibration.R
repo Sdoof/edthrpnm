@@ -246,15 +246,23 @@ CallIVDown_ATMIV.f.IVIDX.f_1D$model
 #Saved File Name
 
 fnames=list.files(path = DataFiles_Path_G
-           ,pattern=paste(Underying_Symbol_G,paste("_Positions_Pre*",sep=""),sep="")
-           #,pattern="SPX_Positions_Pre*"
-           )
-#load skew
-load.Skew(pattern="_Put")
-SkewModel_Put
+                  ,pattern=paste(Underying_Symbol_G,paste("_Positions_Pre*",sep=""),sep=""))
 
-load.Skew(pattern="_Call")
-SkewModel_Call
+atmiv_calib<-read.table(paste(DataFiles_Path_G,Underying_Symbol_G,"-ATMIV-VCONE-ANAL_Hist_Calib.csv",sep=""),
+                        header=T,skipNul=T,stringsAsFactors=F,sep=",")
+atmiv_calib %>%
+  dplyr::arrange(desc(TYPE),as.Date(ExpDate,format="%Y/%m/%d"),as.Date(Date,format="%Y/%m/%d")) %>%
+  dplyr::distinct() -> atmiv_calib
+
+head(atmiv_calib,n=100)
+tail(atmiv_calib,n=100)
+
+#load skew
+#load.Skew(pattern="_Put")
+#SkewModel_Put
+
+#load.Skew(pattern="_Call")
+#SkewModel_Call
 
 for(i in 1:length(fnames)){
   opch<-read.table(paste(DataFiles_Path_G,fnames[i],sep=""),
