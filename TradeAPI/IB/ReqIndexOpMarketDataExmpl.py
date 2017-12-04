@@ -15,13 +15,13 @@ contractDetail = None
 contractRestoreList = None
 orderIdMktReqContractDict = None
 priceInfoDict = {}
-# SPX 2580, RUT 1500
-SPX_Strike_Max = 2880
-SPX_Strike_Min = 1980
+# SPX 2650, RUT 1550
+SPX_Strike_Max = 2950
+SPX_Strike_Min = 2050
 SPX_Strike_Max_P = SPX_Strike_Max - 150
 SPX_Strike_Min_C = SPX_Strike_Min + 300
-RUT_Strike_Max = 1700
-RUT_Strike_Min = 1100
+RUT_Strike_Max = 1750
+RUT_Strike_Min = 1150
 RUT_Strike_Max_P = RUT_Strike_Max - 150
 RUT_Strike_Min_C = RUT_Strike_Min + 150
 
@@ -284,6 +284,8 @@ opContractList = [
     makeOptContract(sym='SPX', exp='20180316', strike='', right='C'),
     makeOptContract(sym='SPX', exp='20180329', strike='', right='P'),
     makeOptContract(sym='SPX', exp='20180329', strike='', right='C'),
+    makeOptContract(sym='SPX', exp='20180430', strike='', right='P'),
+    makeOptContract(sym='SPX', exp='20180430', strike='', right='C'),
     makeOptContract(sym='RUT', exp='20171229', strike='', right='P'),
     makeOptContract(sym='RUT', exp='20171229', strike='', right='C'),
     makeOptContract(sym='RUT', exp='20180118', strike='', right='P'),
