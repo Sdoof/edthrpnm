@@ -2,6 +2,7 @@ library(RQuantLib)
 library(ggplot2)
 library(plyr)
 library(dplyr)
+library(hash)
 rm(list=ls())
 source('./ESourceRCode.R',encoding = 'UTF-8')
 

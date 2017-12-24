@@ -6,7 +6,7 @@ rm(list=ls())
 source('./ESourceRCode.R',encoding = 'UTF-8')
 
 #MAX ExpToDate for Skew Regression
-SkewRegressionTimeToExpDateMin<-1.5
+SkewRegressionTimeToExpDateMin<-1.2
 SkewRegressionTimeToExpDateMax<-4.0
 
 #We get regression only past this day. Currently reflected on Skew only.
