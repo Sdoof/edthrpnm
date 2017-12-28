@@ -42,13 +42,31 @@ sheet_whole %>%
 sheet_whole %>%
   dplyr::filter(stringr::str_detect(Trades,"Financial")&stringr::str_detect(Trades,"Instrument")) -> InstrumentsData
 
+## InstrumentData
 InstrumentsData %>%
   dplyr::rename(AssetCategory=Currency,Symbol=Date,Code=Amount,SecurityID=Code) %>%
   dplyr::filter(!is.na(Code)) -> InstrumentsData
 InstrumentsData %>%
   dplyr::filter(AssetCategory=="Stocks") -> InstrumentsData
 
-#Exchange Rate
+## Withholding Tax
+
+sheet_whole %>%
+  dplyr::filter(Trades=="Withholding Tax"&Currency=="USD") -> WithholdingTaxUSD
+
+sheet_whole %>%
+  dplyr::filter(Trades=="Withholding Tax"&Currency=="HKD") -> WithholdingTaxHKD
+
+sheet_whole %>%
+  dplyr::filter(Trades=="Withholding Tax"&Currency=="SGD") -> WithholdingTaxSGD
+
+sheet_whole %>%
+  dplyr::filter(Trades=="Withholding Tax"&Currency=="AUD") -> WithholdingTaxAUD
+
+sheet_whole %>%
+  dplyr::filter(Trades=="Withholding Tax"&Currency=="GBP") -> WithholdingTaxGBP
+
+## Exchange Rate
 # USDJPY
 readFname=paste(DataFiles_Path_G,"USDJPY.csv",sep='')
 USDJPY_colnames=c("Date","Close")
@@ -60,11 +78,11 @@ USDJPY=read_csv(readFname,col_names = USDJPY_colnames,
 print(USDJPY,n=nrow(USDJPY),width = Inf)
 #HKDJPY
 readFname=paste(DataFiles_Path_G,"HKDJPY.csv",sep='')
-HKDJPY_colnames=c("Date","Start","High","Low","Close")
+HKDJPY_colnames=c("Date","Open","High","Low","Close")
 HKDJPY=read_csv(readFname,col_names = HKDJPY_colnames,
                 col_types = cols(
                   Date = col_character(),
-                  Start = col_double(),
+                  Open = col_double(),
                   High = col_double(),
                   Low = col_double(),
                   Close = col_double()
@@ -73,11 +91,11 @@ print(HKDJPY,n=nrow(HKDJPY),width = Inf)
 
 #SGDJPY
 readFname=paste(DataFiles_Path_G,"SGDJPY.csv",sep='')
-SGDJPY_colnames=c("Date","Start","High","Low","Close")
+SGDJPY_colnames=c("Date","Open","High","Low","Close")
 SGDJPY=read_csv(readFname,col_names = SGDJPY_colnames,
                 col_types = cols(
                   Date = col_character(),
-                  Start = col_double(),
+                  Open = col_double(),
                   High = col_double(),
                   Low = col_double(),
                   Close = col_double()
@@ -86,11 +104,11 @@ print(SGDJPY,n=nrow(SGDJPY),width = Inf)
 
 #AUDJPY
 readFname=paste(DataFiles_Path_G,"AUDJPY.csv",sep='')
-AUDJPY_colnames=c("Date","Start","High","Low","Close")
+AUDJPY_colnames=c("Date","Open","High","Low","Close")
 AUDJPY=read_csv(readFname,col_names = AUDJPY_colnames,
                 col_types = cols(
                   Date = col_character(),
-                  Start = col_double(),
+                  Open = col_double(),
                   High = col_double(),
                   Low = col_double(),
                   Close = col_double()
@@ -99,11 +117,11 @@ print(AUDJPY,n=nrow(AUDJPY),width = Inf)
 
 #GBPJPY
 readFname=paste(DataFiles_Path_G,"GBPJPY.csv",sep='')
-GBPJPY_colnames=c("Date","Start","High","Low","Close")
+GBPJPY_colnames=c("Date","Open","High","Low","Close")
 GBPJPY=read_csv(readFname,col_names = GBPJPY_colnames,
                 col_types = cols(
                   Date = col_character(),
-                  Start = col_double(),
+                  Open = col_double(),
                   High = col_double(),
                   Low = col_double(),
                   Close = col_double()
@@ -129,7 +147,7 @@ DividendsHKD %>%
 HKDJPY %>%
   dplyr::mutate(DateForMatch=format(as.Date(Date,format="%Y/%m/%d"),"%Y/%m/%d")) -> HKDJPY
 DividendsHKD %>%
-  left_join(HKDJPY %>% mutate(Date=NULL,Start=NULL,High=NULL,Low=NULL)) %>%
+  left_join(HKDJPY %>% mutate(Date=NULL,Open=NULL,High=NULL,Low=NULL)) %>%
   dplyr::rename(HKDJPY=Close) -> DividendsHKD
 
 # DividendsSGD
@@ -138,7 +156,7 @@ DividendsSGD %>%
 SGDJPY %>%
   dplyr::mutate(DateForMatch=format(as.Date(Date,format="%Y/%m/%d"),"%Y/%m/%d")) -> SGDJPY
 DividendsSGD %>%
-  left_join(SGDJPY %>% mutate(Date=NULL,Start=NULL,High=NULL,Low=NULL)) %>%
+  left_join(SGDJPY %>% mutate(Date=NULL,Open=NULL,High=NULL,Low=NULL)) %>%
   dplyr::rename(SGDJPY=Close) -> DividendsSGD
 
 # DividendsAUD
@@ -147,7 +165,7 @@ DividendsAUD %>%
 AUDJPY %>%
   dplyr::mutate(DateForMatch=format(as.Date(Date,format="%Y/%m/%d"),"%Y/%m/%d")) -> AUDJPY
 DividendsAUD %>%
-  left_join(AUDJPY %>% mutate(Date=NULL,Start=NULL,High=NULL,Low=NULL)) %>%
+  left_join(AUDJPY %>% mutate(Date=NULL,Open=NULL,High=NULL,Low=NULL)) %>%
   dplyr::rename(AUDJPY=Close) -> DividendsAUD
 
 # DividendsGBP
@@ -156,8 +174,43 @@ DividendsGBP %>%
 GBPJPY %>%
   dplyr::mutate(DateForMatch=format(as.Date(Date,format="%Y/%m/%d"),"%Y/%m/%d")) -> GBPJPY
 DividendsGBP %>%
-  left_join(GBPJPY %>% mutate(Date=NULL,Start=NULL,High=NULL,Low=NULL)) %>%
+  left_join(GBPJPY %>% mutate(Date=NULL,Open=NULL,High=NULL,Low=NULL)) %>%
   dplyr::rename(GBPJPY=Close) -> DividendsGBP
+
+# WithholdingTaxUSD
+WithholdingTaxUSD %>%
+  dplyr::mutate(DateForMatch=format(as.Date(Date,format="%Y-%m-%d"),"%Y/%m/%d")) -> WithholdingTaxUSD
+WithholdingTaxUSD %>%
+  left_join(USDJPY %>% mutate(Date=NULL)) %>%
+  dplyr::rename(USDJPY=Close) -> WithholdingTaxUSD
+
+# WithholdingTaxHKD
+WithholdingTaxHKD %>%
+  dplyr::mutate(DateForMatch=format(as.Date(Date,format="%Y-%m-%d"),"%Y/%m/%d")) -> WithholdingTaxHKD
+WithholdingTaxHKD %>%
+  left_join(HKDJPY %>% mutate(Date=NULL, Open=NULL, High=NULL, Low=NULL)) %>%
+  dplyr::rename(HKDJPY=Close) -> WithholdingTaxHKD
+
+# WithholdingTaxSGD
+WithholdingTaxSGD %>%
+  dplyr::mutate(DateForMatch=format(as.Date(Date,format="%Y-%m-%d"),"%Y/%m/%d")) -> WithholdingTaxSGD
+WithholdingTaxSGD %>%
+  left_join(SGDJPY %>% mutate(Date=NULL, Open=NULL, High=NULL, Low=NULL)) %>%
+  dplyr::rename(SGDJPY=Close) -> WithholdingTaxSGD
+
+# WithholdingTaxAUD
+WithholdingTaxAUD %>%
+  dplyr::mutate(DateForMatch=format(as.Date(Date,format="%Y-%m-%d"),"%Y/%m/%d")) -> WithholdingTaxAUD
+WithholdingTaxAUD %>%
+  left_join(AUDJPY %>% mutate(Date=NULL, Open=NULL, High=NULL, Low=NULL)) %>%
+  dplyr::rename(AUDJPY=Close) -> WithholdingTaxAUD
+
+# WithholdingTaxAUD
+WithholdingTaxGBP %>%
+  dplyr::mutate(DateForMatch=format(as.Date(Date,format="%Y-%m-%d"),"%Y/%m/%d")) -> WithholdingTaxGBP
+WithholdingTaxGBP %>%
+  left_join(GBPJPY %>% mutate(Date=NULL, Open=NULL, High=NULL, Low=NULL)) %>%
+  dplyr::rename(GBPJPY=Close) -> WithholdingTaxGBP
 
 ##
 # Adjust Currency Rate to TTB
@@ -176,6 +229,21 @@ DividendsAUD %>%
 
 DividendsGBP %>%
   dplyr::mutate(GBPJPY=GBPJPY*0.96) -> DividendsGBP
+
+WithholdingTaxUSD %>%
+  dplyr::mutate(USDJPY=USDJPY-0.5) -> WithholdingTaxUSD
+
+WithholdingTaxHKD %>%
+  dplyr::mutate(HKDJPY=HKDJPY*0.96) -> WithholdingTaxHKD
+
+WithholdingTaxSGD %>%
+  dplyr::mutate(SGDJPY=SGDJPY*0.96) -> WithholdingTaxSGD
+
+WithholdingTaxAUD %>%
+  dplyr::mutate(AUDJPY=AUDJPY*0.96) -> WithholdingTaxAUD
+
+WithholdingTaxGBP %>%
+  dplyr::mutate(GBPJPY=GBPJPY*0.96) -> WithholdingTaxGBP
 
 ##
 # join Instrument
@@ -211,18 +279,74 @@ DividendsGBP %>%
 DividendsGBP %>% dplyr::mutate(Description=NULL) %>% 
   dplyr::left_join(InstrumentsData %>% dplyr::select(Symbol,Description)) -> DividendsGBP
 
+##  WithholdingTax
+WithholdingTaxUSD %>%
+  dplyr::mutate(Symbol=str_match(Description, "^[:alnum:]*")) -> WithholdingTaxUSD
+WithholdingTaxUSD %>% dplyr::mutate(Description=NULL) %>% 
+  dplyr::left_join(InstrumentsData %>% dplyr::select(Symbol,Description)) -> WithholdingTaxUSD
+
+WithholdingTaxHKD %>%
+  dplyr::mutate(Symbol=str_match(Description, "^[:alnum:]*")) -> WithholdingTaxHKD
+WithholdingTaxHKD %>% dplyr::mutate(Description=NULL) %>% 
+  dplyr::left_join(InstrumentsData %>% dplyr::select(Symbol,Description)) -> WithholdingTaxHKD
+
+WithholdingTaxSGD %>%
+  dplyr::mutate(Symbol=str_match(Description, "^[:alnum:]*")) -> WithholdingTaxSGD
+WithholdingTaxSGD %>% dplyr::mutate(Description=NULL) %>% 
+  dplyr::left_join(InstrumentsData %>% dplyr::select(Symbol,Description)) -> WithholdingTaxSGD
+
+WithholdingTaxAUD %>%
+  dplyr::mutate(Symbol=str_match(Description, "^[:alnum:]*")) -> WithholdingTaxAUD
+WithholdingTaxAUD %>% dplyr::mutate(Description=NULL) %>% 
+  dplyr::left_join(InstrumentsData %>% dplyr::select(Symbol,Description)) -> WithholdingTaxAUD
+
+WithholdingTaxGBP %>%
+  dplyr::mutate(Symbol=str_match(Description, "^[:alnum:]*")) -> WithholdingTaxGBP
+WithholdingTaxGBP %>% dplyr::mutate(Description=NULL) %>% 
+  dplyr::left_join(InstrumentsData %>% dplyr::select(Symbol,Description)) -> WithholdingTaxGBP
+
+## joing WithholdingTax
+DividendsUSD %>%
+  dplyr::left_join(WithholdingTaxUSD %>% 
+                     dplyr::rename(WithHoldingTax=Amount) %>% 
+                     dplyr::select(Symbol,DateForMatch,WithHoldingTax)) %>%
+  dplyr::mutate(WithHoldingTax=abs(WithHoldingTax))-> DividendsUSD
+
+DividendsHKD %>%
+  dplyr::left_join(WithholdingTaxHKD %>% 
+                     dplyr::rename(WithHoldingTax=Amount) %>% 
+                     dplyr::select(Symbol,DateForMatch,WithHoldingTax)) %>%
+  dplyr::mutate(WithHoldingTax=abs(WithHoldingTax)) -> DividendsHKD
+
+DividendsSGD %>%
+  dplyr::left_join(WithholdingTaxSGD %>% 
+                     dplyr::rename(WithHoldingTax=Amount) %>% 
+                     dplyr::select(Symbol,DateForMatch,WithHoldingTax)) %>%
+  dplyr::mutate(WithHoldingTax=abs(WithHoldingTax)) -> DividendsSGD
+
+DividendsAUD %>%
+  dplyr::left_join(WithholdingTaxAUD %>% 
+                     dplyr::rename(WithHoldingTax=Amount) %>% 
+                     dplyr::select(Symbol,DateForMatch,WithHoldingTax)) %>%
+  dplyr::mutate(WithHoldingTax=abs(WithHoldingTax)) -> DividendsAUD
+
+DividendsGBP %>%
+  dplyr::left_join(WithholdingTaxGBP %>% 
+                     dplyr::rename(WithHoldingTax=Amount) %>% 
+                     dplyr::select(Symbol,DateForMatch,WithHoldingTax)) %>%
+  dplyr::mutate(WithHoldingTax=abs(WithHoldingTax)) -> DividendsGBP
+
 ##
 # Write to a file
 writeFname=paste(DataFiles_Path_G,"DividendsBookeep.csv",sep='')
-write_excel_csv(DividendsUSD %>% select(DateForMatch,Description,Amount,USDJPY,Symbol),
-                path=writeFname, na = "", append = F, col_names = T)
-write_excel_csv(DividendsHKD %>% select(DateForMatch,Description,Amount,HKDJPY,Symbol),
-                path=writeFname, na = "", append = T, col_names = T)
-write_excel_csv(DividendsSGD %>% select(DateForMatch,Description,Amount,SGDJPY,Symbol),
-                path=writeFname, na = "", append = T, col_names = T)
-write_excel_csv(DividendsAUD %>% select(DateForMatch,Description,Amount,AUDJPY,Symbol),
-                path=writeFname, na = "", append = T, col_names = T)
-#write_excel_csv(DividendsGBP %>% select(DateForMatch,Description,Amount,GBPJPY,Symbol),
-#                path=writeFname, na = "", append = T, col_names = T)
-write_excel_csv(DividendsGBP %>% select(DateForMatch,Description,Amount,Symbol),
-                path=writeFname, na = "", append = T, col_names = T)
+write_excel_csv(DividendsUSD %>% select(DateForMatch,Description,Amount,WithHoldingTax,USDJPY,Symbol),
+                path=writeFname, na = "0.00", append = F, col_names = T)
+write_excel_csv(DividendsHKD %>% select(DateForMatch,Description,Amount,WithHoldingTax,HKDJPY,Symbol),
+                path=writeFname, na = "0.00", append = T, col_names = T)
+write_excel_csv(DividendsSGD %>% select(DateForMatch,Description,Amount,WithHoldingTax,SGDJPY,Symbol),
+                path=writeFname, na = "0.00", append = T, col_names = T)
+write_excel_csv(DividendsAUD %>% select(DateForMatch,Description,Amount,WithHoldingTax,AUDJPY,Symbol),
+                path=writeFname, na = "0.00", append = T, col_names = T)
+write_excel_csv(DividendsGBP %>% select(DateForMatch,Description,Amount,WithHoldingTax,GBPJPY,Symbol),
+                path=writeFname, na = "0.00", append = T, col_names = T)
+
