@@ -9,7 +9,7 @@ DataFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\MarketData\\data\\"
 
 ##
 # whole sheet
-readFname=paste(DataFiles_Path_G,"U1026713_Div-20170102_20171226.csv",sep='')
+readFname=paste(DataFiles_Path_G,"UXXXXXXX_Div.csv",sep='')
 sheet_colnames=c("Trades","Header","Currency","Date","Description","Amount","Code")
 sheet_whole=read_csv(readFname,col_names = sheet_colnames,
                      col_types = cols(
