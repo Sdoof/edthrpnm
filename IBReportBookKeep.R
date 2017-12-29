@@ -213,10 +213,24 @@ tmp %>%
   dplyr::select(Symbol,DateTime) %>%
   dplyr::bind_rows(tibble(Symbol="Trades",DateTime=NA)) -> sheet_header
 
+##
+# Commision/Fee info database
+
+#read database
+#CommFeeDb
+
+#this month's comm ifor
+trades_EqIdxOption %>%
+  dplyr::filter(!is.na(NextMonth)) %>%
+  dplyr::select(Symbol,DateTime,Quantity,T.Price,Proceeds,`Comm/Fee`,Basis,Date) -> CommFeeDbThis
+
+#merge database
+#join CommFeeDb, CommFeeDbThis -> CommFeeDbThis
+
 ##### Double Entry BookKeep
 ##USD
-BOTShtPosUSD=36758.00
-BOTLngPosUSD=33053.00
+BOTShtPosUSD=47870.00
+BOTLngPosUSD=45525.00
 
 NewShortPosUSD=max(trades_EqIdxOption$NewShortUSD,na.rm=T)
 ShtPosBasisUSD=max(trades_EqIdxOption$ShtBasisUSD,na.rm=T)
@@ -245,8 +259,8 @@ BOTLngPosUSD+NewLongPosUSD-LngPosBasisUSD
 EOTLngPosUSD
 
 ##JPY 
-BOTShtPosJPY=4068845
-BOTLngPosJPY=3659470
+BOTShtPosJPY=5404508
+BOTLngPosJPY=5140017
 
 NewShortPosJPY=max(trades_EqIdxOption$NewShortJPY,na.rm=T)
 ShtPosBasisJPY=max(trades_EqIdxOption$ShtBasisJPY,na.rm=T)
@@ -322,7 +336,15 @@ write_excel_csv(trades_EqIdxOption, path=writeFname, na = "", append = T, col_na
 write_excel_csv(sheet_DeBk_USD, path=writeFname, na = "", append = T, col_names = F)
 write_excel_csv(sheet_DeBk_JPY, path=writeFname, na = "", append = T, col_names = F)
 
-#FYI remove last row
+#UDLY Trades
+writeFname=paste(DataFiles_Path_G,"StocksTradesBookeep.csv",sep='')
+write_excel_csv(trades_UDLY, path=writeFname, na = "", append = T, col_names = T)
+
+#Commision/Fee database
+#writeFname=paste(DataFiles_Path_G,"CommFeeBookeepDB.csv",sep='')
+#write_excel_csv(CommFeeDb, path=writeFname, na = "", append = , col_names = F)
+
+### FYI remove last row
 #trades_EqIdxOption=trades_EqIdxOption[-nrow(trades_EqIdxOption),]
 
 ##
