@@ -7,8 +7,8 @@ rm(list=ls())
 #Data File Path
 DataFiles_Path_G="C:\\Users\\kuby\\edthrpnm\\MarketData\\data\\"
 
-##
-# whole sheet
+###
+##  whole sheet
 readFname=paste(DataFiles_Path_G,"UXXXXXX.csv",sep='')
 sheet_colnames=c("Trades","Header","DataDiscriminator","AssetCategory","Currency","Symbol","DateTime","Exchange","Quantity","T.Price","Proceeds","Comm/Fee","Basis","RealizedP/L","Code")
 sheet_whole=read_csv(readFname,col_names = sheet_colnames,
@@ -32,8 +32,8 @@ sheet_whole=read_csv(readFname,col_names = sheet_colnames,
 print(sheet_whole,n=nrow(sheet_whole),width = Inf)
 
 
-##
-# UDLY Trades
+###
+##  UDLY Trades
 sheet_whole %>% dplyr::filter(Trades=="Trades"&AssetCategory=="Stocks") %>%
   dplyr::mutate(SymbolMod=ifelse(DataDiscriminator=="ClosedLot",DataDiscriminator,Symbol)) %>%
   dplyr::mutate(Symbol=SymbolMod) %>%
@@ -48,8 +48,8 @@ tmp %>% tidyr::replace_na(list(DataDiscriminator = "MISC")) %>%
   tidyr::replace_na(list(DateTime="",Exchange="",`Comm/Fee`=0,Code="")) -> trades_UDLY
 print(trades_UDLY,n=nrow(trades_UDLY),width = Inf)
 
-##
-# Option Holding
+###
+## Option Holding
 sheet_whole %>% 
   dplyr::filter(stringr::str_detect(Trades,"Open")&stringr::str_detect(Trades,"Positions")&stringr::str_detect(AssetCategory,"Equity")&stringr::str_detect(AssetCategory,"Index")) %>%
   dplyr::filter(DataDiscriminator!="Summary") %>%
@@ -58,8 +58,8 @@ sheet_whole %>%
 sum(abs(sheet_OpPos$Quantity))
 print(sheet_OpPos,n=nrow(sheet_OpPos),width = Inf)
 
-##
-# USDJPY
+###
+##  USDJPY
 readFname=paste(DataFiles_Path_G,"USDJPY.csv",sep='')
 sheet_USDJPY_colnames=c("Date","USDJPY")
 sheet_USDJPY=read_csv(readFname,col_names = sheet_USDJPY_colnames,
@@ -70,8 +70,8 @@ sheet_USDJPY=read_csv(readFname,col_names = sheet_USDJPY_colnames,
 print(sheet_USDJPY,n=nrow(sheet_USDJPY),width = Inf)
 
 
-##
-# Option Trades
+###
+##  Option Trades
 sheet_whole %>% 
   dplyr::filter(Trades=="Trades"&stringr::str_detect(AssetCategory,"Equity")&stringr::str_detect(AssetCategory,"Index")) %>% 
   dplyr::select(-Exchange) %>%
@@ -190,7 +190,8 @@ trades_EqIdxOption %>%
   dplyr::bind_rows(tmp) -> trades_EqIdxOption
 trades_EqIdxOption[nrow(trades_EqIdxOption),"Symbol"]="Profit/Loss"
 
-
+## FYI remove last row
+#trades_EqIdxOption=trades_EqIdxOption[-nrow(trades_EqIdxOption),]
 
 ##
 # Heder 
@@ -213,24 +214,60 @@ tmp %>%
   dplyr::select(Symbol,DateTime) %>%
   dplyr::bind_rows(tibble(Symbol="Trades",DateTime=NA)) -> sheet_header
 
-##
-# Commision/Fee info database
+###
+##  Commision/Fee info database
 
 #read database
-#CommFeeDb
+readFname=paste(DataFiles_Path_G,"CommFeeBookeepDB.csv",sep='')
+CommFeeBookeepDB_colnames=c("Symbol","DateTime","Quantity","Comm/Fee","Date")
+CommFeeBookeepDB=read_csv(readFname,col_names = CommFeeBookeepDB_colnames,
+                          col_types = cols(
+                            Symbol = col_character(),
+                            DateTime = col_character(),
+                            Quantity = col_integer(),
+                            `Comm/Fee` = col_double(),
+                            Date = col_character()
+                          ))
+print(CommFeeBookeepDB,n=nrow(sheet_whole),width = Inf)
+
+CommFeeBookeepDB  %>%
+  plyr::select(Symbol,Quantity,`Comm/Fee`,DateTime,Date) %>%
+  plyr::rename(Quantity2=Quantity,`Comm/Fee2`=`Comm/Fee`,DateTime2=DateTime) -> CommFeeBookeepDB
+print(CommFeeBookeepDB,n=nrow(sheet_whole),width = Inf)
+
+#this month's Commision/Fee
+trades_EqIdxOption %>%
+  dplyr::select(Symbol,DateTime,Quantity,T.Price,`Comm/Fee`,Basis,Date,Code) %>%
+  dplyr::mutate(Symbol=ifelse(Symbol=="ClosedLot",NA,Symbol),
+                DateTime=ifelse(Symbol=="ClosedLot",NA,DateTime)) %>%
+  tidyr::fill(Symbol,DateTime) -> tmp
+
+tmp %>%
+  dplyr::left_join(CommFeeBookeepDB) %>%
+  tidyr::drop_na() -> closedLegs
+
+CommFeeBookeepDB %>%
+  dplyr::anti_join(closedLegs) %>%
+  dplyr::rename(Quantity=Quantity2,`Comm/Fee`=`Comm/Fee2`,DateTime=DateTime2) %>%
+  dplyr::select(Symbol,DateTime,Quantity,`Comm/Fee`, Date) -> remainingLegs
 
 #this month's comm ifor
 trades_EqIdxOption %>%
   dplyr::filter(!is.na(NextMonth)) %>%
-  dplyr::select(Symbol,DateTime,Quantity,T.Price,Proceeds,`Comm/Fee`,Basis,Date) -> CommFeeDbThis
+  dplyr::select(Symbol,DateTime,Quantity,`Comm/Fee`,Date,Code) -> CommFeeDbThis
+CommFeeDbThis
+CommFeeDbThis %>% dplyr::mutate(Code=NULL) -> CommFeeDbThis
+CommFeeDbThis
 
 #merge database
-#join CommFeeDb, CommFeeDbThis -> CommFeeDbThis
+remainingLegs %>%
+  dplyr::bind_rows(CommFeeDbThis) -> CommFeeDb
+
 
 ##### Double Entry BookKeep
 ##USD
-BOTShtPosUSD=47870.00
-BOTLngPosUSD=45525.00
+BOTShtPosUSD=59481.00
+BOTLngPosUSD=53381.00
 
 NewShortPosUSD=max(trades_EqIdxOption$NewShortUSD,na.rm=T)
 ShtPosBasisUSD=max(trades_EqIdxOption$ShtBasisUSD,na.rm=T)
@@ -259,8 +296,8 @@ BOTLngPosUSD+NewLongPosUSD-LngPosBasisUSD
 EOTLngPosUSD
 
 ##JPY 
-BOTShtPosJPY=5404508
-BOTLngPosJPY=5140017
+BOTShtPosJPY=6691342
+BOTLngPosJPY=6005059
 
 NewShortPosJPY=max(trades_EqIdxOption$NewShortJPY,na.rm=T)
 ShtPosBasisJPY=max(trades_EqIdxOption$ShtBasisJPY,na.rm=T)
@@ -327,25 +364,22 @@ sheet_DeBk_JPY=tribble( ~Desc, ~DescCredit,~ValCredit, ~DescDebt,~ValDebt,
 ##
 # Write to a file
 
-writeFname=paste(DataFiles_Path_G,"OptionTradesBookeep.csv",sep='')
+writeFname=paste(DataFiles_Path_G,"OptionTradesBookeep-",format(Sys.time(),"%Y%b%d"),".csv",sep='')
 #Header
-write_excel_csv(sheet_header, path=writeFname, na = "", append = F, col_names = F)
+write_csv(sheet_header, path=writeFname, na = "", append = F, col_names = F)
 #Trade
-write_excel_csv(trades_EqIdxOption, path=writeFname, na = "", append = T, col_names = T)
+write_csv(trades_EqIdxOption, path=writeFname, na = "", append = T, col_names = T)
 #BookKeep
-write_excel_csv(sheet_DeBk_USD, path=writeFname, na = "", append = T, col_names = F)
-write_excel_csv(sheet_DeBk_JPY, path=writeFname, na = "", append = T, col_names = F)
+write_csv(sheet_DeBk_USD, path=writeFname, na = "", append = T, col_names = F)
+write_csv(sheet_DeBk_JPY, path=writeFname, na = "", append = T, col_names = F)
 
 #UDLY Trades
-writeFname=paste(DataFiles_Path_G,"StocksTradesBookeep.csv",sep='')
-write_excel_csv(trades_UDLY, path=writeFname, na = "", append = T, col_names = T)
+writeFname=paste(DataFiles_Path_G,"StocksTradesBookeep-",format(Sys.time(),"%Y%b%d"),".csv",sep='')
+write_csv(trades_UDLY, path=writeFname, na = "", append = F, col_names = T)
 
 #Commision/Fee database
-#writeFname=paste(DataFiles_Path_G,"CommFeeBookeepDB.csv",sep='')
-#write_excel_csv(CommFeeDb, path=writeFname, na = "", append = , col_names = F)
-
-### FYI remove last row
-#trades_EqIdxOption=trades_EqIdxOption[-nrow(trades_EqIdxOption),]
+writeFname=paste(DataFiles_Path_G,"CommFeeBookeepDB-",format(Sys.time(),"%Y%b%d"),".csv",sep='')
+write_csv(CommFeeDb, path=writeFname, na = "", append = F , col_names = F)
 
 ##
 #  position checking
