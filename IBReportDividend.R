@@ -339,14 +339,14 @@ DividendsGBP %>%
 ##
 # Write to a file
 writeFname=paste(DataFiles_Path_G,"DividendsBookeep.csv",sep='')
-write_excel_csv(DividendsUSD %>% select(DateForMatch,Description,Amount,WithHoldingTax,USDJPY,Symbol),
-                path=writeFname, na = "0.00", append = F, col_names = T)
-write_excel_csv(DividendsHKD %>% select(DateForMatch,Description,Amount,WithHoldingTax,HKDJPY,Symbol),
-                path=writeFname, na = "0.00", append = T, col_names = T)
-write_excel_csv(DividendsSGD %>% select(DateForMatch,Description,Amount,WithHoldingTax,SGDJPY,Symbol),
-                path=writeFname, na = "0.00", append = T, col_names = T)
-write_excel_csv(DividendsAUD %>% select(DateForMatch,Description,Amount,WithHoldingTax,AUDJPY,Symbol),
-                path=writeFname, na = "0.00", append = T, col_names = T)
-write_excel_csv(DividendsGBP %>% select(DateForMatch,Description,Amount,WithHoldingTax,GBPJPY,Symbol),
-                path=writeFname, na = "0.00", append = T, col_names = T)
+write_csv(DividendsUSD %>% select(DateForMatch,Description,Amount,WithHoldingTax,USDJPY,Symbol),
+          path=writeFname, na = "0.00", append = F, col_names = T)
+write_csv(DividendsHKD %>% select(DateForMatch,Description,Amount,WithHoldingTax,HKDJPY,Symbol),
+          path=writeFname, na = "0.00", append = T, col_names = T)
+write_csv(DividendsSGD %>% select(DateForMatch,Description,Amount,WithHoldingTax,SGDJPY,Symbol),
+          path=writeFname, na = "0.00", append = T, col_names = T)
+write_csv(DividendsAUD %>% select(DateForMatch,Description,Amount,WithHoldingTax,AUDJPY,Symbol),
+          path=writeFname, na = "0.00", append = T, col_names = T)
+write_csv(DividendsGBP %>% select(DateForMatch,Description,Amount,WithHoldingTax,GBPJPY,Symbol),
+          path=writeFname, na = "0.00", append = T, col_names = T)
 
