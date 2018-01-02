@@ -15,9 +15,9 @@ contractDetail = None
 contractRestoreList = None
 orderIdMktReqContractDict = None
 priceInfoDict = {}
-# SPX 2670, RUT 1550
-SPX_Strike_Max = 2970
-SPX_Strike_Min = 2070
+# SPX 2690, RUT 1550
+SPX_Strike_Max = 2990
+SPX_Strike_Min = 2090
 SPX_Strike_Max_P = SPX_Strike_Max - 150
 SPX_Strike_Min_C = SPX_Strike_Min + 300
 RUT_Strike_Max = 1750
@@ -270,10 +270,6 @@ def writeToFile(sectype, symbol):
 # -- main  ---------------------------------------------------------------------
 # 18 elements finish in 4min15s
 opContractList = [
-    makeOptContract(sym='SPX', exp='20180119', strike='', right='P'),
-    makeOptContract(sym='SPX', exp='20180119', strike='', right='C'),
-    makeOptContract(sym='SPX', exp='20180131', strike='', right='P'),
-    makeOptContract(sym='SPX', exp='20180131', strike='', right='C'),
     makeOptContract(sym='SPX', exp='20180216', strike='', right='P'),
     makeOptContract(sym='SPX', exp='20180216', strike='', right='C'),
     makeOptContract(sym='SPX', exp='20180228', strike='', right='P'),
@@ -286,10 +282,10 @@ opContractList = [
     makeOptContract(sym='SPX', exp='20180420', strike='', right='C'),
     makeOptContract(sym='SPX', exp='20180430', strike='', right='P'),
     makeOptContract(sym='SPX', exp='20180430', strike='', right='C'),
-    makeOptContract(sym='RUT', exp='20180118', strike='', right='P'),
-    makeOptContract(sym='RUT', exp='20180118', strike='', right='C'),
-    makeOptContract(sym='RUT', exp='20180131', strike='', right='P'),
-    makeOptContract(sym='RUT', exp='20180131', strike='', right='C'),
+    makeOptContract(sym='SPX', exp='20180531', strike='', right='C'),
+    makeOptContract(sym='SPX', exp='20180531', strike='', right='P'),
+    makeOptContract(sym='SPX', exp='20180615', strike='', right='C'),
+    makeOptContract(sym='SPX', exp='20180615', strike='', right='P'),
     makeOptContract(sym='RUT', exp='20180215', strike='', right='P'),
     makeOptContract(sym='RUT', exp='20180215', strike='', right='C'),
     makeOptContract(sym='RUT', exp='20180228', strike='', right='P'),
@@ -297,7 +293,11 @@ opContractList = [
     makeOptContract(sym='RUT', exp='20180315', strike='', right='P'),
     makeOptContract(sym='RUT', exp='20180315', strike='', right='C'),
     makeOptContract(sym='RUT', exp='20180329', strike='', right='P'),
-    makeOptContract(sym='RUT', exp='20180329', strike='', right='C')
+    makeOptContract(sym='RUT', exp='20180329', strike='', right='C'),
+    makeOptContract(sym='RUT', exp='20180430', strike='', right='P'),
+    makeOptContract(sym='RUT', exp='20180430', strike='', right='C'),
+    makeOptContract(sym='RUT', exp='20180531', strike='', right='P'),
+    makeOptContract(sym='RUT', exp='20180531', strike='', right='C')
 ]
 
 idxContractList = [
