@@ -12,8 +12,12 @@ source('./ESourceRCode.R',encoding = 'UTF-8')
 #####
 ## create UDLY_OPChain_PreForSkew, UDLY_OPChain_PreForPos
 
+hostids <- c("Manger","Edthorp")
 dates=as.Date(Sys.time())-c(0:100)
 fnames=paste(DataFiles_Path_G,Underying_Symbol_G,"OPT",dates,".csv",sep="")
+for( hostid in hostids){
+  fnames=c(fnames,paste(DataFiles_Path_G,Underying_Symbol_G,"OPT","-",hostid,"-",dates,".csv",sep=""))
+}
 fnames=fnames[file.exists(fnames)]
 fnames
 
