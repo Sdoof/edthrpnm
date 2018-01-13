@@ -6,36 +6,31 @@ library(tidyr)
 library(stringr)
 rm(list=ls())
 source('./ESourceRCode.R',encoding = 'UTF-8')
-source('./EDataProvisionUtil.R',encoding = 'UTF-8')
+source('./EDataProvisionLib.R',encoding = 'UTF-8')
 
 expdateElements=c("2018/03/16","2018/03/29","2018/04/20","2018/04/30","2018/05/16","2018/05/31","2018/06/15")
 expdateNotExist=c("2018/05/16")
 
 bdays_per_month<-252/12
-get.busdays.between(start=opch$Date,end=opch$ExpDate)/bdays_per_month
 
 tmp=as_tibble(expand.grid(expdateElements,expdateElements,KEEP.OUT.ATTRS=T,stringsAsFactors = F))
 tmp %>% dplyr::rename(Front=Var1,Back=Var2) -> tmp
 
-#get.busdays.between(start=opch$Date,end=opch$ExpDate)/bdays_per_month
-bdays_per_month<-252/12
 tmp %>% 
   dplyr::filter(as.Date(Front,format="%Y/%m/%d")<as.Date(Back,format="%Y/%m/%d")) %>%
   dplyr::mutate(TImeToExpDate=get.busdays.between(start=as.Date(Front,format="%Y/%m/%d"),end=as.Date(Back,format="%Y/%m/%d"))/bdays_per_month) %>%
-  dplyr::filter(TImeToExpDate>0.9&TImeToExpDate<2.5) -> tmp
+  dplyr::filter(TImeToExpDate>0.9&TImeToExpDate<3.5) -> tmp
 
 tmp %>%
   dplyr::anti_join(tibble(Front=expdateNotExist)) %>%
   dplyr::anti_join(tibble(Back=expdateNotExist)) %>%
-  dplyr::arrange(TImeToExpDate) -> Expdates
+  dplyr::arrange(TImeToExpDate) -> tmp
 
-Expdates %>% 
+tmp %>% 
   dplyr::mutate(Front=str_extract(Front,"\\d*/\\d*/\\d*")) %>%
   dplyr::mutate(Front=str_replace_all(Front,"/0","/")) %>%
   dplyr::mutate(Back=str_extract(Back,"\\d*/\\d*/\\d*")) %>%
   dplyr::mutate(Back=str_replace_all(Back,"/0","/")) -> Expdates
-
-
 
 for( itrnum in 1:length(Expdates$Front)){
   TARGET_EXPDATE_FRONT=Expdates$Front[itrnum]
@@ -130,3 +125,6 @@ for( itrnum in 1:length(Expdates$Front)){
   #Write to a file (RUT_Positions_Pre)
   write.table(opchain,paste(DataFiles_Path_G,Underying_Symbol_G,TargetFileName,sep=""),quote=T,row.names=F,sep=",")
 }
+
+file.copy(from=paste(DataFiles_Path_G,Underying_Symbol_G,TargetFileName,sep=""),
+          to=paste(DataFiles_Path_G,Underying_Symbol_G,"_Positions_Pre.csv",sep=""))

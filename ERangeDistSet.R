@@ -30,7 +30,6 @@ LocalVectorShiftLeft <- function(x_vec,fill_v=1){
   return(x_vec)
 }
 
-
 LocalNearValueToExactValue <- function(x_vec,exct_value){
   if(length(which(x_vec==exct_value))==0){
     tmp_new_idx=which.min(abs(x_vec-exct_value))
