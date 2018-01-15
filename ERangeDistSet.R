@@ -9,6 +9,7 @@ library(KernSmooth)
 library(PearsonDS)
 rm(list=ls())
 source('./ESourceRCode.R',encoding = 'UTF-8')
+source('./ESelectiveParamsSet.R',encoding = 'UTF-8')
 
 ##Global Variables
 xDayInt=18
@@ -29,7 +30,6 @@ LocalVectorShiftLeft <- function(x_vec,fill_v=1){
   return(x_vec)
 }
 
-
 LocalNearValueToExactValue <- function(x_vec,exct_value){
   if(length(which(x_vec==exct_value))==0){
     tmp_new_idx=which.min(abs(x_vec-exct_value))
@@ -37,10 +37,6 @@ LocalNearValueToExactValue <- function(x_vec,exct_value){
   } 
   return(x_vec)
 }
-
-
-#Data Num.
-DATA_NUM=252*18 # about x years equivalent 
 
 #read data file
 histPrc<-read.table(paste(DataFiles_Path_G,Underying_Symbol_G,"_Hist.csv",sep=""),header=T,stringsAsFactors=F,sep=",")
@@ -54,28 +50,6 @@ Date=injoinPrcIV$Date
 
 fname=paste(DataFiles_Path_G,Underying_Symbol_G,"_Weight_Calc.txt",sep="")
 cat(file=fname,"####### creating ",fname,"\n\n",append=F)
-
-#selective parmeters For SPX
-IS_SELECTIVE_HISTIV_REGR=T
-IS_SELECTIVE_WEIGHT_ESTM=T
-a_low=0.9
-d_low=2
-a_high=1.1
-d_high=2
-#Smooth Spline df
-DF_P2IVREG_SSPL=5.5
-
-#selective parmeters For RUT
-if(Underying_Symbol_G=="RUT"){
-  IS_SELECTIVE_HISTIV_REGR=T
-  IS_SELECTIVE_WEIGHT_ESTM=T
-  a_low=0.75
-  d_low=3
-  a_high=1.3
-  d_high=3
-  #Smooth Spline df
-  DF_P2IVREG_SSPL=5.5
-}
 
 ## conditional sampling
 tmp=saveP2IVReg(histPrc,histIV,DATA_NUM,xDayInt)

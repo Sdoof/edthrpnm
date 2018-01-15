@@ -9,9 +9,7 @@ library(gsl)
 library(PearsonDS)
 rm(list=ls())
 source('./ESourceRCode.R',encoding = 'UTF-8')
-
-#Data Num.
-DATA_NUM=252*18 # about x years equivalent 
+source('./ESelectiveParamsSet.R',encoding = 'UTF-8')
 
 #read data file
 histPrc<-read.table(paste(DataFiles_Path_G,Underying_Symbol_G,"_Hist.csv",sep=""),header=T,stringsAsFactors=F,sep=",")
@@ -28,28 +26,6 @@ cat("Realized Vol(30d anlzd)",annuual.daily.volatility(histPrc[1:30])$anlzd*100,
 cat("Realized Vol(60d anlzd)",annuual.daily.volatility(histPrc[1:60])$anlzd*100,"IV",histIV[1])
 cat("Realized Vol(120d anlzd)",annuual.daily.volatility(histPrc[1:120])$anlzd*100,"IV",histIV[1])
 cat("Realized Vol(200d anlzd)",annuual.daily.volatility(histPrc[1:200])$anlzd*100,"IV",histIV[1])
-
-#selective parmeters For SPX
-IS_SELECTIVE_HISTIV_REGR=T
-IS_SELECTIVE_WEIGHT_ESTM=T
-a_low=0.9
-d_low=2
-a_high=1.1
-d_high=2
-#Smooth Spline df
-DF_P2IVREG_SSPL=5.5
-
-#selective parmeters For RUT
-if(Underying_Symbol_G=="RUT"){
-  IS_SELECTIVE_HISTIV_REGR=T
-  IS_SELECTIVE_WEIGHT_ESTM=T
-  a_low=0.75
-  d_low=3
-  a_high=1.3
-  d_high=3
-  #Smooth Spline df
-  DF_P2IVREG_SSPL=5.5
-}
 
 #####
 ## Expected HV predict
