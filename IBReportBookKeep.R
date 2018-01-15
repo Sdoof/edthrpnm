@@ -415,41 +415,49 @@ sum(abs(sheet_OpPosSmry$Quantity))
 positions=NULL
 
 #C1
-SymbolTicket = c( 'SPX','SPX' ); ExpiryTicket = c( '20180216','20180216' ); StrikeTicket = c( 2610,2675 ) ; RightTicket = c( 'P','P' ); BuySell = c( 'SELL','BUY' )
+SymbolTicket = c( 'SPX','SPX' ); ExpiryTicket = c( '20180316','20180316' ); StrikeTicket = c( 2675,2780 ) ; RightTicket = c( 'P','P' ); BuySell = c( 'SELL','BUY' )
 positions %>% 
   dplyr::bind_rows(tibble(SymbolTicket=SymbolTicket, ExpiryTicket=ExpiryTicket, StrikeTicket=StrikeTicket,RightTicket=RightTicket,BuySell=ifelse(BuySell=="BUY",1,-1))) %>%
-  dplyr::distinct() -> positions
+  dplyr::arrange(SymbolTicket,ExpiryTicket,StrikeTicket,RightTicket,BuySell) -> positions
 
-SymbolTicket = c( 'SPX','SPX' ); ExpiryTicket = c( '20180329','20180329' ); StrikeTicket = c( 2550,2660 ) ; RightTicket = c( 'P','P' ); BuySell = c( 'BUY','SELL' )
+SymbolTicket = c( 'SPX','SPX' ); ExpiryTicket = c( '20180420','20180420' ); StrikeTicket = c( 2625,2770 ) ; RightTicket = c( 'P','P' ); BuySell = c( 'BUY','SELL' )
 positions %>% 
   dplyr::bind_rows(tibble(SymbolTicket=SymbolTicket, ExpiryTicket=ExpiryTicket, StrikeTicket=StrikeTicket,RightTicket=RightTicket,BuySell=ifelse(BuySell=="BUY",1,-1))) %>%
-  dplyr::distinct() -> positions
+  dplyr::arrange(SymbolTicket,ExpiryTicket,StrikeTicket,RightTicket,BuySell) -> positions
 print(positions,n=nrow(positions),width = Inf)
 sum(abs(positions$BuySell))
 
 #C2
-SymbolTicket = c( 'SPX','SPX' ); ExpiryTicket = c( '20180228','20180228' ); StrikeTicket = c( 2610,2670 ) ; RightTicket = c( 'P','P' ); BuySell = c( 'SELL','BUY' )
+SymbolTicket = c( 'SPX','SPX' ); ExpiryTicket = c( '20180316','20180316' ); StrikeTicket = c( 2680,2770 ) ; RightTicket = c( 'P','P' ); BuySell = c( 'SELL','BUY' )
 positions %>%
   dplyr::bind_rows(tibble(SymbolTicket=SymbolTicket, ExpiryTicket=ExpiryTicket, StrikeTicket=StrikeTicket,RightTicket=RightTicket,BuySell=ifelse(BuySell=="BUY",1,-1))) %>%
-  dplyr::distinct() -> positions
+  dplyr::arrange(SymbolTicket,ExpiryTicket,StrikeTicket,RightTicket,BuySell) -> positions
 
-SymbolTicket = c( 'SPX','SPX' ); ExpiryTicket = c( '20180420','20180420' ); StrikeTicket = c( 2550,2650 ) ; RightTicket = c( 'P','P' ); BuySell = c( 'BUY','SELL' )
+SymbolTicket = c( 'SPX','SPX' ); ExpiryTicket = c( '20180430','20180430' ); StrikeTicket = c( 2620,2750 ) ; RightTicket = c( 'P','P' ); BuySell = c( 'BUY','SELL' )
 positions %>%
   dplyr::bind_rows(tibble(SymbolTicket=SymbolTicket, ExpiryTicket=ExpiryTicket, StrikeTicket=StrikeTicket,RightTicket=RightTicket,BuySell=ifelse(BuySell=="BUY",1,-1))) %>%
-  dplyr::distinct() -> positions
+  dplyr::arrange(SymbolTicket,ExpiryTicket,StrikeTicket,RightTicket,BuySell) -> positions
 print(positions,n=nrow(positions),width = Inf)
 sum(abs(positions$BuySell))
 
 #c3
-SymbolTicket = c( 'SPX','SPX' ); ExpiryTicket = c( '20180316','20180430' ); StrikeTicket = c( 2625,2570 ) ; RightTicket = c( 'P','P' ); BuySell = c( 'SELL','BUY' )
+SymbolTicket = c( 'SPX','SPX' ); ExpiryTicket = c( '20180316','20180316' ); StrikeTicket = c( 2725,2780 ) ; RightTicket = c( 'P','P' ); BuySell = c( 'SELL','BUY' )
 positions %>%
   dplyr::bind_rows(tibble(SymbolTicket=SymbolTicket, ExpiryTicket=ExpiryTicket, StrikeTicket=StrikeTicket,RightTicket=RightTicket,BuySell=ifelse(BuySell=="BUY",1,-1))) %>%
-  dplyr::distinct() -> positions
+  dplyr::arrange(SymbolTicket,ExpiryTicket,StrikeTicket,RightTicket,BuySell) -> positions
 
-SymbolTicket = c( 'SPX','SPX' ); ExpiryTicket = c( '20180316','20180430' ); StrikeTicket = c( 2710,2700 ) ; RightTicket = c( 'C','C' ); BuySell = c( 'BUY','SELL' )
+SymbolTicket = c( 'SPX','SPX' ); ExpiryTicket = c( '20180531','20180531' ); StrikeTicket = c( 2650,2750 ) ; RightTicket = c( 'P','P' ); BuySell = c( 'BUY','SELL' )
 positions %>%
   dplyr::bind_rows(tibble(SymbolTicket=SymbolTicket, ExpiryTicket=ExpiryTicket, StrikeTicket=StrikeTicket,RightTicket=RightTicket,BuySell=ifelse(BuySell=="BUY",1,-1))) %>%
-  dplyr::distinct() -> positions
+  dplyr::arrange(SymbolTicket,ExpiryTicket,StrikeTicket,RightTicket,BuySell) -> positions
+print(positions,n=nrow(positions),width = Inf)
+sum(abs(positions$BuySell))
+
+positions %>%
+  dplyr::group_by(SymbolTicket,ExpiryTicket,StrikeTicket,RightTicket)  %>% 
+  dplyr::summarise(BuySell=sum(BuySell)) %>% 
+  dplyr::ungroup() %>%
+  dplyr::arrange(SymbolTicket,ExpiryTicket,StrikeTicket,RightTicket,BuySell) -> positions
 print(positions,n=nrow(positions),width = Inf)
 sum(abs(positions$BuySell))
 
