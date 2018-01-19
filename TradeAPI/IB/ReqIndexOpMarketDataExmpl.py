@@ -5,6 +5,7 @@ from time import sleep
 
 from ib.ext.Contract import Contract
 from ib.opt import Connection
+import platform
 
 # -- globals  ------------------------------------------------------------------
 port_G = 7496
@@ -15,15 +16,35 @@ contractDetail = None
 contractRestoreList = None
 orderIdMktReqContractDict = None
 priceInfoDict = {}
-# SPX 2690, RUT 1550
-SPX_Strike_Max = 2990
-SPX_Strike_Min = 2090
-SPX_Strike_Max_P = SPX_Strike_Max - 150
-SPX_Strike_Min_C = SPX_Strike_Min + 300
-RUT_Strike_Max = 1750
-RUT_Strike_Min = 1150
-RUT_Strike_Max_P = RUT_Strike_Max - 150
-RUT_Strike_Min_C = RUT_Strike_Min + 150
+
+# SHIFT width of price range
+SPX_Strike_SHIFT = 0
+SPX_Strike_Max_P_LEFT_SHIFT = 150
+SPX_Strike_Min_C_RIGHT_SHIFT = 300
+
+RUT_Strike_SHIFT = 0
+RUT_Strike_Max_P_LEFT_SHIFT = 100
+RUT_Strike_Min_C_RIGHT_SHIFT = 150
+
+# SPX 2800, RUT 1580
+SPX_Strike_Max = 3100
+SPX_Strike_Min = 2200
+SPX_Strike_Max_P = SPX_Strike_Max - SPX_Strike_Max_P_LEFT_SHIFT
+SPX_Strike_Min_C = SPX_Strike_Min + SPX_Strike_Min_C_RIGHT_SHIFT
+RUT_Strike_Max = 1780
+RUT_Strike_Min = 1180
+RUT_Strike_Max_P = RUT_Strike_Max - RUT_Strike_Max_P_LEFT_SHIFT
+RUT_Strike_Min_C = RUT_Strike_Min + RUT_Strike_Min_C_RIGHT_SHIFT
+
+# recalculate Max, Min
+SPX_Strike_Max = SPX_Strike_Max + SPX_Strike_SHIFT
+SPX_Strike_Min = SPX_Strike_Min + SPX_Strike_SHIFT
+SPX_Strike_Max_P = SPX_Strike_Max_P + SPX_Strike_SHIFT
+SPX_Strike_Min_C = SPX_Strike_Min_C + SPX_Strike_SHIFT
+RUT_Strike_Max = RUT_Strike_Max + RUT_Strike_SHIFT
+RUT_Strike_Min = RUT_Strike_Min + RUT_Strike_SHIFT
+RUT_Strike_Max_P = RUT_Strike_Max_P + RUT_Strike_SHIFT
+RUT_Strike_Min_C = RUT_Strike_Min_C + RUT_Strike_SHIFT
 
 
 class ContractPrice:
@@ -224,7 +245,8 @@ def subscribeDataRequest(con):
 def writeToFile(sectype, symbol):
     global priceInfoDict
     if sectype == 'OPT':
-        fname = "C:/Users/kuby/edthrpnm/MarketData/" + symbol + sectype + datetime.now().strftime("%Y-%m-%d") + ".csv"
+        fname = "C:/Users/kuby/edthrpnm/MarketData/" + symbol + sectype + "-" + platform.node() + "-" + datetime.now().strftime(
+            "%Y-%m-%d") + ".csv"
     elif sectype == 'IND':
         fname = "C:/Users/kuby/edthrpnm/MarketData/" + symbol + sectype + ".csv"
     else:
@@ -270,8 +292,18 @@ def writeToFile(sectype, symbol):
 # -- main  ---------------------------------------------------------------------
 # 18 elements finish in 4min15s
 opContractList = [
-    makeOptContract(sym='SPX', exp='20180216', strike='', right='P'),
-    makeOptContract(sym='SPX', exp='20180216', strike='', right='C'),
+    makeOptContract(sym='RUT', exp='20180228', strike='', right='P'),
+    makeOptContract(sym='RUT', exp='20180228', strike='', right='C'),
+    makeOptContract(sym='RUT', exp='20180315', strike='', right='P'),
+    makeOptContract(sym='RUT', exp='20180315', strike='', right='C'),
+    makeOptContract(sym='RUT', exp='20180329', strike='', right='P'),
+    makeOptContract(sym='RUT', exp='20180329', strike='', right='C'),
+    makeOptContract(sym='RUT', exp='20180430', strike='', right='P'),
+    makeOptContract(sym='RUT', exp='20180430', strike='', right='C'),
+    makeOptContract(sym='RUT', exp='20180531', strike='', right='P'),
+    makeOptContract(sym='RUT', exp='20180531', strike='', right='C'),
+    makeOptContract(sym='RUT', exp='20180614', strike='', right='P'),
+    makeOptContract(sym='RUT', exp='20180614', strike='', right='C'),
     makeOptContract(sym='SPX', exp='20180228', strike='', right='P'),
     makeOptContract(sym='SPX', exp='20180228', strike='', right='C'),
     makeOptContract(sym='SPX', exp='20180316', strike='', right='P'),
@@ -282,22 +314,14 @@ opContractList = [
     makeOptContract(sym='SPX', exp='20180420', strike='', right='C'),
     makeOptContract(sym='SPX', exp='20180430', strike='', right='P'),
     makeOptContract(sym='SPX', exp='20180430', strike='', right='C'),
-    makeOptContract(sym='SPX', exp='20180531', strike='', right='C'),
     makeOptContract(sym='SPX', exp='20180531', strike='', right='P'),
-    makeOptContract(sym='SPX', exp='20180615', strike='', right='C'),
+    makeOptContract(sym='SPX', exp='20180531', strike='', right='C'),
     makeOptContract(sym='SPX', exp='20180615', strike='', right='P'),
-    makeOptContract(sym='RUT', exp='20180215', strike='', right='P'),
-    makeOptContract(sym='RUT', exp='20180215', strike='', right='C'),
-    makeOptContract(sym='RUT', exp='20180228', strike='', right='P'),
-    makeOptContract(sym='RUT', exp='20180228', strike='', right='C'),
-    makeOptContract(sym='RUT', exp='20180315', strike='', right='P'),
-    makeOptContract(sym='RUT', exp='20180315', strike='', right='C'),
-    makeOptContract(sym='RUT', exp='20180329', strike='', right='P'),
-    makeOptContract(sym='RUT', exp='20180329', strike='', right='C'),
-    makeOptContract(sym='RUT', exp='20180430', strike='', right='P'),
-    makeOptContract(sym='RUT', exp='20180430', strike='', right='C'),
-    makeOptContract(sym='RUT', exp='20180531', strike='', right='P'),
-    makeOptContract(sym='RUT', exp='20180531', strike='', right='C')
+    makeOptContract(sym='SPX', exp='20180615', strike='', right='C'),
+    makeOptContract(sym='SPX', exp='20180629', strike='', right='P'),
+    makeOptContract(sym='SPX', exp='20180629', strike='', right='C'),
+    makeOptContract(sym='SPX', exp='20180921', strike='', right='P'),
+    makeOptContract(sym='SPX', exp='20180921', strike='', right='C')
 ]
 
 idxContractList = [
