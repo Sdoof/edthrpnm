@@ -1,5 +1,60 @@
 ## functions used by DataProvision
 
+##
+#  Using SkewModel, adjust ATMIV to reflect the differnce between Strike and UDLY
+adjustATMIV <- function(atmiv){
+  displacement<-log(atmiv$Moneyness.Frac)/atmiv$ATMIV/sqrt(atmiv$TimeToExpDate)
+  smileCurve<-get.predicted.spline.skew(SkewModel,displacement)
+  ATMIV_adjst<-atmiv$ATMIV/smileCurve
+  return(ATMIV_adjst)
+}
+
+##
+#  atmiv not adjusted usig SkewModel
+makeNotAdjustedBySkewATMiv <- function(opch){
+  #standarize (unify) data expression
+  opch$Date=format(as.Date(opch$Date,format="%Y/%m/%d"),"%Y/%b/%d")
+  opch$ExpDate=format(as.Date(opch$ExpDate,format="%Y/%m/%d"),"%Y/%b/%d")
+  
+  # volatility and moneyness calculation complete
+  opch$Last<-opch$Bid<-opch$Ask<-opch$Ask<-opch$Volume<-opch$OI<-NULL
+  
+  #if >1.0 Strike is right(bigger) than UDLY, else(<1.0) left(smaller)
+  opch$Moneyness.Frac<-opch$Strike/opch$UDLY
+  # As fraction of UDLY. positive indicates OOM, negative ITM.
+  opch$HowfarOOM<-(1-opch$Moneyness.Frac)*opch$TYPE
+  #As fraction of Implied SD. >0 OOM, <0 ITM
+  #opch$Moneyness.SDFrac<-(opch$UDLY-opch$Strike)*opch$TYPE/(opch$UDLY*opch$IVIDX)
+  
+  #construct Time axis for regression. In this case expressed as Month.
+  get.busdays.between(start=opch$Date,end=opch$ExpDate)
+  bdays_per_month<-252/12
+  opch$TimeToExpDate<-get.busdays.between(start=opch$Date,end=opch$ExpDate)/bdays_per_month
+  rm(bdays_per_month)
+  
+  #sort
+  opch %>% dplyr::arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="%Y/%m/%d"),desc(TYPE),Strike) -> opch
+  
+  ##END Got complete opch
+  
+  #Get ATM Implied Volatilities for each option types.
+  ##START Create atmiv
+  opch %>% dplyr::group_by(Date,ExpDate,TYPE) %>% dplyr::filter(HowfarOOM>0) %>% 
+    #Get the OrigIV where HowfarOOM is minimum, ie. IV at ATM.
+    dplyr::summarise(num=n(),OOM=min(abs(HowfarOOM)),min.i=which.min(abs(HowfarOOM)),ATMIV=OrigIV[which.min(abs(HowfarOOM))],
+                     TimeToExpDate=TimeToExpDate[which.min(abs(HowfarOOM))],#IVIDX=IVIDX[which.min(abs(HowfarOOM))],
+                     UDLY=UDLY[which.min(abs(HowfarOOM))],Strike=Strike[which.min(abs(HowfarOOM))],
+                     Moneyness.Frac=Moneyness.Frac[which.min(abs(HowfarOOM))]) %>% 
+    as.data.frame() -> atmiv
+  atmiv %>% dplyr::select(Date,ExpDate,Strike,UDLY,TYPE,ATMIV,TimeToExpDate) %>% as.data.frame() -> atmiv
+  
+  #sorting
+  atmiv %>% dplyr::arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="%Y/%m/%d"),desc(TYPE)) -> atmiv
+  
+  return(atmiv)
+}
+
+
 makeOpchainContainer<-function(){  
   #read data file
   rf_<-paste(DataFiles_Path_G,Underying_Symbol_G,ProcessFileName,sep="")
@@ -196,59 +251,6 @@ makePosition <- function(opch,isSkewCalc){
   opch$Moneyness.Nm<-log(opch$Moneyness.Frac)/opch$ATMIV/sqrt(opch$TimeToExpDate)
   opchain<-opch
   return(opchain)
-}
-
-##
-#  atmiv not adjusted usig SkewModel
-makeNotAdjustedBySkewATMiv <- function(opch){
-  #standarize (unify) data expression
-  opch$Date=format(as.Date(opch$Date,format="%Y/%m/%d"),"%Y/%b/%d")
-  opch$ExpDate=format(as.Date(opch$ExpDate,format="%Y/%m/%d"),"%Y/%b/%d")
-  
-  # volatility and moneyness calculation complete
-  opch$Last<-opch$Bid<-opch$Ask<-opch$Ask<-opch$Volume<-opch$OI<-NULL
-  
-  #if >1.0 Strike is right(bigger) than UDLY, else(<1.0) left(smaller)
-  opch$Moneyness.Frac<-opch$Strike/opch$UDLY
-  # As fraction of UDLY. positive indicates OOM, negative ITM.
-  opch$HowfarOOM<-(1-opch$Moneyness.Frac)*opch$TYPE
-  #As fraction of Implied SD. >0 OOM, <0 ITM
-  #opch$Moneyness.SDFrac<-(opch$UDLY-opch$Strike)*opch$TYPE/(opch$UDLY*opch$IVIDX)
-  
-  #construct Time axis for regression. In this case expressed as Month.
-  get.busdays.between(start=opch$Date,end=opch$ExpDate)
-  bdays_per_month<-252/12
-  opch$TimeToExpDate<-get.busdays.between(start=opch$Date,end=opch$ExpDate)/bdays_per_month
-  rm(bdays_per_month)
-  
-  #sort
-  opch %>% dplyr::arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="%Y/%m/%d"),desc(TYPE),Strike) -> opch
-  
-  ##END Got complete opch
-  
-  #Get ATM Implied Volatilities for each option types.
-  ##START Create atmiv
-  opch %>% dplyr::group_by(Date,ExpDate,TYPE) %>% dplyr::filter(HowfarOOM>0) %>% 
-    #Get the OrigIV where HowfarOOM is minimum, ie. IV at ATM.
-    dplyr::summarise(num=n(),OOM=min(abs(HowfarOOM)),min.i=which.min(abs(HowfarOOM)),ATMIV=OrigIV[which.min(abs(HowfarOOM))],
-                     TimeToExpDate=TimeToExpDate[which.min(abs(HowfarOOM))],#IVIDX=IVIDX[which.min(abs(HowfarOOM))],
-                     UDLY=UDLY[which.min(abs(HowfarOOM))],Strike=Strike[which.min(abs(HowfarOOM))],
-                     Moneyness.Frac=Moneyness.Frac[which.min(abs(HowfarOOM))]) %>% 
-    as.data.frame() -> atmiv
-  atmiv %>% dplyr::select(Date,ExpDate,Strike,UDLY,TYPE,ATMIV,TimeToExpDate) %>% as.data.frame() -> atmiv
-  
-  #sorting
-  atmiv %>% dplyr::arrange(as.Date(Date,format="%Y/%m/%d"),as.Date(ExpDate,format="%Y/%m/%d"),desc(TYPE)) -> atmiv
-  
-  return(atmiv)
-}
-##
-#  Using SkewModel, adjust ATMIV to reflect the differnce between Strike and UDLY
-adjustATMIV <- function(atmiv){
-  displacement<-log(atmiv$Moneyness.Frac)/atmiv$ATMIV/sqrt(atmiv$TimeToExpDate)
-  smileCurve<-get.predicted.spline.skew(SkewModel,displacement)
-  ATMIV_adjst<-atmiv$ATMIV/smileCurve
-  return(ATMIV_adjst)
 }
 
 #called by filterPosition
