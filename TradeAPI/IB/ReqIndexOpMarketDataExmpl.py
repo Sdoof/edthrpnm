@@ -21,6 +21,10 @@ priceInfoDict = {}
 SPX_Strike_SHIFT = 0
 SPX_Strike_Max_P_LEFT_SHIFT = 150
 SPX_Strike_Min_C_RIGHT_SHIFT = 300
+if platform.node() == 'Manger':
+    SPX_Strike_SHIFT = 0
+elif platform.node() == 'Edthorp':
+    SPX_Strike_SHIFT = 0
 
 RUT_Strike_SHIFT = 0
 RUT_Strike_Max_P_LEFT_SHIFT = 100
@@ -245,8 +249,8 @@ def subscribeDataRequest(con):
 def writeToFile(sectype, symbol):
     global priceInfoDict
     if sectype == 'OPT':
-        fname = "C:/Users/kuby/edthrpnm/MarketData/" + symbol + sectype + "-" + platform.node() + "-" + datetime.now().strftime(
-            "%Y-%m-%d") + ".csv"
+        fname = "C:/Users/kuby/edthrpnm/MarketData/" + symbol + sectype +  datetime.now().strftime("%Y-%m-%d") + \
+                "-" + platform.node() + ".csv"
     elif sectype == 'IND':
         fname = "C:/Users/kuby/edthrpnm/MarketData/" + symbol + sectype + ".csv"
     else:
@@ -314,6 +318,8 @@ opContractList = [
     makeOptContract(sym='SPX', exp='20180420', strike='', right='C'),
     makeOptContract(sym='SPX', exp='20180430', strike='', right='P'),
     makeOptContract(sym='SPX', exp='20180430', strike='', right='C'),
+    makeOptContract(sym='SPX', exp='20180518', strike='', right='P'),
+    makeOptContract(sym='SPX', exp='20180518', strike='', right='C'),
     makeOptContract(sym='SPX', exp='20180531', strike='', right='P'),
     makeOptContract(sym='SPX', exp='20180531', strike='', right='C'),
     makeOptContract(sym='SPX', exp='20180615', strike='', right='P'),
