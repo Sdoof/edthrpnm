@@ -9,7 +9,7 @@ rm(list=ls())
 source('./ESourceRCode.R',encoding = 'UTF-8')
 source('./EDataProvisionLib.R',encoding = 'UTF-8')
 
-expdateElements=c("2018/3/16","2018/3/29","2018/4/20","2018/4/30","2018/5/31","2018/6/15","2018/6/29")
+expdateElements=c("2018/3/16","2018/3/29","2018/4/20","2018/4/30","2018/5/18","2018/5/31","2018/6/15")
 
 tmp=as_tibble(expand.grid(expdateElements,expdateElements,KEEP.OUT.ATTRS=T,stringsAsFactors = F))
 tmp %>% dplyr::rename(Front=Var1,Back=Var2) -> tmp
@@ -18,7 +18,7 @@ bdays_per_month<-252/12
 tmp %>% 
   dplyr::filter(as.Date(Front,format="%Y/%m/%d")<as.Date(Back,format="%Y/%m/%d")) %>%
   dplyr::mutate(TImeToExpDate=get.busdays.between(start=as.Date(Front,format="%Y/%m/%d"),end=as.Date(Back,format="%Y/%m/%d"))/bdays_per_month) %>%
-  dplyr::filter(TImeToExpDate>0.9&TImeToExpDate<3.5) -> tmp
+  dplyr::filter(TImeToExpDate>0.9&TImeToExpDate<4.0) -> tmp
 
 tmp %>% 
   dplyr::mutate(Front=str_extract(Front,"\\d*/\\d*/\\d*")) %>%
