@@ -16,7 +16,7 @@ hostids <- c("Manger","Edthorp")
 dates=as.Date(Sys.time())-c(0:100)
 fnames=paste(DataFiles_Path_G,Underying_Symbol_G,"OPT",dates,".csv",sep="")
 for( hostid in hostids){
-  fnames=c(fnames,paste(DataFiles_Path_G,Underying_Symbol_G,"OPT","-",hostid,"-",dates,".csv",sep=""))
+  fnames=c(fnames,paste(DataFiles_Path_G,Underying_Symbol_G,"OPT",dates,"-",hostid,".csv",sep=""))
 }
 fnames=fnames[file.exists(fnames)]
 fnames
