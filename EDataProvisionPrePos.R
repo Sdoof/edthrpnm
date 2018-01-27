@@ -9,7 +9,7 @@ rm(list=ls())
 source('./ESourceRCode.R',encoding = 'UTF-8')
 source('./EDataProvisionLib.R',encoding = 'UTF-8')
 
-expdateElements=c("2018/3/16","2018/3/29","2018/4/20","2018/4/30","2018/5/18","2018/5/31","2018/6/15")
+expdateElements=c("2018/3/16","2018/3/29","2018/4/20","2018/4/30","2018/5/18","2018/5/31","2018/6/15","2018/6/29")
 
 tmp=as_tibble(expand.grid(expdateElements,expdateElements,KEEP.OUT.ATTRS=T,stringsAsFactors = F))
 tmp %>% dplyr::rename(Front=Var1,Back=Var2) -> tmp
@@ -28,6 +28,8 @@ tmp %>%
 
 tmp %>% 
   dplyr::arrange(Front,TImeToExpDate) -> Expdates
+
+print(Expdates,n=nrow(Expdates),width = Inf)
 
 for( itrnum in 1:length(Expdates$Front)){
   TARGET_EXPDATE_FRONT=Expdates$Front[itrnum]
