@@ -181,11 +181,14 @@ y_idx=(-0.5)
 (ggplot(ATMIV_GmChg_Call_Up,aes(x=TimeToExpDate,y=(ATMIV.f/((IVIDX.f)^(x_idx))/(TimeToExpDate^(y_idx))),colour=DaysToMaxDate))+geom_point(alpha=0.5))
 (ggplot(ATMIV_GmChg_Call_Down,aes(x=TimeToExpDate,y=(ATMIV.f/((IVIDX.f)^(x_idx))/(TimeToExpDate^(y_idx))),colour=DaysToMaxDate))+geom_point(alpha=0.5))
 
+#Smoothness 
+df_ATMchg=5.5
+
 ###  Put Up
 ATMIV_GmChg_Regressed=ATMIV_GmChg_Put_Up
 model.ss<-smooth.spline(ATMIV_GmChg_Regressed$TimeToExpDate,
                         (ATMIV_GmChg_Regressed$ATMIV.f/((ATMIV_GmChg_Regressed$IVIDX.f)^(x_idx))/(ATMIV_GmChg_Regressed$TimeToExpDate^(y_idx))),
-                        df=3)
+                        df=df_ATMchg)
 (predict.c <- predict(model.ss,x=seq(0,max(ATMIV_GmChg_Regressed$TimeToExpDate),by=0.1)))
 (ggplot(ATMIV_GmChg_Regressed,aes(x=TimeToExpDate,
                                   y=(ATMIV.f/((IVIDX.f)^(x_idx))/(TimeToExpDate^(y_idx))),
@@ -200,7 +203,7 @@ PutIVUp_ATMIV.f.IVIDX.f_1D$model
 ATMIV_GmChg_Regressed=ATMIV_GmChg_Put_Down
 model.ss<-smooth.spline(ATMIV_GmChg_Regressed$TimeToExpDate,
                         (ATMIV_GmChg_Regressed$ATMIV.f/((ATMIV_GmChg_Regressed$IVIDX.f)^(x_idx))/(ATMIV_GmChg_Regressed$TimeToExpDate^(y_idx))),
-                        df=3)
+                        df=df_ATMchg)
 (predict.c <- predict(model.ss,x=seq(0,max(ATMIV_GmChg_Regressed$TimeToExpDate),by=0.1)))
 (ggplot(ATMIV_GmChg_Regressed,aes(x=TimeToExpDate,
                                   y=(ATMIV.f/((IVIDX.f)^(x_idx))/(TimeToExpDate^(y_idx))),
@@ -215,7 +218,7 @@ PutIVDown_ATMIV.f.IVIDX.f_1D$model
 ATMIV_GmChg_Regressed=ATMIV_GmChg_Call_Up
 model.ss<-smooth.spline(ATMIV_GmChg_Regressed$TimeToExpDate,
                         (ATMIV_GmChg_Regressed$ATMIV.f/((ATMIV_GmChg_Regressed$IVIDX.f)^(x_idx))/(ATMIV_GmChg_Regressed$TimeToExpDate^(y_idx))),
-                        df=3)
+                        df=df_ATMchg)
 (predict.c <- predict(model.ss,x=seq(0,max(ATMIV_GmChg_Regressed$TimeToExpDate),by=0.1)))
 (ggplot(ATMIV_GmChg_Regressed,aes(x=TimeToExpDate,
                                   y=(ATMIV.f/((IVIDX.f)^(x_idx))/(TimeToExpDate^(y_idx))),
@@ -230,7 +233,7 @@ CallIVUp_ATMIV.f.IVIDX.f_1D$model
 ATMIV_GmChg_Regressed=ATMIV_GmChg_Call_Down
 model.ss<-smooth.spline(ATMIV_GmChg_Regressed$TimeToExpDate,
                         (ATMIV_GmChg_Regressed$ATMIV.f/((ATMIV_GmChg_Regressed$IVIDX.f)^(x_idx))/(ATMIV_GmChg_Regressed$TimeToExpDate^(y_idx))),
-                        df=3)
+                        df=df_ATMchg)
 (predict.c <- predict(model.ss,x=seq(0,max(ATMIV_GmChg_Regressed$TimeToExpDate),by=0.1)))
 (ggplot(ATMIV_GmChg_Regressed,aes(x=TimeToExpDate,
                                   y=(ATMIV.f/((IVIDX.f)^(x_idx))/(TimeToExpDate^(y_idx))),
@@ -303,3 +306,4 @@ for(i in 1:length(fnames)){
               row.names = F,col.names=T,sep=",",append=F)
   
 }
+
