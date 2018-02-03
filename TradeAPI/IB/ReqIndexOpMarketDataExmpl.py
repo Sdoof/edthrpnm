@@ -30,13 +30,13 @@ RUT_Strike_SHIFT = 0
 RUT_Strike_Max_P_LEFT_SHIFT = 100
 RUT_Strike_Min_C_RIGHT_SHIFT = 150
 
-# SPX 2800, RUT 1580
-SPX_Strike_Max = 3100
-SPX_Strike_Min = 2200
+# SPX 2760, RUT 1550
+SPX_Strike_Max = 3060
+SPX_Strike_Min = 2160
 SPX_Strike_Max_P = SPX_Strike_Max - SPX_Strike_Max_P_LEFT_SHIFT
 SPX_Strike_Min_C = SPX_Strike_Min + SPX_Strike_Min_C_RIGHT_SHIFT
-RUT_Strike_Max = 1780
-RUT_Strike_Min = 1180
+RUT_Strike_Max = 1750
+RUT_Strike_Min = 1150
 RUT_Strike_Max_P = RUT_Strike_Max - RUT_Strike_Max_P_LEFT_SHIFT
 RUT_Strike_Min_C = RUT_Strike_Min + RUT_Strike_Min_C_RIGHT_SHIFT
 
@@ -296,8 +296,6 @@ def writeToFile(sectype, symbol):
 # -- main  ---------------------------------------------------------------------
 # 18 elements finish in 4min15s
 opContractList = [
-    makeOptContract(sym='RUT', exp='20180228', strike='', right='P'),
-    makeOptContract(sym='RUT', exp='20180228', strike='', right='C'),
     makeOptContract(sym='RUT', exp='20180315', strike='', right='P'),
     makeOptContract(sym='RUT', exp='20180315', strike='', right='C'),
     makeOptContract(sym='RUT', exp='20180329', strike='', right='P'),
@@ -308,8 +306,6 @@ opContractList = [
     makeOptContract(sym='RUT', exp='20180531', strike='', right='C'),
     makeOptContract(sym='RUT', exp='20180614', strike='', right='P'),
     makeOptContract(sym='RUT', exp='20180614', strike='', right='C'),
-    makeOptContract(sym='SPX', exp='20180228', strike='', right='P'),
-    makeOptContract(sym='SPX', exp='20180228', strike='', right='C'),
     makeOptContract(sym='SPX', exp='20180316', strike='', right='P'),
     makeOptContract(sym='SPX', exp='20180316', strike='', right='C'),
     makeOptContract(sym='SPX', exp='20180329', strike='', right='P'),
