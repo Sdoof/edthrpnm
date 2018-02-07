@@ -30,13 +30,13 @@ RUT_Strike_SHIFT = 0
 RUT_Strike_Max_P_LEFT_SHIFT = 100
 RUT_Strike_Min_C_RIGHT_SHIFT = 150
 
-# SPX 2760, RUT 1550
-SPX_Strike_Max = 3060
-SPX_Strike_Min = 2160
+# SPX 2690, RUT 1500
+SPX_Strike_Max = 2990
+SPX_Strike_Min = 2090
 SPX_Strike_Max_P = SPX_Strike_Max - SPX_Strike_Max_P_LEFT_SHIFT
 SPX_Strike_Min_C = SPX_Strike_Min + SPX_Strike_Min_C_RIGHT_SHIFT
-RUT_Strike_Max = 1750
-RUT_Strike_Min = 1150
+RUT_Strike_Max = 1700
+RUT_Strike_Min = 1100
 RUT_Strike_Max_P = RUT_Strike_Max - RUT_Strike_Max_P_LEFT_SHIFT
 RUT_Strike_Min_C = RUT_Strike_Min + RUT_Strike_Min_C_RIGHT_SHIFT
 
@@ -306,6 +306,8 @@ opContractList = [
     makeOptContract(sym='RUT', exp='20180531', strike='', right='C'),
     makeOptContract(sym='RUT', exp='20180614', strike='', right='P'),
     makeOptContract(sym='RUT', exp='20180614', strike='', right='C'),
+    makeOptContract(sym='RUT', exp='20180629', strike='', right='P'),
+    makeOptContract(sym='RUT', exp='20180629', strike='', right='C'),
     makeOptContract(sym='SPX', exp='20180316', strike='', right='P'),
     makeOptContract(sym='SPX', exp='20180316', strike='', right='C'),
     makeOptContract(sym='SPX', exp='20180329', strike='', right='P'),
@@ -323,7 +325,9 @@ opContractList = [
     makeOptContract(sym='SPX', exp='20180629', strike='', right='P'),
     makeOptContract(sym='SPX', exp='20180629', strike='', right='C'),
     makeOptContract(sym='SPX', exp='20180921', strike='', right='P'),
-    makeOptContract(sym='SPX', exp='20180921', strike='', right='C')
+    makeOptContract(sym='SPX', exp='20180921', strike='', right='C'),
+    makeOptContract(sym='SPX', exp='20180928', strike='', right='P'),
+    makeOptContract(sym='SPX', exp='20180928', strike='', right='C')
 ]
 
 idxContractList = [
